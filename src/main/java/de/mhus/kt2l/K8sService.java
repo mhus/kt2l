@@ -4,6 +4,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.KubeConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -18,11 +19,12 @@ import java.util.TreeSet;
 import static io.kubernetes.client.util.Config.ENV_KUBECONFIG;
 import static io.kubernetes.client.util.Config.SERVICEACCOUNT_CA_PATH;
 
+@Slf4j
 @Component
 public class K8sService {
 
-    private static final String LOCAL_CLUSTER_NAME = ".local-cluster";
-    private static final String DEFAULT_CLUSTER_NAME = "*";
+    public static final String LOCAL_CLUSTER_NAME = ".local-cluster";
+    public static final String DEFAULT_CLUSTER_NAME = "*";
 
     public Set<String> availableContexts() {
         Set<String> availableContexts = new TreeSet<>();
@@ -89,7 +91,10 @@ public class K8sService {
             return Config.fromCluster();
         }
         final var kubeConfig = getKubeContext(contextName);
-        kubeConfig.setContext(contextName);
+        if (!kubeConfig.setContext(contextName)) {
+            throw new RuntimeException("Context not found: " + contextName);
+        }
+        LOGGER.info("load client for {}: {} {}",contextName, kubeConfig.getCurrentContext(), kubeConfig.getServer());
         return Config.fromConfig(kubeConfig);
     }
 
