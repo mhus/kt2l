@@ -1,5 +1,6 @@
 package de.mhus.kt2l;
 
+import com.vaadin.flow.component.DetachNotifier;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -15,6 +16,8 @@ import com.vaadin.flow.data.provider.SortOrder;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
+import com.vaadin.flow.router.BeforeLeaveEvent;
+import com.vaadin.flow.router.BeforeLeaveObserver;
 import com.vaadin.flow.router.Route;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.vavr.control.Try;
@@ -27,16 +30,23 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
 @PermitAll
 @Route(value = "test/:clusterId*", layout = MainLayout.class)
-public class TestView extends VerticalLayout implements BeforeEnterObserver {
+public class TestView extends VerticalLayout implements BeforeEnterObserver, BeforeLeaveObserver {
 
     @Autowired
     private K8sService k8s;
+
+    @Autowired
+    ScheduledExecutorService scheduler;
+
     private String clusterId;
     private Grid<Pod> grid;
     private TextField filterText;
@@ -45,6 +55,7 @@ public class TestView extends VerticalLayout implements BeforeEnterObserver {
     private ComboBox<String> namespaceSelector;
     private CoreV1Api coreApi;
     private UI ui;
+    private ScheduledFuture<?> closeScheduler;
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
@@ -52,6 +63,13 @@ public class TestView extends VerticalLayout implements BeforeEnterObserver {
         coreApi = Try.of(() -> k8s.getCoreV1Api(clusterId)).onFailure(e -> LOGGER.error("Error ",e) ).get();
         LOGGER.info("ClusterId: {}",clusterId);
         createUI();
+        closeScheduler = scheduler.schedule(this::refresh, 10, java.util.concurrent.TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void beforeLeave(BeforeLeaveEvent event) {
+        LOGGER.info("Leave");
+        closeScheduler.cancel(false);
     }
 
     public void createUI() {
@@ -69,7 +87,7 @@ public class TestView extends VerticalLayout implements BeforeEnterObserver {
 
     }
 
-    @Scheduled(fixedRate = 10000)
+//    @Scheduled(fixedRate = 10000)
     public void refresh() {
         if (ui != null && grid != null && grid.getDataProvider() != null) {
             ui.access(() -> {
@@ -112,7 +130,7 @@ public class TestView extends VerticalLayout implements BeforeEnterObserver {
         toolbar.addClassName("toolbar");
         return toolbar;
     }
-    
+
     private record Pod(String name, String status, String age, long created) {
 
     }
