@@ -60,10 +60,24 @@ public class TestView extends VerticalLayout implements BeforeEnterObserver, Bef
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         clusterId = event.getRouteParameters().get("clusterId").get();
+
         coreApi = Try.of(() -> k8s.getCoreV1Api(clusterId)).onFailure(e -> LOGGER.error("Error ",e) ).get();
         LOGGER.info("ClusterId: {}",clusterId);
-        createUI();
-        closeScheduler = scheduler.schedule(this::refresh, 10, java.util.concurrent.TimeUnit.SECONDS);
+        if (grid == null)
+            createUI();
+
+        if (event.getRedirectQueryParameters() != null) {
+            final var searchString = event.getRedirectQueryParameters().getSingleParameter("search");
+            final var sortString = event.getRedirectQueryParameters().getSingleParameter("sort");
+            final var namespaceString = event.getRedirectQueryParameters().getSingleParameter("namespace");
+            namespaceString.ifPresent(s -> namespaceSelector.setValue(s));
+            searchString.ifPresent(s -> filterText.setValue(s));
+            sortString.ifPresent(s -> {
+                grid.setColumnOrder(grid.getColumnByKey(s));
+            });
+        }
+
+        closeScheduler = scheduler.scheduleAtFixedRate(this::refresh, 10, 10, java.util.concurrent.TimeUnit.SECONDS);
     }
 
     @Override
@@ -116,6 +130,7 @@ public class TestView extends VerticalLayout implements BeforeEnterObserver, Bef
         namespaceSelector.addValueChangeListener(e -> {
             podList = null;
             grid.getDataProvider().refreshAll();
+            UI.getCurrent().getPage().getHistory().pushState(null, "test/"+clusterId + "?namespace="+e.getValue());
         });
 
         filterText.setPlaceholder("Filter by name...");
