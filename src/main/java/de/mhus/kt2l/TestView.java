@@ -1,45 +1,30 @@
 package de.mhus.kt2l;
 
-import com.vaadin.flow.component.DetachNotifier;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
-import com.vaadin.flow.data.provider.SortDirection;
-import com.vaadin.flow.data.provider.SortOrder;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.BeforeLeaveEvent;
-import com.vaadin.flow.router.BeforeLeaveObserver;
-import com.vaadin.flow.router.Route;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.vavr.control.Try;
-import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-@PermitAll
-@Route(value = "test/:clusterId*", layout = MainLayout.class)
-public class TestView extends VerticalLayout implements BeforeEnterObserver, BeforeLeaveObserver {
+public class TestView extends VerticalLayout implements XTabListener {
 
     @Autowired
     private K8sService k8s;
@@ -56,35 +41,6 @@ public class TestView extends VerticalLayout implements BeforeEnterObserver, Bef
     private CoreV1Api coreApi;
     private UI ui;
     private ScheduledFuture<?> closeScheduler;
-
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        clusterId = event.getRouteParameters().get("clusterId").get();
-
-        coreApi = Try.of(() -> k8s.getCoreV1Api(clusterId)).onFailure(e -> LOGGER.error("Error ",e) ).get();
-        LOGGER.info("ClusterId: {}",clusterId);
-        if (grid == null)
-            createUI();
-
-        if (event.getRedirectQueryParameters() != null) {
-            final var searchString = event.getRedirectQueryParameters().getSingleParameter("search");
-            final var sortString = event.getRedirectQueryParameters().getSingleParameter("sort");
-            final var namespaceString = event.getRedirectQueryParameters().getSingleParameter("namespace");
-            namespaceString.ifPresent(s -> namespaceSelector.setValue(s));
-            searchString.ifPresent(s -> filterText.setValue(s));
-            sortString.ifPresent(s -> {
-                grid.setColumnOrder(grid.getColumnByKey(s));
-            });
-        }
-
-        closeScheduler = scheduler.scheduleAtFixedRate(this::refresh, 10, 10, java.util.concurrent.TimeUnit.SECONDS);
-    }
-
-    @Override
-    public void beforeLeave(BeforeLeaveEvent event) {
-        LOGGER.info("Leave");
-        closeScheduler.cancel(false);
-    }
 
     public void createUI() {
         removeAll();
@@ -144,6 +100,35 @@ public class TestView extends VerticalLayout implements BeforeEnterObserver, Bef
         var toolbar = new HorizontalLayout(filterText, namespaceSelector);
         toolbar.addClassName("toolbar");
         return toolbar;
+    }
+
+    @Override
+    public void tabInit(XTab xTab) {
+        clusterId = (String)xTab.getParameters().get("clusterId");
+        coreApi = Try.of(() -> k8s.getCoreV1Api(clusterId)).onFailure(e -> LOGGER.error("Error ",e) ).get();
+        LOGGER.info("ClusterId: {}",clusterId);
+        createUI();
+        if (grid == null)
+            createUI();
+
+        closeScheduler = scheduler.scheduleAtFixedRate(this::refresh, 10, 10, java.util.concurrent.TimeUnit.SECONDS);
+
+    }
+
+    @Override
+    public void tabSelected() {
+
+    }
+
+    @Override
+    public void tabClosed() {
+
+    }
+
+    @Override
+    public void tabDestroyed() {
+        LOGGER.info("Leave");
+        closeScheduler.cancel(false);
     }
 
     private record Pod(String name, String status, String age, long created) {
