@@ -11,6 +11,10 @@ public class MainPanel extends VerticalLayout implements XTabListener {
 
     @Autowired
     private K8sService k8s;
+
+    @Autowired
+    Configuration configuration;
+
     private XTab tab;
 
     public MainPanel() {
@@ -18,12 +22,17 @@ public class MainPanel extends VerticalLayout implements XTabListener {
     }
 
     public void createUi() {
-        removeAll();
+        final var clustersConfig = configuration.getClusterConfiguration();
+
         add(new Text(" "));
         ComboBox<Cluster> clusterBox = new ComboBox<>("Select a cluster");
         clusterBox.setItems(
                 k8s.availableContexts().stream()
-                        .map(id -> new Cluster(id, id))
+                        .map(id -> {
+                            final var clusterConfig = clustersConfig.getClusterOrDefault(id);
+                            return new Cluster(id, clusterConfig.name(), clusterConfig);
+                        })
+                        .filter(cluster -> cluster.config().enabled())
                         .toList()
         );
         clusterBox.setItemLabelGenerator(Cluster::name);
@@ -75,7 +84,7 @@ public class MainPanel extends VerticalLayout implements XTabListener {
 
     }
 
-    private record Cluster(String id, String name) {
+    private record Cluster(String id, String name, ClusterConfiguration.Cluster config) {
     }
 
 }

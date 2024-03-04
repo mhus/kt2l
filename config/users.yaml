@@ -1,0 +1,13 @@
+users:
+  - name: "admin"
+    password: "{noop}admin"
+    roles:
+    - "ADMIN"
+  - name: "user"
+    password: "{noop}user"
+    roles:
+    - "USER"
+  - name: "autologin"
+    password: "xxx"
+    roles:
+    - "ADMIN"

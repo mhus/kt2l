@@ -1,6 +1,8 @@
 package de.mhus.kt2l;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,10 +14,16 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import java.util.ArrayList;
+
 @EnableWebSecurity
 @Configuration
+@Slf4j
 public class SecurityConfiguration
         extends VaadinWebSecurity {
+
+    @Autowired
+    private de.mhus.kt2l.Configuration configuration;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -56,21 +64,20 @@ public class SecurityConfiguration
      */
     @Bean
     public UserDetailsManager userDetailsService() {
-        UserDetails user =
-                User.withUsername("user")
-                        .password("{noop}user")
-                        .roles("USER")
-                        .build();
-        UserDetails a =
-                User.withUsername("a")
-                        .password("{noop}a")
-                        .roles("USER")
-                        .build();
-        UserDetails admin =
-                User.withUsername("admin")
-                        .password("{noop}admin")
-                        .roles("ADMIN")
-                        .build();
-        return new InMemoryUserDetailsManager(a,user, admin);
+        final var userDetails = new ArrayList<UserDetails>();
+        final var loginConfig = configuration.getLoginConfiguration();
+        configuration.getUserDetailsConfiguration().getUsers().forEach(u -> {
+            LOGGER.info("Add user {} with roles {}", u.name(), u.roles());
+            var password = u.password();
+            if (loginConfig.isAutoLogin() && u.name().equals(loginConfig.getAutoLoginUser())) {
+                password = "{noop}" + loginConfig.getLocalAutoLoginPassword();
+                LOGGER.info("Set auto login password for user {} to {}", u.name(), password);
+            }
+            userDetails.add(User.withUsername(u.name())
+                    .password(password)
+                    .roles(u.roles().toArray(new String[0]))
+                    .build());
+        });
+        return new InMemoryUserDetailsManager(userDetails);
     }
 }

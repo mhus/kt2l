@@ -1,5 +1,6 @@
 package de.mhus.kt2l;
 
+import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
@@ -9,7 +10,9 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import de.mhus.commons.tools.MString;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,21 +35,27 @@ public class TestView extends VerticalLayout implements XTabListener {
     @Autowired
     ScheduledExecutorService scheduler;
 
+    @Autowired
+    Configuration config;
+
     private String clusterId;
     private Grid<Pod> grid;
     private TextField filterText;
     private List<Pod> podList = null;
     private List<Pod> filteredList;
     private ComboBox<String> namespaceSelector;
+    private ComboBox<V1APIResource> resourceSelector;
     private CoreV1Api coreApi;
     private UI ui;
     private ScheduledFuture<?> closeScheduler;
+    private ClusterConfiguration.Cluster clusterConfig;
 
     public void createUI() {
         removeAll();
         grid = new Grid<>(Pod.class);
         filterText = new TextField();
-        namespaceSelector = new ComboBox<String>();
+        namespaceSelector = new ComboBox<>();
+        resourceSelector = new ComboBox<>();
 
         addClassName("list-view");
         setSizeFull();
@@ -80,13 +89,58 @@ public class TestView extends VerticalLayout implements XTabListener {
     }
 
     private HorizontalLayout getToolbar() {
-        
-        namespaceSelector.setItems(K8sUtil.geNamespacesWithAll(coreApi));
+        // namespace selector
         namespaceSelector.setPlaceholder("Namespace");
+        namespaceSelector.getStyle().set("--vaadin-combo-box-overlay-width", "350px");
+        namespaceSelector.setItemLabelGenerator(String::toString);
+        K8sUtil.getNamespacesAsync(coreApi).handle((namespaces, t) -> {
+            if (t != null) {
+                LOGGER.error("Can't fetch namespaces",t);
+                return Collections.emptyList();
+            }
+            LOGGER.debug("Namespaces: {}",namespaces);
+            namespaces.addFirst("all");
+            ui.access(() -> {
+                namespaceSelector.setItems(namespaces);
+                namespaceSelector.setValue(clusterConfig.defaultNamespace());
+            });
+            return namespaces;
+        });
         namespaceSelector.addValueChangeListener(e -> {
             podList = null;
             grid.getDataProvider().refreshAll();
             UI.getCurrent().getPage().getHistory().pushState(null, "test/"+clusterId + "?namespace="+e.getValue());
+        });
+
+        resourceSelector.setPlaceholder("Resource");
+        resourceSelector.getStyle().set("--vaadin-combo-box-overlay-width", "350px");
+        resourceSelector.setItemLabelGenerator(new ItemLabelGenerator<V1APIResource>() {
+            @Override
+            public String apply(V1APIResource item) {
+                var shortNames = item.getShortNames();
+                var name = item.getSingularName();
+                if (MString.isEmpty(name)) name = item.getName();
+                return name + (shortNames != null ? " " + shortNames : "");
+            }
+        });
+
+        K8sUtil.getResourceTypesAsync(coreApi).handle((types, t) -> {
+            if (t != null) {
+                LOGGER.error("Can't fetch resource types",t);
+                return Collections.emptyList();
+            }
+            LOGGER.debug("Resource types: {}",types);
+            ui.access(() -> {
+                resourceSelector.setItems(types);
+                resourceSelector.setValue(types.stream().filter(r -> r.getName().equals(clusterConfig.defaultResourceType())).findFirst().orElse(null));
+            });
+            return types;
+        });
+
+        resourceSelector.addValueChangeListener(e -> {
+//            podList = null;
+//            grid.getDataProvider().refreshAll();
+//            UI.getCurrent().getPage().getHistory().pushState(null, "test/"+clusterId + "?namespace="+e.getValue());
         });
 
         filterText.setPlaceholder("Filter by name...");
@@ -97,7 +151,7 @@ public class TestView extends VerticalLayout implements XTabListener {
         });
 
 
-        var toolbar = new HorizontalLayout(filterText, namespaceSelector);
+        var toolbar = new HorizontalLayout(filterText, namespaceSelector,resourceSelector);
         toolbar.addClassName("toolbar");
         return toolbar;
     }
@@ -107,6 +161,7 @@ public class TestView extends VerticalLayout implements XTabListener {
         clusterId = (String)xTab.getParameters().get("clusterId");
         coreApi = Try.of(() -> k8s.getCoreV1Api(clusterId)).onFailure(e -> LOGGER.error("Error ",e) ).get();
         LOGGER.info("ClusterId: {}",clusterId);
+        clusterConfig = config.getClusterConfiguration().getClusterOrDefault(clusterId);
         createUI();
         if (grid == null)
             createUI();

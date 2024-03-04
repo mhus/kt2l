@@ -1,0 +1,35 @@
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <!-- Log all StructuredArgument instances -->
+        <arguments/>
+        <!-- Log all MDC fields except the ones from Sleuth - we add them below
+        under cleaned up names -->
+        <mdc>
+        </mdc>
+        <!-- Include Exception stack traces -->
+        <stackTrace/>
+        <timestamp>
+          <timeZone>UTC</timeZone>
+        </timestamp>
+        <!-- Assign logger fields to JSON object -->
+        <pattern>
+          <pattern>
+            {
+            "severity": "%level",
+            "message": "%message",
+            "thread": "%thread",
+            "logger": "%logger"
+            }
+          </pattern>
+        </pattern>
+      </providers>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
