@@ -1,7 +1,10 @@
 package de.mhus.kt2l;
 
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
@@ -12,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
@@ -28,6 +33,76 @@ public class KubeTest {
     private static final String CLUSTER_NAME = LOCAL_PROPERTIES.getProperty("cluster.name", null);
 
     @Test
+    public void testListAllResources() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        final var service = new K8sService();
+        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+
+        AppsV1Api api = new AppsV1Api(client);
+        GenericObjectsApi customApi = new GenericObjectsApi(client);
+//        Object list = customApi.listClusterCustomObject("storage.k8s.io", "v1", "csidrivers", "true", null, null, null, null, null, null, null, null, null);
+//        Object list = customApi.listNamespacedCustomObject("apps", "v1", "default", "daemonsets", null, null, null, null, null, null, null, null, null, null);
+//        Object list = customApi.listNamespacedCustomObject("apps", "v1", "", "daemonsets", null, null, null, null, null, null, null, null, null, null);
+        Object list = customApi.listNamespacedCustomObject(null, "v1", null, "pods", null, null, null, null, null, null, null, null, null, null);
+        System.out.println(list.getClass());
+        System.out.println(list);
+    }
+
+    @Test
+    public void testGenericApi() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        final var service = new K8sService();
+        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+
+        AppsV1Api api = new AppsV1Api(client);
+        GenericObjectsApi genericApi = new GenericObjectsApi(client);
+
+//        String resourceType = "apps/v1/daemonsets";
+//        String resourceType = "pods";
+        String resourceType = "storage.k8s.io/v1/csidrivers";
+
+        // v1/pods
+        // apps/v1/daemonsets
+        // storage.k8s.io/v1/csidrivers
+        final var parts = resourceType.split("/");
+        String group = null;
+        String version = "v1";
+        String plural = null;
+        if (parts.length == 3) {
+            group = parts[0];
+            version = parts[1];
+            plural = parts[2];
+        } else if (parts.length == 2) {
+            group = parts[0];
+            plural = parts[1];
+        } else {
+            plural = parts[0];
+        }
+
+        final var list = genericApi.listNamespacedCustomObject(group, version, null, plural, null, null, null, null, null, null, null, null, null, null);
+        final var type = new TypeToken<Map<String, Object>>() {
+        }.getType();
+        final var items = (List<Map<String, Object>>) ((LinkedTreeMap<String,Object>)list).get("items");
+        items.forEach(item -> {
+            final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
+            final var name = (String) metadata.get("name");
+            final var creationTimestamp = (String) metadata.get("creationTimestamp");
+            //final var status = item.get("status").toString();
+
+            System.out.println(name + " " + creationTimestamp);
+        });
+    }
+
+
+        @Test
     public void testKubeConfigStructure() throws IOException {
         try (final var kubeConfigFile = new FileReader(System.getenv("HOME") + "/.kube/config")) {
             var kubeConfig = KubeConfig.loadKubeConfig(kubeConfigFile);

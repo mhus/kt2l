@@ -28,34 +28,27 @@ public class MainPanel extends VerticalLayout implements XTabListener {
         ComboBox<Cluster> clusterBox = new ComboBox<>("Select a cluster");
         clusterBox.setItems(
                 k8s.availableContexts().stream()
-                        .map(id -> {
-                            final var clusterConfig = clustersConfig.getClusterOrDefault(id);
-                            return new Cluster(id, clusterConfig.name(), clusterConfig);
+                        .map(name -> {
+                            final var clusterConfig = clustersConfig.getClusterOrDefault(name);
+                            return new Cluster(name, clusterConfig.title(), clusterConfig);
                         })
                         .filter(cluster -> cluster.config().enabled())
                         .toList()
         );
-        clusterBox.setItemLabelGenerator(Cluster::name);
+        clusterBox.setItemLabelGenerator(Cluster::title);
         clusterBox.setWidthFull();
         add(clusterBox);
 
         Button resourcesButton = new Button("Resources");
         resourcesButton.addClickListener(click -> {
             if (clusterBox.getValue() != null) {
-//                MainLayout.addRoute(
-//                        clusterBox.getValue().name(),
-//                        TestView.class,
-//                        new RouteParameters(new RouteParam("clusterId", clusterBox.getValue().id())),
-//                        VaadinIcon.FILE.create());
-//                getUI().ifPresent(ui -> ui.navigate("/test/" + clusterBox.getValue().id()));
                 tab.getViewer().addTab(
-                        "test/" + clusterBox.getValue().id(),
-                        "Resources clusterBox.getValue().id()",
+                        "test/" + clusterBox.getValue().name(),
+                        "Resources " + clusterBox.getValue().title(),
                         true,
                         true,
                         VaadinIcon.PANEL.create(),
-                        () -> new TestView(),
-                        "clusterId", clusterBox.getValue().id()).select();
+                        () -> new ResourcesView(clusterBox.getValue().name())).select();
             }
         });
         add(resourcesButton);
@@ -84,7 +77,7 @@ public class MainPanel extends VerticalLayout implements XTabListener {
 
     }
 
-    private record Cluster(String id, String name, ClusterConfiguration.Cluster config) {
+    private record Cluster(String name, String title, ClusterConfiguration.Cluster config) {
     }
 
 }

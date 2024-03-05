@@ -1,0 +1,42 @@
+
+.xtabview .tabitem:hover {
+    background-color: #f2f2f2;
+}
+
+.xtabview .tabtext {
+    overflow-x: hidden;
+}
+
+.xtabview .tabitem {
+    background-color: #fff;
+    border: 1px solid #f2f2f2;
+    padding: 4px;
+    border-radius: 5px;
+    margin-bottom: 0px;
+}
+
+.xtabview .tabicon {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 24px;
+    max-height: 24px;
+}
+
+.xtabview .tabclose {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+    max-width: 12px;
+    max-height: 12px;
+}
+
+.xtabview .tabclose:hover {
+    background-color: #aeaeae;
+}
+
+.xtabview .selected {
+    background-color: #f6f6f6;
+}

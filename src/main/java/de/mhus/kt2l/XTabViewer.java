@@ -13,13 +13,15 @@ public class XTabViewer extends VerticalLayout {
 
     private final MainView mainView;
     private List<XTab> tabs = new LinkedList<>();
+    private XTab selectedTab;
 
     public XTabViewer(MainView mainView) {
         setWidthFull();
         this.mainView = mainView;
+        addClassName("xtabview");
     }
 
-    public XTab addTab(String id, String title, boolean closeable, boolean unique, Icon icon, Supplier<Component> panelCreator, Object ... parameters) {
+    public XTab addTab(String id, String title, boolean closeable, boolean unique, Icon icon, Supplier<Component> panelCreator) {
         if (unique) {
             Optional<XTab> tab = getTab(id);
             if (tab.isPresent()) {
@@ -27,13 +29,6 @@ public class XTabViewer extends VerticalLayout {
             }
         }
         final var newTab = new XTab(id, title, closeable, icon, panelCreator.get());
-        if (parameters != null && parameters.length > 0) {
-            if (parameters.length % 2 != 0)
-                throw new IllegalArgumentException("Parameters must be in pairs");
-            for (int i = 0; i < parameters.length; i += 2) {
-                newTab.getParameters().put(parameters[i].toString(), parameters[i + 1]);
-            }
-        }
         return addTab(newTab);
     }
 
@@ -45,6 +40,9 @@ public class XTabViewer extends VerticalLayout {
     }
 
     public void closeTab(XTab tab) {
+        if (selectedTab == tab) {
+            setSelected(tabs.getFirst());
+        }
         tabs.remove(tab);
         remove(tab);
     }
@@ -53,8 +51,12 @@ public class XTabViewer extends VerticalLayout {
         return tabs.stream().filter(t -> t.getTabId().equals(main)).findFirst();
     }
 
-    public void setPanel(Component panel) {
-        mainView.setContent(panel);
+    public void setSelected(XTab tab) {
+        if (selectedTab == tab) return;
+        selectedTab = tab;
+        tabs.forEach(t -> t.setSelectedVision(t == tab));
+        mainView.setContent(tab.getPanel());
+
 //        mainView.showRouterLayoutContent(panel);
     }
 

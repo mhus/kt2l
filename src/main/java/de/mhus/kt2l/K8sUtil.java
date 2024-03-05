@@ -1,5 +1,6 @@
 package de.mhus.kt2l;
 
+import de.mhus.commons.tools.MString;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -16,6 +17,9 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class K8sUtil {
+
+    public static final String NAMESPACE_ALL = "all";
+    public static final String RESOURCE_PODS =  "pods";
 
     public static LinkedList<String> getNamespaces(CoreV1Api coreApi) {
         LinkedList<String> namespaces = new LinkedList<>();
@@ -87,6 +91,20 @@ public class K8sUtil {
             LOGGER.error("Error getting resource types", e);
         }
         return future;
+    }
+
+    public static String toResourceType(V1APIResource resource) {
+        if (resource == null)
+            return null;
+        if (MString.isSet(resource.getGroup()))
+            return resource.getGroup() + "/" + resource.getVersion() + "/" + resource.getName();
+        if (resource.getVersion() != null && !resource.getVersion().equals("v1"))
+            return resource.getVersion() + "/" + resource.getName();
+        return resource.getName();
+    }
+
+    public static V1APIResource findResource(String resourceType, LinkedList<V1APIResource> resources) {
+        return resources.stream().filter(r -> toResourceType(r).equals(resourceType)).findFirst().orElse(null);
     }
 
 }

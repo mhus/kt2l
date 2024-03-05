@@ -16,6 +16,10 @@ public class ClusterConfiguration {
         return config.getString("defaultCluster", "");
     }
 
+    public String defaultResourceType() {
+        return config.getString("defaultResourceType", "pods");
+    }
+
     public Map<String, Cluster> getClusters() {
         final var clusters = new TreeMap<String, Cluster>();
         final var clusterConfig = config.getArray("clusters");
@@ -25,8 +29,8 @@ public class ClusterConfiguration {
                         cluster.getString("name").get(),
                         cluster.getString("title").orElse(cluster.getString("name").get()),
                         cluster.getBoolean("enabled").orElse(true),
-                        cluster.getString("defaultNamespace").orElse("all"),
-                        cluster.getString("defaultResourceType").orElse("pod")
+                        cluster.getString("defaultNamespace").orElse(K8sUtil.NAMESPACE_ALL),
+                        cluster.getString("defaultResourceType").orElse(defaultResourceType())
                 ));
             });
         return clusters;
@@ -39,7 +43,7 @@ public class ClusterConfiguration {
     public Cluster getClusterOrDefault(String name) {
         final var cluster = getClusters().get(name);
         if (cluster == null) {
-            return new Cluster(name, name, true, "all", "pod");
+            return new Cluster(name, name, true, K8sUtil.NAMESPACE_ALL, defaultResourceType());
         }
         return cluster;
     }
