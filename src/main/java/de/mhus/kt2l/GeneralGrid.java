@@ -49,7 +49,7 @@ public class GeneralGrid extends Grid<GeneralGrid.Resource> implements Resources
     }
 
     @Override
-    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig) {
+    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesView view) {
         this.coreApi = coreApi;
         this.clusterConfig = clusterConfig;
         addClassNames("contact-grid");

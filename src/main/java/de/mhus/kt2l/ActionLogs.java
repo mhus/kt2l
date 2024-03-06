@@ -1,0 +1,55 @@
+package de.mhus.kt2l;
+
+import com.vaadin.flow.component.icon.VaadinIcon;
+import org.springframework.stereotype.Component;
+
+import java.util.Set;
+
+@Component
+public class ActionLogs implements XUiAction {
+    @Override
+    public boolean canHandleResourceType(String resourceType) {
+        return K8sUtil.RESOURCE_PODS.equals(resourceType);
+    }
+
+    @Override
+    public boolean canHandleResource(String resourceType, Set<?> selected) {
+        return canHandleResourceType(resourceType) && selected.size() == 1;
+    }
+
+    @Override
+    public void execute(ExecutionContext context) {
+
+        context.getMainView().getTabBar().addTab(
+                "id",
+                "Logs",
+                true,
+                true,
+                VaadinIcon.NOTEBOOK.create(),
+                () ->
+                new PodLogsView(
+                        context.getClusterConfiguration(),
+                        context.getApi(),
+                        context.getMainView())).select();
+    }
+
+    @Override
+    public String getTitle() {
+        return "Logs";
+    }
+
+    @Override
+    public String getMenuBarPath() {
+        return "";
+    }
+
+    @Override
+    public String getShortcutKey() {
+        return "";
+    }
+
+    @Override
+    public String getPopupPath() {
+        return "";
+    }
+}

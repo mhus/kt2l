@@ -10,41 +10,43 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.vavr.control.Try;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 import static de.mhus.commons.tools.MString.isEmpty;
 
 @Slf4j
 public class ResourcesView extends VerticalLayout implements XTabListener {
 
+    @Getter
+    private final MainView mainView;
     @Autowired
+    @Getter
     private K8sService k8s;
-
     @Autowired
-    ScheduledExecutorService scheduler;
-
-    @Autowired
+    @Getter
     Configuration config;
-
+    @Getter
     private String clusterId;
     private ResourcesGrid grid;
     private TextField filterText;
     private ComboBox<String> namespaceSelector;
     private ComboBox<V1APIResource> resourceSelector;
     private CoreV1Api coreApi;
+    @Getter
     private UI ui;
-    private ScheduledFuture<?> closeScheduler;
+    @Getter
     private ClusterConfiguration.Cluster clusterConfig;
     private VerticalLayout gridContainer;
+    @Getter
     private String currentResourceType;
 
-    public ResourcesView(String clusterId) {
+    public ResourcesView(String clusterId, MainView mainView) {
         this.clusterId = clusterId;
+        this.mainView = mainView;
     }
 
     public void createUI() {
@@ -61,16 +63,6 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
         add(getToolbar(), gridContainer);
         this.ui = UI.getCurrent();
 
-    }
-
-//    @Scheduled(fixedRate = 10000)
-    public void refresh() {
-        if (ui != null && grid != null) {
-            ui.access(() -> {
-                LOGGER.info("Refresh " + grid.getClass().getSimpleName());
-                grid.refresh();
-            });
-        }
     }
 
     private HorizontalLayout getToolbar() {
@@ -119,7 +111,7 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
                 LOGGER.error("Can't fetch resource types",t);
                 return Collections.emptyList();
             }
-            LOGGER.debug("Resource types: {}",types);
+            LOGGER.debug("Resource types: {}",types.stream().map(V1APIResource::getName).toList());
             ui.access(() -> {
                 resourceSelector.setItems(types);
                 resourceSelector.setValue(
@@ -144,11 +136,12 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
     }
 
     private ResourcesGrid createGrid(String resourceType) {
-        if (resourceType != null) {
-            if (resourceType.equals(K8sUtil.RESOURCE_PODS))
-                return new PodGrid();
-        }
-        return new GeneralGrid();
+        ResourcesGrid resourcesGrid = resourceType == null ? new GeneralGrid() : switch(resourceType) {
+            case K8sUtil.RESOURCE_PODS -> new PodGrid();
+            default -> new GeneralGrid();
+        };
+        mainView.getBeanFactory().autowireBean(resourcesGrid);
+        return resourcesGrid;
     }
 
     @Override
@@ -163,8 +156,6 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
         grid = createGrid(clusterConfig.defaultResourceType());
         initGrid();
 
-        closeScheduler = scheduler.scheduleAtFixedRate(this::refresh, 10, 10, java.util.concurrent.TimeUnit.SECONDS);
-
     }
 
     private void initGrid() {
@@ -174,7 +165,7 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
             grid.setFilter(filterText.getValue());
             grid.setNamespace(namespaceSelector.getValue());
             grid.setResourceType(K8sUtil.toResourceType(resourceSelector.getValue()));
-            grid.init(coreApi, clusterConfig);
+            grid.init(coreApi, clusterConfig, this);
             gridContainer.add(grid.getComponent());
         }
     }
@@ -191,8 +182,16 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
 
     @Override
     public void tabDestroyed() {
-        LOGGER.info("Leave");
-        closeScheduler.cancel(false);
+    }
+
+    @Override
+    public void tabRefresh() {
+        if (ui != null && grid != null) {
+            ui.access(() -> {
+                LOGGER.info("Refresh " + grid.getClass().getSimpleName());
+                grid.refresh();
+            });
+        }
     }
 
 }

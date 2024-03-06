@@ -5,6 +5,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class MainPanel extends VerticalLayout implements XTabListener {
@@ -17,8 +18,11 @@ public class MainPanel extends VerticalLayout implements XTabListener {
 
     private XTab tab;
 
-    public MainPanel() {
-        add(new Text("Hello World"));
+    @Getter
+    private MainView mainView;
+
+    public MainPanel(MainView mainView) {
+        this.mainView = mainView;
     }
 
     public void createUi() {
@@ -46,9 +50,9 @@ public class MainPanel extends VerticalLayout implements XTabListener {
                         "test/" + clusterBox.getValue().name(),
                         "Resources " + clusterBox.getValue().title(),
                         true,
-                        true,
+                        false,
                         VaadinIcon.PANEL.create(),
-                        () -> new ResourcesView(clusterBox.getValue().name())).select();
+                        () -> new ResourcesView(clusterBox.getValue().name(), mainView)).select();
             }
         });
         add(resourcesButton);
@@ -74,6 +78,11 @@ public class MainPanel extends VerticalLayout implements XTabListener {
 
     @Override
     public void tabDestroyed() {
+
+    }
+
+    @Override
+    public void tabRefresh() {
 
     }
 

@@ -5,4 +5,6 @@ public interface XTabListener {
     void tabSelected();
     void tabClosed();
     void tabDestroyed();
+
+    void tabRefresh();
 }

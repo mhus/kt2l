@@ -8,21 +8,25 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class XTab extends HorizontalLayout {
 
     private final Icon icon;
     @Getter
     private final String tabId;
-    private final Text text;
+    @Getter
+    private final Text tabTitle; // in the tab
+    @Getter
+    private String windowTitle; // window top
+    @Getter
+    private XUi.COLOR color = XUi.COLOR.NONE;
     @Getter
     private final boolean closeable;
     @Getter
-    private final Component panel;
+    private Component panel;
     @Getter
-    private XTabViewer viewer;
+    private XTabBar viewer;
+    @Getter
+    private XTab parentTab;
 //    @Getter
 //    private Map<String, Object> parameters = new HashMap<>();
 
@@ -34,10 +38,11 @@ public class XTab extends HorizontalLayout {
         this.tabId = tabId;
         this.closeable = closeable;
         this.panel = panel;
-        text = new Text(title);
+        windowTitle = title;
+        tabTitle = new Text(title);
         Span span = new Span();
         span.setClassName("tabtext");
-        span.add(text);
+        span.add(tabTitle);
         add(icon, span);
         if (closeable) {
             Icon close = VaadinIcon.CLOSE.create();
@@ -56,12 +61,13 @@ public class XTab extends HorizontalLayout {
     }
 
     public void closeTab() {
-        viewer.closeTab(this);
+        viewer.internalCloseTab(this);
         if (this.panel != null && this.panel instanceof XTabListener)
             ((XTabListener) this.panel).tabDestroyed();
+        panel = null;
     }
 
-    public void setXTabViewer(XTabViewer tabViewer) {
+    public void setXTabViewer(XTabBar tabViewer) {
         this.viewer = tabViewer;
         viewer.getMainView().getBeanFactory().autowireBean(panel);
         if (panel instanceof XTabListener) {
@@ -69,12 +75,18 @@ public class XTab extends HorizontalLayout {
         }
     }
 
-    public void select() {
+    public XTab setParentTab(XTab parent) {
+        this.parentTab = parent;
+        return this;
+    }
+
+    public XTab select() {
         if (panel != null) {
             if (panel instanceof XTabListener)
                 ((XTabListener) panel).tabSelected();
             viewer.setSelected(this);
         }
+        return this;
     }
 
     public void setSelectedVision(boolean selected) {
@@ -84,4 +96,15 @@ public class XTab extends HorizontalLayout {
             removeClassName("selected");
         }
     }
+
+    public XTab setWindowTitle(String title) {
+        this.windowTitle = title;
+        return this;
+    }
+
+    public XTab setColor(XUi.COLOR color) {
+        this.color = color;
+        return this;
+    }
+
 }

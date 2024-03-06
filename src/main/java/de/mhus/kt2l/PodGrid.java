@@ -1,23 +1,35 @@
 package de.mhus.kt2l;
 
+import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import de.mhus.commons.errors.UsageException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.vavr.control.Try;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public class PodGrid extends Grid<PodGrid.Pod> implements ResourcesGrid {
+public class PodGrid extends VerticalLayout implements ResourcesGrid {
 
     private List<Pod> podList = null;
     private List<Pod> filteredList = null;
@@ -25,6 +37,13 @@ public class PodGrid extends Grid<PodGrid.Pod> implements ResourcesGrid {
     private String namespace;
     private CoreV1Api coreApi;
     private ClusterConfiguration.Cluster clusterConfig;
+    private Grid<Pod> grid;
+    private MenuBar menuBar;
+    private List<MenuAction> actions = new ArrayList<>(10);
+
+    @Autowired
+    private ActionService actionService;
+    private ResourcesView view;
 
     @Override
     public Component getComponent() {
@@ -34,28 +53,105 @@ public class PodGrid extends Grid<PodGrid.Pod> implements ResourcesGrid {
     @Override
     public void refresh() {
         podList = null;
-        getDataProvider().refreshAll();
+        grid.getDataProvider().refreshAll();
         UI.getCurrent().push();
     }
 
     @Override
-    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig) {
+    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesView view) {
         this.coreApi = coreApi;
+        this.view = view;
         this.clusterConfig = clusterConfig;
-        addClassNames("contact-grid");
+
+        createMenuBar();
+        createGrid();
+
+        add(menuBar,grid);
         setSizeFull();
-        addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
-        addColumn(pod -> pod.status()).setHeader("Status").setSortProperty("status");
-        addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
-        getColumns().forEach(col -> col.setAutoWidth(true));
-        setDataProvider(new PodProvider());
+
+        actions.forEach(a -> a.update(Collections.emptySet()));
+
+    }
+
+    private void createMenuBar() {
+        menuBar = new MenuBar();
+
+        actionService.findActionsForResource(K8sUtil.RESOURCE_PODS).forEach(action -> {
+
+            final MenuAction menuAction = new MenuAction();
+
+            MenuItem item = menuBar.addItem(action.getTitle(), new ComponentEventListener<ClickEvent<MenuItem>>() {
+                @Override
+                public void onComponentEvent(ClickEvent<MenuItem> event) {
+                    menuAction.execute();
+                }
+            });
+            item.setEnabled(false);
+
+            menuAction.setAction(action);
+            menuAction.setMenuItem(item);
+
+            actions.add(menuAction);
+
+        });
+
+    }
+
+    private void createGrid() {
+        grid = new Grid<>(Pod.class, false);
+        addClassNames("contact-grid");
+        grid.setSizeFull();
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        grid.addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
+        grid.addColumn(pod -> pod.status()).setHeader("Status").setSortProperty("status");
+        grid.addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
+        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+        grid.setDataProvider(new PodProvider());
+        grid.addSelectionListener(event -> {
+            actions.forEach(a -> a.update(event.getAllSelectedItems()));
+        });
+        grid.addItemClickListener(event -> {
+            if (event.getClickCount() == 1) {
+                if (event.isAltKey()) {
+                    if (grid.getSelectionModel().isSelected(event.getItem()))
+                        grid.getSelectionModel().deselect(event.getItem());
+                    else
+                        grid.getSelectionModel().select(event.getItem());
+                } else
+                if (event.isShiftKey()) {
+                    var first = grid.getSelectionModel().getFirstSelectedItem();
+                    if (first == null) {
+                        grid.getSelectionModel().select(event.getItem());
+                    } else {
+                        var start = filteredList.indexOf(first.get());
+                        var end = filteredList.indexOf(event.getItem());
+                        if (start > end) {
+                            var tmp = start;
+                            start = end;
+                            end = tmp;
+                        }
+                        grid.getSelectionModel().deselectAll();
+                        for (int i = start; i <= end; i++) {
+                            grid.getSelectionModel().select(filteredList.get(i));
+                        }
+                    }
+                } else {
+                    if (grid.getSelectionModel().isSelected(event.getItem()))
+                        grid.getSelectionModel().deselectAll();
+                    else {
+                        grid.getSelectionModel().deselectAll();
+                        grid.getSelectionModel().select(event.getItem());
+                    }
+                }
+            }
+        });
     }
 
     @Override
     public void setFilter(String value) {
         filterText = value;
         if (podList != null)
-            getDataProvider().refreshAll();
+            grid.getDataProvider().refreshAll();
     }
 
     @Override
@@ -63,7 +159,7 @@ public class PodGrid extends Grid<PodGrid.Pod> implements ResourcesGrid {
         namespace = value;
         if (podList != null) {
             podList = null;
-            getDataProvider().refreshAll();
+            grid.getDataProvider().refreshAll();
         }
     }
 
@@ -107,7 +203,12 @@ public class PodGrid extends Grid<PodGrid.Pod> implements ResourcesGrid {
                                     .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
                                     .onSuccess(podList -> {
                                         podList.getItems().forEach(pod -> {
-                                            PodGrid.this.podList.add(new Pod(pod.getMetadata().getName(), pod.getStatus().getPhase(), getAge(pod.getMetadata().getCreationTimestamp()), pod.getMetadata().getCreationTimestamp().toEpochSecond()));
+                                            PodGrid.this.podList.add(new Pod(
+                                                    pod.getMetadata().getName(),
+                                                    pod.getMetadata().getNamespace(),
+                                                    pod.getStatus().getPhase(),
+                                                    getAge(pod.getMetadata().getCreationTimestamp()),
+                                                    pod.getMetadata().getCreationTimestamp().toEpochSecond()));
                                         });
                                     });
                         }
@@ -143,10 +244,48 @@ public class PodGrid extends Grid<PodGrid.Pod> implements ResourcesGrid {
         }
     }
 
-    public record Pod(String name, String status, String age, long created) {
+    public record Pod(String name, String namespace, String status, String age, long created) {
 
     }
 
+    @Getter
+    @Setter
+    private class MenuAction {
+        XUiAction action;
+        MenuItem menuItem;
+
+        public void update(Set<Pod> selected) {
+            menuItem.setEnabled(action.canHandleResource(K8sUtil.RESOURCE_PODS,
+                    selected == null ? Collections.emptySet() : selected));
+        }
+        public void execute() {
+            if (!action.canHandleResource(K8sUtil.RESOURCE_PODS, grid.getSelectedItems())) {
+                Notification notification = Notification
+                        .show("Can't execute");
+                notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                return;
+            }
+            final var context = ExecutionContext.builder()
+                    .resourceType(K8sUtil.RESOURCE_PODS)
+                    .selected(grid.getSelectedItems())
+                    .namespace(namespace)
+                    .api(coreApi)
+                    .clusterConfiguration(clusterConfig)
+                    .ui(UI.getCurrent())
+                    .grid(PodGrid.this)
+                    .mainView(view.getMainView())
+                    .build();
+            try {
+                action.execute(context);
+            } catch (Exception e) {
+                Notification notification = Notification
+                        .show("Error\n"+e.getMessage());
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                return;
+            }
+
+        }
+    }
 }
 
 

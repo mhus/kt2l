@@ -3,19 +3,20 @@ package de.mhus.kt2l;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import de.mhus.commons.tools.MCollection;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class XTabViewer extends VerticalLayout {
+public class XTabBar extends VerticalLayout {
 
     private final MainView mainView;
     private List<XTab> tabs = new LinkedList<>();
     private XTab selectedTab;
 
-    public XTabViewer(MainView mainView) {
+    public XTabBar(MainView mainView) {
         setWidthFull();
         this.mainView = mainView;
         addClassName("xtabview");
@@ -39,9 +40,12 @@ public class XTabViewer extends VerticalLayout {
         return tab;
     }
 
-    public void closeTab(XTab tab) {
+    // internal, use getTab().closeTab()
+    void internalCloseTab(XTab tab) {
         if (selectedTab == tab) {
-            setSelected(tabs.getFirst());
+            setSelected(
+                    MCollection.contains(tabs, selectedTab.getParentTab())
+                            ? selectedTab.getParentTab() : tabs.get(0) );
         }
         tabs.remove(tab);
         remove(tab);
@@ -52,15 +56,20 @@ public class XTabViewer extends VerticalLayout {
     }
 
     public void setSelected(XTab tab) {
-        if (selectedTab == tab) return;
+        if (tab == null || selectedTab == tab) return;
         selectedTab = tab;
         tabs.forEach(t -> t.setSelectedVision(t == tab));
         mainView.setContent(tab.getPanel());
+        mainView.setWindowTitle(tab.getWindowTitle(), tab.getColor());
 
 //        mainView.showRouterLayoutContent(panel);
     }
 
     public MainView getMainView() {
         return mainView;
+    }
+
+    public XTab getSelectedTab() {
+        return selectedTab;
     }
 }
