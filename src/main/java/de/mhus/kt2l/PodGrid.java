@@ -14,6 +14,7 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.errors.UsageException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Pod;
 import io.vavr.control.Try;
 import lombok.Getter;
 import lombok.Setter;
@@ -208,7 +209,9 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                                                     pod.getMetadata().getNamespace(),
                                                     pod.getStatus().getPhase(),
                                                     getAge(pod.getMetadata().getCreationTimestamp()),
-                                                    pod.getMetadata().getCreationTimestamp().toEpochSecond()));
+                                                    pod.getMetadata().getCreationTimestamp().toEpochSecond(),
+                                                    pod
+                                            ));
                                         });
                                     });
                         }
@@ -244,7 +247,14 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         }
     }
 
-    public record Pod(String name, String namespace, String status, String age, long created) {
+    public record Pod(
+            String name,
+            String namespace,
+            String status,
+            String age,
+            long created,
+            V1Pod pod
+            ) {
 
     }
 
@@ -274,6 +284,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                     .ui(UI.getCurrent())
                     .grid(PodGrid.this)
                     .mainView(view.getMainView())
+                    .selectedTab(view.getXTab())
                     .build();
             try {
                 action.execute(context);

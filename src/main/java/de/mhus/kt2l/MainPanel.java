@@ -72,7 +72,7 @@ public class MainPanel extends VerticalLayout implements XTabListener {
     }
 
     @Override
-    public void tabClosed() {
+    public void tabDeselected() {
 
     }
 

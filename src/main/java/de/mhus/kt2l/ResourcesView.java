@@ -43,6 +43,8 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
     private VerticalLayout gridContainer;
     @Getter
     private String currentResourceType;
+    @Getter
+    private XTab xTab;
 
     public ResourcesView(String clusterId, MainView mainView) {
         this.clusterId = clusterId;
@@ -146,6 +148,7 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
 
     @Override
     public void tabInit(XTab xTab) {
+        this.xTab = xTab;
         coreApi = Try.of(() -> k8s.getCoreV1Api(clusterId)).onFailure(e -> LOGGER.error("Error ",e) ).get();
         LOGGER.info("ClusterId: {}",clusterId);
         clusterConfig = config.getClusterConfiguration().getClusterOrDefault(clusterId);
@@ -176,7 +179,7 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
     }
 
     @Override
-    public void tabClosed() {
+    public void tabDeselected() {
 
     }
 

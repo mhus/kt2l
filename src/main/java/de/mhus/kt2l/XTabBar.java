@@ -72,4 +72,11 @@ public class XTabBar extends VerticalLayout {
     public XTab getSelectedTab() {
         return selectedTab;
     }
+
+    void internalDeselectTab() {
+        if (selectedTab != null && selectedTab instanceof XTabListener) {
+            ((XTabListener) selectedTab).tabDeselected();
+            selectedTab = null;
+        }
+    }
 }

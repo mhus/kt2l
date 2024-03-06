@@ -3,6 +3,7 @@ package de.mhus.kt2l;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,6 +27,7 @@ public class ExecutionContext {
     private List<Exception> errors = new LinkedList<>();
     private ResourcesGrid grid;
     private MainView mainView;
+    private XTab selectedTab;
 
     public void finished() {
         if (errors.size() > 1) {

@@ -6,6 +6,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import io.vavr.control.Try;
 import lombok.Getter;
 
 public class XTab extends HorizontalLayout {
@@ -61,9 +62,9 @@ public class XTab extends HorizontalLayout {
     }
 
     public void closeTab() {
-        viewer.internalCloseTab(this);
         if (this.panel != null && this.panel instanceof XTabListener)
-            ((XTabListener) this.panel).tabDestroyed();
+            Try.run(() -> ((XTabListener) this.panel).tabDestroyed()).onFailure(e -> {});
+        viewer.internalCloseTab(this);
         panel = null;
     }
 
@@ -81,6 +82,7 @@ public class XTab extends HorizontalLayout {
     }
 
     public XTab select() {
+        viewer.internalDeselectTab();
         if (panel != null) {
             if (panel instanceof XTabListener)
                 ((XTabListener) panel).tabSelected();

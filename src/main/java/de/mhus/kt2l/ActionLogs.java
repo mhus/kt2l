@@ -30,7 +30,9 @@ public class ActionLogs implements XUiAction {
                 new PodLogsView(
                         context.getClusterConfiguration(),
                         context.getApi(),
-                        context.getMainView())).select();
+                        context.getMainView(),
+                        (PodGrid.Pod)context.getSelected().iterator().next()
+                        )).select().setParentTab(context.getSelectedTab());
     }
 
     @Override
