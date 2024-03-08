@@ -1,8 +1,8 @@
 package de.mhus.kt2l;
 
-import de.mhus.commons.node.ITreeNode;
-import de.mhus.commons.node.MNode;
-import de.mhus.commons.node.TreeNodeList;
+import de.mhus.commons.tree.ITreeNode;
+import de.mhus.commons.tree.MTree;
+import de.mhus.commons.tree.TreeNodeList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,7 +23,7 @@ public class UserDetailsConfiguration {
                 users.add(new User(
                         user.getString("name").get(),
                         user.getString("password").get(),
-                        MNode.getArrayValueStringList(user.getArray("roles").orElse(new TreeNodeList("", null)))
+                        MTree.getArrayValueStringList(user.getArray("roles").orElse(new TreeNodeList("", null)))
                 ));
             });
         return users;

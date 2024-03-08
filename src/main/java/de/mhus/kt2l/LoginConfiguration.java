@@ -1,6 +1,6 @@
 package de.mhus.kt2l;
 
-import de.mhus.commons.node.ITreeNode;
+import de.mhus.commons.tree.ITreeNode;
 
 import java.util.UUID;
 

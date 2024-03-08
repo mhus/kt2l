@@ -6,6 +6,7 @@
     </encoder>
   </appender>
 
+  <logger name="com.vaadin.flow.server.communication" level="INFO" />
   <root level="DEBUG">
     <appender-ref ref="STDOUT" />
   </root>

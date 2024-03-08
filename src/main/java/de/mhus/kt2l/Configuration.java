@@ -1,8 +1,8 @@
 package de.mhus.kt2l;
 
-import de.mhus.commons.node.ITreeNode;
-import de.mhus.commons.node.MNode;
-import de.mhus.commons.node.TreeNode;
+import de.mhus.commons.tree.ITreeNode;
+import de.mhus.commons.tree.MTree;
+import de.mhus.commons.tree.TreeNode;
 import de.mhus.commons.tools.MFile;
 import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ public class Configuration {
 
         ITreeNode section = null;
         if (file.exists()) {
-            section = Try.of(() -> MNode.load(file)).getOrElse(new TreeNode());
+            section = Try.of(() -> MTree.load(file)).getOrElse(new TreeNode());
         } else {
             LOGGER.info("Configuration {} not found", file.getAbsolutePath());
             section = new TreeNode();

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
-public class ActionLogs implements XUiAction {
+public class ActionExecute implements XUiAction {
     @Override
     public boolean canHandleResourceType(String resourceType) {
         return K8sUtil.RESOURCE_PODS.equals(resourceType);
@@ -28,7 +28,7 @@ public class ActionLogs implements XUiAction {
                 true,
                 VaadinIcon.NOTEBOOK.create(),
                 () ->
-                new PodLogsView(
+                new ContainerExecuteView(
                         context.getClusterConfiguration(),
                         context.getApi(),
                         context.getMainView(),
@@ -38,7 +38,7 @@ public class ActionLogs implements XUiAction {
 
     @Override
     public String getTitle() {
-        return "Logs";
+        return "Exec";
     }
 
     @Override
