@@ -4,6 +4,7 @@
 
 * [https://vaadin.com/docs/latest/overview]
 * [https://vaadin.com/directory/] # Vaadin Directory
+* [https://vaadin.com/directory/component/xterm-console-addon]
 
 ## Kubernetes
 

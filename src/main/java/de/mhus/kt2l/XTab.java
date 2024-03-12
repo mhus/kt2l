@@ -6,7 +6,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import io.vavr.control.Try;
 import lombok.Getter;
 
 public class XTab extends HorizontalLayout {
@@ -62,18 +61,13 @@ public class XTab extends HorizontalLayout {
     }
 
     public void closeTab() {
-        if (this.panel != null && this.panel instanceof XTabListener)
-            Try.run(() -> ((XTabListener) this.panel).tabDestroyed()).onFailure(e -> {});
-        viewer.internalCloseTab(this);
+        viewer.closeTab(this);
         panel = null;
     }
 
     public void setXTabViewer(XTabBar tabViewer) {
         this.viewer = tabViewer;
         viewer.getMainView().getBeanFactory().autowireBean(panel);
-        if (panel instanceof XTabListener) {
-            ((XTabListener) panel).tabInit(this);
-        }
     }
 
     public XTab setParentTab(XTab parent) {
@@ -82,16 +76,11 @@ public class XTab extends HorizontalLayout {
     }
 
     public XTab select() {
-        viewer.internalDeselectTab();
-        if (panel != null) {
-            if (panel instanceof XTabListener)
-                ((XTabListener) panel).tabSelected();
-            viewer.setSelected(this);
-        }
+        viewer.setSelected(this);
         return this;
     }
 
-    public void setSelectedVision(boolean selected) {
+    public void setShowButtonAsSelected(boolean selected) {
         if (selected) {
             addClassName("selected");
         } else {

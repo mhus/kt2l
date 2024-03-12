@@ -3,6 +3,7 @@ package de.mhus.kt2l;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
@@ -81,6 +82,16 @@ public class GeneralGrid extends Grid<GeneralGrid.Resource> implements Resources
         LOGGER.info("XXX Set resource type {}",resourceType);
         if (resourceType == null) return;
         this.resourceType = resourceType;
+    }
+
+    @Override
+    public void handleShortcut(ShortcutEvent event) {
+
+    }
+
+    @Override
+    public void setSelected() {
+
     }
 
     private class ResourcesProvider extends CallbackDataProvider<Resource, Void> {

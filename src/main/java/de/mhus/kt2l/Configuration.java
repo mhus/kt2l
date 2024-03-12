@@ -1,5 +1,7 @@
 package de.mhus.kt2l;
 
+import com.vaadin.flow.component.UI;
+import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNode;
@@ -20,16 +22,35 @@ public class Configuration {
     @Value("${configuration.directory:config}")
     private String configurationDirectory;
 
+    @Value("${users.directory:config/users}")
+    private String usersDirectory;
+
+    private static final String[] PROTECTED_CONFIGS = {"users"};
+
     private Map<String, ITreeNode> sections = new HashMap<>();
 
-    public synchronized ITreeNode getSection(String sectionName) {
-        if (sections.containsKey(sectionName))
-            return sections.get(sectionName);
-        final var file = new File(configurationDirectory + "/" + MFile.normalize(sectionName.toLowerCase()) + ".yaml");
+    public synchronized ITreeNode getSection(String sectionNameIn) {
+        if (sections.containsKey(sectionNameIn))
+            return sections.get(sectionNameIn);
+
+        final var userName = Try.of(() -> (String)UI.getCurrent().getSession().getAttribute(Kt2lApplication.UI_USERNAME)).getOrElse((String)null);
+        final var sectionName = sectionNameIn.toLowerCase();
+
+        File file = null;
+        if (!MCollection.contains(PROTECTED_CONFIGS, sectionName) && userName != null) {
+            final var user = MFile.normalize(userName.toLowerCase());
+            file = new File(usersDirectory + "/" + user + "/" + MFile.normalize(sectionName) + ".yaml");
+        }
+        if (file == null || !file.exists())
+            file = new File(configurationDirectory + "/" + MFile.normalize(sectionName) + ".yaml");
+        final var finalFile = file;
 
         ITreeNode section = null;
-        if (file.exists()) {
-            section = Try.of(() -> MTree.load(file)).getOrElse(new TreeNode());
+        if (finalFile.exists()) {
+            LOGGER.info("Load configuration {} from {}", sectionName, file.getAbsolutePath());
+            section = Try.of(() -> MTree.load(finalFile)).onFailure(
+                    e -> LOGGER.error("Can't load configuration {} from {}", sectionName, finalFile.getAbsolutePath(), e)
+            ).getOrElse(new TreeNode());
         } else {
             LOGGER.info("Configuration {} not found", file.getAbsolutePath());
             section = new TreeNode();

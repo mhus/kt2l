@@ -1,7 +1,3 @@
 defaultCluster: arn:aws:eks:eu-central-1:449305603284:cluster/q_machine_priv_dev
 defaultResourceType: "pods"
 clusters:
-  - name: "arn:aws:eks:eu-central-1:449305603284:cluster/q_machine_priv_dev"
-    title: "AWS DEV"
-    enabled: true
-    color: red

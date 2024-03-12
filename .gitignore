@@ -38,3 +38,4 @@ build/
 frontend/generated
 
 /src/test/resources/local.properties
+/config/users/autologin/

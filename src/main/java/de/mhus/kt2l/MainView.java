@@ -1,5 +1,10 @@
 package de.mhus.kt2l;
 
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.ShortcutEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
@@ -14,8 +19,11 @@ import com.vaadin.flow.router.BeforeEnterListener;
 import com.vaadin.flow.router.BeforeLeaveEvent;
 import com.vaadin.flow.router.BeforeLeaveListener;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MSystem;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,15 +32,20 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+
+import static de.mhus.commons.tools.MCollection.detached;
 
 @PermitAll
 @Route(value = "/")
 @CssImport("./styles/custom.css")
 @Slf4j
-public class MainView extends AppLayout implements BeforeLeaveListener, BeforeEnterListener {
+public class MainView extends AppLayout {
 
     private @Autowired
             @Getter
@@ -45,6 +58,8 @@ public class MainView extends AppLayout implements BeforeLeaveListener, BeforeEn
     private XTabBar tabBar;
     private ScheduledFuture<?> closeScheduler;
     private Span tabTitle;
+    private Registration heartbeatRegistration;
+    private Set<String> registeredKeyShortcuts = new HashSet<>();
 
     public MainView(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -61,6 +76,23 @@ public class MainView extends AppLayout implements BeforeLeaveListener, BeforeEn
 
     }
 
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        LOGGER.error("UI on attach {}", MSystem.getObjectId(getUI().get()));
+        heartbeatRegistration = getUI().get().addHeartbeatListener(event -> {
+            LOGGER.debug("Heartbeat");
+        });
+
+    }
+
+    protected void onDetach(DetachEvent detachEvent) {
+        LOGGER.error("UI on detach {}", MSystem.getObjectId(getUI().get()));
+        closeScheduler.cancel(false);
+        detached(tabBar.getTabs()).forEach(XTab::closeTab);
+        if (heartbeatRegistration != null)
+            heartbeatRegistration.remove();
+    }
+
     private void createHeader() {
         H1 logo = new H1("kt2l");
         logo.addClassNames(
@@ -72,6 +104,9 @@ public class MainView extends AppLayout implements BeforeLeaveListener, BeforeEn
 
                     tabTitle = new Span("");
                     tabTitle.setWidthFull();
+                    if (userDetails != null) {
+                        UI.getCurrent().getSession().setAttribute(Kt2lApplication.UI_USERNAME, userDetails.getUsername());
+                    }
                     if (userDetails != null && !userDetails.getUsername().equals("autologin")) { //XXX config
                         var space = new Span(" ");
                         var logout = new Button("Logout", click -> authContext.logout());
@@ -101,29 +136,19 @@ public class MainView extends AppLayout implements BeforeLeaveListener, BeforeEn
         tabBar.addTab(new XTab("main", "Main", false, VaadinIcon.DASHBOARD.create(), new MainPanel(this))).select();
     }
 
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-    }
-
     private void fireRefresh() {
-        LOGGER.info("Refresh");
         try {
             final var selected = tabBar.getSelectedTab();
             if (selected != null) {
                 final var panel = selected.getPanel();
                 if (panel != null && panel instanceof XTabListener) {
+                    LOGGER.debug("Refresh selected panel {}", panel.getClass());
                     ((XTabListener) panel).tabRefresh();
                 }
             }
         } catch (Exception e) {
             LOGGER.error("Error refreshing", e);
         }
-    }
-
-    @Override
-    public void beforeLeave(BeforeLeaveEvent event) {
-        LOGGER.info("Cancel Refresh Scheduler");
-        closeScheduler.cancel(false);
     }
 
     public void setWindowTitle(String title, XUi.COLOR color) {
@@ -139,5 +164,25 @@ public class MainView extends AppLayout implements BeforeLeaveListener, BeforeEn
 
     public XTabBar getTabBar() {
         return tabBar;
+    }
+
+    public void registerKeyShortcut(Key key) {
+        if (registeredKeyShortcuts.contains(key.toString()))
+            return;
+
+        getUI().get().addShortcutListener(this::handleKeyShortcut, key);
+
+    }
+
+    private void handleKeyShortcut(ShortcutEvent shortcutEvent) {
+        LOGGER.debug("Shortcut: {}", shortcutEvent.getKey().getKeys().get(0));
+        final var selected = tabBar.getSelectedTab();
+        if (selected != null) {
+            final var panel = selected.getPanel();
+            if (panel != null && panel instanceof XTabListener) {
+                LOGGER.debug("Shortcut to panel {}", panel.getClass());
+                ((XTabListener) panel).tabShortcut(shortcutEvent);
+            }
+        }
     }
 }

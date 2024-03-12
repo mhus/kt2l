@@ -69,7 +69,9 @@
     "@vaadin/virtual-list": "24.3.6",
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
-    "lit": "3.1.2"
+    "lit": "3.1.2",
+    "xterm": "5.1.0",
+    "xterm-addon-fit": "0.7.0"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "5.0.5",
@@ -157,7 +159,9 @@
       "@vaadin/virtual-list": "24.3.6",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
-      "lit": "3.1.2"
+      "lit": "3.1.2",
+      "xterm": "5.1.0",
+      "xterm-addon-fit": "0.7.0"
     },
     "devDependencies": {
       "@rollup/plugin-replace": "5.0.5",
@@ -177,7 +181,7 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "c077a98be83a50df5a3692e09006ff035e3abb24e79b9d284e9cfb72cf49395f"
+    "hash": "d4801edd83e3e559d54165288ac1efc5848256f5f1343520311dcf1b5822a29f"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -246,6 +250,8 @@
     "lit": "$lit",
     "@polymer/polymer": "$@polymer/polymer",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
-    "date-fns": "$date-fns"
+    "date-fns": "$date-fns",
+    "xterm-addon-fit": "$xterm-addon-fit",
+    "xterm": "$xterm"
   }
 }

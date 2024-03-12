@@ -1,5 +1,6 @@
 package de.mhus.kt2l;
 
+import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -258,5 +259,10 @@ public class PodLogsView extends VerticalLayout implements XTabListener {
 
     @Override
     public void tabRefresh() {
+    }
+
+    @Override
+    public void tabShortcut(ShortcutEvent event) {
+
     }
 }

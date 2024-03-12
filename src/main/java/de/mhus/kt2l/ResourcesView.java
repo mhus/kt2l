@@ -1,6 +1,7 @@
 package de.mhus.kt2l;
 
 import com.vaadin.flow.component.ItemLabelGenerator;
+import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -175,7 +176,7 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
 
     @Override
     public void tabSelected() {
-
+        grid.setSelected();
     }
 
     @Override
@@ -195,6 +196,11 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
                 grid.refresh();
             });
         }
+    }
+
+    @Override
+    public void tabShortcut(ShortcutEvent event) {
+        grid.handleShortcut(event);
     }
 
 }

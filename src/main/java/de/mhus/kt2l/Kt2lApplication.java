@@ -14,6 +14,8 @@ import java.util.concurrent.ScheduledExecutorService;
 @SpringBootApplication
 public class Kt2lApplication {
 
+	public static final String UI_USERNAME = "username";
+
 	public static void main(String[] args) {
 		SpringApplication.run(Kt2lApplication.class, args);
 	}

@@ -6,10 +6,14 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
+import io.kubernetes.client.openapi.models.V1WatchEvent;
 import io.kubernetes.client.util.KubeConfig;
+import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileReader;
@@ -31,6 +35,48 @@ public class KubeTest {
         }
     }
     private static final String CLUSTER_NAME = LOCAL_PROPERTIES.getProperty("cluster.name", null);
+
+    @Test
+    @Disabled
+    public void testWatch() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        final var service = new K8sService();
+        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+
+        CoreV1Api api = new CoreV1Api(client);
+
+        Watch<V1WatchEvent> watch = Watch.createWatch(
+                client,
+//                api.listNamespaceCall(null,
+//                        null,
+//                        null,
+//                        null,
+//                        null,
+//                        5,
+//                        null,
+//                        null,
+//                        null, Boolean.TRUE, null),
+                api.listEventForAllNamespacesCall(null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        Boolean.TRUE,
+                        null),
+                new TypeToken<Watch.Response<V1WatchEvent>>(){}.getType());
+
+        for (Watch.Response<V1WatchEvent> item : watch) {
+            System.out.printf("%s : %s%n", item.type, item.object);
+        }
+    }
 
     @Test
     public void testListAllResources() throws IOException, ApiException {

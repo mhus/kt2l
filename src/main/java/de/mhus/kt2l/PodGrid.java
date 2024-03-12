@@ -3,8 +3,11 @@ package de.mhus.kt2l;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.grid.CellFocusEvent;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
@@ -24,6 +27,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,6 +50,8 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     @Autowired
     private ActionService actionService;
     private ResourcesView view;
+    private Pod containerSelectedPod;
+    private Optional<Pod> selectedPod;
 
     @Override
     public Component getComponent() {
@@ -103,7 +109,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         containerGrid = new Grid<>(Container.class, false);
         addClassNames("contact-grid");
         containerGrid.setWidthFull();
-        containerGrid.setHeight("300px");
+        containerGrid.setHeight("200px");
         containerGrid.addColumn(cont -> cont.name()).setHeader("Name").setSortProperty("name");
         containerGrid.addColumn(cont -> cont.status()).setHeader("Status").setSortProperty("status");
         containerGrid.addColumn(cont -> cont.age()).setHeader("Age").setSortProperty("age");
@@ -113,6 +119,10 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     }
 
     private void createPodGrid() {
+
+        view.getMainView().registerKeyShortcut(Key.SPACE);
+        view.getMainView().registerKeyShortcut(Key.ENTER);
+
         podGrid = new Grid<>(Pod.class, false);
         addClassNames("contact-grid");
         podGrid.setSizeFull();
@@ -122,14 +132,22 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         podGrid.addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
         podGrid.getColumns().forEach(col -> col.setAutoWidth(true));
         podGrid.setDataProvider(new PodProvider());
+
+        podGrid.addCellFocusListener(event -> {
+            selectedPod = event.getItem();
+            if (selectedPod.isPresent())
+                setContainerPod(selectedPod.get());
+        });
+
         podGrid.addSelectionListener(event -> {
             actions.forEach(a -> a.update(event.getAllSelectedItems()));
         });
         podGrid.addItemClickListener(event -> {
             if (event.getClickCount() == 2) {
-                containerGrid.setVisible(!containerGrid.isVisible());
+                flipContainerVisibility(event.getItem(), false, false);
             } else
             if (event.getClickCount() == 1) {
+                setContainerPod(event.getItem());
                 if (event.isAltKey()) {
                     if (podGrid.getSelectionModel().isSelected(event.getItem()))
                         podGrid.getSelectionModel().deselect(event.getItem());
@@ -165,6 +183,14 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         });
     }
 
+    private void setContainerPod(Pod item) {
+        if (containerGrid.isVisible()) {
+            containerSelectedPod = item;
+            containerList = null;
+            containerGrid.getDataProvider().refreshAll();
+        }
+    }
+
     @Override
     public void setFilter(String value) {
         filterText = value;
@@ -185,10 +211,51 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     public void setResourceType(String resourceType) {
 
     }
+
+    @Override
+    public void handleShortcut(ShortcutEvent event) {
+        if (event.getKey().matches(" ") && event.getKeyModifiers().size() == 0) {
+            if (selectedPod != null && selectedPod.isPresent()) {
+                if (podGrid.getSelectionModel().isSelected(selectedPod.get()))
+                    podGrid.getSelectionModel().deselect(selectedPod.get());
+                else
+                    podGrid.getSelectionModel().select(selectedPod.get());
+            }
+        } else
+        if (event.getKey().matches(Key.ENTER.toString()) && event.getKeyModifiers().size() == 0) {
+            if (selectedPod != null && selectedPod.isPresent()) {
+                flipContainerVisibility(selectedPod.get(), true, true);
+            }
+        }
+    }
+
+    private void flipContainerVisibility(Pod pod, boolean alwaysVisible, boolean focus) {
+        containerList = null;
+        containerSelectedPod = null;
+        containerGrid.setVisible(alwaysVisible || !containerGrid.isVisible());
+        if (containerGrid.isVisible()) {
+            containerSelectedPod = pod;
+            containerGrid.getDataProvider().refreshAll();
+            if (focus)
+                containerGrid.getElement().getNode()
+                        .runWhenAttached(ui -> ui.getPage().executeJs(
+                                "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", containerGrid.getElement()));
+        }
+
+    }
+
+    @Override
+    public void setSelected() {
+        podGrid.getElement().getNode()
+                .runWhenAttached(ui -> ui.getPage().executeJs(
+                        "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", podGrid.getElement()));
+
+    }
+
     private class ContainerProvider extends CallbackDataProvider<Container, Void> {
         public ContainerProvider() {
             super(query -> {
-                        LOGGER.info("Cont: Do the query {}",query);
+                        LOGGER.debug("Cont: Do the query {}",query);
                         for(QuerySortOrder queryOrder :
                                 query.getSortOrders()) {
                             Collections.sort(containerList, (a, b) -> switch (queryOrder.getSorted()) {
@@ -210,24 +277,28 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                         }
                         return containerList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
-                        LOGGER.info("Do the size query {}",query);
+                        LOGGER.debug("Do the size query {}",query);
                         if (containerList == null) {
                             containerList = new ArrayList<>();
-//                            final var namespaceName = namespace ==  null || namespace.equals(K8sUtil.NAMESPACE_ALL) ? null : (String) namespace;
-//                            Try.of(() -> namespaceName == null ? coreApi.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null ) :  coreApi.listNamespacedPod(namespaceName, null, null, null, null, null, null, null, null, null, null))
-//                                    .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
-//                                    .onSuccess(podList -> {
-//                                        podList.getItems().forEach(pod -> {
-//                                            PodGrid.this.podList.add(new Pod(
-//                                                    pod.getMetadata().getName(),
-//                                                    pod.getMetadata().getNamespace(),
-//                                                    pod.getStatus().getPhase(),
-//                                                    getAge(pod.getMetadata().getCreationTimestamp()),
-//                                                    pod.getMetadata().getCreationTimestamp().toEpochSecond(),
-//                                                    pod
-//                                            ));
-//                                        });
-//                                    });
+
+                            final var selectedPod = containerSelectedPod;
+                            if (selectedPod == null) return 0;
+                            try {
+                                selectedPod.pod().getStatus().getContainerStatuses().forEach(
+                                        cs -> {
+                                            containerList.add(new Container(
+                                                    cs.getName(),
+                                                    selectedPod.namespace(),
+                                                    cs.getState().getWaiting() != null ? "Waiting" : "Running",
+                                                    getAge(containerSelectedPod.pod().getMetadata().getCreationTimestamp()),
+                                                    selectedPod.pod().getMetadata().getCreationTimestamp().toEpochSecond(),
+                                                    selectedPod.pod()
+                                            ));
+                                        }
+                                );
+                            } catch (Exception e) {
+                                LOGGER.error("Can't fetch containers",e);
+                            }
                         }
                         return containerList.size();
                     }

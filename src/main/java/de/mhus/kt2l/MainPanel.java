@@ -1,13 +1,16 @@
 package de.mhus.kt2l;
 
+import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class MainPanel extends VerticalLayout implements XTabListener {
 
     @Autowired
@@ -20,6 +23,7 @@ public class MainPanel extends VerticalLayout implements XTabListener {
 
     @Getter
     private MainView mainView;
+    private ComboBox<Cluster> clusterBox;
 
     public MainPanel(MainView mainView) {
         this.mainView = mainView;
@@ -29,7 +33,7 @@ public class MainPanel extends VerticalLayout implements XTabListener {
         final var clustersConfig = configuration.getClusterConfiguration();
 
         add(new Text(" "));
-        ComboBox<Cluster> clusterBox = new ComboBox<>("Select a cluster");
+        clusterBox = new ComboBox<>("Select a cluster");
         clusterBox.setItems(
                 k8s.availableContexts().stream()
                         .map(name -> {
@@ -62,27 +66,35 @@ public class MainPanel extends VerticalLayout implements XTabListener {
 
     @Override
     public void tabInit(XTab xTab) {
+        LOGGER.error("Main Init");
         this.tab = xTab;
         createUi();
     }
 
     @Override
     public void tabSelected() {
-
+        LOGGER.error("Main Selected");
+        if (clusterBox != null)
+            clusterBox.focus();
     }
 
     @Override
     public void tabDeselected() {
-
+        LOGGER.error("Main DeSelected");
     }
 
     @Override
     public void tabDestroyed() {
-
+        LOGGER.error("Main Destroyed");
     }
 
     @Override
     public void tabRefresh() {
+        LOGGER.error("Main Refreshed");
+    }
+
+    @Override
+    public void tabShortcut(ShortcutEvent event) {
 
     }
 
