@@ -7,6 +7,7 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1WatchEvent;
@@ -38,7 +39,7 @@ public class KubeTest {
 
     @Test
     @Disabled
-    public void testWatch() throws IOException, ApiException {
+    public void testWatchEvents() throws IOException, ApiException {
 
         if (CLUSTER_NAME == null) {
             LOGGER.error("Local properties not found");
@@ -51,15 +52,6 @@ public class KubeTest {
 
         Watch<V1WatchEvent> watch = Watch.createWatch(
                 client,
-//                api.listNamespaceCall(null,
-//                        null,
-//                        null,
-//                        null,
-//                        null,
-//                        5,
-//                        null,
-//                        null,
-//                        null, Boolean.TRUE, null),
                 api.listEventForAllNamespacesCall(null,
                         null,
                         null,
@@ -68,14 +60,60 @@ public class KubeTest {
                         null,
                         null,
                         null,
-                        null,
+                        120,
                         Boolean.TRUE,
                         null),
                 new TypeToken<Watch.Response<V1WatchEvent>>(){}.getType());
 
         for (Watch.Response<V1WatchEvent> item : watch) {
-            System.out.printf("%s : %s%n", item.type, item.object);
+            System.out.printf("%s : %s %s%n", item.type, item.object, item.status);
         }
+    }
+
+    @Test
+    @Disabled
+    // https://www.baeldung.com/java-kubernetes-watch
+    public void testWatchPods() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        final var service = new K8sService();
+        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+
+        CoreV1Api api = new CoreV1Api(client);
+        var call = api.listPodForAllNamespacesCall(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                120,
+                true,
+                null);
+        Watch<V1Pod> watch = Watch.createWatch(
+                client,
+                call,
+                new TypeToken<Watch.Response<V1Pod>>(){}.getType());
+
+        for (Watch.Response<V1Pod> event : watch) {
+            V1Pod pod = event.object;
+            V1ObjectMeta meta = pod.getMetadata();
+            switch (event.type) {
+                case "ADDED":
+                case "MODIFIED":
+                case "DELETED":
+                    System.out.println(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp() + " " + pod.getStatus().getPhase() + " " + pod.getStatus().getReason() + " " + pod.getStatus().getMessage() + " " + pod.getStatus().getStartTime() + " " + pod.getStatus().getContainerStatuses());
+                    break;
+                default:
+                    System.out.println("Unknown event type: " + event.type);
+            }
+        }
+
     }
 
     @Test

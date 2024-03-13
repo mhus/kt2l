@@ -51,7 +51,7 @@ public class ActionDeletePod implements XUiAction {
             if (o instanceof PodGrid.Pod) {
                 PodGrid.Pod pod = (PodGrid.Pod) o;
                 try {
-                    context.getApi().deleteNamespacedPod(pod.name(), pod.namespace(), null, null, null, null, null, null);
+                    context.getApi().deleteNamespacedPod(pod.getName(), pod.getNamespace(), null, null, null, null, null, null);
                 } catch (Exception e) {
                     LOGGER.error("delete pod", e);
                     context.getErrors().add(e);

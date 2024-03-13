@@ -22,8 +22,8 @@ public class ActionLogs implements XUiAction {
 
         final var selected = (PodGrid.Pod)context.getSelected().iterator().next();
         context.getMainView().getTabBar().addTab(
-                context.getClusterConfiguration().name() + ":" + selected.name() + ":logs",
-                selected.name(),
+                context.getClusterConfiguration().name() + ":" + selected.getName() + ":logs",
+                selected.getName(),
                 true,
                 true,
                 VaadinIcon.NOTEBOOK.create(),

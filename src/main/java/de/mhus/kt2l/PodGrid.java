@@ -15,9 +15,13 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import de.mhus.commons.lang.IRegistration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +56,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     private ResourcesView view;
     private Pod containerSelectedPod;
     private Optional<Pod> selectedPod;
+    private IRegistration podEventRegistration;
 
     @Override
     public Component getComponent() {
@@ -60,7 +65,8 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
 
     @Override
     public void refresh() {
-        podList = null;
+//        podList = null;
+        filterList();
         podGrid.getDataProvider().refreshAll();
         UI.getCurrent().push();
     }
@@ -79,6 +85,50 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         setSizeFull();
 
         actions.forEach(a -> a.update(Collections.emptySet()));
+
+        podEventRegistration = view.getMainView().getBackgroundJob(clusterConfig.name(), ClusterPodWatch.class, () -> new ClusterPodWatch()).getPodEventHandler().registerWeak(this::podEvent);
+
+    }
+
+    private void podEvent(Watch.Response<V1Pod> event) {
+        if (podList == null) return;
+        if (namespace != null && !namespace.equals(K8sUtil.NAMESPACE_ALL) && !namespace.equals(event.object.getMetadata().getNamespace())) return;
+
+        if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED)) {
+            final var pod = new Pod(
+                    event.object.getMetadata().getName(),
+                    event.object.getMetadata().getNamespace(),
+                    event.object.getStatus().getPhase(),
+                    event.object.getMetadata().getCreationTimestamp().toEpochSecond(),
+                    event.object
+            );
+            podList.add(pod);
+            filterList();
+            podGrid.getDataProvider().refreshItem(pod);
+            return;
+        }
+
+        if (event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
+            podList.forEach(pod -> {
+                if (pod.getName().equals(event.object.getMetadata().getName())) {
+                    pod.setStatus(event.object.getStatus().getPhase());
+                    pod.setPod(event.object);
+                    filterList();
+                    podGrid.getDataProvider().refreshItem(pod);
+                }
+            });
+            return;
+        }
+
+        if (event.type.equals(K8sUtil.WATCH_EVENT_DELETED)) {
+            podList.forEach(pod -> {
+                if (pod.getName().equals(event.object.getMetadata().getName())) {
+                    podList.remove(pod);
+                    filterList();
+                    podGrid.getDataProvider().refreshAll();
+                }
+            });
+        }
 
     }
 
@@ -127,9 +177,9 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         addClassNames("contact-grid");
         podGrid.setSizeFull();
         podGrid.setSelectionMode(Grid.SelectionMode.MULTI);
-        podGrid.addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
-        podGrid.addColumn(pod -> pod.status()).setHeader("Status").setSortProperty("status");
-        podGrid.addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
+        podGrid.addColumn(pod -> pod.getName()).setHeader("Name").setSortProperty("name");
+        podGrid.addColumn(pod -> pod.getStatus()).setHeader("Status").setSortProperty("status");
+        podGrid.addColumn(pod -> pod.getAge()).setHeader("Age").setSortProperty("age");
         podGrid.getColumns().forEach(col -> col.setAutoWidth(true));
         podGrid.setDataProvider(new PodProvider());
 
@@ -252,6 +302,11 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
 
     }
 
+    @Override
+    public void destroy() {
+        podEventRegistration.unregister();
+    }
+
     private class ContainerProvider extends CallbackDataProvider<Container, Void> {
         public ContainerProvider() {
             super(query -> {
@@ -284,15 +339,15 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                             final var selectedPod = containerSelectedPod;
                             if (selectedPod == null) return 0;
                             try {
-                                selectedPod.pod().getStatus().getContainerStatuses().forEach(
+                                selectedPod.getPod().getStatus().getContainerStatuses().forEach(
                                         cs -> {
                                             containerList.add(new Container(
                                                     cs.getName(),
-                                                    selectedPod.namespace(),
+                                                    selectedPod.getNamespace(),
                                                     cs.getState().getWaiting() != null ? "Waiting" : "Running",
-                                                    getAge(containerSelectedPod.pod().getMetadata().getCreationTimestamp()),
-                                                    selectedPod.pod().getMetadata().getCreationTimestamp().toEpochSecond(),
-                                                    selectedPod.pod()
+                                                    getAge(containerSelectedPod.getPod().getMetadata().getCreationTimestamp()),
+                                                    selectedPod.getPod().getMetadata().getCreationTimestamp().toEpochSecond(),
+                                                    selectedPod.getPod()
                                             ));
                                         }
                                 );
@@ -316,16 +371,16 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                                 query.getSortOrders()) {
                             Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
                                 case "name" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.name().compareTo(b.name());
-                                    case DESCENDING -> b.name().compareTo(a.name());
+                                    case ASCENDING -> a.getName().compareTo(b.getName());
+                                    case DESCENDING -> b.getName().compareTo(a.getName());
                                 };
                                 case "status" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.status().compareTo(b.status());
-                                    case DESCENDING -> b.status().compareTo(a.status());
+                                    case ASCENDING -> a.getStatus().compareTo(b.getStatus());
+                                    case DESCENDING -> b.getStatus().compareTo(a.getStatus());
                                 };
                                 case "age" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.created(), b.created());
-                                    case DESCENDING -> Long.compare(b.created(), a.created());
+                                    case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
+                                    case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
                                 };
                                 default -> 0;
                             });
@@ -345,7 +400,6 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                                                     pod.getMetadata().getName(),
                                                     pod.getMetadata().getNamespace(),
                                                     pod.getStatus().getPhase(),
-                                                    getAge(pod.getMetadata().getCreationTimestamp()),
                                                     pod.getMetadata().getCreationTimestamp().toEpochSecond(),
                                                     pod
                                             ));
@@ -377,22 +431,25 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                 filteredList = podList;
             } if (filter.startsWith("/")) {
                 var f = filter.substring(1);
-                filteredList = podList.stream().filter(pod -> pod.name().matches(f)).collect(Collectors.toList());
+                filteredList = podList.stream().filter(pod -> pod.getName().matches(f)).collect(Collectors.toList());
             } else {
-                filteredList = podList.stream().filter(pod -> pod.name().contains(filter)).collect(Collectors.toList());
+                filteredList = podList.stream().filter(pod -> pod.getName().contains(filter)).collect(Collectors.toList());
             }
         }
     }
 
-    public record Pod(
-            String name,
-            String namespace,
-            String status,
-            String age,
-            long created,
-            V1Pod pod
-            ) {
+    @Data
+    @AllArgsConstructor
+    public class Pod {
+            String name;
+            String namespace;
+            String status;
+            long created;
+            V1Pod pod;
 
+            public String getAge() {
+                return PodGrid.this.getAge(pod.getMetadata().getCreationTimestamp());
+            }
     }
 
     public record Container(

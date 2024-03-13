@@ -94,6 +94,11 @@ public class GeneralGrid extends Grid<GeneralGrid.Resource> implements Resources
 
     }
 
+    @Override
+    public void destroy() {
+
+    }
+
     private class ResourcesProvider extends CallbackDataProvider<Resource, Void> {
 
         public ResourcesProvider() {

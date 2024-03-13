@@ -157,6 +157,8 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
 
         createUI();
 
+        if (grid != null)
+            grid.destroy();
         grid = createGrid(clusterConfig.defaultResourceType());
         initGrid();
 
@@ -186,6 +188,9 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
 
     @Override
     public void tabDestroyed() {
+        if (grid != null)
+            grid.destroy();
+        grid = null;
     }
 
     @Override

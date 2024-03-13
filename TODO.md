@@ -3,4 +3,5 @@
 * Refresh elements from event listeners
 * Special kubernetes config for this toot - extra config folder
 * Config overload from user/<username> folder - personalization (add to gitignore)
+* Selection between Pod and Containers switch
 * 

@@ -21,4 +21,6 @@ public interface ResourcesGrid {
     void handleShortcut(ShortcutEvent event);
 
     void setSelected();
+
+    void destroy();
 }

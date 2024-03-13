@@ -14,15 +14,10 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterListener;
-import com.vaadin.flow.router.BeforeLeaveEvent;
-import com.vaadin.flow.router.BeforeLeaveListener;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MSystem;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
@@ -32,12 +27,15 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.Supplier;
 
 import static de.mhus.commons.tools.MCollection.detached;
 
@@ -60,6 +58,7 @@ public class MainView extends AppLayout {
     private Span tabTitle;
     private Registration heartbeatRegistration;
     private Set<String> registeredKeyShortcuts = new HashSet<>();
+    private Map<String, Map<String,ClusterBackgroundJob>> backgroundJobs = new HashMap<>();
 
     public MainView(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -89,8 +88,16 @@ public class MainView extends AppLayout {
         LOGGER.error("UI on detach {}", MSystem.getObjectId(getUI().get()));
         closeScheduler.cancel(false);
         detached(tabBar.getTabs()).forEach(XTab::closeTab);
+        clusteredJobsCleanup();
         if (heartbeatRegistration != null)
             heartbeatRegistration.remove();
+    }
+
+    private void clusteredJobsCleanup() {
+        synchronized (backgroundJobs) {
+            backgroundJobs.values().forEach(m -> m.values().forEach(ClusterBackgroundJob::close));
+            backgroundJobs.clear();
+        }
     }
 
     private void createHeader() {
@@ -185,4 +192,35 @@ public class MainView extends AppLayout {
             }
         }
     }
+
+    public <T extends ClusterBackgroundJob> T getBackgroundJob(String clusterId, Class<? extends T> jobId, Supplier<T> create) {
+        return (T) getBackgroundJob(clusterId, jobId.getName(), () -> create.get());
+    }
+
+    public <T extends ClusterBackgroundJob> Optional<T> getBackgroundJob(String clusterId, Class<? extends T> jobId) {
+        return (Optional<T>)getBackgroundJob(clusterId, jobId.getName());
+    }
+
+    public ClusterBackgroundJob getBackgroundJob(String clusterId, String jobId, Supplier<ClusterBackgroundJob> create) {
+        synchronized (backgroundJobs) {
+            return backgroundJobs.computeIfAbsent(clusterId, k -> new HashMap<>()).computeIfAbsent(jobId, k -> {
+                try {
+                    final var job = create.get();
+                    beanFactory.autowireBean(job);
+                    job.init(this, clusterId, jobId);
+                    return job;
+                } catch (Exception e) {
+                    LOGGER.error("Create Job {}", k, e);
+                    return null;
+                }
+            });
+        }
+    }
+
+    public Optional<ClusterBackgroundJob> getBackgroundJob(String clusterId, String jobId) {
+        synchronized (backgroundJobs) {
+            return Optional.ofNullable(backgroundJobs.computeIfAbsent(clusterId, k -> new HashMap<>()).get(jobId));
+        }
+    }
+
 }

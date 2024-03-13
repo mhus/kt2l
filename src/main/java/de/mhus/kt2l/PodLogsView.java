@@ -119,11 +119,14 @@ public class PodLogsView extends VerticalLayout implements XTabListener {
         logs.setValue("Loading ...");
         ui.push();
         try {
-            InputStream is = podLogs.streamNamespacedPodLog(pod.pod());
+            InputStream is = podLogs.streamNamespacedPodLog(pod.getPod());
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             copy(is, os);
             String content = new String(os.toByteArray());
             LOGGER.debug("Content length: {}", content.length());
+            if (menuItemJson.isChecked()) {
+                content = processJson(content);
+            }
             logs.setMaxLength(content.length() + 1000);
             logs.setValue(content);
         } catch (ApiException | IOException e) {
@@ -207,7 +210,8 @@ public class PodLogsView extends VerticalLayout implements XTabListener {
             while ((line = bf.readLine()) != null) {
                 if (line.startsWith("{") && line.endsWith("}")) {
                     var json = MJson.load(line);
-                    var message = json.get("message");
+                    var messageJson = json.get("message");
+                    var message = messageJson == null ? "" :messageJson.asText();
                     var severity = json.get("severity");
                     var timestamp = json.get("@timestamp");
                     out.append(timestamp).append(" ").append(severity).append(" ").append(message).append("\n");
@@ -224,8 +228,8 @@ public class PodLogsView extends VerticalLayout implements XTabListener {
         try {
             podLogs = new PodLogs(api.getApiClient());
             logStream = podLogs.streamNamespacedPodLog(
-                    pod.pod().getMetadata().getNamespace(),
-                    pod.pod().getMetadata().getName(),
+                    pod.getPod().getMetadata().getNamespace(),
+                    pod.getPod().getMetadata().getName(),
                     null,
                     null,
                     10,
