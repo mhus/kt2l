@@ -94,30 +94,26 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         if (podList == null) return;
         if (namespace != null && !namespace.equals(K8sUtil.NAMESPACE_ALL) && !namespace.equals(event.object.getMetadata().getNamespace())) return;
 
-        if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED)) {
-            final var pod = new Pod(
-                    event.object.getMetadata().getName(),
-                    event.object.getMetadata().getNamespace(),
-                    event.object.getStatus().getPhase(),
-                    event.object.getMetadata().getCreationTimestamp().toEpochSecond(),
-                    event.object
-            );
-            podList.add(pod);
-            filterList();
-            podGrid.getDataProvider().refreshItem(pod);
-            return;
-        }
+        if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
 
-        if (event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
-            podList.forEach(pod -> {
-                if (pod.getName().equals(event.object.getMetadata().getName())) {
-                    pod.setStatus(event.object.getStatus().getPhase());
-                    pod.setPod(event.object);
-                    filterList();
-                    podGrid.getDataProvider().refreshItem(pod);
+            final var foundPod = podList.stream().filter(pod -> pod.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
+                () -> {
+                    final var pod = new Pod(
+                            event.object.getMetadata().getName(),
+                            event.object.getMetadata().getNamespace(),
+                            event.object.getStatus().getPhase(),
+                            event.object.getMetadata().getCreationTimestamp().toEpochSecond(),
+                            event.object
+                    );
+                    podList.add(pod);
+                    return pod;
                 }
-            });
-            return;
+            );
+
+            foundPod.setStatus(event.object.getStatus().getPhase());
+            foundPod.setPod(event.object);
+            filterList();
+            podGrid.getDataProvider().refreshItem(foundPod);
         }
 
         if (event.type.equals(K8sUtil.WATCH_EVENT_DELETED)) {

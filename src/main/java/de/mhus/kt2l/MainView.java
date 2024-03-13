@@ -176,7 +176,7 @@ public class MainView extends AppLayout {
     public void registerKeyShortcut(Key key) {
         if (registeredKeyShortcuts.contains(key.toString()))
             return;
-
+        registeredKeyShortcuts.add(key.toString());
         getUI().get().addShortcutListener(this::handleKeyShortcut, key);
 
     }

@@ -105,6 +105,7 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
         resourceSelector.addValueChangeListener(e -> {
             var rt = K8sUtil.toResourceType(e.getValue());
             if (rt == null || rt.equals(currentResourceType)) return;
+            currentResourceType = rt;
             grid = createGrid(rt);
             initGrid();
         });
