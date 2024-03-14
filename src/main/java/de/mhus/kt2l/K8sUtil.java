@@ -20,6 +20,7 @@ public class K8sUtil {
 
     public static final String NAMESPACE_ALL = "all";
     public static final String RESOURCE_PODS =  "pods";
+    public static final String RESOURCE_CONTAINER =  "container";
     public static final String WATCH_EVENT_ADDED = "ADDED";
     public static final String WATCH_EVENT_MODIFIED = "MODIFIED";
     public static final String WATCH_EVENT_DELETED = "DELETED";

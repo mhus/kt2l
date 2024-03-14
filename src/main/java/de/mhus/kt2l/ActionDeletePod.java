@@ -68,16 +68,21 @@ public class ActionDeletePod implements XUiAction {
 
     @Override
     public String getMenuBarPath() {
-        return "";
+        return null;
     }
 
     @Override
     public String getShortcutKey() {
-        return "";
+        return null;
     }
 
     @Override
     public String getPopupPath() {
-        return "";
+        return null;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Delete pods or container";
     }
 }

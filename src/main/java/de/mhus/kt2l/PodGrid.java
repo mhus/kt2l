@@ -7,7 +7,6 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
-import com.vaadin.flow.component.grid.CellFocusEvent;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
@@ -16,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
+import de.mhus.commons.tools.MCollection;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Watch;
@@ -30,11 +30,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static de.mhus.commons.tools.MCollection.cropArray;
 
 @Slf4j
 public class PodGrid extends VerticalLayout implements ResourcesGrid {
@@ -57,6 +61,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     private Pod containerSelectedPod;
     private Optional<Pod> selectedPod;
     private IRegistration podEventRegistration;
+    private Map<String, MenuAction> actionShortcuts = new HashMap<>();
 
     @Override
     public Component getComponent() {
@@ -84,7 +89,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         add(menuBar, podGrid, containerGrid);
         setSizeFull();
 
-        actions.forEach(a -> a.update(Collections.emptySet()));
+        actions.forEach(a -> a.updateWithPod(Collections.emptySet()));
 
         podEventRegistration = view.getMainView().getBackgroundJob(clusterConfig.name(), ClusterPodWatch.class, () -> new ClusterPodWatch()).getPodEventHandler().registerWeak(this::podEvent);
 
@@ -142,11 +147,21 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                 }
             });
             item.setEnabled(false);
+            item.getElement().setAttribute("title", action.getDescription() + (action.getShortcutKey() == null ? "" : " (" + action.getShortcutKey() + ")" ));
 
             menuAction.setAction(action);
             menuAction.setMenuItem(item);
 
             actions.add(menuAction);
+
+            if (action.getShortcutKey() != null) {
+                final var k1 = action.getShortcutKey().split("\\+");
+                final var key = Key.of(k1[k1.length-1], cropArray(k1, 0, k1.length-1));
+                if (key != null) {
+                    view.getMainView().registerKeyShortcut(key);
+                    actionShortcuts.put(key.getKeys().toString(), menuAction);
+                }
+            }
 
         });
 
@@ -162,6 +177,10 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         containerGrid.getColumns().forEach(col -> col.setAutoWidth(true));
         containerGrid.setDataProvider(new ContainerProvider());
         containerGrid.setVisible(false);
+        containerGrid.addSelectionListener(event -> {
+            if (containerGrid.isVisible())
+                actions.forEach(a -> a.updateWithContainer(event.getAllSelectedItems()));
+        });
     }
 
     private void createPodGrid() {
@@ -186,7 +205,9 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         });
 
         podGrid.addSelectionListener(event -> {
-            actions.forEach(a -> a.update(event.getAllSelectedItems()));
+            if (containerGrid.isVisible())
+                containerGrid.deselectAll();
+            actions.forEach(a -> a.updateWithPod(event.getAllSelectedItems()));
         });
         podGrid.addItemClickListener(event -> {
             if (event.getClickCount() == 2) {
@@ -267,12 +288,20 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                 else
                     podGrid.getSelectionModel().select(selectedPod.get());
             }
-        } else
+            return;
+        }
         if (event.getKey().matches(Key.ENTER.toString()) && event.getKeyModifiers().size() == 0) {
             if (selectedPod != null && selectedPod.isPresent()) {
                 flipContainerVisibility(selectedPod.get(), true, true);
             }
+            return;
         }
+
+        final var action = actionShortcuts.get(event.getKey().getKeys().toString());
+        if (action != null) {
+            action.execute();
+        }
+
     }
 
     private void flipContainerVisibility(Pod pod, boolean alwaysVisible, boolean focus) {
@@ -341,7 +370,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                                                     cs.getName(),
                                                     selectedPod.getNamespace(),
                                                     cs.getState().getWaiting() != null ? "Waiting" : "Running",
-                                                    getAge(containerSelectedPod.getPod().getMetadata().getCreationTimestamp()),
+                                                    getAge(containerSelectedPod.getPod().getMetadata().getCreationTimestamp()), //TODO use container start time
                                                     selectedPod.getPod().getMetadata().getCreationTimestamp().toEpochSecond(),
                                                     selectedPod.getPod()
                                             ));
@@ -465,33 +494,62 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         XUiAction action;
         MenuItem menuItem;
 
-        public void update(Set<Pod> selected) {
+        public void updateWithContainer(Set<Container> selected) {
+            menuItem.setEnabled(action.canHandleResource(K8sUtil.RESOURCE_CONTAINER,
+                    selected == null ? Collections.emptySet() : selected));
+        }
+        public void updateWithPod(Set<Pod> selected) {
             menuItem.setEnabled(action.canHandleResource(K8sUtil.RESOURCE_PODS,
                     selected == null ? Collections.emptySet() : selected));
         }
         public void execute() {
-            if (!action.canHandleResource(K8sUtil.RESOURCE_PODS, podGrid.getSelectedItems())) {
-                Notification notification = Notification
-                        .show("Can't execute");
-                notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
+            ExecutionContext context = null;
+            if (containerGrid.isVisible() && containerGrid.getSelectedItems() != null && containerGrid.getSelectedItems().size() == 1) {
+
+                if (!action.canHandleResource(K8sUtil.RESOURCE_CONTAINER, containerGrid.getSelectedItems())) {
+                    Notification notification = Notification
+                            .show("Can't execute");
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    return;
+                }
+
+                context = ExecutionContext.builder()
+                        .resourceType(K8sUtil.RESOURCE_CONTAINER)
+                        .selected(containerGrid.getSelectedItems())
+                        .namespace(namespace)
+                        .api(coreApi)
+                        .clusterConfiguration(clusterConfig)
+                        .ui(UI.getCurrent())
+                        .grid(PodGrid.this)
+                        .mainView(view.getMainView())
+                        .selectedTab(view.getXTab())
+                        .build();
+
+            } else {
+                if (!action.canHandleResource(K8sUtil.RESOURCE_PODS, podGrid.getSelectedItems())) {
+                    Notification notification = Notification
+                            .show("Can't execute");
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    return;
+                }
+                context = ExecutionContext.builder()
+                        .resourceType(K8sUtil.RESOURCE_PODS)
+                        .selected(podGrid.getSelectedItems())
+                        .namespace(namespace)
+                        .api(coreApi)
+                        .clusterConfiguration(clusterConfig)
+                        .ui(UI.getCurrent())
+                        .grid(PodGrid.this)
+                        .mainView(view.getMainView())
+                        .selectedTab(view.getXTab())
+                        .build();
             }
-            final var context = ExecutionContext.builder()
-                    .resourceType(K8sUtil.RESOURCE_PODS)
-                    .selected(podGrid.getSelectedItems())
-                    .namespace(namespace)
-                    .api(coreApi)
-                    .clusterConfiguration(clusterConfig)
-                    .ui(UI.getCurrent())
-                    .grid(PodGrid.this)
-                    .mainView(view.getMainView())
-                    .selectedTab(view.getXTab())
-                    .build();
+
             try {
                 action.execute(context);
             } catch (Exception e) {
                 Notification notification = Notification
-                        .show("Error\n"+e.getMessage());
+                        .show("Error\n" + e.getMessage());
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
             }

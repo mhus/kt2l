@@ -10,4 +10,6 @@ public interface XUiAction {
     String getMenuBarPath();
     String getShortcutKey();
     String getPopupPath();
+
+    String getDescription();
 }

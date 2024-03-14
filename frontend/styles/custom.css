@@ -5,6 +5,7 @@
 
 .xtabview .tabtext {
     overflow-x: hidden;
+    width: 100%;
 }
 
 .xtabview .tabitem {
@@ -89,7 +90,7 @@
 
 vaadin-text-area.log-view textarea {
     font-family: monospace;
-    font-size: 12px;
+    font-size: 14px;
     background-color: #000;
     color: #f6f6f6;
 }
