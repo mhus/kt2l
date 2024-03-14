@@ -10,7 +10,7 @@ public interface ResourcesGrid {
 
     void refresh();
 
-    void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesView view);
+    void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesGridPanel view);
 
     void setFilter(String value);
 

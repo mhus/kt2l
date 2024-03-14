@@ -15,7 +15,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
-import de.mhus.commons.tools.MCollection;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Watch;
@@ -57,7 +56,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
 
     @Autowired
     private ActionService actionService;
-    private ResourcesView view;
+    private ResourcesGridPanel view;
     private Pod containerSelectedPod;
     private Optional<Pod> selectedPod;
     private IRegistration podEventRegistration;
@@ -77,7 +76,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     }
 
     @Override
-    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesView view) {
+    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesGridPanel view) {
         this.coreApi = coreApi;
         this.view = view;
         this.clusterConfig = clusterConfig;
@@ -465,7 +464,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
 
     @Data
     @AllArgsConstructor
-    public class Pod {
+    public class Pod implements IResourceProvider {
             String name;
             String namespace;
             String status;
@@ -475,6 +474,11 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
             public String getAge() {
                 return PodGrid.this.getAge(pod.getMetadata().getCreationTimestamp());
             }
+
+        @Override
+        public Object getResource() {
+            return pod;
+        }
     }
 
     public record Container(
@@ -484,8 +488,12 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
             String age,
             long created,
             V1Pod pod
-    ) {
+    ) implements IResourceProvider {
 
+        @Override
+        public Object getResource() {
+            return pod;
+        }
     }
 
     @Getter
@@ -548,6 +556,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
             try {
                 action.execute(context);
             } catch (Exception e) {
+                LOGGER.error("Error executing action", e);
                 Notification notification = Notification
                         .show("Error\n" + e.getMessage());
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);

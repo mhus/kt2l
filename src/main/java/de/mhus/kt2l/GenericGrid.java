@@ -9,25 +9,19 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.Pair;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1SecretList;
-import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
 
-import java.lang.reflect.Type;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public class GeneralGrid extends Grid<GeneralGrid.Resource> implements ResourcesGrid {
+public class GenericGrid extends Grid<GenericGrid.Resource> implements ResourcesGrid {
 
     private List<Resource> resourcesList = null;
     private List<Resource> filteredList = null;
@@ -50,7 +44,7 @@ public class GeneralGrid extends Grid<GeneralGrid.Resource> implements Resources
     }
 
     @Override
-    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesView view) {
+    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesGridPanel view) {
         this.coreApi = coreApi;
         this.clusterConfig = clusterConfig;
         addClassNames("contact-grid");
@@ -155,7 +149,13 @@ public class GeneralGrid extends Grid<GeneralGrid.Resource> implements Resources
                                     final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
                                     final var name = (String) metadata.get("name");
                                     final var creationTimestamp = (String) metadata.get("creationTimestamp");
-                                    resourcesList.add(new Resource(name, getAge(OffsetDateTime.parse(creationTimestamp)), OffsetDateTime.parse(creationTimestamp).toEpochSecond()));
+                                    resourcesList.add(new Resource(
+                                            name,
+                                            getAge(OffsetDateTime.parse(creationTimestamp)),
+                                            OffsetDateTime.parse(creationTimestamp).toEpochSecond(),
+                                            item
+                                            )
+                                    );
                                 });
                             } catch (ApiException e) {
                                 LOGGER.error("Can't fetch pods from cluster",e);
@@ -193,8 +193,12 @@ public class GeneralGrid extends Grid<GeneralGrid.Resource> implements Resources
         }
     }
 
-    public record Resource(String name, String age, long created) {
+    public record Resource(String name, String age, long created, Object resource) implements IResourceProvider {
 
+        @Override
+        public Object getResource() {
+            return resource;
+        }
     }
 
 }

@@ -100,3 +100,8 @@ vaadin-text-area.no-word-wrap textarea {
   overflow-wrap: normal;
   overflow-x: scroll;
 }
+
+span.logo {
+    font-weight: bold;
+    font-style: italic;
+    }

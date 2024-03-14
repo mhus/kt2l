@@ -56,7 +56,7 @@ public class MainPanel extends VerticalLayout implements XTabListener {
                         true,
                         false,
                         VaadinIcon.OPEN_BOOK.create(),
-                        () -> new ResourcesView(clusterBox.getValue().name(), mainView)).select();
+                        () -> new ResourcesGridPanel(clusterBox.getValue().name(), mainView)).select();
             }
         });
         add(resourcesButton);

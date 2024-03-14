@@ -50,7 +50,7 @@ public class ActionLogs implements XUiAction {
                 true,
                 VaadinIcon.FILE_TEXT_O.create(),
                 () ->
-                new PodLogsView(
+                new PodLogsPanel(
                         context.getClusterConfiguration(),
                         context.getApi(),
                         context.getMainView(),

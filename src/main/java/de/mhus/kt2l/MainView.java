@@ -1,6 +1,7 @@
 package de.mhus.kt2l;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
@@ -101,28 +102,26 @@ public class MainView extends AppLayout {
     }
 
     private void createHeader() {
-        H1 logo = new H1("kt2l");
-        logo.addClassNames(
-                LumoUtility.FontSize.LARGE,
-                LumoUtility.Margin.MEDIUM);
 
         final var header =
                 authContext.getAuthenticatedUser(UserDetails.class).map(userDetails -> {
 
                     tabTitle = new Span("");
                     tabTitle.setWidthFull();
+
+
                     if (userDetails != null) {
                         UI.getCurrent().getSession().setAttribute(Kt2lApplication.UI_USERNAME, userDetails.getUsername());
                     }
                     if (userDetails != null && !userDetails.getUsername().equals("autologin")) { //XXX config
                         var space = new Span(" ");
                         var logout = new Button("Logout", click -> authContext.logout());
-                        return new HorizontalLayout(new DrawerToggle(), logo, tabTitle, logout, space);
+                        return new HorizontalLayout(new DrawerToggle(), createLogo(), tabTitle, logout, space);
                     }
-                    return new HorizontalLayout(new DrawerToggle(), logo, tabTitle);
+                    return new HorizontalLayout(new DrawerToggle(), createLogo(), tabTitle);
 
                 }).orElse(
-                        new HorizontalLayout(logo)
+                        new HorizontalLayout(createLogo())
                 );
 
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
@@ -133,6 +132,12 @@ public class MainView extends AppLayout {
 
         addToNavbar(header);
 
+    }
+
+    private Component createLogo() {
+        var span = new Span("[KT2L]");
+        span.addClassNames("logo");
+        return span;
     }
 
     private void createDrawer() {

@@ -30,7 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
-public class PodLogsView extends VerticalLayout implements XTabListener {
+public class PodLogsPanel extends VerticalLayout implements XTabListener {
 
     private static final String CONFIG_VIEW_LOG = "log";
     @Autowired
@@ -60,7 +60,7 @@ public class PodLogsView extends VerticalLayout implements XTabListener {
     private TextField filterText;
     private String filter = null;
 
-    public PodLogsView(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, List<PodGrid.Container> containers) {
+    public PodLogsPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, List<PodGrid.Container> containers) {
         this.clusterConfig = clusterConfig;
         this.api = api;
         this.mainView = mainView;

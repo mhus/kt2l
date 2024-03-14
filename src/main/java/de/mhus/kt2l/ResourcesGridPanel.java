@@ -20,7 +20,7 @@ import java.util.Collections;
 import static de.mhus.commons.tools.MString.isEmpty;
 
 @Slf4j
-public class ResourcesView extends VerticalLayout implements XTabListener {
+public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
     @Getter
     private final MainView mainView;
@@ -47,7 +47,7 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
     @Getter
     private XTab xTab;
 
-    public ResourcesView(String clusterId, MainView mainView) {
+    public ResourcesGridPanel(String clusterId, MainView mainView) {
         this.clusterId = clusterId;
         this.mainView = mainView;
     }
@@ -140,9 +140,9 @@ public class ResourcesView extends VerticalLayout implements XTabListener {
     }
 
     private ResourcesGrid createGrid(String resourceType) {
-        ResourcesGrid resourcesGrid = resourceType == null ? new GeneralGrid() : switch(resourceType) {
+        ResourcesGrid resourcesGrid = resourceType == null ? new GenericGrid() : switch(resourceType) {
             case K8sUtil.RESOURCE_PODS -> new PodGrid();
-            default -> new GeneralGrid();
+            default -> new GenericGrid();
         };
         mainView.getBeanFactory().autowireBean(resourcesGrid);
         return resourcesGrid;

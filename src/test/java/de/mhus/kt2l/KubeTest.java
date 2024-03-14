@@ -4,8 +4,11 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.ApiResponse;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1APIResourceList;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -23,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 @Slf4j
 public class KubeTest {
@@ -36,6 +40,28 @@ public class KubeTest {
         }
     }
     private static final String CLUSTER_NAME = LOCAL_PROPERTIES.getProperty("cluster.name", null);
+
+    @Test
+    public void testGetAllApiResourceTypes() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        final var service = new K8sService();
+        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+
+        CoreV1Api api = new CoreV1Api(client);
+
+        final var list = api.getAPIResources();
+
+        final Map<String, V1APIResource> resources = new TreeMap<>();
+        list.getResources().forEach(resource -> {
+            resources.put(resource.getName(), resource);
+        });
+        resources.keySet().forEach(k -> System.out.println(k) );
+
+    }
 
     @Test
     @Disabled
