@@ -8,6 +8,8 @@ import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -29,9 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -81,6 +81,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         this.view = view;
         this.clusterConfig = clusterConfig;
 
+        createActions();
         createPodGrid();
         createContainerGrid();
         createMenuBar();
@@ -92,6 +93,14 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
 
         podEventRegistration = view.getMainView().getBackgroundJob(clusterConfig.name(), ClusterPodWatch.class, () -> new ClusterPodWatch()).getPodEventHandler().registerWeak(this::podEvent);
 
+    }
+
+    private void createActions() {
+        actionService.findActionsForResource(K8sUtil.RESOURCE_PODS).forEach(action -> {
+            final MenuAction menuAction = new MenuAction();
+            menuAction.setAction(action);
+            actions.add(menuAction);
+        });
     }
 
     private void podEvent(Watch.Response<V1Pod> event) {
@@ -135,30 +144,25 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     private void createMenuBar() {
         menuBar = new MenuBar();
 
-        actionService.findActionsForResource(K8sUtil.RESOURCE_PODS).forEach(action -> {
+        actions.forEach(action -> {
 
-            final MenuAction menuAction = new MenuAction();
-
-            MenuItem item = menuBar.addItem(action.getTitle(), new ComponentEventListener<ClickEvent<MenuItem>>() {
+            MenuItem item = menuBar.addItem(action.getAction().getTitle(), new ComponentEventListener<ClickEvent<MenuItem>>() {
                 @Override
                 public void onComponentEvent(ClickEvent<MenuItem> event) {
-                    menuAction.execute();
+                    action.execute();
                 }
             });
             item.setEnabled(false);
-            item.getElement().setAttribute("title", action.getDescription() + (action.getShortcutKey() == null ? "" : " (" + action.getShortcutKey() + ")" ));
+            item.getElement().setAttribute("title", action.getAction().getDescription() + (action.getAction().getShortcutKey() == null ? "" : " (" + action.getAction().getShortcutKey() + ")" ));
 
-            menuAction.setAction(action);
-            menuAction.setMenuItem(item);
+            action.setMenuItem(item);
 
-            actions.add(menuAction);
-
-            if (action.getShortcutKey() != null) {
-                final var k1 = action.getShortcutKey().split("\\+");
+            if (action.getAction().getShortcutKey() != null) {
+                final var k1 = action.getAction().getShortcutKey().split("\\+");
                 final var key = Key.of(k1[k1.length-1], cropArray(k1, 0, k1.length-1));
                 if (key != null) {
                     UI.getCurrent().addShortcutListener(() -> {
-                        menuAction.execute();
+                        action.execute();
                     },key).listenOn(podGrid, containerGrid);
                 }
             }
@@ -181,6 +185,15 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
             if (containerGrid.isVisible())
                 actions.forEach(a -> a.updateWithContainer(event.getAllSelectedItems()));
         });
+
+        GridContextMenu<Container> menu = containerGrid.addContextMenu();
+        actions.forEach(action -> {
+            var item = menu.addItem(action.getAction().getTitle(), event ->
+                    action.execute()
+            );
+            action.setContainerContextMenuItem(item);
+        });
+
     }
 
     private void createPodGrid() {
@@ -244,6 +257,15 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                     }
                 }
             }
+        });
+
+
+        GridContextMenu<Pod> menu = podGrid.addContextMenu();
+        actions.forEach(action -> {
+            var item = menu.addItem(action.getAction().getTitle(), event ->
+                    action.execute()
+            );
+            action.setPodContextMenuItem(item);
         });
 
         UI.getCurrent().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(podGrid);
@@ -503,14 +525,37 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     private class MenuAction {
         ResourceAction action;
         MenuItem menuItem;
+        GridMenuItem<Pod> podContextMenuItem;
+        GridMenuItem<Container> containerContextMenuItem;
+
+        public void disableMenu() {
+            if (menuItem != null)
+                menuItem.setEnabled(false);
+            if (podContextMenuItem != null)
+                podContextMenuItem.setEnabled(false);
+            if (containerContextMenuItem != null)
+                containerContextMenuItem.setEnabled(false);
+        }
 
         public void updateWithContainer(Set<Container> selected) {
-            menuItem.setEnabled(action.canHandleResource(K8sUtil.RESOURCE_CONTAINER,
-                    selected == null ? Collections.emptySet() : selected));
+            var enabled = action.canHandleResource(K8sUtil.RESOURCE_CONTAINER,
+                    selected == null ? Collections.emptySet() : selected);
+            if (menuItem != null)
+                menuItem.setEnabled(enabled);
+            if (podContextMenuItem != null)
+                podContextMenuItem.setEnabled(enabled);
+            if (containerContextMenuItem != null)
+                containerContextMenuItem.setEnabled(enabled);
         }
         public void updateWithPod(Set<Pod> selected) {
-            menuItem.setEnabled(action.canHandleResource(K8sUtil.RESOURCE_PODS,
-                    selected == null ? Collections.emptySet() : selected));
+            var enabled = action.canHandleResource(K8sUtil.RESOURCE_PODS,
+                    selected == null ? Collections.emptySet() : selected);
+            if (menuItem != null)
+                menuItem.setEnabled(enabled);
+            if (podContextMenuItem != null)
+                podContextMenuItem.setEnabled(enabled);
+            if (containerContextMenuItem != null)
+                containerContextMenuItem.setEnabled(enabled);
         }
         public void execute() {
             ExecutionContext context = null;
