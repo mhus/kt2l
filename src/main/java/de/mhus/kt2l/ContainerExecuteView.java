@@ -73,11 +73,17 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
         xterm.setUseSystemClipboard(ITerminalClipboard.UseSystemClipboard.READWRITE);
         xterm.setPasteWithRightClick(true);
         xterm.addLineListener(e -> {
-            System.out.println("Line: " + e.getLine());
+            var line = e.getLine();
+            System.out.println("Line: " + line);
+            var pos = line.indexOf('#'); // TODO this is a hack
+            if (pos >= 0) {
+                line = line.substring(pos + 1);
+            }
+
             try {
 //                proc.outputWriter().write(e.getLine());
 //                proc.outputWriter().newLine();
-                proc.getOutputStream().write(e.getLine().getBytes());
+                proc.getOutputStream().write(line.getBytes());
                 proc.getOutputStream().write('\n');
                 LOGGER.info("Alive: {}", proc.isAlive());
             } catch (IOException ex) {
@@ -85,7 +91,15 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
             }
         });
 
-        add(xterm);
+        var xTermMenuBar = new MenuBar();
+        xTermMenuBar.addItem("ESC", e -> {
+            xterm.write("\u001b");
+        });
+
+        var xTermLayout = new VerticalLayout(xTermMenuBar, xterm);
+        xTermLayout.setSizeFull();
+
+        add(xTermLayout);
         setSizeFull();
 
         try {
@@ -147,7 +161,7 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
     }
 
     @Override
-    public void tabDeselected() {
+    public void tabUnselected() {
     }
 
     @Override
@@ -168,7 +182,7 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
     }
 
     @Override
-    public void tabRefresh() {
+    public void tabRefresh(long counter) {
     }
 
     @Override

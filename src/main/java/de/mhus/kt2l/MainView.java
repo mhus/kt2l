@@ -5,12 +5,12 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
+import com.vaadin.flow.component.ShortcutRegistration;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -30,10 +30,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Supplier;
@@ -58,8 +56,8 @@ public class MainView extends AppLayout {
     private ScheduledFuture<?> closeScheduler;
     private Span tabTitle;
     private Registration heartbeatRegistration;
-    private Set<String> registeredKeyShortcuts = new HashSet<>();
     private Map<String, Map<String,ClusterBackgroundJob>> backgroundJobs = new HashMap<>();
+    private long refreshCounter;
 
     public MainView(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -72,13 +70,13 @@ public class MainView extends AppLayout {
         createDrawer();
 
         LOGGER.info("Start Refresh Scheduler");
-        closeScheduler = scheduler.scheduleAtFixedRate(this::fireRefresh, 10, 10, java.util.concurrent.TimeUnit.SECONDS);
+        closeScheduler = scheduler.scheduleAtFixedRate(this::fireRefresh, 1, 1, java.util.concurrent.TimeUnit.SECONDS);
 
     }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
-        LOGGER.error("UI on attach {}", MSystem.getObjectId(getUI().get()));
+        LOGGER.debug("UI on attach {}", MSystem.getObjectId(getUI().get()));
         heartbeatRegistration = getUI().get().addHeartbeatListener(event -> {
             LOGGER.debug("Heartbeat");
         });
@@ -86,7 +84,7 @@ public class MainView extends AppLayout {
     }
 
     protected void onDetach(DetachEvent detachEvent) {
-        LOGGER.error("UI on detach {}", MSystem.getObjectId(getUI().get()));
+        LOGGER.debug("UI on detach {}", MSystem.getObjectId(getUI().get()));
         closeScheduler.cancel(false);
         detached(tabBar.getTabs()).forEach(XTab::closeTab);
         clusteredJobsCleanup();
@@ -108,6 +106,7 @@ public class MainView extends AppLayout {
 
                     tabTitle = new Span("");
                     tabTitle.setWidthFull();
+                    tabTitle.addClassName("ktool-title");
 
 
                     if (userDetails != null) {
@@ -149,13 +148,14 @@ public class MainView extends AppLayout {
     }
 
     private void fireRefresh() {
+        refreshCounter++;
         try {
             final var selected = tabBar.getSelectedTab();
             if (selected != null) {
                 final var panel = selected.getPanel();
                 if (panel != null && panel instanceof XTabListener) {
-                    LOGGER.debug("Refresh selected panel {}", panel.getClass());
-                    ((XTabListener) panel).tabRefresh();
+                    LOGGER.trace("Refresh selected panel {}", panel.getClass());
+                    ((XTabListener) panel).tabRefresh(refreshCounter);
                 }
             }
         } catch (Exception e) {
@@ -163,27 +163,19 @@ public class MainView extends AppLayout {
         }
     }
 
-    public void setWindowTitle(String title, XUi.COLOR color) {
+    public void setWindowTitle(String title, UiUtil.COLOR color) {
         if (title == null)
             tabTitle.setText("");
         else
             tabTitle.setText(title);
 
-        Arrays.stream(XUi.COLOR.values()).forEach(c -> tabTitle.removeClassNames("color-" + c.name().toLowerCase()));
-        if (color != null && color != XUi.COLOR.NONE)
-            tabTitle.addClassNames("color-" + color.name().toLowerCase());
+        Arrays.stream(UiUtil.COLOR.values()).forEach(c -> tabTitle.removeClassNames("bgcolor-" + c.name().toLowerCase()));
+        if (color != null && color != UiUtil.COLOR.NONE)
+            tabTitle.addClassNames("bgcolor-" + color.name().toLowerCase());
     }
 
     public XTabBar getTabBar() {
         return tabBar;
-    }
-
-    public void registerKeyShortcut(Key key) {
-        if (registeredKeyShortcuts.contains(key.toString()))
-            return;
-        registeredKeyShortcuts.add(key.toString());
-        getUI().get().addShortcutListener(this::handleKeyShortcut, key);
-
     }
 
     private void handleKeyShortcut(ShortcutEvent shortcutEvent) {

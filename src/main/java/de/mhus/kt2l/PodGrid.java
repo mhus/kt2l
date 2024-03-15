@@ -60,7 +60,6 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     private Pod containerSelectedPod;
     private Optional<Pod> selectedPod;
     private IRegistration podEventRegistration;
-    private Map<String, MenuAction> actionShortcuts = new HashMap<>();
 
     @Override
     public Component getComponent() {
@@ -68,7 +67,8 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     }
 
     @Override
-    public void refresh() {
+    public void refresh(long counter) {
+        if (counter % 10 != 0) return;
 //        podList = null;
         filterList();
         podGrid.getDataProvider().refreshAll();
@@ -81,9 +81,9 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         this.view = view;
         this.clusterConfig = clusterConfig;
 
-        createMenuBar();
         createPodGrid();
         createContainerGrid();
+        createMenuBar();
 
         add(menuBar, podGrid, containerGrid);
         setSizeFull();
@@ -157,8 +157,9 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                 final var k1 = action.getShortcutKey().split("\\+");
                 final var key = Key.of(k1[k1.length-1], cropArray(k1, 0, k1.length-1));
                 if (key != null) {
-                    view.getMainView().registerKeyShortcut(key);
-                    actionShortcuts.put(key.getKeys().toString(), menuAction);
+                    UI.getCurrent().addShortcutListener(() -> {
+                        menuAction.execute();
+                    },key).listenOn(podGrid, containerGrid);
                 }
             }
 
@@ -183,9 +184,6 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     }
 
     private void createPodGrid() {
-
-        view.getMainView().registerKeyShortcut(Key.SPACE);
-        view.getMainView().registerKeyShortcut(Key.ENTER);
 
         podGrid = new Grid<>(Pod.class, false);
         addClassNames("contact-grid");
@@ -247,6 +245,10 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                 }
             }
         });
+
+        UI.getCurrent().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(podGrid);
+        UI.getCurrent().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(podGrid);
+
     }
 
     private void setContainerPod(Pod item) {
@@ -296,11 +298,6 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
             return;
         }
 
-        final var action = actionShortcuts.get(event.getKey().getKeys().toString());
-        if (action != null) {
-            action.execute();
-        }
-
     }
 
     private void flipContainerVisibility(Pod pod, boolean alwaysVisible, boolean focus) {
@@ -320,10 +317,15 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
 
     @Override
     public void setSelected() {
+
         podGrid.getElement().getNode()
                 .runWhenAttached(ui -> ui.getPage().executeJs(
                         "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", podGrid.getElement()));
 
+    }
+
+    @Override
+    public void setUnselected() {
     }
 
     @Override
@@ -389,7 +391,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
 
         public PodProvider() {
             super(query -> {
-                        LOGGER.info("Do the query {}",query);
+                        LOGGER.debug("Do the query {}",query);
                         if (filteredList == null) return Stream.empty();
                         for(QuerySortOrder queryOrder :
                                 query.getSortOrders()) {
@@ -412,7 +414,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
                         }
                         return filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
-                        LOGGER.info("Do the size query {}",query);
+                        LOGGER.debug("Do the size query {}",query);
                         if (podList == null) {
                             podList = new ArrayList<>();
                             final var namespaceName = namespace ==  null || namespace.equals(K8sUtil.NAMESPACE_ALL) ? null : (String) namespace;
@@ -499,7 +501,7 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
     @Getter
     @Setter
     private class MenuAction {
-        XUiAction action;
+        ResourceAction action;
         MenuItem menuItem;
 
         public void updateWithContainer(Set<Container> selected) {

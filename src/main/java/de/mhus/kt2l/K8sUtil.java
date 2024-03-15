@@ -83,6 +83,14 @@ public class K8sUtil {
                 public void onSuccess(V1APIResourceList result, int statusCode, Map<String, List<String>> responseHeaders) {
                     LinkedList<V1APIResource> types = new LinkedList<>();
                     types.addAll(result.getResources().stream().collect(Collectors.toList()));
+                    // add static resources
+                    types.add(new V1APIResource().kind("Deployment").name("deployments").addShortNamesItem("deploy").version("v1").group("apps"));
+                    types.add(new V1APIResource().kind("StatefulSet").name("statefulsets").version("v1").group("apps"));
+                    types.add(new V1APIResource().kind("DaemonSet").name("daemonsets").version("v1").group("apps"));
+                    types.add(new V1APIResource().kind("ReplicaSet").name("replicasets").version("v1").group("apps"));
+                    types.add(new V1APIResource().kind("Job").name("jobs").version("v1").group("batch"));
+                    types.add(new V1APIResource().kind("CronJob").name("cronjobs").version("v1").group("batch"));
+
                     future.complete(types);
                 }
 
@@ -108,7 +116,7 @@ public class K8sUtil {
     }
 
     public static V1APIResource findResource(String resourceType, LinkedList<V1APIResource> resources) {
-        return resources.stream().filter(r -> toResourceType(r).equals(resourceType)).findFirst().orElse(null);
+        return resources.stream().filter(r -> toResourceType(r).endsWith(resourceType)).findFirst().orElse(null);
     }
 
 }

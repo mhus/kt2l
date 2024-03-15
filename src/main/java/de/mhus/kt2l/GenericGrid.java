@@ -37,7 +37,8 @@ public class GenericGrid extends Grid<GenericGrid.Resource> implements Resources
     }
 
     @Override
-    public void refresh() {
+    public void refresh(long counter) {
+        if (counter % 10 != 0) return;
         resourcesList = null;
         getDataProvider().refreshAll();
         UI.getCurrent().push();
@@ -89,6 +90,11 @@ public class GenericGrid extends Grid<GenericGrid.Resource> implements Resources
     }
 
     @Override
+    public void setUnselected() {
+
+    }
+
+    @Override
     public void destroy() {
 
     }
@@ -97,7 +103,7 @@ public class GenericGrid extends Grid<GenericGrid.Resource> implements Resources
 
         public ResourcesProvider() {
             super(query -> {
-                        LOGGER.info("Do the query {}",query);
+                        LOGGER.debug("Do the query {}",query);
                         if (filteredList == null) return Stream.empty();
                         for(QuerySortOrder queryOrder :
                                 query.getSortOrders()) {
@@ -116,7 +122,7 @@ public class GenericGrid extends Grid<GenericGrid.Resource> implements Resources
                         }
                         return filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
-                        LOGGER.info("Do the size query {}",query);
+                        LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
                             final var namespaceName = namespace ==  null || namespace.equals("all") ? null : (String) namespace;

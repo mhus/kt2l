@@ -1,13 +1,11 @@
 package de.mhus.kt2l;
 
-import com.helger.commons.string.StringParser;
 import com.vaadin.flow.component.notification.Notification;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tree.MProperties;
 import de.mhus.commons.tree.MTree;
-import de.mhus.commons.tree.TreeNodeList;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +16,7 @@ import java.util.Set;
 
 @Slf4j
 @Component
-public class ActionShellCmd implements XUiAction {
+public class ActionShellCmd implements ResourceAction {
 
     @Autowired
     private Configuration configuration;

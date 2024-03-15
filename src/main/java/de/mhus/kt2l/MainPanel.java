@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 @Slf4j
 public class MainPanel extends VerticalLayout implements XTabListener {
 
@@ -24,6 +26,7 @@ public class MainPanel extends VerticalLayout implements XTabListener {
     @Getter
     private MainView mainView;
     private ComboBox<Cluster> clusterBox;
+    private List<Cluster> clusterList;
 
     public MainPanel(MainView mainView) {
         this.mainView = mainView;
@@ -34,17 +37,20 @@ public class MainPanel extends VerticalLayout implements XTabListener {
 
         add(new Text(" "));
         clusterBox = new ComboBox<>("Select a cluster");
-        clusterBox.setItems(
-                k8s.availableContexts().stream()
-                        .map(name -> {
-                            final var clusterConfig = clustersConfig.getClusterOrDefault(name);
-                            return new Cluster(name, clusterConfig.title(), clusterConfig);
-                        })
-                        .filter(cluster -> cluster.config().enabled())
-                        .toList()
-        );
+        clusterList = k8s.availableContexts().stream()
+                .map(name -> {
+                    final var clusterConfig = clustersConfig.getClusterOrDefault(name);
+                    return new Cluster(name, clusterConfig.title(), clusterConfig);
+                })
+                .filter(cluster -> cluster.config().enabled())
+                .toList();
+
+        clusterBox.setItems(clusterList);
         clusterBox.setItemLabelGenerator(Cluster::title);
         clusterBox.setWidthFull();
+        if (clustersConfig.defaultClusterName() != null) {
+            clusterList.stream().filter(c -> c.name().equals(clustersConfig.defaultClusterName())).findFirst().ifPresent(clusterBox::setValue);
+        }
         add(clusterBox);
 
         Button resourcesButton = new Button("Resources");
@@ -56,7 +62,8 @@ public class MainPanel extends VerticalLayout implements XTabListener {
                         true,
                         false,
                         VaadinIcon.OPEN_BOOK.create(),
-                        () -> new ResourcesGridPanel(clusterBox.getValue().name(), mainView)).select();
+                        () -> new ResourcesGridPanel(clusterBox.getValue().name(), mainView))
+                        .setColor(clusterBox.getValue().config().color()).select();
             }
         });
         add(resourcesButton);
@@ -66,31 +73,31 @@ public class MainPanel extends VerticalLayout implements XTabListener {
 
     @Override
     public void tabInit(XTab xTab) {
-        LOGGER.error("Main Init");
+        LOGGER.debug("Main Init");
         this.tab = xTab;
         createUi();
     }
 
     @Override
     public void tabSelected() {
-        LOGGER.error("Main Selected");
+        LOGGER.debug("Main Selected");
         if (clusterBox != null)
             clusterBox.focus();
     }
 
     @Override
-    public void tabDeselected() {
-        LOGGER.error("Main DeSelected");
+    public void tabUnselected() {
+        LOGGER.debug("Main DeSelected");
     }
 
     @Override
     public void tabDestroyed() {
-        LOGGER.error("Main Destroyed");
+        LOGGER.debug("Main Destroyed");
     }
 
     @Override
-    public void tabRefresh() {
-        LOGGER.error("Main Refreshed");
+    public void tabRefresh(long counter) {
+        LOGGER.trace("Main Refreshed");
     }
 
     @Override

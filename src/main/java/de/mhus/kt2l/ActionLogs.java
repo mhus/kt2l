@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-public class ActionLogs implements XUiAction {
+public class ActionLogs implements ResourceAction {
     @Override
     public boolean canHandleResourceType(String resourceType) {
         return K8sUtil.RESOURCE_PODS.equals(resourceType) || K8sUtil.RESOURCE_CONTAINER.equals(resourceType);
@@ -48,14 +48,14 @@ public class ActionLogs implements XUiAction {
                 selected.getName(),
                 true,
                 true,
-                VaadinIcon.FILE_TEXT_O.create(),
+                VaadinIcon.MODAL_LIST.create(),
                 () ->
                 new PodLogsPanel(
                         context.getClusterConfiguration(),
                         context.getApi(),
                         context.getMainView(),
                         containers
-                        )).select().setParentTab(context.getSelectedTab());
+                        )).setColor(context.getClusterConfiguration().color()).select().setParentTab(context.getSelectedTab());
     }
 
     @Override

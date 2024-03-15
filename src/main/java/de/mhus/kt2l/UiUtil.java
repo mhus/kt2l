@@ -1,6 +1,6 @@
 package de.mhus.kt2l;
 
-public class XUi {
+public class UiUtil {
 
     public static COLOR toColor(String color) {
         if (color == null) return COLOR.NONE;

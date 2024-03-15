@@ -183,8 +183,8 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     }
 
     @Override
-    public void tabDeselected() {
-
+    public void tabUnselected() {
+        grid.setUnselected();
     }
 
     @Override
@@ -195,11 +195,11 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     }
 
     @Override
-    public void tabRefresh() {
+    public void tabRefresh(long counter) {
         if (ui != null && grid != null) {
             ui.access(() -> {
-                LOGGER.info("Refresh " + grid.getClass().getSimpleName());
-                grid.refresh();
+                LOGGER.trace("Refresh " + grid.getClass().getSimpleName());
+                grid.refresh(counter);
             });
         }
     }

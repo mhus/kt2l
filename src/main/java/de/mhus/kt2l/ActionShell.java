@@ -1,23 +1,15 @@
 package de.mhus.kt2l;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
-import de.mhus.commons.tools.MCollection;
-import de.mhus.commons.tools.MString;
-import de.mhus.commons.tools.MSystem;
-import de.mhus.commons.tree.MProperties;
-import de.mhus.commons.tree.MTree;
-import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Set;
 
 @Slf4j
 @Component
-public class ActionShell implements XUiAction {
+public class ActionShell implements ResourceAction {
 
     @Autowired
     private Configuration configuration;
@@ -51,7 +43,7 @@ public class ActionShell implements XUiAction {
                         context.getApi(),
                         context.getMainView(),
                         selected
-                        )).select().setParentTab(context.getSelectedTab());
+                        )).setColor(context.getClusterConfiguration().color()).select().setParentTab(context.getSelectedTab());
     }
 
     @Override

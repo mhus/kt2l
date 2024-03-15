@@ -8,7 +8,7 @@ public interface ResourcesGrid {
 
     Component getComponent();
 
-    void refresh();
+    void refresh(long counter);
 
     void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesGridPanel view);
 
@@ -21,6 +21,8 @@ public interface ResourcesGrid {
     void handleShortcut(ShortcutEvent event);
 
     void setSelected();
+
+    void setUnselected();
 
     void destroy();
 }

@@ -72,7 +72,7 @@ public class XTabBar extends VerticalLayout {
         // deselect
         if (selectedTab != null) {
             if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof XTabListener) {
-                Try.run(() -> ((XTabListener) selectedTab.getPanel()).tabDeselected()).onFailure(e -> LOGGER.warn("TabListener:tabDeselected failed", e));
+                Try.run(() -> ((XTabListener) selectedTab.getPanel()).tabUnselected()).onFailure(e -> LOGGER.warn("TabListener:tabDeselected failed", e));
             }
         }
         // select fallback

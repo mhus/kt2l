@@ -3,6 +3,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
+    "@f0rce/lit-ace": "1.11.1",
     "@polymer/polymer": "3.5.1",
     "@vaadin/a11y-base": "24.3.6",
     "@vaadin/accordion": "24.3.6",
@@ -93,6 +94,7 @@
   },
   "vaadin": {
     "dependencies": {
+      "@f0rce/lit-ace": "1.11.1",
       "@polymer/polymer": "3.5.1",
       "@vaadin/a11y-base": "24.3.6",
       "@vaadin/accordion": "24.3.6",
@@ -181,7 +183,7 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "d4801edd83e3e559d54165288ac1efc5848256f5f1343520311dcf1b5822a29f"
+    "hash": "4707e3edd1f1cf407ff09722b745e95ef001af4467ae3b619fec0685f7915cd0"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -252,6 +254,7 @@
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "date-fns": "$date-fns",
     "xterm-addon-fit": "$xterm-addon-fit",
-    "xterm": "$xterm"
+    "xterm": "$xterm",
+    "@f0rce/lit-ace": "$@f0rce/lit-ace"
   }
 }

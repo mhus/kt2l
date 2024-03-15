@@ -8,6 +8,8 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 public class XTab extends HorizontalLayout {
 
     private final Icon icon;
@@ -18,7 +20,7 @@ public class XTab extends HorizontalLayout {
     @Getter
     private String windowTitle; // window top
     @Getter
-    private XUi.COLOR color = XUi.COLOR.NONE;
+    private UiUtil.COLOR color = UiUtil.COLOR.NONE;
     @Getter
     private final boolean closeable;
     @Getter
@@ -93,8 +95,12 @@ public class XTab extends HorizontalLayout {
         return this;
     }
 
-    public XTab setColor(XUi.COLOR color) {
+    public XTab setColor(UiUtil.COLOR color) {
         this.color = color;
+        if (icon != null) {
+            Arrays.stream(UiUtil.COLOR.values()).forEach(c -> removeClassName("color-" + c.name().toLowerCase()));
+            icon.addClassName("color-" + color.name().toLowerCase());
+        }
         return this;
     }
 

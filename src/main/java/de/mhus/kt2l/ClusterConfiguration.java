@@ -31,7 +31,7 @@ public class ClusterConfiguration {
                         cluster.getBoolean("enabled").orElse(true),
                         cluster.getString("defaultNamespace").orElse(K8sUtil.NAMESPACE_ALL),
                         cluster.getString("defaultResourceType").orElse(defaultResourceType()),
-                        XUi.toColor(cluster.getString("color").orElse(null))
+                        UiUtil.toColor(cluster.getString("color").orElse(null))
                 ));
             });
         return clusters;
@@ -44,11 +44,11 @@ public class ClusterConfiguration {
     public Cluster getClusterOrDefault(String name) {
         final var cluster = getClusters().get(name);
         if (cluster == null) {
-            return new Cluster(name, name, true, K8sUtil.NAMESPACE_ALL, defaultResourceType(), XUi.COLOR.NONE);
+            return new Cluster(name, name, true, K8sUtil.NAMESPACE_ALL, defaultResourceType(), UiUtil.COLOR.NONE);
         }
         return cluster;
     }
 
-    public static record Cluster(String name, String title, boolean enabled, String defaultNamespace, String defaultResourceType, XUi.COLOR color) {}
+    public static record Cluster(String name, String title, boolean enabled, String defaultNamespace, String defaultResourceType, UiUtil.COLOR color) {}
 
 }

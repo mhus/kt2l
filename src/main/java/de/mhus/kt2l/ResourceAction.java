@@ -2,7 +2,7 @@ package de.mhus.kt2l;
 
 import java.util.Set;
 
-public interface XUiAction {
+public interface ResourceAction {
     boolean canHandleResourceType(String resourceType);
     boolean canHandleResource(String resourceType, Set<? extends Object> selected);
     void execute(ExecutionContext context);

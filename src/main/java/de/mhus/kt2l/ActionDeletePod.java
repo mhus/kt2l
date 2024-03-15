@@ -1,17 +1,14 @@
 package de.mhus.kt2l;
 
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import de.mhus.commons.errors.UsageException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 @Component
 @Slf4j
-public class ActionDeletePod implements XUiAction {
+public class ActionDeletePod implements ResourceAction {
 
     @Override
     public boolean canHandleResourceType(String resourceType) {

@@ -40,7 +40,7 @@ public class ExecutionContext {
             notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
             if (isNeedGridRefresh()) {
-                grid.refresh();
+                grid.refresh(0);
             }
 
         }

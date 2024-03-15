@@ -64,6 +64,11 @@
 			<artifactId>xterm-console</artifactId>
 			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>de.f0rce</groupId>
+			<artifactId>ace</artifactId>
+			<version>3.4.2</version>
+		</dependency>
 
 		<dependency>
 			<groupId>net.logstash.logback</groupId>

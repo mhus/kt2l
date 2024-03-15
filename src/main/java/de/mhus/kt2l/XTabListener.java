@@ -5,10 +5,10 @@ import com.vaadin.flow.component.ShortcutEvent;
 public interface XTabListener {
     void tabInit(XTab xTab);
     void tabSelected();
-    void tabDeselected();
+    void tabUnselected();
     void tabDestroyed();
 
-    void tabRefresh();
+    void tabRefresh(long counter);
 
     void tabShortcut(ShortcutEvent event);
 }

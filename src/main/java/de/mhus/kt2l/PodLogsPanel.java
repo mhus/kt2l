@@ -316,6 +316,7 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     }
 
     private String processJson(String text) {
+        if (text == null) return "";
         StringBuilder out = new StringBuilder();
         BufferedReader bf = new BufferedReader(new java.io.StringReader(text));
         String line = "";
@@ -343,7 +344,7 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     }
 
     @Override
-    public void tabDeselected() {
+    public void tabUnselected() {
     }
 
     @Override
@@ -360,7 +361,7 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     }
 
     @Override
-    public void tabRefresh() {
+    public void tabRefresh(long counter) {
     }
 
     @Override
@@ -378,10 +379,15 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
         boolean visible = true;
 
         public LogEntry(String source, String raw) {
+            if (raw == null) raw = "";
             int pos = raw.indexOf(' ');
-            this.time = raw.substring(0, pos);
+            if (pos >= 0) {
+                this.time = raw.substring(0, pos);
+                this.raw = raw.substring(pos + 1);
+            } else {
+                this.time = "xxxx-xx-xxTxx:xx:xx.xxxxxxxxxZ";
+            }
             this.source = source;
-            this.raw = raw.substring(pos + 1);
             this.text = menuItemJson.isChecked() ? processJson(this.raw) : this.raw;
             checkFilter();
         }

@@ -2,14 +2,13 @@ package de.mhus.kt2l;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1Pod;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Set;
 
 @Component
-public class ActionDetails implements XUiAction {
+public class ActionDetails implements ResourceAction {
     @Override
     public boolean canHandleResourceType(String resourceType) {
         return true;
@@ -54,7 +53,7 @@ public class ActionDetails implements XUiAction {
                                 context.getApi(),
                                 context.getMainView(),
                                 finalResource
-                        )).select().setParentTab(context.getSelectedTab());
+                        )).setColor(context.getClusterConfiguration().color()).select().setParentTab(context.getSelectedTab());
 
     }
 
