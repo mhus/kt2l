@@ -39,7 +39,7 @@ public class ActionDetails implements ResourceAction {
             name = metadata.getName();
         }
 
-        final var finalResource = selected;
+        final var finalResource = (KubernetesObject)selected;
 
         context.getMainView().getTabBar().addTab(
                 context.getClusterConfiguration().name() + ":" + context.getResourceType() + ":" + name + ":details",
@@ -52,6 +52,7 @@ public class ActionDetails implements ResourceAction {
                                 context.getClusterConfiguration(),
                                 context.getApi(),
                                 context.getMainView(),
+                                context.getResourceType(),
                                 finalResource
                         )).setColor(context.getClusterConfiguration().color()).select().setParentTab(context.getSelectedTab());
 

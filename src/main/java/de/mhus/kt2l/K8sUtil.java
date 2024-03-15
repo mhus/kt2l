@@ -61,10 +61,10 @@ public class K8sUtil {
         return future;
     }
 
-    public static LinkedList<String> getResourceTypes(CoreV1Api coreApi) {
-        LinkedList<String> types = new LinkedList<>();
+    public static LinkedList<V1APIResource> getResourceTypes(CoreV1Api coreApi) {
+        LinkedList<V1APIResource> types = new LinkedList<>();
         try {
-            coreApi.getAPIResources().getResources().forEach(res -> types.add(res.getKind()));
+            coreApi.getAPIResources().getResources().forEach(res -> types.add(res));
         } catch (ApiException e) {
             LOGGER.error("Error getting resource types", e);
         }
@@ -115,7 +115,7 @@ public class K8sUtil {
         return resource.getName();
     }
 
-    public static V1APIResource findResource(String resourceType, LinkedList<V1APIResource> resources) {
+    public static V1APIResource findResource(String resourceType, List<V1APIResource> resources) {
         return resources.stream().filter(r -> toResourceType(r).endsWith(resourceType)).findFirst().orElse(null);
     }
 

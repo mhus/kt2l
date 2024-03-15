@@ -48,7 +48,7 @@ public class ActionShell implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "XShell";
+        return "Shell";
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ActionShell implements ResourceAction {
 
     @Override
     public String getShortcutKey() {
-        return "Shift+S";
+        return "s";
     }
 
     @Override
@@ -68,6 +68,6 @@ public class ActionShell implements ResourceAction {
 
     @Override
     public String getDescription() {
-        return "Open terminal";
+        return "Open shell";
     }
 }

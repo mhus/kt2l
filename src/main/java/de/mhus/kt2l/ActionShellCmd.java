@@ -38,17 +38,21 @@ public class ActionShellCmd implements ResourceAction {
 
         V1Pod pod = null;
         String container = null;
+        String containerImage = null;
         if (K8sUtil.RESOURCE_PODS.equals(context.getResourceType())) {
             final var selected = (PodGrid.Pod) context.getSelected().iterator().next();
             pod = selected.getPod();
             container = pod.getStatus().getContainerStatuses().get(0).getName();
+            containerImage = pod.getStatus().getContainerStatuses().get(0).getImage();
         } else {
             final var selected = (PodGrid.Container) context.getSelected().iterator().next();
             pod = selected.pod();
             container = selected.name();
+            final String finalContainer = container;
+            containerImage = selected.pod().getStatus().getContainerStatuses().stream().filter(c -> c.getName().equals(finalContainer)).findFirst().get().getImage();
         }
         final var conf = configuration.getSection("cmd-" + MSystem.getOS().name());
-        final var shell = conf.getString("shell").orElse("/bin/sh");
+        final var shell = ConfigUtil.getShellFor(configuration, context.getClusterConfiguration(), pod, containerImage);
         final var vars = new MProperties();
         vars.setString("pod", pod.getMetadata().getName());
         vars.setString("container", container);
@@ -87,7 +91,7 @@ public class ActionShellCmd implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Shell";
+        return "Terminal";
     }
 
     @Override
@@ -97,7 +101,7 @@ public class ActionShellCmd implements ResourceAction {
 
     @Override
     public String getShortcutKey() {
-        return "s";
+        return "t";
     }
 
     @Override
@@ -107,6 +111,6 @@ public class ActionShellCmd implements ResourceAction {
 
     @Override
     public String getDescription() {
-        return "Open terminal in container";
+        return "Open shell in terminal";
     }
 }

@@ -4339,14 +4339,20 @@ public class GenericObjectsApi {
             throws ApiException {
         Object localVarPostBody = body;
 
+        String api = "/apis/";
+        if (group == null) {
+            group = "";
+            api = "/api";
+        }
         // create path and map variables
         String localVarPath =
-                "/apis/{group}/{version}/{plural}/{name}"
+                "{api}{group}/{version}/{plural}{name}"
+                        .replaceAll("\\{" + "api" + "\\}", api)
                         .replaceAll("\\{" + "group" + "\\}", localVarApiClient.escapeString(group.toString()))
                         .replaceAll(
                                 "\\{" + "version" + "\\}", localVarApiClient.escapeString(version.toString()))
                         .replaceAll("\\{" + "plural" + "\\}", localVarApiClient.escapeString(plural.toString()))
-                        .replaceAll("\\{" + "name" + "\\}", localVarApiClient.escapeString(name.toString()));
+                        .replaceAll("\\{" + "name" + "\\}", localVarApiClient.escapeString(name == null ? "" : "/" + name.toString()));
 
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
@@ -4406,10 +4412,10 @@ public class GenericObjectsApi {
             throws ApiException {
 
         // verify the required parameter 'group' is set
-        if (group == null) {
-            throw new ApiException(
-                    "Missing the required parameter 'group' when calling patchClusterCustomObject(Async)");
-        }
+//        if (group == null) {
+//            throw new ApiException(
+//                    "Missing the required parameter 'group' when calling patchClusterCustomObject(Async)");
+//        }
 
         // verify the required parameter 'version' is set
         if (version == null) {
@@ -4424,10 +4430,10 @@ public class GenericObjectsApi {
         }
 
         // verify the required parameter 'name' is set
-        if (name == null) {
-            throw new ApiException(
-                    "Missing the required parameter 'name' when calling patchClusterCustomObject(Async)");
-        }
+//        if (name == null) {
+//            throw new ApiException(
+//                    "Missing the required parameter 'name' when calling patchClusterCustomObject(Async)");
+//        }
 
         // verify the required parameter 'body' is set
         if (body == null) {

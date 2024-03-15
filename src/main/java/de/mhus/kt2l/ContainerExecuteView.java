@@ -15,13 +15,18 @@ import io.kubernetes.client.Exec;
 import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
 
 @Slf4j
 public class ContainerExecuteView extends VerticalLayout implements XTabListener {
 
+
+    @Autowired
+    private Configuration configuration;
 
     private static final int MAX = 300000;
     private final ClusterConfiguration.Cluster clusterConfig;
@@ -64,9 +69,6 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
         xterm.writeln("Start console\n\n");
         xterm.setCursorBlink(true);
         xterm.setCursorStyle(ITerminalOptions.CursorStyle.UNDERLINE);
-//        xterm.addCustomKeyListener(e -> {
-//            xterm.write(" ");
-//        }, Key.SPACE);
 
         xterm.setSizeFull();
         xterm.setCopySelection(true);
@@ -81,8 +83,6 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
             }
 
             try {
-//                proc.outputWriter().write(e.getLine());
-//                proc.outputWriter().newLine();
                 proc.getOutputStream().write(line.getBytes());
                 proc.getOutputStream().write('\n');
                 LOGGER.info("Alive: {}", proc.isAlive());
@@ -90,6 +90,12 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
                 LOGGER.error("Write error", ex);
             }
         });
+
+//        for (Key key : new Key[]{Key.ENTER, Key.BACKSPACE, Key.DELETE, Key.ESCAPE, Key.TAB, Key.SPACE, Key.ARROW_DOWN, Key.ARROW_LEFT, Key.ARROW_RIGHT, Key.ARROW_UP, Key.PAGE_DOWN, Key.PAGE_UP, Key.END, Key.HOME, Key.INSERT, Key.F1, Key.F2, Key.F3, Key.F4, Key.F5, Key.F6, Key.F7, Key.F8, Key.F9, Key.F10, Key.F11, Key.F12}) {
+//            UI.getCurrent().addShortcutListener(
+//                    () -> handleKey(key),
+//                    key).listenOn(xterm);
+//        }
 
         var xTermMenuBar = new MenuBar();
         xTermMenuBar.addItem("ESC", e -> {
@@ -104,8 +110,7 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
 
         try {
             Exec exec = new Exec(api.getApiClient());
-            proc =
-                    exec.exec(pod.getPod(), new String[]{"/bin/bash"}, true, true);
+            proc = exec.exec(pod.getPod(), new String[]{ConfigUtil.getShellFor(configuration, clusterConfig, pod.getPod() )}, true, true);
 
             threadInput = Thread.startVirtualThread(this::loopInput);
             threadError = Thread.startVirtualThread(this::loopError);
@@ -114,6 +119,10 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
         }
 
 
+    }
+
+    private void handleKey(Key key) {
+        System.out.println("Key: " + key);
     }
 
     private void loopError() {

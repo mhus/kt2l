@@ -1,0 +1,4 @@
+default: /bin/sh
+ubuntu: /bin/bash
+centos: /bin/bash
+
