@@ -26,6 +26,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 
@@ -142,6 +143,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
             resMenuItemSave.setEnabled(false);
             resMenuItemCancel.setEnabled(false);
         });
+
         resMenuItemEdit.setEnabled(true);
         resMenuItemSave.setEnabled(false);
         resMenuItemCancel.setEnabled(false);

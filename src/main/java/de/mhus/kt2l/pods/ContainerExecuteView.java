@@ -6,6 +6,7 @@ import com.flowingcode.vaadin.addons.xterm.XTerm;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.tools.MThread;
@@ -41,6 +42,7 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
     private Thread threadInput;
     private Process proc;
     private Thread threadError;
+    private MenuItem menuItemEsc;
 
 
     public ContainerExecuteView(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, PodGrid.Pod pod) {
@@ -55,18 +57,6 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
     public void tabInit(XTab xTab) {
         this.tab = xTab;
 
-        MenuBar menuBar = new MenuBar();
-        menuBar.addItem("Autoscroll", e -> {
-            System.out.println("Autoscroll");
-        });
-        menuBar.addItem("Wrap lines", e -> {
-            System.out.println(".");
-        });
-        menuBar.addItem("Json", e -> {
-            System.out.println("..");
-        });
-        add(menuBar);
-
         xterm = new XTerm();
         xterm.writeln("Start console\n\n");
         xterm.setCursorBlink(true);
@@ -77,6 +67,7 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
         xterm.setUseSystemClipboard(ITerminalClipboard.UseSystemClipboard.READWRITE);
         xterm.setPasteWithRightClick(true);
         xterm.addLineListener(e -> {
+            if (proc == null) return;
             var line = e.getLine();
             System.out.println("Line: " + line);
             var pos = line.indexOf('#'); // TODO this is a hack
@@ -90,6 +81,7 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
                 LOGGER.info("Alive: {}", proc.isAlive());
             } catch (IOException ex) {
                 LOGGER.error("Write error", ex);
+                closeTerminal();
             }
         });
 
@@ -100,14 +92,15 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
 //        }
 
         var xTermMenuBar = new MenuBar();
-        xTermMenuBar.addItem("ESC", e -> {
+        menuItemEsc = xTermMenuBar.addItem("ESC", e -> {
             xterm.write("\u001b");
         });
 
-        var xTermLayout = new VerticalLayout(xTermMenuBar, xterm);
-        xTermLayout.setSizeFull();
+        add(xTermMenuBar);
+        add(xterm);
 
-        add(xTermLayout);
+        xterm.focus();
+
         setSizeFull();
 
         try {
@@ -121,6 +114,16 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
         }
 
 
+    }
+
+    private void closeTerminal() {
+        proc = null;
+        if (threadError != null)
+            threadError.interrupt();
+        if (threadInput != null)
+            threadInput.interrupt();
+        menuItemEsc.setEnabled(false);
+        xterm.setEnabled(false);
     }
 
     private void handleKey(Key key) {
