@@ -4,6 +4,7 @@ import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import de.mhus.commons.tools.MString;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
@@ -74,12 +75,22 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
     }
 
     private void processLanguage(String content, TextArea text, String language) {
-        content = "Please translate to " + language + ":\n" + content;
+        try {
+            content = MString.compileAndExecute(
+                    ai.getQuestion("translate").orElse("Please translate to ${language}:\n${content}"),
+                    "language", language,
+                    "content", content
+            );
 
-        final var answer = ai.generate(AiService.MODEL_YI, content, language);
-        context.getUi().access(() -> {
-            text.setValue((answer.finishReason() != null ? answer.finishReason() + "\n" : "") + answer.content().text());
-        });
+            final var answer = ai.generate(AiService.MODEL_YI, content, language);
+            context.getUi().access(() -> {
+                text.setValue((answer.finishReason() != null ? answer.finishReason() + "\n" : "") + answer.content().text());
+            });
+        } catch (Throwable t) {
+            context.getUi().access(() -> {
+                text.setValue("Error: " + t.toString());
+            });
+        }
     }
 
     private void processResource(final KubernetesObject resource, final TextArea textArea) {
@@ -87,7 +98,9 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
         try {
             var content = extractContent(resource);
 
-            content = "Do you see problems in the following kubernetes resource?\n\n" + content;
+            content = MString.compileAndExecute(
+                    ai.getQuestion("resource").orElse("Do you see problems in the following kubernetes resource?\n\n${content}"),
+                    "content", content);
 
             final var answer = ai.generate(AiService.MODEL_CODELLAMA, content);
             context.getUi().access(() -> {

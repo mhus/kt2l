@@ -15,6 +15,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
+import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.kt2l.generic.ActionService;
@@ -49,67 +50,108 @@ import java.util.stream.Stream;
 import static de.mhus.commons.tools.MCollection.cropArray;
 
 @Slf4j
-public class PodGrid extends VerticalLayout implements ResourcesGrid {
+public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
-    private List<Pod> podList = null;
-    private List<Pod> filteredList = null;
     private List<Container> containerList = null;
-    private String filterText = "";
-    private String namespace;
-    private CoreV1Api coreApi;
-    private ClusterConfiguration.Cluster clusterConfig;
-    private Grid<Pod> podGrid;
-    private Grid<Container> containerGrid;
-    private MenuBar menuBar;
-    private List<MenuAction> actions = new ArrayList<>(10);
-
-    @Autowired
-    private ActionService actionService;
-    private ResourcesGridPanel view;
     private Pod containerSelectedPod;
-    private Optional<Pod> selectedPod;
     private IRegistration podEventRegistration;
 
-    @Override
-    public Component getComponent() {
-        return this;
-    }
+    protected void createDetailsComponent() {
+        detailsComponent = new Grid<>(Container.class, false);
+        addClassNames("contact-grid");
+        detailsComponent.setWidthFull();
+        detailsComponent.setHeight("200px");
+        detailsComponent.addColumn(cont -> cont.name()).setHeader("Name").setSortProperty("name");
+        detailsComponent.addColumn(cont -> cont.status()).setHeader("Status").setSortProperty("status");
+        detailsComponent.addColumn(cont -> cont.age()).setHeader("Age").setSortProperty("age");
+        detailsComponent.getColumns().forEach(col -> col.setAutoWidth(true));
+        detailsComponent.setDataProvider(new ContainerProvider());
+        detailsComponent.setVisible(false);
+//        detailsComponent.addSelectionListener(event -> {
+//            if (detailsComponent.isVisible())
+//                actions.forEach(a -> a.updateWithContainer(event.getAllSelectedItems()));
+//        });
 
-    @Override
-    public void refresh(long counter) {
-        if (counter % 10 != 0) return;
-//        podList = null;
-        filterList();
-        podGrid.getDataProvider().refreshAll();
-        UI.getCurrent().push();
-    }
-
-    @Override
-    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesGridPanel view) {
-        this.coreApi = coreApi;
-        this.view = view;
-        this.clusterConfig = clusterConfig;
-
-        createActions();
-        createPodGrid();
-        createContainerGrid();
-        createMenuBar();
-
-        add(menuBar, podGrid, containerGrid);
-        setSizeFull();
-
-        actions.forEach(a -> a.updateWithPod(Collections.emptySet()));
-
-        podEventRegistration = view.getMainView().getBackgroundJob(clusterConfig.name(), ClusterPodWatch.class, () -> new ClusterPodWatch()).getPodEventHandler().registerWeak(this::podEvent);
+//        GridContextMenu<Container> menu = detailsComponent.addContextMenu();
+//        actions.forEach(action -> {
+//            var item = menu.addItem(action.getAction().getTitle(), event ->
+//                    action.execute()
+//            );
+//            action.setContainerContextMenuItem(item);
+//        });
 
     }
 
-    private void createActions() {
-        actionService.findActionsForResource(K8sUtil.RESOURCE_PODS).forEach(action -> {
-            final MenuAction menuAction = new MenuAction();
-            menuAction.setAction(action);
-            actions.add(menuAction);
-        });
+    @Override
+    protected void onDetailsChanged(Pod item) {
+        setContainerPod(item);
+    }
+
+    @Override
+    protected void onShowDetails(Pod item, boolean flip) {
+        flipContainerVisibility(item, flip, !flip);
+    }
+
+    private void flipContainerVisibility(Pod pod, boolean flip, boolean focus) {
+        containerList = null;
+        containerSelectedPod = null;
+        detailsComponent.setVisible(!flip || !detailsComponent.isVisible());
+        if (detailsComponent.isVisible()) {
+            containerSelectedPod = pod;
+            detailsComponent.getDataProvider().refreshAll();
+            if (focus)
+                detailsComponent.getElement().getNode()
+                        .runWhenAttached(ui -> ui.getPage().executeJs(
+                                "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", detailsComponent.getElement()));
+        }
+
+    }
+
+
+    @Override
+    protected void onGridSelectionChanged() {
+        if (detailsComponent.isVisible())
+            detailsComponent.deselectAll();
+    }
+
+    @Override
+    protected Class<Pod> getManagedClass() {
+        return Pod.class;
+    }
+
+    protected void onGridCellFocusChanged(PodGrid.Pod item) {
+        if (detailsComponent.isVisible()) {
+            containerSelectedPod = item;
+            containerList = null;
+            detailsComponent.getDataProvider().refreshAll();
+        }
+    }
+
+    @Override
+    protected DataProvider createDataProvider() {
+        return new PodProvider();
+    }
+
+    @Override
+    protected boolean filterByRegex(Pod pod, String f) {
+        return pod.getName().matches(f);
+    }
+
+    @Override
+    public void destroy() {
+        podEventRegistration.unregister();
+    }
+
+    @Override
+    protected void createGridColumns(Grid<Pod> podGrid) {
+        podGrid.addColumn(pod -> pod.getName()).setHeader("Name").setSortProperty("name");
+        podGrid.addColumn(pod -> pod.getStatus()).setHeader("Status").setSortProperty("status");
+        podGrid.addColumn(pod -> pod.getAge()).setHeader("Age").setSortProperty("age");
+    }
+
+    @Override
+    protected boolean filterByContent(Pod pod, String filter) {
+        return pod.getName().contains(filter);
     }
 
     private void podEvent(Watch.Response<V1Pod> event) {
@@ -119,17 +161,17 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
 
             final var foundPod = podList.stream().filter(pod -> pod.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
-                () -> {
-                    final var pod = new Pod(
-                            event.object.getMetadata().getName(),
-                            event.object.getMetadata().getNamespace(),
-                            event.object.getStatus().getPhase(),
-                            event.object.getMetadata().getCreationTimestamp().toEpochSecond(),
-                            event.object
-                    );
-                    podList.add(pod);
-                    return pod;
-                }
+                    () -> {
+                        final var pod = new Pod(
+                                event.object.getMetadata().getName(),
+                                event.object.getMetadata().getNamespace(),
+                                event.object.getStatus().getPhase(),
+                                event.object.getMetadata().getCreationTimestamp().toEpochSecond(),
+                                event.object
+                        );
+                        podList.add(pod);
+                        return pod;
+                    }
             );
 
             foundPod.setStatus(event.object.getStatus().getPhase());
@@ -150,218 +192,22 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
 
     }
 
-    private void createMenuBar() {
-        menuBar = new MenuBar();
-
-        actions.forEach(action -> {
-
-            MenuItem item = menuBar.addItem(action.getAction().getTitle(), new ComponentEventListener<ClickEvent<MenuItem>>() {
-                @Override
-                public void onComponentEvent(ClickEvent<MenuItem> event) {
-                    action.execute();
-                }
-            });
-            item.setEnabled(false);
-            item.getElement().setAttribute("title", action.getAction().getDescription() + (action.getAction().getShortcutKey() == null ? "" : " (" + action.getAction().getShortcutKey() + ")" ));
-
-            action.setMenuItem(item);
-
-            if (action.getAction().getShortcutKey() != null) {
-                final var k1 = action.getAction().getShortcutKey().split("\\+");
-                final var key = Key.of(k1[k1.length-1], cropArray(k1, 0, k1.length-1));
-                if (key != null) {
-                    UI.getCurrent().addShortcutListener(() -> {
-                        action.execute();
-                    },key).listenOn(podGrid, containerGrid);
-                }
-            }
-
-        });
-
-    }
-    private void createContainerGrid() {
-        containerGrid = new Grid<>(Container.class, false);
-        addClassNames("contact-grid");
-        containerGrid.setWidthFull();
-        containerGrid.setHeight("200px");
-        containerGrid.addColumn(cont -> cont.name()).setHeader("Name").setSortProperty("name");
-        containerGrid.addColumn(cont -> cont.status()).setHeader("Status").setSortProperty("status");
-        containerGrid.addColumn(cont -> cont.age()).setHeader("Age").setSortProperty("age");
-        containerGrid.getColumns().forEach(col -> col.setAutoWidth(true));
-        containerGrid.setDataProvider(new ContainerProvider());
-        containerGrid.setVisible(false);
-        containerGrid.addSelectionListener(event -> {
-            if (containerGrid.isVisible())
-                actions.forEach(a -> a.updateWithContainer(event.getAllSelectedItems()));
-        });
-
-        GridContextMenu<Container> menu = containerGrid.addContextMenu();
-        actions.forEach(action -> {
-            var item = menu.addItem(action.getAction().getTitle(), event ->
-                    action.execute()
-            );
-            action.setContainerContextMenuItem(item);
-        });
-
-    }
-
-    private void createPodGrid() {
-
-        podGrid = new Grid<>(Pod.class, false);
-        addClassNames("contact-grid");
-        podGrid.setSizeFull();
-        podGrid.setSelectionMode(Grid.SelectionMode.MULTI);
-        podGrid.addColumn(pod -> pod.getName()).setHeader("Name").setSortProperty("name");
-        podGrid.addColumn(pod -> pod.getStatus()).setHeader("Status").setSortProperty("status");
-        podGrid.addColumn(pod -> pod.getAge()).setHeader("Age").setSortProperty("age");
-        podGrid.getColumns().forEach(col -> col.setAutoWidth(true));
-        podGrid.setDataProvider(new PodProvider());
-
-        podGrid.addCellFocusListener(event -> {
-            selectedPod = event.getItem();
-            if (selectedPod.isPresent())
-                setContainerPod(selectedPod.get());
-        });
-
-        podGrid.addSelectionListener(event -> {
-            if (containerGrid.isVisible())
-                containerGrid.deselectAll();
-            actions.forEach(a -> a.updateWithPod(event.getAllSelectedItems()));
-        });
-        podGrid.addItemClickListener(event -> {
-            if (event.getClickCount() == 2) {
-                flipContainerVisibility(event.getItem(), false, false);
-            } else
-            if (event.getClickCount() == 1) {
-                setContainerPod(event.getItem());
-                if (event.isAltKey()) {
-                    if (podGrid.getSelectionModel().isSelected(event.getItem()))
-                        podGrid.getSelectionModel().deselect(event.getItem());
-                    else
-                        podGrid.getSelectionModel().select(event.getItem());
-                } else
-                if (event.isShiftKey()) {
-                    var first = podGrid.getSelectionModel().getFirstSelectedItem();
-                    if (first == null) {
-                        podGrid.getSelectionModel().select(event.getItem());
-                    } else {
-                        var start = filteredList.indexOf(first.get());
-                        var end = filteredList.indexOf(event.getItem());
-                        if (start > end) {
-                            var tmp = start;
-                            start = end;
-                            end = tmp;
-                        }
-                        podGrid.getSelectionModel().deselectAll();
-                        for (int i = start; i <= end; i++) {
-                            podGrid.getSelectionModel().select(filteredList.get(i));
-                        }
-                    }
-                } else {
-                    if (podGrid.getSelectionModel().isSelected(event.getItem()))
-                        podGrid.getSelectionModel().deselectAll();
-                    else {
-                        podGrid.getSelectionModel().deselectAll();
-                        podGrid.getSelectionModel().select(event.getItem());
-                    }
-                }
-            }
-        });
-
-
-        GridContextMenu<Pod> menu = podGrid.addContextMenu();
-        actions.forEach(action -> {
-            var item = menu.addItem(action.getAction().getTitle(), event ->
-                    action.execute()
-            );
-            action.setPodContextMenuItem(item);
-        });
-
-        UI.getCurrent().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(podGrid);
-        UI.getCurrent().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(podGrid);
-
-    }
-
-    private void setContainerPod(Pod item) {
-        if (containerGrid.isVisible()) {
-            containerSelectedPod = item;
-            containerList = null;
-            containerGrid.getDataProvider().refreshAll();
-        }
+    private static String getAge(OffsetDateTime creationTimestamp) {
+        final var age = System.currentTimeMillis()/1000 - creationTimestamp.toEpochSecond();
+        if (age < 60) return age + "s";
+        if (age < 3600) return age/60 + "m";
+        if (age < 86400) return age/3600 + "h";
+        return age/86400 + "d";
     }
 
     @Override
-    public void setFilter(String value) {
-        filterText = value;
-        if (podList != null)
-            podGrid.getDataProvider().refreshAll();
+    protected void init() {
+        podEventRegistration = view.getMainView().getBackgroundJob(clusterConfig.name(), ClusterPodWatch.class, () -> new ClusterPodWatch()).getPodEventHandler().registerWeak(this::podEvent);
     }
 
     @Override
-    public void setNamespace(String value) {
-        namespace = value;
-        if (podList != null) {
-            podList = null;
-            podGrid.getDataProvider().refreshAll();
-        }
-    }
-
-    @Override
-    public void setResourceType(String resourceType) {
-
-    }
-
-    @Override
-    public void handleShortcut(ShortcutEvent event) {
-        if (event.getKey().matches(" ") && event.getKeyModifiers().size() == 0) {
-            if (selectedPod != null && selectedPod.isPresent()) {
-                if (podGrid.getSelectionModel().isSelected(selectedPod.get()))
-                    podGrid.getSelectionModel().deselect(selectedPod.get());
-                else
-                    podGrid.getSelectionModel().select(selectedPod.get());
-            }
-            return;
-        }
-        if (event.getKey().matches(Key.ENTER.toString()) && event.getKeyModifiers().size() == 0) {
-            if (selectedPod != null && selectedPod.isPresent()) {
-                flipContainerVisibility(selectedPod.get(), true, true);
-            }
-            return;
-        }
-
-    }
-
-    private void flipContainerVisibility(Pod pod, boolean alwaysVisible, boolean focus) {
-        containerList = null;
-        containerSelectedPod = null;
-        containerGrid.setVisible(alwaysVisible || !containerGrid.isVisible());
-        if (containerGrid.isVisible()) {
-            containerSelectedPod = pod;
-            containerGrid.getDataProvider().refreshAll();
-            if (focus)
-                containerGrid.getElement().getNode()
-                        .runWhenAttached(ui -> ui.getPage().executeJs(
-                                "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", containerGrid.getElement()));
-        }
-
-    }
-
-    @Override
-    public void setSelected() {
-
-        podGrid.getElement().getNode()
-                .runWhenAttached(ui -> ui.getPage().executeJs(
-                        "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", podGrid.getElement()));
-
-    }
-
-    @Override
-    public void setUnselected() {
-    }
-
-    @Override
-    public void destroy() {
-        podEventRegistration.unregister();
+    public String getManagedResourceType() {
+        return K8sUtil.RESOURCE_PODS;
     }
 
     private class ContainerProvider extends CallbackDataProvider<Container, Void> {
@@ -471,42 +317,18 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
 
     }
 
-    private String getAge(OffsetDateTime creationTimestamp) {
-        final var age = System.currentTimeMillis()/1000 - creationTimestamp.toEpochSecond();
-        if (age < 60) return age + "s";
-        if (age < 3600) return age/60 + "m";
-        if (age < 86400) return age/3600 + "h";
-        return age/86400 + "d";
-    }
-
-    private void filterList() {
-        if (podList == null) {
-            filteredList = Collections.emptyList();
-        } else {
-            final var filter = filterText;
-            if (filter.isBlank()) {
-                filteredList = podList;
-            } if (filter.startsWith("/")) {
-                var f = filter.substring(1);
-                filteredList = podList.stream().filter(pod -> pod.getName().matches(f)).collect(Collectors.toList());
-            } else {
-                filteredList = podList.stream().filter(pod -> pod.getName().contains(filter)).collect(Collectors.toList());
-            }
-        }
-    }
-
     @Data
     @AllArgsConstructor
-    public class Pod implements IResourceProvider {
-            String name;
-            String namespace;
-            String status;
-            long created;
-            V1Pod pod;
+    public static class Pod implements IResourceProvider {
+        String name;
+        String namespace;
+        String status;
+        long created;
+        V1Pod pod;
 
-            public String getAge() {
-                return PodGrid.this.getAge(pod.getMetadata().getCreationTimestamp());
-            }
+        public String getAge() {
+            return PodGrid.getAge(pod.getMetadata().getCreationTimestamp());
+        }
 
         @Override
         public Object getResource() {
@@ -529,98 +351,10 @@ public class PodGrid extends VerticalLayout implements ResourcesGrid {
         }
     }
 
-    @Getter
-    @Setter
-    private class MenuAction {
-        ResourceAction action;
-        MenuItem menuItem;
-        GridMenuItem<Pod> podContextMenuItem;
-        GridMenuItem<Container> containerContextMenuItem;
-
-        public void disableMenu() {
-            if (menuItem != null)
-                menuItem.setEnabled(false);
-            if (podContextMenuItem != null)
-                podContextMenuItem.setEnabled(false);
-            if (containerContextMenuItem != null)
-                containerContextMenuItem.setEnabled(false);
-        }
-
-        public void updateWithContainer(Set<Container> selected) {
-            var enabled = action.canHandleResource(K8sUtil.RESOURCE_CONTAINER,
-                    selected == null ? Collections.emptySet() : selected);
-            if (menuItem != null)
-                menuItem.setEnabled(enabled);
-            if (podContextMenuItem != null)
-                podContextMenuItem.setEnabled(enabled);
-            if (containerContextMenuItem != null)
-                containerContextMenuItem.setEnabled(enabled);
-        }
-        public void updateWithPod(Set<Pod> selected) {
-            var enabled = action.canHandleResource(K8sUtil.RESOURCE_PODS,
-                    selected == null ? Collections.emptySet() : selected);
-            if (menuItem != null)
-                menuItem.setEnabled(enabled);
-            if (podContextMenuItem != null)
-                podContextMenuItem.setEnabled(enabled);
-            if (containerContextMenuItem != null)
-                containerContextMenuItem.setEnabled(enabled);
-        }
-        public void execute() {
-            ExecutionContext context = null;
-            if (containerGrid.isVisible() && containerGrid.getSelectedItems() != null && containerGrid.getSelectedItems().size() == 1) {
-
-                if (!action.canHandleResource(K8sUtil.RESOURCE_CONTAINER, containerGrid.getSelectedItems())) {
-                    Notification notification = Notification
-                            .show("Can't execute");
-                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    return;
-                }
-
-                context = ExecutionContext.builder()
-                        .resourceType(K8sUtil.RESOURCE_CONTAINER)
-                        .selected(containerGrid.getSelectedItems())
-                        .namespace(namespace)
-                        .api(coreApi)
-                        .clusterConfiguration(clusterConfig)
-                        .ui(UI.getCurrent())
-                        .grid(PodGrid.this)
-                        .mainView(view.getMainView())
-                        .selectedTab(view.getXTab())
-                        .build();
-
-            } else {
-                if (!action.canHandleResource(K8sUtil.RESOURCE_PODS, podGrid.getSelectedItems())) {
-                    Notification notification = Notification
-                            .show("Can't execute");
-                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-                    return;
-                }
-                context = ExecutionContext.builder()
-                        .resourceType(K8sUtil.RESOURCE_PODS)
-                        .selected(podGrid.getSelectedItems())
-                        .namespace(namespace)
-                        .api(coreApi)
-                        .clusterConfiguration(clusterConfig)
-                        .ui(UI.getCurrent())
-                        .grid(PodGrid.this)
-                        .mainView(view.getMainView())
-                        .selectedTab(view.getXTab())
-                        .build();
-            }
-
-            try {
-                action.execute(context);
-            } catch (Exception e) {
-                LOGGER.error("Error executing action", e);
-                Notification notification = Notification
-                        .show("Error\n" + e.getMessage());
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                return;
-            }
-
-        }
+    private void setContainerPod(Pod item) {
+        onGridCellFocusChanged(item);
     }
+
 }
 
 

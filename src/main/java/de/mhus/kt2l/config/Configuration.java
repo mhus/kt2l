@@ -7,6 +7,7 @@ import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNode;
 import de.mhus.commons.tools.MFile;
 import de.mhus.kt2l.Kt2lApplication;
+import de.mhus.kt2l.ai.AiConfiguration;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.ui.LoginConfiguration;
 import io.vavr.control.Try;
@@ -79,4 +80,7 @@ public class Configuration {
         return new ClusterConfiguration(getSection("clusters"));
     }
 
+    public AiConfiguration getAiConfiguration() {
+        return new AiConfiguration(getSection("ai"));
+    }
 }

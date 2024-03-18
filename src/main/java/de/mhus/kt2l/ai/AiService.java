@@ -2,17 +2,21 @@ package de.mhus.kt2l.ai;
 
 import de.mhus.commons.errors.NotFoundException;
 import de.mhus.commons.errors.NotFoundRuntimeException;
+import de.mhus.kt2l.config.Configuration;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.model.output.Response;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class AiService {
@@ -28,12 +32,21 @@ public class AiService {
 
     private Map<String, ChatLanguageModel> models = new HashMap<>();
 
+    @Autowired
+    Configuration configuration;
+    AiConfiguration config;
+
+    @PostConstruct
+    public void init() {
+        config = configuration.getAiConfiguration();
+    }
+
     public synchronized ChatLanguageModel getModel(String modelName) {
         String[] parts = modelName.split(":");
         if (parts[0].equals(OLLAMA)) {
             return models.computeIfAbsent(parts[1], name -> {
                 ChatLanguageModel model = OllamaChatModel.builder()
-                        .baseUrl(ollamaBaseUrl())
+                        .baseUrl(config.getOllamaUrl())
                         .modelName(name)
                         .build();
                 return model;
@@ -47,9 +60,8 @@ public class AiService {
         return response;
     }
 
-    static String ollamaBaseUrl() {
-//        return String.format("http://%s:%d", ollama.getHost(), ollama.getFirstMappedPort());
-        return String.format("http://%s:%d", "127.0.0.1", 11434);
+    public Optional<String> getQuestion(String name) {
+        return config.getQuestion(name);
     }
 
 }
