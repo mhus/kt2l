@@ -12,19 +12,33 @@ limitations under the License.
 */
 package de.mhus.kt2l.k8s;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
+import de.mhus.commons.errors.NotFoundRuntimeException;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.ApiResponse;
 import io.kubernetes.client.openapi.Configuration;
+import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.Pair;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
+import io.kubernetes.client.proto.V1beta1Apiextensions;
+import io.kubernetes.client.util.ModelMapper;
+import io.kubernetes.client.util.Yaml;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class GenericObjectsApi {
     private ApiClient localVarApiClient;
@@ -4035,7 +4049,7 @@ public class GenericObjectsApi {
      * <tr><td> 401 </td><td> Unauthorized </td><td>  -  </td></tr>
      * </table>
      */
-    public Object listNamespacedCustomObject(
+    public List<KubernetesObject> listNamespacedCustomObject(
             String group,
             String version,
             String namespace,
@@ -4067,7 +4081,27 @@ public class GenericObjectsApi {
                         resourceVersionMatch,
                         timeoutSeconds,
                         watch);
-        return localVarResp.getData();
+
+        var result = localVarResp.getData();
+        final var list = ((List<Map<String, Object>>) ((LinkedTreeMap<String,Object>)result).get("items"))
+                .stream().map(o -> toKubernetesObject(o, version, plural)).collect(Collectors.toList());
+        return list;
+    }
+
+    private KubernetesObject toKubernetesObject(Map<String, Object> o, String apiVersion, String plural) {
+
+        LinkedList<V1APIResource> types = K8sUtil.getResourceTypes(new CoreV1Api(getApiClient()));
+        V1APIResource type = types.stream().filter(t -> t.getName().equals(plural)).findFirst().orElse(null);
+        if (type == null)
+            throw new NotFoundRuntimeException("Resource type not found: " + plural);
+
+        Class<?> clazz = ModelMapper.getApiTypeClass(apiVersion, type.getKind());
+        if (clazz != null) {
+            Gson gson = new JSON().getGson();
+            JsonElement jsonElement = gson.toJsonTree(o);
+            return (KubernetesObject)gson.fromJson(jsonElement, clazz);
+        }
+        return new GenericObject(o);
     }
 
     /**

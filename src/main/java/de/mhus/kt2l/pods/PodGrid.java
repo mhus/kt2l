@@ -1,53 +1,26 @@
 package de.mhus.kt2l.pods;
 
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.ShortcutEvent;
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
-import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
-import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
-import de.mhus.kt2l.generic.ActionService;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.cluster.ClusterPodWatch;
-import de.mhus.kt2l.generic.ExecutionContext;
 import de.mhus.kt2l.generic.IResourceProvider;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.generic.ResourceAction;
-import de.mhus.kt2l.resources.ResourcesGrid;
-import de.mhus.kt2l.resources.ResourcesGridPanel;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
+import de.mhus.kt2l.resources.AbstractGrid;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static de.mhus.commons.tools.MCollection.cropArray;
 
 @Slf4j
 public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {

@@ -65,7 +65,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
         var types = K8sUtil.getResourceTypes(api);
         resType = K8sUtil.findResource(resourceType, types);
 
-        resContent = Yaml.dump(resource);
+        resContent = K8sUtil.toYaml(resource);
         YElement yDocument = MYaml.loadFromString(resContent);
 
         YMap yMetadata = yDocument.asMap().getMap("metadata");

@@ -1,12 +1,20 @@
 package de.mhus.kt2l.k8s;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import de.mhus.commons.tools.MString;
+import de.mhus.commons.yaml.MYaml;
+import de.mhus.commons.yaml.YElement;
+import de.mhus.commons.yaml.YMap;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1APIResourceList;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
+import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
@@ -119,4 +127,18 @@ public class K8sUtil {
         return resources.stream().filter(r -> toResourceType(r).endsWith(resourceType)).findFirst().orElse(null);
     }
 
+    public static String toYaml(KubernetesObject resource) {
+
+        if (resource == null) return "";
+        if (resource instanceof GenericObject) {
+            Gson gson = new JSON().getGson();
+            JsonElement jsonElement = gson.toJsonTree(((GenericObject)resource).getData());
+            String jsonTxt = gson.toJson(jsonElement);
+            return jsonTxt; //TODO
+        }
+        // get yaml
+
+        var resContent = Yaml.dump(resource);
+        return resContent;
+    }
 }

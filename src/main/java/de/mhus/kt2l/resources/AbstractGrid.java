@@ -1,4 +1,4 @@
-package de.mhus.kt2l.pods;
+package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
@@ -20,8 +20,6 @@ import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.generic.ExecutionContext;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.generic.ResourceAction;
-import de.mhus.kt2l.resources.ResourcesGrid;
-import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.Getter;
 import lombok.Setter;

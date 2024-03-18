@@ -7,11 +7,15 @@ import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
+import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.k8s.GenericObject;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
+import de.mhus.kt2l.resources.AbstractGrid;
 import de.mhus.kt2l.resources.ResourcesGrid;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.extern.slf4j.Slf4j;
@@ -25,77 +29,67 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public class GenericGrid extends Grid<GenericGrid.Resource> implements ResourcesGrid {
-
-    private List<Resource> resourcesList = null;
-    private List<Resource> filteredList = null;
-    private String filterText = "";
-    private String namespace;
-    private CoreV1Api coreApi;
-    private ClusterConfiguration.Cluster clusterConfig;
-    private String resourceType;
+public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 
     @Override
-    public Component getComponent() {
-        return this;
-    }
-
-    @Override
-    public void refresh(long counter) {
-        if (counter % 10 != 0) return;
-        resourcesList = null;
-        getDataProvider().refreshAll();
-        UI.getCurrent().push();
-    }
-
-    @Override
-    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesGridPanel view) {
-        this.coreApi = coreApi;
-        this.clusterConfig = clusterConfig;
-        addClassNames("contact-grid");
-        setSizeFull();
-        addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
-        addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
-        getColumns().forEach(col -> col.setAutoWidth(true));
-        setDataProvider(new ResourcesProvider());
-    }
-
-    @Override
-    public void setFilter(String value) {
-        filterText = value;
-        if (resourcesList != null)
-            getDataProvider().refreshAll();
-    }
-
-    @Override
-    public void setNamespace(String value) {
-        namespace = value;
-        if (resourcesList != null) {
-            resourcesList = null;
-            getDataProvider().refreshAll();
-        }
-    }
-
-    @Override
-    public void setResourceType(String resourceType) {
-        LOGGER.info("XXX Set resource type {}",resourceType);
-        if (resourceType == null) return;
-        this.resourceType = resourceType;
-    }
-
-    @Override
-    public void handleShortcut(ShortcutEvent event) {
+    protected void init() {
 
     }
 
     @Override
-    public void setSelected() {
+    public String getManagedResourceType() {
+        return "";
+    }
+
+    @Override
+    protected void createDetailsComponent() {
 
     }
 
     @Override
-    public void setUnselected() {
+    protected void onDetailsChanged(Resource item) {
 
+    }
+
+    @Override
+    protected void onShowDetails(Resource item, boolean flip) {
+
+    }
+
+    @Override
+    protected void onGridSelectionChanged() {
+
+    }
+
+    @Override
+    protected Class<Resource> getManagedClass() {
+        return Resource.class;
+    }
+
+    @Override
+    protected void onGridCellFocusChanged(Resource resource) {
+
+    }
+
+    @Override
+    protected DataProvider<Resource, ?> createDataProvider() {
+        return new ResourcesProvider();
+    }
+
+    @Override
+    protected void createGridColumns(Grid<Resource> podGrid) {
+        podGrid.addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
+        podGrid.addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
+    }
+
+    @Override
+    protected boolean filterByContent(Resource pod, String filter) {
+        return pod.name().contains(filter);
+    }
+
+    @Override
+    protected boolean filterByRegex(Resource pod, String filter) {
+        return pod.name().matches(filter);
     }
 
     @Override
@@ -103,6 +97,82 @@ public class GenericGrid extends Grid<GenericGrid.Resource> implements Resources
 
     }
 
+//    private List<Resource> resourcesList = null;
+//    private List<Resource> filteredList = null;
+//    private String filterText = "";
+//    private String namespace;
+//    private CoreV1Api coreApi;
+//    private ClusterConfiguration.Cluster clusterConfig;
+    private String resourceType;
+//
+//    @Override
+//    public Component getComponent() {
+//        return this;
+//    }
+//
+    @Override
+    public void refresh(long counter) {
+        if (counter % 10 != 0) return;
+        podList = null;
+        podGrid.getDataProvider().refreshAll();
+        UI.getCurrent().push();
+    }
+//
+//    @Override
+//    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesGridPanel view) {
+//        this.coreApi = coreApi;
+//        this.clusterConfig = clusterConfig;
+//        addClassNames("contact-grid");
+//        setSizeFull();
+//        addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
+//        addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
+//        getColumns().forEach(col -> col.setAutoWidth(true));
+//        setDataProvider(new ResourcesProvider());
+//    }
+//
+//    @Override
+//    public void setFilter(String value) {
+//        filterText = value;
+//        if (resourcesList != null)
+//            getDataProvider().refreshAll();
+//    }
+//
+//    @Override
+//    public void setNamespace(String value) {
+//        namespace = value;
+//        if (resourcesList != null) {
+//            resourcesList = null;
+//            getDataProvider().refreshAll();
+//        }
+//    }
+//
+//    @Override
+    public void setResourceType(String resourceType) {
+        LOGGER.debug("Set resource type {}",resourceType);
+        if (resourceType == null) return;
+        this.resourceType = resourceType;
+    }
+//
+//    @Override
+//    public void handleShortcut(ShortcutEvent event) {
+//
+//    }
+//
+//    @Override
+//    public void setSelected() {
+//
+//    }
+//
+//    @Override
+//    public void setUnselected() {
+//
+//    }
+//
+//    @Override
+//    public void destroy() {
+//
+//    }
+//
     private class ResourcesProvider extends CallbackDataProvider<Resource, Void> {
 
         public ResourcesProvider() {
@@ -127,8 +197,8 @@ public class GenericGrid extends Grid<GenericGrid.Resource> implements Resources
                         return filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
                         LOGGER.debug("Do the size query {}",query);
-                        if (resourcesList == null) {
-                            resourcesList = new ArrayList<>();
+                        if (podList == null) {
+                            podList = new ArrayList<>();
                             final var namespaceName = namespace ==  null || namespace.equals("all") ? null : (String) namespace;
                             final var genericApi = new GenericObjectsApi(coreApi.getApiClient());
 
@@ -152,21 +222,24 @@ public class GenericGrid extends Grid<GenericGrid.Resource> implements Resources
                                 }
 
                                 final var list = genericApi.listNamespacedCustomObject(group, version, null, plural, null, null, null, null, null, null, null, null, null, null);
-                                final var type = new TypeToken<Map<String, Object>>() {
-                                }.getType();
-                                final var items = (List<Map<String, Object>>) ((LinkedTreeMap<String,Object>)list).get("items");
-                                items.forEach(item -> {
-                                    final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
-                                    final var name = (String) metadata.get("name");
-                                    final var creationTimestamp = (String) metadata.get("creationTimestamp");
-                                    resourcesList.add(new Resource(
+
+                                list.forEach(item -> {
+//                                    final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
+//                                    final var name = (String) metadata.get("name");
+//                                    final var creationTimestamp = (String) metadata.get("creationTimestamp");
+                                    final var name = item.getMetadata().getName();
+                                    final var creationTimestamp = item.getMetadata().getCreationTimestamp();
+                                    podList.add(new Resource(
                                             name,
-                                            getAge(OffsetDateTime.parse(creationTimestamp)),
-                                            OffsetDateTime.parse(creationTimestamp).toEpochSecond(),
+//                                            getAge(OffsetDateTime.parse(creationTimestamp)),
+                                            getAge(creationTimestamp),
+//                                            OffsetDateTime.parse(creationTimestamp).toEpochSecond(),
+                                            creationTimestamp.toEpochSecond(),
                                             item
                                             )
                                     );
                                 });
+
                             } catch (ApiException e) {
                                 LOGGER.error("Can't fetch pods from cluster",e);
                             }
@@ -178,7 +251,7 @@ public class GenericGrid extends Grid<GenericGrid.Resource> implements Resources
         }
 
     }
-
+//
     private String getAge(OffsetDateTime creationTimestamp) {
         final var age = System.currentTimeMillis()/1000 - creationTimestamp.toEpochSecond();
         if (age < 60) return age + "s";
@@ -187,24 +260,7 @@ public class GenericGrid extends Grid<GenericGrid.Resource> implements Resources
         return age/86400 + "d";
     }
 
-    private void filterList() {
-        if (resourcesList == null) {
-            filteredList = Collections.emptyList();
-        } else {
-            final var filter = filterText;
-            if (filter.isBlank()) {
-                filteredList = resourcesList;
-            } if (filter.startsWith("/")) {
-                var f = filter.substring(1);
-                filteredList = resourcesList.stream().filter(pod -> pod.name().matches(f)).collect(Collectors.toList());
-            } else {
-                filteredList = resourcesList.stream().filter(pod -> pod.name().contains(filter)).collect(Collectors.toList());
-            }
-        }
-    }
-
-    public record Resource(String name, String age, long created, Object resource) implements IResourceProvider {
-
+    public record Resource(String name, String age, long created, KubernetesObject resource) implements IResourceProvider {
         @Override
         public Object getResource() {
             return resource;

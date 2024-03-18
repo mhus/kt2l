@@ -118,10 +118,7 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
 
 
         // get yaml
-        var types = K8sUtil.getResourceTypes(context.getApi());
-        var resType = K8sUtil.findResource(context.getResourceType(), types);
-
-        var resContent = Yaml.dump(resource);
+        var resContent = K8sUtil.toYaml(resource);
         YElement yDocument = MYaml.loadFromString(resContent);
 
         YMap yMetadata = yDocument.asMap().getMap("metadata");
