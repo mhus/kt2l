@@ -4084,18 +4084,29 @@ public class GenericObjectsApi {
 
         var result = localVarResp.getData();
         final var list = ((List<Map<String, Object>>) ((LinkedTreeMap<String,Object>)result).get("items"))
-                .stream().map(o -> toKubernetesObject(o, version, plural)).collect(Collectors.toList());
+                .stream().map(o -> toKubernetesObject(o, group, version, plural)).collect(Collectors.toList());
         return list;
     }
 
-    private KubernetesObject toKubernetesObject(Map<String, Object> o, String apiVersion, String plural) {
+    public KubernetesObject toKubernetesObject(Map<String, Object> o, String group, String apiVersion, String plural) {
+        return toKubernetesObject(o, K8sUtil.toResourceType(group, apiVersion, plural));
+    }
+    public KubernetesObject toKubernetesObject(Map<String, Object> o, String resourceType) {
 
         LinkedList<V1APIResource> types = K8sUtil.getResourceTypes(new CoreV1Api(getApiClient()));
-        V1APIResource type = types.stream().filter(t -> t.getName().equals(plural)).findFirst().orElse(null);
-        if (type == null)
-            throw new NotFoundRuntimeException("Resource type not found: " + plural);
+        V1APIResource type = types.stream().filter(t -> K8sUtil.toResourceType(t).equals(resourceType)).findFirst().orElse(null);
+//        if (type == null)
+//            throw new NotFoundRuntimeException("Resource type not found: " + resourceType);
 
-        Class<?> clazz = ModelMapper.getApiTypeClass(apiVersion, type.getKind());
+        return toKubernetesObject(o, type);
+    }
+
+    public KubernetesObject toKubernetesObject(Map<String, Object> o, V1APIResource type) {
+
+        if (type == null)
+            return new GenericObject(o);
+
+        Class<?> clazz = ModelMapper.getApiTypeClass(type.getVersion(), type.getKind());
         if (clazz != null) {
             Gson gson = new JSON().getGson();
             JsonElement jsonElement = gson.toJsonTree(o);

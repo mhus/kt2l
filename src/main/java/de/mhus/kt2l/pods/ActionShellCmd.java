@@ -66,7 +66,7 @@ public class ActionShellCmd implements ResourceAction {
         vars.setString("cmd", shell);
         final var osCmd = MTree.getArrayValueStringList(conf.getArray("exec").orElse(MTree.EMPTY_LIST));
         final String[] osCmdArray = osCmd.toArray(new String[0]);
-        MCollection.replaceAll(osCmdArray, v -> MString.compileAndExecute(v, vars, v) );
+        MCollection.replaceAll(osCmdArray, v -> MString.substitute(v, vars, v) );
         LOGGER.info("Execute: {}", Arrays.toString(osCmdArray));
 
         try {

@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static de.mhus.commons.tools.MString.isEmpty;
+
 @Slf4j
 public class K8sUtil {
 
@@ -140,5 +142,13 @@ public class K8sUtil {
 
         var resContent = Yaml.dump(resource);
         return resContent;
+    }
+
+    public static String toResourceType(String group, String apiVersion, String plural) {
+        if (isEmpty(group) && isEmpty(apiVersion))
+            return plural;
+        if (isEmpty(group))
+            return apiVersion + "/" + plural;
+        return group + "/" + apiVersion + "/" + plural;
     }
 }

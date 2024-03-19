@@ -76,7 +76,7 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
 
     private void processLanguage(String content, TextArea text, String language) {
         try {
-            content = MString.compileAndExecute(
+            content = MString.substitute(
                     ai.getQuestion("translate").orElse("Please translate to ${language}:\n${content}"),
                     "language", language,
                     "content", content
@@ -98,7 +98,7 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
         try {
             var content = extractContent(resource);
 
-            content = MString.compileAndExecute(
+            content = MString.substitute(
                     ai.getQuestion("resource").orElse("Do you see problems in the following kubernetes resource?\n\n${content}"),
                     "content", content);
 

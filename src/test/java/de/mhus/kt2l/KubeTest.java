@@ -196,14 +196,13 @@ public class KubeTest {
             plural = parts[0];
         }
 
-        final var list = genericApi.listNamespacedCustomObject(group, version, null, plural, null, null, null, null, null, null, null, null, null, null);
+        final var items = genericApi.listNamespacedCustomObject(group, version, null, plural, null, null, null, null, null, null, null, null, null, null);
         final var type = new TypeToken<Map<String, Object>>() {
         }.getType();
-        final var items = (List<Map<String, Object>>) ((LinkedTreeMap<String,Object>)list).get("items");
         items.forEach(item -> {
-            final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
-            final var name = (String) metadata.get("name");
-            final var creationTimestamp = (String) metadata.get("creationTimestamp");
+            final var metadata = item.getMetadata();
+            final var name = metadata.getName();
+            final var creationTimestamp = metadata.getCreationTimestamp();
             //final var status = item.get("status").toString();
 
             System.out.println(name + " " + creationTimestamp);
