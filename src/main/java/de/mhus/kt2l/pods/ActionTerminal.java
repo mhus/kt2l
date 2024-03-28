@@ -22,7 +22,7 @@ import java.util.Set;
 
 @Slf4j
 @Component
-public class ActionShellCmd implements ResourceAction {
+public class ActionTerminal implements ResourceAction {
 
     @Autowired
     private Configuration configuration;

@@ -64,6 +64,7 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
                 var content = text.getValue();
                 text.setValue(LOADING);
                 text.addClassName("bgcolor-yellow");
+                text.removeClassName("bgcolor-red");
                 Thread.startVirtualThread(() -> {
                     processLanguage(content, text, "german");
                 });
@@ -101,6 +102,7 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
     private void processResource(final KubernetesObject resource, final TextArea textArea) {
 
         textArea.addClassName("bgcolor-yellow");
+        textArea.removeClassName("bgcolor-red");
         try {
             var content = extractContent(resource);
 

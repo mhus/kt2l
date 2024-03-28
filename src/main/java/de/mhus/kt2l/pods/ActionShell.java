@@ -47,7 +47,7 @@ public class ActionShell implements ResourceAction {
                 selected.getMetadata().getName(),
                 true,
                 VaadinIcon.TERMINAL.create(),
-                () -> new ContainerShellView(
+                () -> new ContainerShellPanel(
                         context.getClusterConfiguration(),
                         context.getApi(),
                         context.getMainView(),

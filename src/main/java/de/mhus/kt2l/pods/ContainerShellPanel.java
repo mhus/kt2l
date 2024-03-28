@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Slf4j
-public class ContainerShellView extends VerticalLayout implements XTabListener {
+public class ContainerShellPanel extends VerticalLayout implements XTabListener {
 
 
     @Autowired
@@ -46,7 +46,7 @@ public class ContainerShellView extends VerticalLayout implements XTabListener {
     private MenuItem menuItemEsc;
 
 
-    public ContainerShellView(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, V1Pod pod) {
+    public ContainerShellPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, V1Pod pod) {
         this.clusterConfig = clusterConfig;
         this.api = api;
         this.mainView = mainView;
