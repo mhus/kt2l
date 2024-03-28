@@ -7,6 +7,7 @@ import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.resources.ResourcesGrid;
 import de.mhus.kt2l.ui.XTab;
 import de.mhus.kt2l.ui.MainView;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,7 +22,7 @@ import java.util.Set;
 public class ExecutionContext {
     private UI ui;
     private String resourceType;
-    private Set<? extends Object> selected;
+    private Set<? extends KubernetesObject> selected;
     private CoreV1Api api;
     private String namespace;
     private ClusterConfiguration.Cluster clusterConfiguration;

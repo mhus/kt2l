@@ -4,12 +4,10 @@ import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.k8s.K8sService;
-import de.mhus.kt2l.resources.ResourcesGridPanel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +15,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @Slf4j
-public class MainPanel extends VerticalLayout implements XTabListener {
+public class ClusterOverviewPanel extends VerticalLayout implements XTabListener {
 
     @Autowired
     private K8sService k8s;
 
     @Autowired
-    Configuration configuration;
+    private Configuration configuration;
 
+    @Autowired
+    private PanelService panelService;
     private XTab tab;
 
     @Getter
@@ -32,7 +32,7 @@ public class MainPanel extends VerticalLayout implements XTabListener {
     private ComboBox<Cluster> clusterBox;
     private List<Cluster> clusterList;
 
-    public MainPanel(MainView mainView) {
+    public ClusterOverviewPanel(MainView mainView) {
         this.mainView = mainView;
     }
 
@@ -60,14 +60,7 @@ public class MainPanel extends VerticalLayout implements XTabListener {
         Button resourcesButton = new Button("Resources");
         resourcesButton.addClickListener(click -> {
             if (clusterBox.getValue() != null) {
-                tab.getViewer().addTab(
-                        "test/" + clusterBox.getValue().name(),
-                        clusterBox.getValue().title(),
-                        true,
-                        false,
-                        VaadinIcon.OPEN_BOOK.create(),
-                        () -> new ResourcesGridPanel(clusterBox.getValue().name(), mainView))
-                        .setColor(clusterBox.getValue().config().color()).select();
+                panelService.addResourcesGrid(mainView, clusterBox.getValue()).select();
             }
         });
         add(resourcesButton);
@@ -109,7 +102,7 @@ public class MainPanel extends VerticalLayout implements XTabListener {
 
     }
 
-    private record Cluster(String name, String title, ClusterConfiguration.Cluster config) {
+    public record Cluster(String name, String title, ClusterConfiguration.Cluster config) {
     }
 
 }

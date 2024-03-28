@@ -144,7 +144,7 @@ public class MainView extends AppLayout {
         tabBar = new XTabBar(this);
         addToDrawer(tabBar);
 
-        tabBar.addTab(new XTab("main", "Main", false, VaadinIcon.HOME_O.create(), new MainPanel(this))).select();
+        tabBar.addTab(new XTab("main", "Main", false, VaadinIcon.HOME_O.create(), new ClusterOverviewPanel(this))).select();
     }
 
     private void fireRefresh() {

@@ -12,6 +12,8 @@ import de.mhus.kt2l.generic.ExecutionContext;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.ui.XTab;
 import de.mhus.kt2l.ui.XTabListener;
+import dev.langchain4j.model.input.Prompt;
+import dev.langchain4j.model.input.PromptTemplate;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +63,7 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
                 if (text.getValue().equals(LOADING)) return;
                 var content = text.getValue();
                 text.setValue(LOADING);
+                text.addClassName("bgcolor-yellow");
                 Thread.startVirtualThread(() -> {
                     processLanguage(content, text, "german");
                 });
@@ -76,18 +79,20 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
 
     private void processLanguage(String content, TextArea text, String language) {
         try {
-            content = MString.substitute(
-                    ai.getQuestion("translate").orElse("Please translate to ${language}:\n${content}"),
-                    "language", language,
-                    "content", content
-            );
 
-            final var answer = ai.generate(AiService.MODEL_YI, content, language);
+            PromptTemplate promptTemplate = PromptTemplate.from(
+                    ai.getTemplateForPrompt ("translate").orElse("Please translate to {{language}}:\n{{content}}"));
+            Prompt prompt = promptTemplate.apply(Map.of("content", content, "language", language));
+
+            final var answer = ai.generate(ai.getModelForPrompt("translate").orElse(AiService.MODEL_YI), prompt);
             context.getUi().access(() -> {
+                text.removeClassName("bgcolor-yellow");
                 text.setValue((answer.finishReason() != null ? answer.finishReason() + "\n" : "") + answer.content().text());
             });
         } catch (Throwable t) {
             context.getUi().access(() -> {
+                text.removeClassName("bgcolor-yellow");
+                text.addClassName("bgcolor-red");
                 text.setValue("Error: " + t.toString());
             });
         }
@@ -95,19 +100,24 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
 
     private void processResource(final KubernetesObject resource, final TextArea textArea) {
 
+        textArea.addClassName("bgcolor-yellow");
         try {
             var content = extractContent(resource);
 
-            content = MString.substitute(
-                    ai.getQuestion("resource").orElse("Do you see problems in the following kubernetes resource?\n\n${content}"),
-                    "content", content);
+            PromptTemplate promptTemplate = PromptTemplate.from(
+                    ai.getTemplateForPrompt("resource")
+                            .orElse("Do you see problems in the following kubernetes resource?\n\n{{content}}"));
+            Prompt prompt = promptTemplate.apply(Map.of("content", content));
 
-            final var answer = ai.generate(AiService.MODEL_CODELLAMA, content);
+            final var answer = ai.generate(ai.getModelForPrompt("resource").orElse(AiService.MODEL_CODELLAMA), content);
             context.getUi().access(() -> {
+                textArea.removeClassName("bgcolor-yellow");
                 textArea.setValue((answer.finishReason() != null ? answer.finishReason() + "\n" : "") + answer.content().text());
             });
         } catch (Throwable t) {
             context.getUi().access(() -> {
+                textArea.removeClassName("bgcolor-yellow");
+                textArea.addClassName("bgcolor-red");
                 textArea.setValue("Error: " + t.toString());
             });
         }

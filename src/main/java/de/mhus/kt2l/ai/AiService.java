@@ -7,6 +7,7 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.model.output.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,8 +61,17 @@ public class AiService {
         return response;
     }
 
-    public Optional<String> getQuestion(String name) {
-        return config.getQuestion(name);
+    public Response<AiMessage> generate(String model, Prompt prompt) {
+        Response<AiMessage> response = getModel(model).generate(prompt.toUserMessage());
+        return response;
+    }
+
+    public Optional<String> getTemplateForPrompt(String name) {
+        return config.getTemplate(name);
+    }
+
+    public Optional<String> getModelForPrompt(String name) {
+        return config.getModel(name);
     }
 
 }

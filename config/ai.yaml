@@ -1,10 +1,14 @@
 ollamaUrl: http://localhost:11434
-questions:
-  language: |
-    Translate the following text to ${language}:
-    
-    ${content}
-  resource: |
-    Do you see problems in the following kubernetes resource?
-    
-    ${content}
+prompts:
+  translate:
+    model: ollama:yi
+    template: |
+      Translate the following text to {{language}}:
+      
+      {{content}}
+  resource:
+    model: ollama:codellama
+    template: |
+      Do you see problems in the following kubernetes resource?
+      
+      {{content}}

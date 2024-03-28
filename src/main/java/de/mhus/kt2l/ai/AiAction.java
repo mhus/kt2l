@@ -4,8 +4,10 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.generic.ExecutionContext;
 import de.mhus.kt2l.generic.IResourceProvider;
 import de.mhus.kt2l.generic.ResourceAction;
+import de.mhus.kt2l.ui.PanelService;
 import io.kubernetes.client.common.KubernetesObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
@@ -17,13 +19,16 @@ import java.util.Set;
 @Component
 public class AiAction implements ResourceAction  {
 
+    @Autowired
+    private PanelService panelService;
+
     @Override
     public boolean canHandleResourceType(String resourceType) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<?> selected) {
+    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 
@@ -32,43 +37,21 @@ public class AiAction implements ResourceAction  {
 
         List<KubernetesObject> resources = new LinkedList<>();
         for (var selected : context.getSelected()) {
-            try {
-                if (selected instanceof IResourceProvider) selected = ((IResourceProvider) selected).getResource();
-
-                String namespace = "";
-                String name = selected.toString();
-
-                if (selected instanceof Map) {
-                    var metadata = (Map) ((Map) selected).get("metadata");
-                    namespace = (String) metadata.get("namespace");
-                    name = (String) metadata.get("name");
-                } else if (selected instanceof KubernetesObject) {
-                    var metadata = ((KubernetesObject) selected).getMetadata();
-                    namespace = metadata.getNamespace();
-                    name = metadata.getName();
-                }
-                final var resource = (KubernetesObject) selected;
-
-                resources.add(resource);
-            } catch (Exception e) {
-                LOGGER.warn("canHandleResource {}", selected, e);
-            }
+            resources.add(selected);
         }
 
         if (resources.size() == 0) return;
 
         // process
         var name = resources.getFirst().getMetadata().getName();
-        context.getMainView().getTabBar().addTab(
+        panelService.addPanel(
+                context.getSelectedTab(),
                 context.getClusterConfiguration().name() + ":" + context.getResourceType() + ":" + name + ":ai",
                 name,
-                true,
                 false,
                 VaadinIcon.ACADEMY_CAP.create(),
-                () ->
-                        new AiResourcePanel(resources, context)
-        ).setColor(context.getClusterConfiguration().color()).select().setParentTab(context.getSelectedTab());
-
+                () -> new AiResourcePanel(resources, context)
+                ).select();
     }
 
     @Override

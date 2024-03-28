@@ -1,31 +1,20 @@
 package de.mhus.kt2l.generic;
 
-import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.reflect.TypeToken;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
-import de.mhus.kt2l.k8s.GenericObject;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
 import de.mhus.kt2l.resources.AbstractGrid;
-import de.mhus.kt2l.resources.ResourcesGrid;
-import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -93,6 +82,11 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
     }
 
     @Override
+    protected KubernetesObject getSelectedKubernetesObject(Resource resource) {
+        return resource.resource();
+    }
+
+    @Override
     public void destroy() {
 
     }
@@ -113,8 +107,8 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
     @Override
     public void refresh(long counter) {
         if (counter % 10 != 0) return;
-        podList = null;
-        podGrid.getDataProvider().refreshAll();
+        resourcesList = null;
+        resourcesGrid.getDataProvider().refreshAll();
         UI.getCurrent().push();
     }
 //
@@ -197,8 +191,8 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                         return filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
                         LOGGER.debug("Do the size query {}",query);
-                        if (podList == null) {
-                            podList = new ArrayList<>();
+                        if (resourcesList == null) {
+                            resourcesList = new ArrayList<>();
                             final var namespaceName = namespace ==  null || namespace.equals("all") ? null : (String) namespace;
                             final var genericApi = new GenericObjectsApi(coreApi.getApiClient());
 
@@ -229,7 +223,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 //                                    final var creationTimestamp = (String) metadata.get("creationTimestamp");
                                     final var name = item.getMetadata().getName();
                                     final var creationTimestamp = item.getMetadata().getCreationTimestamp();
-                                    podList.add(new Resource(
+                                    resourcesList.add(new Resource(
                                             name,
 //                                            getAge(OffsetDateTime.parse(creationTimestamp)),
                                             getAge(creationTimestamp),

@@ -4,6 +4,10 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.generic.ExecutionContext;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.generic.ResourceAction;
+import de.mhus.kt2l.ui.PanelService;
+import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1Pod;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -12,44 +16,48 @@ import java.util.Set;
 
 @Component
 public class ActionLogs implements ResourceAction {
+
+    @Autowired
+    private PanelService panelService;
+
     @Override
     public boolean canHandleResourceType(String resourceType) {
         return K8sUtil.RESOURCE_PODS.equals(resourceType) || K8sUtil.RESOURCE_CONTAINER.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<?> selected) {
+    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() > 0;
     }
 
     @Override
     public void execute(ExecutionContext context) {
 
-        List<PodGrid.Container> containers = new ArrayList<>();
+        List<ContainerResource> containers = new ArrayList<>();
 
         if (context.getResourceType().equals(K8sUtil.RESOURCE_CONTAINER)) {
-            context.getSelected().forEach(c -> containers.add((PodGrid.Container)c));
+            context.getSelected().forEach(c -> containers.add((ContainerResource)c));
         } else
         if (context.getResourceType().equals(K8sUtil.RESOURCE_PODS)) {
             context.getSelected().forEach(p -> {
-                       final var pod = (PodGrid.Pod)p;
-                       pod.getPod().getStatus().getContainerStatuses().forEach(cs -> {
-                           containers.add(new PodGrid.Container(
+                       final var pod = (V1Pod)p;
+                       pod.getStatus().getContainerStatuses().forEach(cs -> {
+                           containers.add(new ContainerResource(new PodGrid.Container(
                                    cs.getName(),
-                                   pod.getPod().getMetadata().getNamespace(),
+                                   pod.getMetadata().getNamespace(),
                                    cs.getState().getWaiting() != null ? "Waiting" : "Running",
                                    null,
                                    0,
-                                   pod.getPod()));
+                                   pod)));
                        });
                     });
         }
 
-        final var selected = (PodGrid.Pod)context.getSelected().iterator().next();
-        context.getMainView().getTabBar().addTab(
-                context.getClusterConfiguration().name() + ":" + selected.getName() + ":logs",
-                selected.getName(),
-                true,
+        final var selected = (V1Pod)context.getSelected().iterator().next();
+        panelService.addPanel(
+                context.getSelectedTab(),
+                context.getClusterConfiguration().name() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":logs",
+                selected.getMetadata().getName(),
                 true,
                 VaadinIcon.MODAL_LIST.create(),
                 () ->
@@ -58,7 +66,7 @@ public class ActionLogs implements ResourceAction {
                         context.getApi(),
                         context.getMainView(),
                         containers
-                        )).setColor(context.getClusterConfiguration().color()).select().setParentTab(context.getSelectedTab());
+                        )).select();
     }
 
     @Override

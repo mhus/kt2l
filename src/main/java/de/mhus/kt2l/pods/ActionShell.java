@@ -5,6 +5,9 @@ import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.generic.ExecutionContext;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.generic.ResourceAction;
+import de.mhus.kt2l.ui.PanelService;
+import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,6 +21,9 @@ public class ActionShell implements ResourceAction {
     @Autowired
     private Configuration configuration;
 
+    @Autowired
+    private PanelService panelService;
+
 
     @Override
     public boolean canHandleResourceType(String resourceType) {
@@ -26,28 +32,27 @@ public class ActionShell implements ResourceAction {
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<?> selected) {
+    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() == 1;
     }
 
     @Override
     public void execute(ExecutionContext context) {
 
-        var selected = (PodGrid.Pod)context.getSelected().iterator().next();
+        var selected = (V1Pod)context.getSelected().iterator().next();
 
-        context.getMainView().getTabBar().addTab(
-                context.getClusterConfiguration().name() + ":" + selected.getName() + ":logs",
-                selected.getName(),
+        panelService.addPanel(
+                context.getSelectedTab(),
+                context.getClusterConfiguration().name() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":shell",
+                selected.getMetadata().getName(),
                 true,
-                true,
-                VaadinIcon.NOTEBOOK.create(),
-                () ->
-                new ContainerExecuteView(
+                VaadinIcon.TERMINAL.create(),
+                () -> new ContainerShellView(
                         context.getClusterConfiguration(),
                         context.getApi(),
                         context.getMainView(),
                         selected
-                        )).setColor(context.getClusterConfiguration().color()).select().setParentTab(context.getSelectedTab());
+                        )).select();
     }
 
     @Override

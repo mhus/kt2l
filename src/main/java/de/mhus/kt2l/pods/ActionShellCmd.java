@@ -11,6 +11,7 @@ import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.generic.ExecutionContext;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.generic.ResourceAction;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class ActionShellCmd implements ResourceAction {
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<?> selected) {
+    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() == 1;
     }
 
@@ -45,16 +46,15 @@ public class ActionShellCmd implements ResourceAction {
         String container = null;
         String containerImage = null;
         if (K8sUtil.RESOURCE_PODS.equals(context.getResourceType())) {
-            final var selected = (PodGrid.Pod) context.getSelected().iterator().next();
-            pod = selected.getPod();
+            pod = (V1Pod) context.getSelected().iterator().next();
             container = pod.getStatus().getContainerStatuses().get(0).getName();
             containerImage = pod.getStatus().getContainerStatuses().get(0).getImage();
         } else {
-            final var selected = (PodGrid.Container) context.getSelected().iterator().next();
-            pod = selected.pod();
-            container = selected.name();
+            var containerResource = (ContainerResource)context.getSelected().iterator().next();
+            pod = containerResource.getPod();
+            container = containerResource.getContainerName();
             final String finalContainer = container;
-            containerImage = selected.pod().getStatus().getContainerStatuses().stream().filter(c -> c.getName().equals(finalContainer)).findFirst().get().getImage();
+            containerImage = containerResource.getPod().getStatus().getContainerStatuses().stream().filter(c -> c.getName().equals(finalContainer)).findFirst().get().getImage();
         }
         final var conf = configuration.getSection("cmd-" + MSystem.getOS().name());
         final var shell = ConfigUtil.getShellFor(configuration, context.getClusterConfiguration(), pod, containerImage);

@@ -18,6 +18,7 @@ import de.mhus.kt2l.ui.XTabListener;
 import de.mhus.kt2l.ui.MainView;
 import io.kubernetes.client.Exec;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -25,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Slf4j
-public class ContainerExecuteView extends VerticalLayout implements XTabListener {
+public class ContainerShellView extends VerticalLayout implements XTabListener {
 
 
     @Autowired
@@ -35,7 +36,7 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
     private final ClusterConfiguration.Cluster clusterConfig;
     private final CoreV1Api api;
     private final MainView mainView;
-    private final PodGrid.Pod pod;
+    private final V1Pod pod;
     private final UI ui;
     private XTab tab;
     private XTerm xterm;
@@ -45,7 +46,7 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
     private MenuItem menuItemEsc;
 
 
-    public ContainerExecuteView(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, PodGrid.Pod pod) {
+    public ContainerShellView(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, V1Pod pod) {
         this.clusterConfig = clusterConfig;
         this.api = api;
         this.mainView = mainView;
@@ -105,7 +106,7 @@ public class ContainerExecuteView extends VerticalLayout implements XTabListener
 
         try {
             Exec exec = new Exec(api.getApiClient());
-            proc = exec.exec(pod.getPod(), new String[]{ConfigUtil.getShellFor(configuration, clusterConfig, pod.getPod() )}, true, true);
+            proc = exec.exec(pod, new String[]{ConfigUtil.getShellFor(configuration, clusterConfig, pod )}, true, true);
 
             threadInput = Thread.startVirtualThread(this::loopInput);
             threadError = Thread.startVirtualThread(this::loopError);

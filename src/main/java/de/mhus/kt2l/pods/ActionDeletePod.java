@@ -4,6 +4,7 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import de.mhus.kt2l.generic.ExecutionContext;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.generic.ResourceAction;
+import io.kubernetes.client.common.KubernetesObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,7 @@ public class ActionDeletePod implements ResourceAction {
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<? extends Object> selected) {
+    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() > 0;
     }
 

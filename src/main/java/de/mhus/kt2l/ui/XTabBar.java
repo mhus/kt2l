@@ -25,7 +25,7 @@ public class XTabBar extends VerticalLayout {
         addClassName("xtabview");
     }
 
-    public synchronized XTab addTab(String id, String title, boolean closeable, boolean unique, Icon icon, Supplier<Component> panelCreator) {
+    synchronized XTab addTab(String id, String title, boolean closeable, boolean unique, Icon icon, Supplier<Component> panelCreator) {
         if (unique) {
             Optional<XTab> tab = getTab(id);
             if (tab.isPresent()) {

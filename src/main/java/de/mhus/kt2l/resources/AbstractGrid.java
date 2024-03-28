@@ -20,6 +20,7 @@ import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.generic.ExecutionContext;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.generic.ResourceAction;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,20 +39,20 @@ import static de.mhus.commons.tools.MCollection.cropArray;
 @Slf4j
 public abstract class AbstractGrid<T, S extends Component> extends VerticalLayout implements ResourcesGrid {
 
-    protected List<T> podList = null;
+    protected List<T> resourcesList = null;
     protected List<T> filteredList = null;
     private String filterText = "";
     protected String namespace;
     protected CoreV1Api coreApi;
     protected ClusterConfiguration.Cluster clusterConfig;
-    protected Grid<T> podGrid;
+    protected Grid<T> resourcesGrid;
     private MenuBar menuBar;
-    private List<MenuAction> actions = new ArrayList<>(10);
+    protected List<MenuAction> actions = new ArrayList<>(10);
 
     @Autowired
     private ActionService actionService;
     protected ResourcesGridPanel view;
-    private Optional<T> selectedPod;
+    private Optional<T> selectedResource;
     protected S detailsComponent;
 
     @Override
@@ -62,9 +63,8 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     @Override
     public void refresh(long counter) {
         if (counter % 10 != 0) return;
-//        podList = null;
         filterList();
-        podGrid.getDataProvider().refreshAll();
+        resourcesGrid.getDataProvider().refreshAll();
         UI.getCurrent().push();
     }
 
@@ -80,12 +80,12 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         createMenuBar();
 
         if (detailsComponent != null)
-            add(menuBar, podGrid, detailsComponent);
+            add(menuBar, resourcesGrid, detailsComponent);
         else
-            add(menuBar, podGrid);
+            add(menuBar, resourcesGrid);
         setSizeFull();
 
-        actions.forEach(a -> a.updateWithPod(Collections.emptySet()));
+        actions.forEach(a -> a.updateWithResources(Collections.emptySet()));
 
         init();
 
@@ -127,9 +127,9 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                         action.execute();
                     },key);
                     if (detailsComponent != null)
-                        sl.listenOn(podGrid, detailsComponent);
+                        sl.listenOn(resourcesGrid, detailsComponent);
                     else
-                        sl.listenOn(podGrid);
+                        sl.listenOn(resourcesGrid);
                 }
             }
 
@@ -140,40 +140,40 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     private void createGrid() {
 
-        podGrid = new Grid<>(getManagedClass(), false);
+        resourcesGrid = new Grid<>(getManagedClass(), false);
         addClassNames("contact-grid");
-        podGrid.setSizeFull();
-        podGrid.setSelectionMode(Grid.SelectionMode.MULTI);
-        createGridColumns(podGrid);
-        podGrid.getColumns().forEach(col -> col.setAutoWidth(true));
-        podGrid.setDataProvider(createDataProvider());
+        resourcesGrid.setSizeFull();
+        resourcesGrid.setSelectionMode(Grid.SelectionMode.MULTI);
+        createGridColumns(resourcesGrid);
+        resourcesGrid.getColumns().forEach(col -> col.setAutoWidth(true));
+        resourcesGrid.setDataProvider(createDataProvider());
 
-        podGrid.addCellFocusListener(event -> {
-            selectedPod = event.getItem();
-            if (selectedPod.isPresent())
-                onGridCellFocusChanged(selectedPod.get());
+        resourcesGrid.addCellFocusListener(event -> {
+            selectedResource = event.getItem();
+            if (selectedResource.isPresent())
+                onGridCellFocusChanged(selectedResource.get());
         });
 
-        podGrid.addSelectionListener(event -> {
+        resourcesGrid.addSelectionListener(event -> {
             onGridSelectionChanged();
-            actions.forEach(a -> a.updateWithPod(event.getAllSelectedItems()));
+            actions.forEach(a -> a.updateWithResources(event.getAllSelectedItems()));
         });
-        podGrid.addItemClickListener(event -> {
+        resourcesGrid.addItemClickListener(event -> {
             if (event.getClickCount() == 2) {
                 onShowDetails(event.getItem(), true);
             } else
             if (event.getClickCount() == 1) {
                 onDetailsChanged(event.getItem());
                 if (event.isAltKey()) {
-                    if (podGrid.getSelectionModel().isSelected(event.getItem()))
-                        podGrid.getSelectionModel().deselect(event.getItem());
+                    if (resourcesGrid.getSelectionModel().isSelected(event.getItem()))
+                        resourcesGrid.getSelectionModel().deselect(event.getItem());
                     else
-                        podGrid.getSelectionModel().select(event.getItem());
+                        resourcesGrid.getSelectionModel().select(event.getItem());
                 } else
                 if (event.isShiftKey()) {
-                    var first = podGrid.getSelectionModel().getFirstSelectedItem();
+                    var first = resourcesGrid.getSelectionModel().getFirstSelectedItem();
                     if (first == null) {
-                        podGrid.getSelectionModel().select(event.getItem());
+                        resourcesGrid.getSelectionModel().select(event.getItem());
                     } else {
                         var start = filteredList.indexOf(first.get());
                         var end = filteredList.indexOf(event.getItem());
@@ -182,33 +182,33 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                             start = end;
                             end = tmp;
                         }
-                        podGrid.getSelectionModel().deselectAll();
+                        resourcesGrid.getSelectionModel().deselectAll();
                         for (int i = start; i <= end; i++) {
-                            podGrid.getSelectionModel().select(filteredList.get(i));
+                            resourcesGrid.getSelectionModel().select(filteredList.get(i));
                         }
                     }
                 } else {
-                    if (podGrid.getSelectionModel().isSelected(event.getItem()))
-                        podGrid.getSelectionModel().deselectAll();
+                    if (resourcesGrid.getSelectionModel().isSelected(event.getItem()))
+                        resourcesGrid.getSelectionModel().deselectAll();
                     else {
-                        podGrid.getSelectionModel().deselectAll();
-                        podGrid.getSelectionModel().select(event.getItem());
+                        resourcesGrid.getSelectionModel().deselectAll();
+                        resourcesGrid.getSelectionModel().select(event.getItem());
                     }
                 }
             }
         });
 
 
-        GridContextMenu<T> menu = podGrid.addContextMenu();
+        GridContextMenu<T> menu = resourcesGrid.addContextMenu();
         actions.forEach(action -> {
             var item = menu.addItem(action.getAction().getTitle(), event ->
                     action.execute()
             );
-            action.setPodContextMenuItem(item);
+            action.setContextMenuItem(item);
         });
 
-        UI.getCurrent().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(podGrid);
-        UI.getCurrent().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(podGrid);
+        UI.getCurrent().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
+        UI.getCurrent().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
 
     }
 
@@ -224,21 +224,21 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     protected abstract DataProvider<T,?> createDataProvider();
 
-    protected abstract void createGridColumns(Grid<T> podGrid);
+    protected abstract void createGridColumns(Grid<T> resourcesGrid);
 
     @Override
     public void setFilter(String value) {
         filterText = value;
-        if (podList != null)
-            podGrid.getDataProvider().refreshAll();
+        if (resourcesList != null)
+            resourcesGrid.getDataProvider().refreshAll();
     }
 
     @Override
     public void setNamespace(String value) {
         namespace = value;
-        if (podList != null) {
-            podList = null;
-            podGrid.getDataProvider().refreshAll();
+        if (resourcesList != null) {
+            resourcesList = null;
+            resourcesGrid.getDataProvider().refreshAll();
         }
     }
 
@@ -250,17 +250,17 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     @Override
     public void handleShortcut(ShortcutEvent event) {
         if (event.getKey().matches(" ") && event.getKeyModifiers().size() == 0) {
-            if (selectedPod != null && selectedPod.isPresent()) {
-                if (podGrid.getSelectionModel().isSelected(selectedPod.get()))
-                    podGrid.getSelectionModel().deselect(selectedPod.get());
+            if (selectedResource != null && selectedResource.isPresent()) {
+                if (resourcesGrid.getSelectionModel().isSelected(selectedResource.get()))
+                    resourcesGrid.getSelectionModel().deselect(selectedResource.get());
                 else
-                    podGrid.getSelectionModel().select(selectedPod.get());
+                    resourcesGrid.getSelectionModel().select(selectedResource.get());
             }
             return;
         }
         if (event.getKey().matches(Key.ENTER.toString()) && event.getKeyModifiers().size() == 0) {
-            if (selectedPod != null && selectedPod.isPresent()) {
-                onShowDetails(selectedPod.get(), false);
+            if (selectedResource != null && selectedResource.isPresent()) {
+                onShowDetails(selectedResource.get(), false);
             }
             return;
         }
@@ -270,9 +270,9 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     @Override
     public void setSelected() {
 
-        podGrid.getElement().getNode()
+        resourcesGrid.getElement().getNode()
                 .runWhenAttached(ui -> ui.getPage().executeJs(
-                        "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", podGrid.getElement()));
+                        "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", resourcesGrid.getElement()));
 
     }
 
@@ -281,39 +281,38 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     }
 
     protected void filterList() {
-        if (podList == null) {
+        if (resourcesList == null) {
             filteredList = Collections.emptyList();
         } else {
             final var filter = filterText;
             if (filter.isBlank()) {
-                filteredList = podList;
+                filteredList = resourcesList;
             } if (filter.startsWith("/")) {
                 var f = filter.substring(1);
-                filteredList = podList.stream().filter(pod -> filterByRegex(pod, f)).collect(Collectors.toList());
+                filteredList = resourcesList.stream().filter(res -> filterByRegex(res, f)).collect(Collectors.toList());
             } else {
-                filteredList = podList.stream().filter(pod -> filterByContent(pod, filter)).collect(Collectors.toList());
+                filteredList = resourcesList.stream().filter(res -> filterByContent(res, filter)).collect(Collectors.toList());
             }
         }
     }
 
-    protected abstract boolean filterByContent(T pod, String filter);
+    protected abstract boolean filterByContent(T resource, String filter);
 
-    protected abstract boolean filterByRegex(T pod, String filter);
+    protected abstract boolean filterByRegex(T resource, String filter);
 
 
     @Getter
     @Setter
-    private class MenuAction {
+    public class MenuAction {
         ResourceAction action;
         MenuItem menuItem;
-        GridMenuItem<T> podContextMenuItem;
-//        GridMenuItem<Container> containerContextMenuItem;
+        GridMenuItem<T> contextMenuItem;
 
         public void disableMenu() {
             if (menuItem != null)
                 menuItem.setEnabled(false);
-            if (podContextMenuItem != null)
-                podContextMenuItem.setEnabled(false);
+            if (contextMenuItem != null)
+                contextMenuItem.setEnabled(false);
 //            if (containerContextMenuItem != null)
 //                containerContextMenuItem.setEnabled(false);
         }
@@ -328,13 +327,13 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 //            if (containerContextMenuItem != null)
 //                containerContextMenuItem.setEnabled(enabled);
 //        }
-        public void updateWithPod(Set<T> selected) {
-            var enabled = action.canHandleResource(K8sUtil.RESOURCE_PODS,
-                    selected == null ? Collections.emptySet() : selected);
+        public void updateWithResources(Set<T> selected) {
+            var enabled = action.canHandleResource(getManagedResourceType(),
+                    selected == null ? Collections.emptySet() : selected.stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet()));
             if (menuItem != null)
                 menuItem.setEnabled(enabled);
-            if (podContextMenuItem != null)
-                podContextMenuItem.setEnabled(enabled);
+            if (contextMenuItem != null)
+                contextMenuItem.setEnabled(enabled);
 //            if (containerContextMenuItem != null)
 //                containerContextMenuItem.setEnabled(enabled);
         }
@@ -362,15 +361,15 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 //                        .build();
 //
 //            } else {
-                if (!action.canHandleResource(K8sUtil.RESOURCE_PODS, podGrid.getSelectedItems())) {
+                if (!action.canHandleResource(getManagedResourceType(), resourcesGrid.getSelectedItems().stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet()) )) {
                     Notification notification = Notification
                             .show("Can't execute");
                     notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
                     return;
                 }
                 context = ExecutionContext.builder()
-                        .resourceType(K8sUtil.RESOURCE_PODS)
-                        .selected(podGrid.getSelectedItems())
+                        .resourceType(getManagedResourceType())
+                        .selected(resourcesGrid.getSelectedItems().stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet()))
                         .namespace(namespace)
                         .api(coreApi)
                         .clusterConfiguration(clusterConfig)
@@ -380,7 +379,11 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                         .selectedTab(view.getXTab())
                         .build();
 //            }
+            execute (context);
 
+        }
+
+        public void execute(ExecutionContext context) {
             try {
                 action.execute(context);
             } catch (Exception e) {
@@ -390,9 +393,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
             }
-
         }
     }
+
+    protected abstract KubernetesObject getSelectedKubernetesObject(T resource);
 }
 
 

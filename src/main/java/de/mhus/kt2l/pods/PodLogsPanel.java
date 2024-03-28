@@ -46,7 +46,7 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     private final CoreV1Api api;
     private final MainView mainView;
     private final UI ui;
-    private final List<PodGrid.Container> containers;
+    private final List<ContainerResource> containers;
     private XTab tab;
     private TextArea logs;
     private LinkedList<LogEntry> logsBuffer = new LinkedList<>();
@@ -65,7 +65,7 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     private TextField filterText;
     private String filter = null;
 
-    public PodLogsPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, List<PodGrid.Container> containers) {
+    public PodLogsPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, List<ContainerResource> containers) {
         this.clusterConfig = clusterConfig;
         this.api = api;
         this.mainView = mainView;
@@ -268,10 +268,10 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
 //        out.flush();
 //    }
 
-    private void streamLoop(PodGrid.Container container) {
+    private void streamLoop(ContainerResource container) {
         InputStream logStream = null;
         try {
-            V1Pod pod = container.pod();
+            V1Pod pod = container.getPod();
             String source = pod.getMetadata().getName();
 
             PodLogs podLogs = new PodLogs(api.getApiClient());
