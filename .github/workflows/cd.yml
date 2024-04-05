@@ -5,6 +5,8 @@ on:
     branches:
       - kt2l-pages
 
+permissions: write-all
+
 jobs:
   cd:
     name: Build and deploy
