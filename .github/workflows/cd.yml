@@ -9,6 +9,9 @@ jobs:
   cd:
     name: Build and deploy
 
+    permissions:
+      id-token: write
+
     strategy:
       matrix:
         os: [ubuntu-latest]
