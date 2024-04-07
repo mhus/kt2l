@@ -1,14 +1,15 @@
 //import React from 'react';
 import logo from './kt2l-logo.svg';
-import {useState} from 'react'
+//import {useState} from 'react'
 //import { Dialog } from '@headlessui/react'
-import {Bars3Icon, XMarkIcon} from '@heroicons/react/24/outline'
+//import {Bars3Icon, XMarkIcon} from '@heroicons/react/24/outline'
+import {Bars3Icon} from '@heroicons/react/24/outline'
 
 const navigation = [
-    {name: 'Download', href: '#'},
-    {name: 'Get Started', href: '#'},
-    {name: 'Documentation', href: '#'},
-    {name: 'Contribute', href: '#'},
+    {name: 'Download', href: '#download'},
+    {name: 'Get Started', href: '#getstarted'},
+    {name: 'Documentation', href: '#documentation'},
+    {name: 'Contribute', href: '#contribute'},
 ]
 
 export default function pageHeader() {
@@ -20,7 +21,7 @@ export default function pageHeader() {
             <header className="absolute inset-x-0 top-0 z-50">
                 <nav className="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
                     <div className="flex lg:flex-1">
-                        <a href="#" className="-m-1.5 p-1.5">
+                        <a href="#top" className="-m-1.5 p-1.5">
                             <span className="sr-only">KT2L</span>
                         </a>
                     </div>
@@ -43,7 +44,7 @@ export default function pageHeader() {
                         ))}
                     </div>
                     <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                        <a href="#" className="text-sm font-semibold leading-6 text-gray-900">
+                        <a href="#top" className="text-sm font-semibold leading-6 text-gray-900">
 
                         </a>
                     </div>
