@@ -12,7 +12,8 @@ const navigation = [
 ]
 
 export default function pageHeader() {
-    const [MobileMenuOpen, SetMobileMenuOpen] = useState(false)
+
+//    const [MobileMenuOpen, SetMobileMenuOpen] = useState(false)
 
     return (
         <div className="bg-white">
@@ -27,7 +28,7 @@ export default function pageHeader() {
                         <button
                             type="button"
                             className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
-                            onClick={() => SetMobileMenuOpen(true)}
+                            // onClick={() => SetMobileMenuOpen(true)}
                         >
                             <span className="sr-only">Open main menu</span>
                             <Bars3Icon className="h-6 w-6" aria-hidden="true"/>

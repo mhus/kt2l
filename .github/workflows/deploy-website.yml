@@ -1,0 +1,29 @@
+name: Node.js CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions: write-all
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '21.x'
+      - run: cd kt2l.org
+      - run: npm ci
+      - run: npm run build
+#      - run: npm test
+      - run: cd ..;rm -rf docs/static
+      - run: cp -r kt2l.org/build/* docs/
+      - name: commit snapshot
+        run: |
+          git add .
+          git config --global user.name 'Robot'
+          git config --global user.email 'mhus@users.noreply.github.com'
+          git commit -am "Webpage"
+          git push
