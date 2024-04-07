@@ -26,11 +26,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '21.x'
-      - run: cd kt2l.org
-      - run: npm ci
-      - run: npm run build
+      - run: cd kt2l.org;npm ci
+      - run: cd kt2l.org;npm run build
 #      - run: npm test
-      - run: cd ..;rm -rf docs/static
+      - run: rm -rf docs/static
       - run: cp -r kt2l.org/build/* docs/
       - name: commit snapshot
         run: |
