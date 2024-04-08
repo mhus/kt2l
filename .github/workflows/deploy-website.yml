@@ -9,18 +9,7 @@ jobs:
   build:
     permissions: write-all
     runs-on: ubuntu-latest
-
     steps:
-#      - uses: trstringer/manual-approval@v1
-#        with:
-#          secret: ${{ github.TOKEN }}
-#          approvers: mhus
-#          minimum-approvals: 1
-#          issue-title: "Deploying website"
-#          issue-body: "Please approve or deny the deployment"
-#          exclude-workflow-initiator-as-approver: false
-#          additional-approved-words: ''
-#          additional-denied-words: ''
       - uses: actions/checkout@v4
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -32,6 +21,7 @@ jobs:
       - run: rm -rf docs/static
       - run: cp -r kt2l.org/build/* docs/
       - name: commit snapshot
+        if: ${{ startsWith(github.event.head_commit.message, 'release:') }}
         run: |
           git add .
           git config --global user.name 'Robot'
