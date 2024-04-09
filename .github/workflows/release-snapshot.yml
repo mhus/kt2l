@@ -1,0 +1,32 @@
+name: release
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  release:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.1.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Prepare
+        run: ./kt2l-desktop/launcher/prepare.sh
+      - name: Build maven
+        run: mvn clean install -B -U -Pproduction -Dspring.profiles.active=prod
+      - name: Build Server
+        run: ./kt2l-server/launcher/create.sh
+      - name: Deploy Server
+        run: ./kt2l-server/launcher/deploy.sh
+      - name: Build Desktop Mac
+        run: ./kt2l-desktop/launcher/create-mac.sh
+      - name: Deploy Desktop
+        run: ./kt2l-desktop/launcher/deploy.sh
