@@ -21,7 +21,7 @@ jobs:
       - run: rm -rf docs/static
       - run: cp -r kt2l.org/build/* docs/
       - name: commit snapshot
-        if: ${{ startsWith(github.event.head_commit.message, 'release:') }}
+        if: ${{ !startsWith(github.event.head_commit.message, 'wip:') }}
         run: |
           git add .
           git config --global user.name 'Robot'
