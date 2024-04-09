@@ -47,6 +47,8 @@ cat kt2l.org/templates/download.ts \
  | sed s/xdescriptionx/"$DESCRIPTION"/g \
  > kt2l.org/src/downloads/download-snapshot-server.ts  || exit 1
 
+git config --global user.name 'Robot'
+git config --global user.email 'mhus@users.noreply.github.com'
 git add ./kt2l.org/src/downloads/download-snapshot-server.ts
 git commit -m "Update server snapshot $NOW"
 git push
