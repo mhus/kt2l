@@ -41,15 +41,14 @@ aws s3 cp ../../launcher/KT2L.dmg s3://kt2l-downloads/snapshots/$FILENAME || exi
 
 # create download information
 cat kt2l.org/templates/download.ts \
- | sed s/xhrefx/$HREF/g \
- | sed s/xcreatedx/$NOW/g \
+ | sed s/xhrefx/"$HREF"/g \
+ | sed s/xcreatedx/"$NOW"/g \
  | sed s/xtitlex/"$TITLE"/g \
  | sed s/xdescriptionx/"$DESCRIPTION"/g \
  > kt2l.org/src/downloads/download-snapshot-desktop-mac.ts  || exit 1
 
 git config --global user.name 'Robot'
 git config --global user.email 'mhus@users.noreply.github.com'
-git add ./kt2l.org/src/downloads/download-snapshot-desktop-mac.ts
-git commit -m "Update desktop mac snapshot $NOW"
+git commit -am "Update desktop mac snapshot $NOW"
 git push
 
