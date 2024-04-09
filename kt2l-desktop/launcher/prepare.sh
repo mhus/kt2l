@@ -1,6 +1,11 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 cd ..
+
+echo "====================================="
+cat ../.git/config
+echo "====================================="
+
 mkdir target
 cd target
 rm -rf config

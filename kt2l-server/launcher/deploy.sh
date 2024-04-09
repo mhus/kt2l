@@ -17,10 +17,6 @@ rm -rf deploy
 mkdir deploy
 cd deploy
 
-echo "====================================="
-cat ../../.git/config
-echo "====================================="
-
 
 NOW=$(date +"%Y-%m-%d")
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
