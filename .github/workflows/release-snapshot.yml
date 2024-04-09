@@ -32,7 +32,15 @@ jobs:
         run: ./kt2l-server/launcher/create.sh
       - name: Deploy Server
         run: ./kt2l-server/launcher/deploy.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
       - name: Build Desktop Mac
         run: ./kt2l-desktop/launcher/create-mac.sh
       - name: Deploy Desktop
         run: ./kt2l-desktop/launcher/deploy.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
