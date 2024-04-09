@@ -2,10 +2,10 @@
 import DownloadFile from '../download-ifc';
 
 export let download : DownloadFile = {
-    title: "${title}",
-    description: "${description}",
-    href: "/snapshots/${filename}",
+    title: "xtitlex",
+    description: "xdescriptionx",
+    href: "/snapshots/xfilenamex",
     size: "",
     enabled: true,
-    created: "${created}"
+    created: "xcreatedx"
 }
