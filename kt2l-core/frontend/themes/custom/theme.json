@@ -1,0 +1,6 @@
+{
+  "importCss": ["@fortawesome/fontawesome-free/css/all.min.css"],
+  "lumoImports" : [ "typography", "color", "spacing", "badge", "utility" ],
+  "assets": {
+  }
+}

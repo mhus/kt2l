@@ -1,0 +1,7 @@
+exec:
+  - /usr/bin/osascript
+  - '-e'
+  - tell application "Terminal" to do script "kubectl exec -it --context '${context}' -c '${container}' '${pod}' -- '${cmd}'; exit"
+  - '-e'
+  - tell application "Terminal" to activate
+

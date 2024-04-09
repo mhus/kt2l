@@ -1,0 +1,21 @@
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%date %highlight(%-5level) %msg %cyan(%logger{5}@[%-4.30thread]) %mdc{trace_id}%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.vaadin.flow.server.communication" level="INFO" />
+  <logger name="org.springframework.web.servlet" level="INFO" />
+  <logger name="org.springframework.context" level="INFO" />
+  <logger name="org.springframework.beans" level="INFO" />
+  <logger name="org.springframework.security" level="INFO" />
+  <logger name="org.springframework.core.type.filter" level="INFO" />
+  <logger name="org.springframework.boot.autoconfigure.logging" level="INFO" />
+  <logger name="com.vaadin.flow.spring" level="INFO" />
+
+  <root level="DEBUG">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>

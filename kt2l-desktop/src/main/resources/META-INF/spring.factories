@@ -1,0 +1,1 @@
+org.springframework.boot.SpringApplicationRunListener=de.mhus.kt2l.BrowserStartupAppListener

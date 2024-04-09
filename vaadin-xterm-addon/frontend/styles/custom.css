@@ -1,0 +1,157 @@
+
+.xtabview .tabitem:hover {
+    background-color: #f2f2f2;
+}
+
+.xtabview .tabtext {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.xtabview .tabitem {
+    background-color: #fff;
+    border: 1px solid #f2f2f2;
+    padding: 4px;
+    border-radius: 5px;
+    margin-bottom: 0px;
+}
+
+.xtabview .tabicon {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 24px;
+    max-height: 24px;
+}
+
+.xtabview .tabclose {
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+    max-width: 12px;
+    max-height: 12px;
+}
+
+.xtabview .tabclose:hover {
+    background-color: #aeaeae;
+}
+
+.xtabview .selected {
+    background-color: #f6f6f6;
+}
+
+.color-red {
+    color: #ff0000;
+}
+
+.color-green {
+    color: #00ff00;
+}
+
+.color-blue {
+    color: #0000ff;
+}
+
+.color-yellow {
+    color: #ffff00;
+}
+
+.color-orange {
+    color: #ff8000;
+}
+
+.color-purple {
+    color: #8000ff;
+}
+
+.color-cyan {
+    color: #00ffff;
+}
+
+.color-black {
+    color: #000000;
+}
+
+.color-white {
+    color: #ffffff;
+}
+
+.color-pink {
+    color: #ff00ff;
+}
+.color-magenta {
+    color: #ff00ff;
+}
+.color-brown {
+    color: #a52a2a;
+}
+
+.bgcolor-red {
+    background-color: #ff0000;
+}
+
+.bgcolor-green {
+    background-color: #00ff00;
+}
+
+.bgcolor-blue {
+    background-color: #0000ff;
+}
+
+.bgcolor-yellow {
+    background-color: #ffff00;
+}
+
+.bgcolor-orange {
+    background-color: #ff8000;
+}
+
+.bgcolor-purple {
+    background-color: #8000ff;
+}
+
+.bgcolor-cyan {
+    background-color: #00ffff;
+}
+
+.bgcolor-black {
+    background-color: #000000;
+}
+
+.bgcolor-white {
+    background-color: #ffffff;
+}
+
+.bgcolor-pink {
+    background-color: #ff00ff;
+}
+.bgcolor-magenta {
+    background-color: #ff00ff;
+}
+.bgcolor-brown {
+    background-color: #a52a2a;
+}
+
+span.ktool-title {
+    padding-left: 10px;
+}
+
+vaadin-text-area.log-view textarea {
+    font-family: monospace;
+    font-size: 14px;
+    background-color: #000;
+    color: #f6f6f6;
+}
+
+vaadin-text-area.no-word-wrap textarea {
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: scroll;
+}
+
+span.logo {
+    font-weight: bold;
+    font-style: italic;
+    }
