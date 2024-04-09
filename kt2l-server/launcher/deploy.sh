@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -x
 cd "$(dirname "$0")"
 cd ../target
 
@@ -17,9 +17,18 @@ rm -rf deploy
 mkdir deploy
 cd deploy
 
+echo "====================================="
+cat ../../.git/config
+echo "====================================="
+
+
 NOW=$(date +"%Y-%m-%d")
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
 cd gh-pages
+
+echo "====================================="
+cat .git/config
+echo "====================================="
 
 FILENAME=kt2l-server-$NOW.zip
 TITLE="Server Bundled"
