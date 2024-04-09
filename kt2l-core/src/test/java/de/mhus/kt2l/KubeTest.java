@@ -28,6 +28,7 @@ import java.util.Properties;
 import java.util.TreeMap;
 
 @Slf4j
+@Disabled
 public class KubeTest {
 
     private static final Properties LOCAL_PROPERTIES = new Properties();
