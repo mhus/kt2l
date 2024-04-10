@@ -1,12 +1,13 @@
 import { CloudArrowDownIcon } from '@heroicons/react/24/outline'
 import {download as snapshotDesktopMacDownload} from './downloads/download-snapshot-desktop-mac';
 import {download as snapshotServerDownload} from './downloads/download-snapshot-server';
-// import {download as snapshotContainerDownload} from './downloads/download-snapshot-container';
+import {download as snapshotContainerDownload} from './downloads/download-snapshot-container';
 // import {download as snapshotDisabledDownload} from './downloads/download-snapshot-disabled';
 
 const snapshotDownloads = [
-    snapshotDesktopMacDownload,
-    snapshotServerDownload
+    snapshotServerDownload,
+    snapshotContainerDownload,
+    snapshotDesktopMacDownload
 ]
 
 export default function pageDownloads() {
@@ -37,6 +38,7 @@ export default function pageDownloads() {
                                     </a>
                                 </dt>
                                 <dd className="mt-2 text-base leading-7 text-gray-600">{download.description}</dd>
+                                <dd className="mt-2 text-base leading-7 text-gray-400">Updated {download.created}</dd>
                             </div>
                         ) : (null) ) }
                     </dl>
