@@ -1,10 +1,11 @@
 import {Bars3Icon} from '@heroicons/react/24/outline'
 
 const navigation = [
-    {name: 'Download', href: '#download'},
-    {name: 'Get Started', href: '#getstarted'},
-    {name: 'Documentation', href: '#documentation'},
-    {name: 'Contribute', href: '#contribute'},
+    {name: 'Download', href: '/#download'},
+    {name: 'Intro', href: '/docs/intro'},
+    {name: 'Get Started', href: '/docs/get-started'},
+    {name: 'Documentation', href: '/docs'},
+//    {name: 'Contribute', href: '/#contribute'},
 ]
 
 export default function pageHeader() {
