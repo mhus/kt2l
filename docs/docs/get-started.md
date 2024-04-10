@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # Get Started
 
-## Witch kind of installation do you need
+## Which kind of installation do you need
 
 * ***Local server***: You can run KT2L as java server and access it with the browser. The server is secured not to allow 
   connections form others the localhost if you want. The server is doing autologin if accessing from localhost.
