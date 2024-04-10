@@ -3,7 +3,7 @@ set -x
 cd "$(dirname "$0")"
 cd ../target
 
-if [ ! -f target/kt2l-server.zip ]; then
+if [ ! -f kt2l-server.zip ]; then
     echo "Fatal: kt2l-server.zip not found"
     exit 1
 fi
