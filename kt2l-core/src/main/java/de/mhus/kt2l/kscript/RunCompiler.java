@@ -16,7 +16,7 @@ public class RunCompiler {
     public static final String PROP_SCOPE = "scope.";
 
     public static final int DEFAULT_MAX_CONTENT_SIZE = 10000;
-    public static final String PROP_RETURN = "return";
+    public static final String PROP_RETURN = ".return";
 
     private Map<String,Class<? extends Cmd>> commands = new HashMap<>();
 

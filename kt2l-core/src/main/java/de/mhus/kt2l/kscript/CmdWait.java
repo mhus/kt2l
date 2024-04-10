@@ -22,24 +22,24 @@ public class CmdWait extends Cmd {
         var start = System.currentTimeMillis();
         while (true) {
             if (!run.isRunning()){
-                context.getProperties().put(RunCompiler.PROP_RETURN, "closed");
+                context.getProperties().put(scope + RunCompiler.PROP_RETURN, "closed");
                 break;
             }
             MThread.sleep(100);
             if (content != null && run.contentContains(content)) {
-                context.getProperties().put(RunCompiler.PROP_RETURN, "content");
+                context.getProperties().put(scope + RunCompiler.PROP_RETURN, "content");
                 break;
             }
             if (content != null && run.stdinContains(stdin)) {
-                context.getProperties().put(RunCompiler.PROP_RETURN, "stdin");
+                context.getProperties().put(scope + RunCompiler.PROP_RETURN, "stdin");
                 break;
             }
             if (content != null && run.stderrContains(stderr)) {
-                context.getProperties().put(RunCompiler.PROP_RETURN, "stderr");
+                context.getProperties().put(scope + RunCompiler.PROP_RETURN, "stderr");
                 break;
             }
             if (System.currentTimeMillis() - start > timeout) {
-                context.getProperties().put(RunCompiler.PROP_RETURN, "timeout");
+                context.getProperties().put(scope + RunCompiler.PROP_RETURN, "timeout");
                 if (throwExceptionOnTimeout)
                     throw new TimeoutException("Timeout");
                 break;

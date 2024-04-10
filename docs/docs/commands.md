@@ -1,3 +1,6 @@
+---
+sidebar_position: 10
+---
 
 # Commands
 
@@ -50,7 +53,7 @@ Arguments:
 - stderr: string - the content to wait for in the terminal stderr buffer.
 - timeout: number/period - the timeout period to wait for the content to appear, e.g. 5s, 10m, 1h
 
-Return parameter (<scope>.return):
+Return parameter (&lt;scope&gt;.return):
 - `closed` - if the terminal was closed
 - `timeout` - on timeout
 - `content` - Match appears in content
@@ -115,7 +118,7 @@ The variables are global for all sessions.
 
 Variables:
 - `container` - Name of the container in the pod to connect to.
-- '<scope>.return' - Some commands will return a result in this variable.
+- '&lt;scope&gt;.return' - Some commands will return a result in this variable.
 
 # Examples
 
