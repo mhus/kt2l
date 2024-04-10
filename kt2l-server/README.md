@@ -9,5 +9,5 @@ docker run -it --rm --name kt2l-server \
     -v "$HOME/.aws:/home/user/.aws" \
     -p 8080:8080 \
     --platform linux/amd64 \
-    kt2l-server:snapshot
+    mhus/kt2l-server:snapshot
 ```

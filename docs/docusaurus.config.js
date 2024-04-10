@@ -77,7 +77,7 @@ const config = {
                 title: 'KT2L',
                 logo: {
                     alt: 'KT2L Logo',
-                    src: 'img/ht2l-logo.svg',
+                    src: 'img/kt2l-logo.svg',
                 },
                 items: [
                     {
