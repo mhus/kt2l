@@ -21,6 +21,16 @@ NOW=$(date +"%Y-%m-%d")
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
 cd gh-pages
 
+if [ "$(grep -c "extraheader" ../../../../.git/config)" -gt "0" ]; then
+  set -x
+  cd gh-pages
+  pwd
+  echo "[gc]" >> .git/config
+  echo "	auto = 0" >> .git/config
+  echo "[http \"https://github.com/\"]" >> .git/config
+  cat ../../../../.git/config|grep "extraheader" >> .git/config
+fi
+
 FILENAME=kt2l-desktop-mac-$NOW.dmg
 TITLE="Desktop Mac OSX Bundled"
 DESCRIPTION="Can be executed directly in Mac OS X M1. Java JDK 21 is included."

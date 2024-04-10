@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+#set -x
 cd "$(dirname "$0")"
 cd ../target
 
@@ -8,8 +8,12 @@ if [ ! -f kt2l-server.zip ]; then
     exit 1
 fi
 
-if [ "x$AWS_ACCESS_KEY_ID" -ne "xAKIASJLQRE2PBBXZ34PC" ]; then
+if [ -z "$AWS_ACCESS_KEY_ID" ]; then
     echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
+    exit 1
+fi
+if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+    echo "Fatal: AWS_SECRET_ACCESS_KEY not correct set"
     exit 1
 fi
 
@@ -22,9 +26,16 @@ NOW=$(date +"%Y-%m-%d")
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
 cd gh-pages
 
-echo "====================================="
-cat .git/config
-echo "====================================="
+if [ "$(grep -c "extraheader" ../../../../.git/config)" -gt "0" ]; then
+  set -x
+  cd gh-pages
+  pwd
+  echo "[gc]" >> .git/config
+  echo "	auto = 0" >> .git/config
+  echo "[http \"https://github.com/\"]" >> .git/config
+  cat ../../../../.git/config|grep "extraheader" >> .git/config
+fi
+
 
 FILENAME=kt2l-server-$NOW.zip
 TITLE="Server Bundled"
@@ -48,8 +59,9 @@ aws s3 cp ../../kt2l-server.zip s3://kt2l-downloads/snapshots/$FILENAME || exit 
 CREATED=$NOW
 . ./kt2l.org/templates/download.ts.sh > kt2l.org/src/downloads/download-snapshot-server.ts
 
+git add kt2l.org/src/downloads/download-snapshot-server.ts
 git config --global user.name 'Robot'
 git config --global user.email 'mhus@users.noreply.github.com'
-git commit -am "Update server snapshot $NOW"
+git commit -m "Update server snapshot $NOW"
 git push
 

@@ -10,7 +10,3 @@ cp -r ../../launcher/package/* .
 cp -r ../../../config .
 cd ..
 zip -r kt2l-server.zip kt2l-server
-#tar -czf kt2l-server.tar.gz kt2l-server
-
-cd ..
-docker build --progress=plain --platform linux/amd64 -t kt2l-server:snapshot -f launcher/Dockerfile .
