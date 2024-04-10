@@ -34,7 +34,7 @@ jobs:
       - name: Setup gh-pages
         run: git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages
       - name: Copy content
-        run: cd gh-pages/docs; rm -rf docs;cp ../../docs/build docs
+        run: cd gh-pages/docs; rm -rf docs;cp -r ../../docs/build docs
       - name: prepare git config
         run: |
           cd gh-pages
