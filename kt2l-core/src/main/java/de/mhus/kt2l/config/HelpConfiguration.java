@@ -86,5 +86,9 @@ public class HelpConfiguration {
         public boolean isEnabled() {
             return link.getBoolean("enabled", true);
         }
+
+        public boolean isDefault() {
+            return link.getBoolean("default", true);
+        }
     }
 }

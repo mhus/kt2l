@@ -154,4 +154,10 @@ vaadin-text-area.no-word-wrap textarea {
 span.logo {
     font-weight: bold;
     font-style: italic;
-    }
+}
+
+vaadin-vertical-layout.helpcontent {
+    border-left-width: 1px;
+    border-left-style: solid;
+    border-left-color: lightgray;
+}

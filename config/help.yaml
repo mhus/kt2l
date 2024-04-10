@@ -4,25 +4,42 @@ contexts:
   default:
     - name: Documentation
       document: index
+      default: true
     - name: Kubernetes
       href: https://kubernetes.io/docs/home/
   details:
+    - name: Details
+      document: details
+      default: true
     - name: Kubernetes
       href: https://kubernetes.io/docs/home/
   resources:
+    - name: Resources
+      document: resources
+      default: true
     - name: Kubernetes
       href: https://kubernetes.io/docs/home/
   logs:
+    - name: Logs
+      document: logs
+      default: true
     - name: Kubernetes
       href: https://kubernetes.io/docs/home/
   shell:
+    - name: Shell
+      document: shell
+      default: true
     - name: Kubernetes
       href: https://kubernetes.io/docs/home/
   ai:
+    - name: AI
+      document: ai
+      default: true
     - name: Kubernetes
       href: https://kubernetes.io/docs/home/
   exec:
-    - name: Exec Commands
+    - name: Exec
       document: exec
+      default: true
     - name: Kubernetes
       href: https://kubernetes.io/docs/home/

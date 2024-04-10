@@ -103,18 +103,12 @@ public class MainView extends AppLayout {
         helpContent.setWidth(helpConfiguration.getWindowWidth());
         helpContent.setHeightFull();
 
-//        var helpMenu = new MenuBar();
-//        helpMenu.addItem(VaadinIcon.QUESTION_CIRCLE_O.create(), e -> {
-//            helpBrowser.setSrc("https://google.de");
-//        });
-//        helpContent.add(helpMenu);
-
         helpBrowser = new IFrame();
         helpBrowser.setSizeFull();
         helpBrowser.getElement().setAttribute("frameborder", "0");
         helpBrowser.setSrc("/public/docs/index.html");
         helpContent.add(helpBrowser);
-
+        helpContent.setClassName("helpcontent");
         contentContainer = new VerticalLayout();
         content.add(contentContainer, helpContent);
     }
@@ -202,17 +196,16 @@ public class MainView extends AppLayout {
 
     }
     
-    protected void updateHelpMenu() {
+    protected void updateHelpMenu(boolean setDefaultDocu) {
 
         String helpContext = getTabBar().getSelectedTab().getHelpContext();
         var ctx = helpConfiguration.getContext(helpContext == null ? "default" : helpContext);
         helpMenu.removeAll();
-        final AtomicBoolean hasMenuLinks = new AtomicBoolean(false);
-        ctx.getLinks().forEach(
+        var links = ctx.getLinks();
+        links.forEach(
                 link -> {
                     if (link.isEnabled()) {
                         var item = helpMenu.addItem(link.getName(), event -> {
-                            hasMenuLinks.set(true);
                             if (link.isExternalLink()) {
                                 MSystem.openBrowserUrl(link.getHref());
                             } else {
@@ -229,20 +222,28 @@ public class MainView extends AppLayout {
                     }
                 });
         if (helpContent.isVisible()) {
-            if (hasMenuLinks.get())
+            if (!links.isEmpty())
                 helpMenu.add(new Hr());
             helpMenu.addItem("Close Help", event -> {
                 if (!helpContent.isVisible()) return;
                 helpContent.setVisible(false);
-                updateHelpMenu();
+                updateHelpMenu(false);
             });
+            if (setDefaultDocu) {
+                links.stream().filter(link -> !link.isExternalLink() && link.isDefault()).findFirst().ifPresent(
+                        link -> {
+                            helpBrowser.setSrc(link.getHref());
+                            helpBrowser.reload();
+                        }
+                );
+            }
         }
     }
 
     private void showHelpBrowser() {
         if (helpContent.isVisible()) return;
         helpContent.setVisible(true);
-        updateHelpMenu();
+        updateHelpMenu(true);
     }
 
     private Component createLogo() {

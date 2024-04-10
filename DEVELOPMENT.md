@@ -19,6 +19,7 @@
 
 ## Miscellaneous
 
+* [https://github.com/walokra/markdown-page-generator-plugin]
 * [lombok](https://projectlombok.org/features/all)
 * [https://www.baeldung.com/spring-boot]
 

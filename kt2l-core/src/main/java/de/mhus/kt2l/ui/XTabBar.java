@@ -90,7 +90,8 @@ public class XTabBar extends VerticalLayout {
             if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof XTabListener) {
                 Try.run(() -> ((XTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));
             }
-            mainView.updateHelpMenu();
+            mainView.updateHelpMenu(true);
+
         }
     }
 
