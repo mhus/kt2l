@@ -1,12 +1,9 @@
 package de.mhus.kt2l;
 
-import de.mhus.commons.tools.MJson;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.junit.jupiter.Container;
 
 import java.io.IOException;
 

@@ -1,6 +1,7 @@
 package de.mhus.kt2l.ui;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
+import de.mhus.kt2l.config.LoginConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +27,9 @@ public class SecurityConfiguration
 
     @Autowired
     private de.mhus.kt2l.config.Configuration configuration;
+
+    @Autowired
+    private LoginConfiguration loginConfig;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -78,13 +82,16 @@ public class SecurityConfiguration
     @Bean
     public UserDetailsManager userDetailsService() {
         final var userDetails = new ArrayList<UserDetails>();
-        final var loginConfig = configuration.getLoginConfiguration();
         configuration.getUserDetailsConfiguration().getUsers().forEach(u -> {
             LOGGER.info("Add user {} with roles {}", u.name(), u.roles());
             var password = u.password();
             if (loginConfig.isAutoLogin() && u.name().equals(loginConfig.getAutoLoginUser())) {
                 password = "{noop}" + loginConfig.getLocalAutoLoginPassword();
-                LOGGER.info("Set auto login password for user {} to {}", u.name(), password);
+                LOGGER.info("Set autologin password for user {} to {}", u.name(), password);
+            } else
+            if ("{generate}".equals(password)) {
+                password = "{noop}" + loginConfig.getLocalAutoLoginPassword();
+                LOGGER.info("Set login password for user {} to {}", u.name(), password);
             }
             userDetails.add(User.withUsername(u.name())
                     .password(password)

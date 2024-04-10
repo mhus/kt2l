@@ -1,10 +1,12 @@
 package de.mhus.kt2l.pods;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.generic.ExecutionContext;
+import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.generic.ResourceAction;
+import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.ui.PanelService;
+import de.mhus.kt2l.ui.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Pod;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 @Component
+@WithRole(ROLE.READ)
 public class ActionLogs implements ResourceAction {
 
     @Autowired

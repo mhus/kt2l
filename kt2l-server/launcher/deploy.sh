@@ -45,12 +45,8 @@ echo "Copy kt2l-server.zip to aws"
 aws s3 cp ../../kt2l-server.zip s3://kt2l-downloads/snapshots/$FILENAME || exit 1
 
 # create download information
-cat kt2l.org/templates/download.ts \
- | sed s/xhrefx/"$HREF"/g \
- | sed s/xcreatedx/"$NOW"/g \
- | sed s/xtitlex/"$TITLE"/g \
- | sed s/xdescriptionx/"$DESCRIPTION"/g \
- > kt2l.org/src/downloads/download-snapshot-server.ts  || exit 1
+CREATED=$NOW
+. ./kt2l.org/templates/download.ts.sh > kt2l.org/src/downloads/download-snapshot-server.ts
 
 git config --global user.name 'Robot'
 git config --global user.email 'mhus@users.noreply.github.com'

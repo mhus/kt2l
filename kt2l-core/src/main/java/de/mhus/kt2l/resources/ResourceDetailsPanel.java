@@ -1,4 +1,4 @@
-package de.mhus.kt2l.generic;
+package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
@@ -16,9 +16,9 @@ import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
-import de.mhus.kt2l.ui.MainView;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.ui.MainView;
 import de.mhus.kt2l.ui.XTab;
 import de.mhus.kt2l.ui.XTabListener;
 import io.kubernetes.client.common.KubernetesObject;
@@ -26,7 +26,6 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 

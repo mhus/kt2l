@@ -1,12 +1,13 @@
 package de.mhus.kt2l.pods;
 
-import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.Configuration;
-import de.mhus.kt2l.generic.ExecutionContext;
+import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.generic.ResourceAction;
+import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.ui.PanelService;
+import de.mhus.kt2l.ui.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import java.util.Set;
 
 @Slf4j
 @Component
+@WithRole(ROLE.WRITE)
 public class ActionShell implements ResourceAction {
 
     @Autowired

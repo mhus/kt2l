@@ -1,0 +1,29 @@
+name: TryTheShit
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  try:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+
+      - uses: actions/checkout@v4
+      - name: gh-pages
+        run: git clone https://github.com/mhus/kt2l.git -b gh-pages
+      - name: change it
+        run: cd gh-pages; echo $RANDOM > test.txt;git add test.txt
+      - name: prepare git config
+        run: |
+          echo "[gc]" >> .git/config
+          echo "	auto = 0" >> .git/config
+          echo "[http \"https://github.com/\"]" >> .git/config
+          cat ../.git/config|grep "extraheader" >> .git/config
+      - name: commit
+        run: |
+          git config --global user.name 'Robot'
+          git config --global user.email 'mhus@users.noreply.github.com'
+          git commit -am "Update server snapshot $NOW"
+          git push

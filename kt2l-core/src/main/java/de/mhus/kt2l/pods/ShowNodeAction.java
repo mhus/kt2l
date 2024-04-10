@@ -1,10 +1,12 @@
 package de.mhus.kt2l.pods;
 
-import de.mhus.kt2l.generic.ExecutionContext;
-import de.mhus.kt2l.generic.ResourceAction;
+import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
+import de.mhus.kt2l.ui.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Pod;
 import org.springframework.stereotype.Component;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
+@WithRole(ROLE.READ)
 public class ShowNodeAction implements ResourceAction {
     @Override
     public boolean canHandleResourceType(String resourceType) {

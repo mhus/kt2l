@@ -16,7 +16,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
-import de.mhus.commons.errors.NotFoundRuntimeException;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiClient;
@@ -28,9 +27,7 @@ import io.kubernetes.client.openapi.Pair;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
-import io.kubernetes.client.proto.V1beta1Apiextensions;
 import io.kubernetes.client.util.ModelMapper;
-import io.kubernetes.client.util.Yaml;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;

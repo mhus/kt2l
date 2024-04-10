@@ -1,4 +1,4 @@
-defaultCluster: arn:aws:eks:eu-central-1:449305603284:cluster/q_machine_priv_dev
+defaultCluster: colima
 defaultResourceType: "pods"
 defaultNamespace: default
 clusters:

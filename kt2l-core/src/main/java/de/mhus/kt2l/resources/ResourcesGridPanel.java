@@ -13,12 +13,12 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.Configuration;
-import de.mhus.kt2l.nodes.NodesGrid;
-import de.mhus.kt2l.ui.MainView;
 import de.mhus.kt2l.generic.GenericGrid;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.nodes.NodesGrid;
 import de.mhus.kt2l.pods.PodGrid;
+import de.mhus.kt2l.ui.MainView;
 import de.mhus.kt2l.ui.XTab;
 import de.mhus.kt2l.ui.XTabListener;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import static de.mhus.commons.tools.MString.isEmpty;

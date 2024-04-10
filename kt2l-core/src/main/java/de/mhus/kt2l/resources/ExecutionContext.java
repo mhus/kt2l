@@ -1,12 +1,11 @@
-package de.mhus.kt2l.generic;
+package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
-import de.mhus.kt2l.resources.ResourcesGrid;
-import de.mhus.kt2l.ui.XTab;
 import de.mhus.kt2l.ui.MainView;
+import de.mhus.kt2l.ui.XTab;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.Builder;

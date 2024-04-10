@@ -1,13 +1,30 @@
 users:
   - name: "admin"
-    password: "{noop}admin"
+    password: "{generate}"
     roles:
-    - "ADMIN"
+      - "READ"
+      - "WRITE"
+      - "LOCAL"
+      - "SETTINGS"
+      - "ADMIN"
   - name: "user"
-    password: "{noop}user"
+    password: "{generate}"
     roles:
-    - "USER"
+    - "READ"
+    - "WRITE"
+    - "SETTINGS"
+  - name: "viewer"
+    password: "{noop}viewer"
+    roles:
+      - "READ"
+  - name: "dummy"
+    password: "{noop}dummy"
+    roles:
   - name: "autologin"
-    password: "xxx"
+    password: "{generate}"
     roles:
+    - "READ"
+    - "WRITE"
+    - "LOCAL"
+    - "SETTINGS"
     - "ADMIN"

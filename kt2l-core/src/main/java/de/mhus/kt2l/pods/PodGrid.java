@@ -9,10 +9,9 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
-import de.mhus.kt2l.generic.ExecutionContext;
-import de.mhus.kt2l.generic.IResourceProvider;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.AbstractGrid;
+import de.mhus.kt2l.resources.ExecutionContext;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Watch;
@@ -21,7 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -335,12 +333,8 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             String age,
             long created,
             V1Pod pod
-    ) implements IResourceProvider {
+    ) {
 
-        @Override
-        public Object getResource() {
-            return pod;
-        }
     }
 
     private void setContainerPod(Pod item) {

@@ -1,7 +1,5 @@
 package de.mhus.kt2l;
 
-import com.vaadin.flow.component.dependency.Uses;
-import de.mhus.kt2l.pods.ContainerShellPanel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

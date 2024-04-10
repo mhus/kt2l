@@ -8,10 +8,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class UserDetailsConfiguration {
+public class UsersConfiguration {
+
+    public enum ROLE {
+        READ,
+        WRITE,
+        SETTINGS,
+        LOCAL,
+        ADMIN
+    }
+
     private final ITreeNode config;
 
-    public UserDetailsConfiguration(ITreeNode config) {
+    public UsersConfiguration(ITreeNode config) {
         this.config = config;
     }
 

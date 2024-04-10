@@ -1,15 +1,13 @@
 package de.mhus.kt2l.config;
 
 import com.vaadin.flow.component.UI;
-import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNode;
-import de.mhus.commons.tools.MFile;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.ai.AiConfiguration;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
-import de.mhus.kt2l.ui.LoginConfiguration;
 import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,14 +15,17 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import static de.mhus.commons.tools.MString.isSet;
 
 @Component
 @Slf4j
@@ -34,11 +35,22 @@ public class Configuration {
     public static final String SECTION_CLUSTERS = "clusters";
     public static final String SECTION_USERS = "users";
     public static final String SECTION_LOGIN = "login";
+    private static final String LOCAL_DIR = "local";
+    private static final String USERS_DIR = "users";
 
     @Value("${configuration.directory:config}")
     private String configurationDirectory;
 
-    private static final String[] PROTECTED_CONFIGS = {"users"};
+    @Value("${configuration.usersDirectory:}")
+    private String usersDirectory;
+
+    @Value("${configuration.localDirectory:}")
+    private String localDirectory;
+
+    @Value("${configuration.create:false}")
+    private boolean createConfiguration;
+
+    private static final Set<String> PROTECTED_CONFIGS = Collections.unmodifiableSet(Set.of("users", "aaa", "login"));
 
     private Map<String, ITreeNode> sections = new HashMap<>();
     private File configurationDirectoryFile;
@@ -48,6 +60,8 @@ public class Configuration {
 
         if (configurationDirectory.startsWith("~")) {
             configurationDirectory = System.getProperty("user.home") + configurationDirectory.substring(1);
+        }
+        if (createConfiguration) {
             initHomeConfiguration();
         }
 
@@ -107,12 +121,15 @@ public class Configuration {
         final var sectionName = sectionNameIn.toLowerCase();
 
         File file = null;
-        if (!MCollection.contains(PROTECTED_CONFIGS, sectionName) && userName != null) {
+        final var normalizedSectionFileName = MFile.normalize(sectionName) + ".yaml";
+        if (!PROTECTED_CONFIGS.contains(sectionName) && userName != null) {
             final var user = MFile.normalize(userName.toLowerCase());
-            file = new File( configurationDirectoryFile, "users/" + user + "/" + MFile.normalize(sectionName) + ".yaml");
+            file = new File(getUserConfigurationDirectory(user), normalizedSectionFileName);
         }
         if (file == null || !file.exists())
-            file = new File(configurationDirectoryFile, MFile.normalize(sectionName) + ".yaml");
+            file = new File(getLocalConfigurationDirectory(), normalizedSectionFileName);
+        if (file == null || !file.exists())
+            file = new File(configurationDirectoryFile, normalizedSectionFileName);
         final var finalFile = file;
 
         ITreeNode section = null;
@@ -129,12 +146,20 @@ public class Configuration {
         return section;
     }
 
-    public LoginConfiguration getLoginConfiguration() {
-        return new LoginConfiguration(getSection("login"));
+    private File getLocalConfigurationDirectory() {
+        if (isSet(localDirectory))
+            return new File(localDirectory);
+        return new File( configurationDirectoryFile, LOCAL_DIR);
     }
 
-    public UserDetailsConfiguration getUserDetailsConfiguration() {
-        return new UserDetailsConfiguration(getSection("users"));
+    private File getUserConfigurationDirectory(String user) {
+        if (isSet(usersDirectory))
+            return new File(usersDirectory + "/" + user);
+        return new File( configurationDirectoryFile, USERS_DIR + "/" + user);
+    }
+
+    public UsersConfiguration getUserDetailsConfiguration() {
+        return new UsersConfiguration(getSection("users"));
     }
 
     public ClusterConfiguration getClusterConfiguration() {

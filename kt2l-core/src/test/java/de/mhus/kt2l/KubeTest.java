@@ -1,6 +1,5 @@
 package de.mhus.kt2l;
 
-import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
 import de.mhus.kt2l.k8s.K8sService;
@@ -22,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;

@@ -255,11 +255,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         return age/86400 + "d";
     }
 
-    public record Resource(String name, String age, long created, KubernetesObject resource) implements IResourceProvider {
-        @Override
-        public Object getResource() {
-            return resource;
-        }
+    public record Resource(String name, String age, long created, KubernetesObject resource) {
     }
 
 }

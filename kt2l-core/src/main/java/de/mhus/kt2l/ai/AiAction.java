@@ -1,10 +1,11 @@
 package de.mhus.kt2l.ai;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.generic.ExecutionContext;
-import de.mhus.kt2l.generic.IResourceProvider;
-import de.mhus.kt2l.generic.ResourceAction;
+import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.ui.PanelService;
+import de.mhus.kt2l.ui.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +13,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Slf4j
 @Component
+@WithRole(ROLE.READ)
 public class AiAction implements ResourceAction  {
 
     @Autowired

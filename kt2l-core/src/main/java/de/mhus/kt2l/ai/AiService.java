@@ -1,6 +1,5 @@
 package de.mhus.kt2l.ai;
 
-import de.mhus.commons.errors.NotFoundException;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.kt2l.config.Configuration;
 import dev.langchain4j.data.message.AiMessage;

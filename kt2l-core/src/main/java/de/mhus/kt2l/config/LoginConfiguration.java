@@ -1,15 +1,24 @@
-package de.mhus.kt2l.ui;
+package de.mhus.kt2l.config;
 
 import de.mhus.commons.tree.ITreeNode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.UUID;
 
+@Component
 public class LoginConfiguration {
-    private final ITreeNode config;
+
+    @Autowired
+    private Configuration configuration;
+
+    private ITreeNode config;
     private static String autoLoginPassword;
 
-    public LoginConfiguration(ITreeNode config) {
-        this.config = config;
+    @PostConstruct
+    private void init() {
+        this.config = configuration.getSection("login");
     }
 
     public boolean isAutoLogin() {

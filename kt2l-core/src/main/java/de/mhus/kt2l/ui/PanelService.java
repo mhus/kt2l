@@ -3,7 +3,7 @@ package de.mhus.kt2l.ui;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
-import de.mhus.kt2l.generic.ResourceDetailsPanel;
+import de.mhus.kt2l.resources.ResourceDetailsPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;

@@ -1,4 +1,4 @@
-package de.mhus.kt2l.generic;
+package de.mhus.kt2l.resources;
 
 import io.kubernetes.client.common.KubernetesObject;
 

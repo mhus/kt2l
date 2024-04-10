@@ -11,7 +11,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import de.mhus.commons.net.MNet;
-import de.mhus.kt2l.config.Configuration;
+import de.mhus.kt2l.config.LoginConfiguration;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     private LoginForm login = new LoginForm();
 
     @Autowired
-    private Configuration configuration;
+    private LoginConfiguration loginConfig;
 
     public LoginView() {
         addClassName("login-view");
@@ -63,7 +63,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         var req = getCurrentHttpRequest();
         var rhost = req.getRemoteHost();
 
-        final var loginConfig = configuration.getLoginConfiguration();
         if (loginConfig.isAutoLogin()) {
             if (!loginConfig.isAutoLoginLocalhostOnly() || MNet.isLocalhost(rhost)) {
                 LOGGER.info("Do auto login for {}",loginConfig.getAutoLoginUser());

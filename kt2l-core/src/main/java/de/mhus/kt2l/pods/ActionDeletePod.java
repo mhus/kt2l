@@ -1,9 +1,11 @@
 package de.mhus.kt2l.pods;
 
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import de.mhus.kt2l.generic.ExecutionContext;
+import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.generic.ResourceAction;
+import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.ResourceAction;
+import de.mhus.kt2l.ui.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -12,6 +14,7 @@ import java.util.Set;
 
 @Component
 @Slf4j
+@WithRole(ROLE.WRITE)
 public class ActionDeletePod implements ResourceAction {
 
     @Override

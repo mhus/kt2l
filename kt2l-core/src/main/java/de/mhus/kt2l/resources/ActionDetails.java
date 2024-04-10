@@ -1,15 +1,16 @@
-package de.mhus.kt2l.generic;
+package de.mhus.kt2l.resources;
 
-import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.ui.PanelService;
+import de.mhus.kt2l.ui.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
 import java.util.Set;
 
 @Component
+@WithRole(ROLE.READ)
 public class ActionDetails implements ResourceAction {
 
     @Autowired
