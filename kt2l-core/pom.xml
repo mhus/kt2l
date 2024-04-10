@@ -166,7 +166,7 @@
 					<execution>
 						<id>additional</id>
 						<configuration>
-							<inputDirectory>${project.basedir}/misc/docs</inputDirectory>
+							<inputDirectory>${project.basedir}/docs</inputDirectory>
 							<outputDirectory>${project.basedir}/src/main/resources/META-INF/resources/public/docs</outputDirectory>
 							<applyFiltering>false</applyFiltering>
 							<headerHtmlFile>${project.basedir}/misc/markdown_header.html</headerHtmlFile>
