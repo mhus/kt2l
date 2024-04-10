@@ -57,22 +57,22 @@ public class AiAction implements ResourceAction  {
 
     @Override
     public String getTitle() {
-        return "AI";
+        return "AI;icon=" + VaadinIcon.CROSSHAIRS;
     }
 
     @Override
-    public String getMenuBarPath() {
-        return "";
+    public String getMenuPath() {
+        return ResourceAction.TOOLS_PATH;
+    }
+
+    @Override
+    public int getMenuOrder() {
+        return ResourceAction.TOOLS_ORDER + 10;
     }
 
     @Override
     public String getShortcutKey() {
         return "a";
-    }
-
-    @Override
-    public String getPopupPath() {
-        return "";
     }
 
     @Override

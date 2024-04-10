@@ -1,6 +1,7 @@
 package de.mhus.kt2l.pods;
 
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
@@ -67,21 +68,21 @@ public class ActionDeletePod implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Delete";
+        return "Delete;icon=" + VaadinIcon.FILE_REMOVE;
     }
 
     @Override
-    public String getMenuBarPath() {
-        return null;
+    public String getMenuPath() {
+        return ResourceAction.ACTIONS_PATH;
+    }
+
+    @Override
+    public int getMenuOrder() {
+        return ResourceAction.ACTIONS_ORDER + 100;
     }
 
     @Override
     public String getShortcutKey() {
-        return null;
-    }
-
-    @Override
-    public String getPopupPath() {
         return null;
     }
 

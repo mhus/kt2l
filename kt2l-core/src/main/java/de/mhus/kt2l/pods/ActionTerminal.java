@@ -1,5 +1,6 @@
 package de.mhus.kt2l.pods;
 
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
@@ -99,22 +100,22 @@ public class ActionTerminal implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Terminal";
+        return "Terminal;icon=" + VaadinIcon.TERMINAL;
     }
 
     @Override
-    public String getMenuBarPath() {
-        return null;
+    public String getMenuPath() {
+        return ResourceAction.ACTIONS_PATH;
+    }
+
+    @Override
+    public int getMenuOrder() {
+        return ResourceAction.ACTIONS_ORDER+30;
     }
 
     @Override
     public String getShortcutKey() {
         return "t";
-    }
-
-    @Override
-    public String getPopupPath() {
-        return null;
     }
 
     @Override

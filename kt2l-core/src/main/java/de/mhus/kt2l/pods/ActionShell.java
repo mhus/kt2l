@@ -60,22 +60,22 @@ public class ActionShell implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Shell";
+        return "Shell;icon=" + VaadinIcon.TERMINAL;
     }
 
     @Override
-    public String getMenuBarPath() {
-        return null;
+    public String getMenuPath() {
+        return ResourceAction.ACTIONS_PATH;
+    }
+
+    @Override
+    public int getMenuOrder() {
+        return ResourceAction.ACTIONS_ORDER+20;
     }
 
     @Override
     public String getShortcutKey() {
         return "s";
-    }
-
-    @Override
-    public String getPopupPath() {
-        return null;
     }
 
     @Override

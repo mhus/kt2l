@@ -61,7 +61,7 @@ public class ActionExec implements ResourceAction {
                 context.getClusterConfiguration().name() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":logs",
                 selected.getMetadata().getName(),
                 true,
-                VaadinIcon.MODAL_LIST.create(),
+                VaadinIcon.FORWARD.create(),
                 () ->
                         new PodExecPanel(
                                 context.getClusterConfiguration(),
@@ -73,22 +73,22 @@ public class ActionExec implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Exec";
+        return "Exec;icon=" + VaadinIcon.FORWARD;
     }
 
     @Override
-    public String getMenuBarPath() {
-        return null;
+    public String getMenuPath() {
+        return ResourceAction.ACTIONS_PATH;
+    }
+
+    @Override
+    public int getMenuOrder() {
+        return ResourceAction.ACTIONS_ORDER + 10;
     }
 
     @Override
     public String getShortcutKey() {
         return "e";
-    }
-
-    @Override
-    public String getPopupPath() {
-        return null;
     }
 
     @Override

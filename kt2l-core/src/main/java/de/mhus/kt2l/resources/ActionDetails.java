@@ -1,5 +1,6 @@
 package de.mhus.kt2l.resources;
 
+import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.ui.PanelService;
 import de.mhus.kt2l.ui.WithRole;
@@ -41,22 +42,22 @@ public class ActionDetails implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Details";
+        return "Details;icon=" + VaadinIcon.FILE_TEXT_O;
     }
 
     @Override
-    public String getMenuBarPath() {
-        return null;
+    public String getMenuPath() {
+        return ResourceAction.VIEW_PATH;
+    }
+
+    @Override
+    public int getMenuOrder() {
+        return ResourceAction.VIEW_ORDER+1;
     }
 
     @Override
     public String getShortcutKey() {
         return "d";
-    }
-
-    @Override
-    public String getPopupPath() {
-        return null;
     }
 
     @Override

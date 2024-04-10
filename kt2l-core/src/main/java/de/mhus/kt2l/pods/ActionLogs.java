@@ -74,22 +74,22 @@ public class ActionLogs implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Logs";
+        return "Logs;icon=" + VaadinIcon.MODAL_LIST;
     }
 
     @Override
-    public String getMenuBarPath() {
-        return null;
+    public String getMenuPath() {
+        return ResourceAction.VIEW_PATH;
+    }
+
+    @Override
+    public int getMenuOrder() {
+        return ResourceAction.VIEW_ORDER+10;
     }
 
     @Override
     public String getShortcutKey() {
         return "l";
-    }
-
-    @Override
-    public String getPopupPath() {
-        return null;
     }
 
     @Override

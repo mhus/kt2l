@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,8 +51,9 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         });
 
         GridContextMenu<Container> menu = detailsComponent.addContextMenu();
-        actions.forEach(action -> {
-            var item = menu.addItem(action.getAction().getTitle(), event -> {
+        actions.stream().sorted(Comparator.comparingInt((MenuAction a) -> a.getAction().getMenuOrder())).forEach(action -> {
+            var item = createContextMenuItem(menu, action.getAction());
+            item.addMenuItemClickListener(event -> {
                         var selected = detailsComponent.getSelectedItems().stream().map(c -> new ContainerResource(c)).collect(Collectors.toSet());
                         if (!action.getAction().canHandleResource(K8sUtil.RESOURCE_CONTAINER, selected)) {
                             Notification notification = Notification

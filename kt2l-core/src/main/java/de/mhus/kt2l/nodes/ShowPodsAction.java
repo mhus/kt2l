@@ -1,5 +1,6 @@
 package de.mhus.kt2l.nodes;
 
+import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
@@ -47,22 +48,22 @@ public class ShowPodsAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Pods";
+        return "Pods;icon=" + VaadinIcon.OPEN_BOOK;
     }
 
     @Override
-    public String getMenuBarPath() {
-        return "";
+    public String getMenuPath() {
+        return ResourceAction.VIEW_PATH;
+    }
+
+    @Override
+    public int getMenuOrder() {
+        return ResourceAction.VIEW_ORDER + 110;
     }
 
     @Override
     public String getShortcutKey() {
         return "p";
-    }
-
-    @Override
-    public String getPopupPath() {
-        return "";
     }
 
     @Override
