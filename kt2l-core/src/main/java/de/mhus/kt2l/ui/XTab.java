@@ -29,6 +29,9 @@ public class XTab extends HorizontalLayout {
     private XTabBar viewer;
     @Getter
     private XTab parentTab;
+    @Getter
+    private String helpContext;
+
 //    @Getter
 //    private Map<String, Object> parameters = new HashMap<>();
 
@@ -74,6 +77,11 @@ public class XTab extends HorizontalLayout {
 
     public XTab setParentTab(XTab parent) {
         this.parentTab = parent;
+        return this;
+    }
+
+    public XTab setHelpContext(String helpContext) {
+        this.helpContext = helpContext;
         return this;
     }
 

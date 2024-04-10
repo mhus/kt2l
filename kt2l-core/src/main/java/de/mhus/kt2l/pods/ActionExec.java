@@ -68,7 +68,7 @@ public class ActionExec implements ResourceAction {
                                 context.getApi(),
                                 context.getMainView(),
                                 containers
-                        )).select();
+                        )).setHelpContext("exec").select();
     }
 
     @Override

@@ -1,12 +1,28 @@
-windowWidth: 300px
+windowWidth: 400px
 
 contexts:
   default:
+    - name: Documentation
+      document: index
+    - name: Kubernetes
+      href: https://kubernetes.io/docs/home/
+  details:
+    - name: Kubernetes
+      href: https://kubernetes.io/docs/home/
+  resources:
+    - name: Kubernetes
+      href: https://kubernetes.io/docs/home/
+  logs:
+    - name: Kubernetes
+      href: https://kubernetes.io/docs/home/
+  shell:
+    - name: Kubernetes
+      href: https://kubernetes.io/docs/home/
+  ai:
     - name: Kubernetes
       href: https://kubernetes.io/docs/home/
   exec:
     - name: Exec Commands
-      default: true
       document: exec
     - name: Kubernetes
       href: https://kubernetes.io/docs/home/

@@ -55,7 +55,7 @@ public class ActionShell implements ResourceAction {
                         context.getApi(),
                         context.getMainView(),
                         selected
-                        )).select();
+                        )).setHelpContext("shell").select();
     }
 
     @Override

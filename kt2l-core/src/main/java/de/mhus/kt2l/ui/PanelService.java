@@ -41,7 +41,7 @@ public class PanelService {
                                 parentTab.getViewer().getMainView(),
                                 resourceType,
                                 resource
-                        )).setColor(parentTab.getColor()).setParentTab(parentTab);
+                        )).setColor(parentTab.getColor()).setParentTab(parentTab).setHelpContext("details");
 
     }
 
@@ -53,7 +53,7 @@ public class PanelService {
                         false,
                         VaadinIcon.OPEN_BOOK.create(),
                         () -> new ResourcesGridPanel(cluster.name(), mainView))
-                .setColor(cluster.config().color());
+                .setColor(cluster.config().color()).setHelpContext("resources");
 
     }
 }

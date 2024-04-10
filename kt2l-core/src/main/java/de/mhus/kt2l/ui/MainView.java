@@ -11,6 +11,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.Uses;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static de.mhus.commons.tools.MCollection.detached;
@@ -74,6 +76,7 @@ public class MainView extends AppLayout {
     private VerticalLayout contentContainer;
     private Component contentContent;
     private IFrame helpBrowser;
+    private ContextMenu helpMenu;
 
     public MainView(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -109,7 +112,7 @@ public class MainView extends AppLayout {
         helpBrowser = new IFrame();
         helpBrowser.setSizeFull();
         helpBrowser.getElement().setAttribute("frameborder", "0");
-        helpBrowser.setSrc("/public/default.html");
+        helpBrowser.setSrc("/public/docs/index.html");
         helpContent.add(helpBrowser);
 
         contentContainer = new VerticalLayout();
@@ -169,13 +172,9 @@ public class MainView extends AppLayout {
                     tabTitle.addClassName("ktool-title");
 
                     helpToggel = new Button(VaadinIcon.QUESTION_CIRCLE_O.create());
-                    helpToggel.addClickListener(e -> {
-//                        helpContent.setVisible(!helpContent.isVisible());
-                    });
-                    var menu = new ContextMenu();
-                    menu.setTarget(helpToggel);
-                    menu.setOpenOnClick(true);
-                    menu.addItem("Yo");
+                    helpMenu = new ContextMenu();
+                    helpMenu.setTarget(helpToggel);
+                    helpMenu.setOpenOnClick(true);
 
                     var space = new Span(" ");
 
@@ -201,6 +200,49 @@ public class MainView extends AppLayout {
 
         addToNavbar(header);
 
+    }
+    
+    protected void updateHelpMenu() {
+
+        String helpContext = getTabBar().getSelectedTab().getHelpContext();
+        var ctx = helpConfiguration.getContext(helpContext == null ? "default" : helpContext);
+        helpMenu.removeAll();
+        final AtomicBoolean hasMenuLinks = new AtomicBoolean(false);
+        ctx.getLinks().forEach(
+                link -> {
+                    if (link.isEnabled()) {
+                        var item = helpMenu.addItem(link.getName(), event -> {
+                            hasMenuLinks.set(true);
+                            if (link.isExternalLink()) {
+                                MSystem.openBrowserUrl(link.getHref());
+                            } else {
+                                helpBrowser.setSrc(link.getHref());
+                                showHelpBrowser();
+                                helpBrowser.reload();
+                            }
+                        });
+                        var icon = link.isExternalLink() ? VaadinIcon.EXTERNAL_LINK.create() : VaadinIcon.FILE_O.create();
+                        icon.getStyle().set("width", "var(--lumo-icon-size-s)");
+                        icon.getStyle().set("height", "var(--lumo-icon-size-s)");
+                        icon.getStyle().set("marginRight", "var(--lumo-space-s)");
+                        item.addComponentAsFirst(icon);
+                    }
+                });
+        if (helpContent.isVisible()) {
+            if (hasMenuLinks.get())
+                helpMenu.add(new Hr());
+            helpMenu.addItem("Close Help", event -> {
+                if (!helpContent.isVisible()) return;
+                helpContent.setVisible(false);
+                updateHelpMenu();
+            });
+        }
+    }
+
+    private void showHelpBrowser() {
+        if (helpContent.isVisible()) return;
+        helpContent.setVisible(true);
+        updateHelpMenu();
     }
 
     private Component createLogo() {

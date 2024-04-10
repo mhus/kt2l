@@ -69,7 +69,7 @@ public class ActionLogs implements ResourceAction {
                         context.getApi(),
                         context.getMainView(),
                         containers
-                        )).select();
+                        )).setHelpContext("logs").select();
     }
 
     @Override

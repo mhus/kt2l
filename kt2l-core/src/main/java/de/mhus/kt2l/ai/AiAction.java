@@ -52,7 +52,7 @@ public class AiAction implements ResourceAction  {
                 false,
                 VaadinIcon.ACADEMY_CAP.create(),
                 () -> new AiResourcePanel(resources, context)
-                ).select();
+                ).setHelpContext("ai").select();
     }
 
     @Override

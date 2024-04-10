@@ -2,6 +2,7 @@ package de.mhus.kt2l.config;
 
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
+import de.mhus.commons.tree.TreeNodeList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,23 +32,27 @@ public class HelpConfiguration {
     public HelpContext getContext(String name) {
         return new HelpContext(
                 config.getObject("contexts").orElse(MTree.EMPTY_MAP)
-                        .getObject(name).orElse(MTree.EMPTY_MAP));
+                        .getArray(name).orElse(MTree.EMPTY_LIST));
     }
 
 
     public static class HelpContext {
 
-        private final ITreeNode context;
+        private final TreeNodeList context;
         private final Map<String, HelpLink> links = new HashMap<>();
         private final List<String> order = new ArrayList<>();
 
-        private HelpContext(ITreeNode context) {
+        private HelpContext(TreeNodeList context) {
             this.context = context;
-            context.getObjects().forEach(o -> {
+            context.forEach(o -> {
                 var link = new HelpLink(o);
                 links.put(link.getName(), link);
                 order.add(link.getName());
-            } );
+            });
+        }
+
+        public List<HelpLink> getLinks() {
+            return order.stream().map(name -> links.get(name)).toList();
         }
 
     }
@@ -72,6 +77,14 @@ public class HelpConfiguration {
                 return link.getString("href").get();
             }
             return "/public/default.html";
+        }
+
+        public boolean isExternalLink() {
+            return link.isProperty("href");
+        }
+
+        public boolean isEnabled() {
+            return link.getBoolean("enabled", true);
         }
     }
 }
