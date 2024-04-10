@@ -65,6 +65,7 @@ target
 /kt2l-core/pnpm-lock.yaml
 /kt2l-core/pnpmfile.js
 /kt2l-core/src/main/bundles
+/kt2l-core/src/main/resources/META-INF/resources/public/docs
 
 dependency-reduced-pom.xml
 /kt2l-core/src/main/resources/config.zip

@@ -8,6 +8,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.IFrame;
@@ -24,6 +25,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
+import de.mhus.kt2l.config.HelpConfiguration;
 import de.mhus.kt2l.pods.ContainerShellPanel;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
@@ -55,7 +57,10 @@ public class MainView extends AppLayout {
     AutowireCapableBeanFactory beanFactory;
 
     @Autowired
-    ScheduledExecutorService scheduler;
+    private ScheduledExecutorService scheduler;
+
+    @Autowired
+    private HelpConfiguration helpConfiguration;
 
     private final transient AuthenticationContext authContext;
     private XTabBar tabBar;
@@ -92,17 +97,19 @@ public class MainView extends AppLayout {
         super.setContent(content);
         helpContent = new VerticalLayout();
         helpContent.setVisible(false);
-        helpContent.setWidth("300px");
+        helpContent.setWidth(helpConfiguration.getWindowWidth());
         helpContent.setHeightFull();
 
-        var helpMenu = new MenuBar();
-        helpMenu.addItem("Help", e -> helpBrowser.setSrc("https://google.de"));
-        helpContent.add(helpMenu);
+//        var helpMenu = new MenuBar();
+//        helpMenu.addItem(VaadinIcon.QUESTION_CIRCLE_O.create(), e -> {
+//            helpBrowser.setSrc("https://google.de");
+//        });
+//        helpContent.add(helpMenu);
 
         helpBrowser = new IFrame();
         helpBrowser.setSizeFull();
         helpBrowser.getElement().setAttribute("frameborder", "0");
-        helpBrowser.setSrc("/public/test.html");
+        helpBrowser.setSrc("/public/default.html");
         helpContent.add(helpBrowser);
 
         contentContainer = new VerticalLayout();
@@ -163,8 +170,12 @@ public class MainView extends AppLayout {
 
                     helpToggel = new Button(VaadinIcon.QUESTION_CIRCLE_O.create());
                     helpToggel.addClickListener(e -> {
-                        helpContent.setVisible(!helpContent.isVisible());
+//                        helpContent.setVisible(!helpContent.isVisible());
                     });
+                    var menu = new ContextMenu();
+                    menu.setTarget(helpToggel);
+                    menu.setOpenOnClick(true);
+                    menu.addItem("Yo");
 
                     var space = new Span(" ");
 

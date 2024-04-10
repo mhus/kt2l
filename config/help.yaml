@@ -1,0 +1,12 @@
+windowWidth: 300px
+
+contexts:
+  default:
+    - name: Kubernetes
+      href: https://kubernetes.io/docs/home/
+  exec:
+    - name: Exec Commands
+      default: true
+      document: exec
+    - name: Kubernetes
+      href: https://kubernetes.io/docs/home/
