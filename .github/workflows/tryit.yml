@@ -12,9 +12,9 @@ jobs:
 
       - uses: actions/checkout@v4
       - name: gh-pages
-        run: git clone https://github.com/mhus/kt2l.git -b gh-pages
+        run: git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages
       - name: change it
-        run: cd gh-pages; echo $RANDOM > test.txt;git add test.txt
+        run: cd gh-pages; echo $RANDOM > test.txt
       - name: prepare git config
         run: |
           echo "[gc]" >> .git/config
