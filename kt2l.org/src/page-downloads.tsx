@@ -29,7 +29,7 @@ export default function pageDownloads() {
                         {snapshotDownloads.map((download) => download.enabled ? (
                             <div key="snapshot_mac" className="relative pl-16">
                                 <dt className="text-base font-semibold leading-7 text-gray-900 underline">
-                                    <a href="{download.href}">
+                                    <a href={download.href}>
                                         <div
                                             className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600">
                                             <CloudArrowDownIcon className="h-6 w-6 text-white" aria-hidden="true"/>

@@ -7,6 +7,7 @@ import './App.css';
 import pageHeader from './page-header'
 import pageGeneralInformation from './page-general-information'
 import pageDownloads from './page-downloads'
+import pageLicense from './page-license'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           {pageHeader()}
           {pageGeneralInformation()}
           {pageDownloads()}
+          {pageLicense()}
       </div>
   );
 }
