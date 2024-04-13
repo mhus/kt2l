@@ -2,8 +2,8 @@ package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
-import de.mhus.kt2l.ui.PanelService;
-import de.mhus.kt2l.ui.WithRole;
+import de.mhus.kt2l.core.PanelService;
+import de.mhus.kt2l.core.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

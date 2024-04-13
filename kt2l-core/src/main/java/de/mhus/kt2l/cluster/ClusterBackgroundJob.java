@@ -1,6 +1,6 @@
 package de.mhus.kt2l.cluster;
 
-import de.mhus.kt2l.ui.MainView;
+import de.mhus.kt2l.core.MainView;
 
 import java.io.IOException;
 

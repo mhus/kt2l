@@ -1,6 +1,6 @@
 package de.mhus.kt2l.resources;
 
-import de.mhus.kt2l.ui.SecurityService;
+import de.mhus.kt2l.core.SecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

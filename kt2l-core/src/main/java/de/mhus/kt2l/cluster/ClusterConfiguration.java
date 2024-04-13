@@ -3,7 +3,7 @@ package de.mhus.kt2l.cluster;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.ui.UiUtil;
+import de.mhus.kt2l.core.UiUtil;
 
 import java.util.Map;
 import java.util.TreeMap;

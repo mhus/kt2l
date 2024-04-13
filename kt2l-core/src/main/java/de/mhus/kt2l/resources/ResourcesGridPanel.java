@@ -13,14 +13,13 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.Configuration;
-import de.mhus.kt2l.generic.GenericGrid;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.nodes.NodesGrid;
-import de.mhus.kt2l.pods.PodGrid;
-import de.mhus.kt2l.ui.MainView;
-import de.mhus.kt2l.ui.XTab;
-import de.mhus.kt2l.ui.XTabListener;
+import de.mhus.kt2l.resources.generic.GenericGridFactory;
+import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.core.XTab;
+import de.mhus.kt2l.core.XTabListener;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.vavr.control.Try;
@@ -36,16 +35,27 @@ import static de.mhus.commons.tools.MString.isEmpty;
 @Slf4j
 public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
+    private static final ResourceGridFactory GENERIC_GRID_FACTORY = new GenericGridFactory();
     @Getter
     private final MainView mainView;
+
     @Autowired
     @Getter
     private K8sService k8s;
+
     @Autowired
     @Getter
-    Configuration config;
+    private Configuration config;
+
+    @Autowired
+    private List<ResourceGridFactory> resourceGridFactories;
+
     @Getter
     private String clusterId;
+
+    @Autowired
+    private SecurityService securityService;
+
     private ResourcesGrid grid;
     private TextField filterText;
     private ComboBox<String> namespaceSelector;
@@ -183,11 +193,16 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     }
 
     private ResourcesGrid createGrid(String resourceType) {
-        ResourcesGrid resourcesGrid = resourceType == null ? new GenericGrid() : switch(resourceType) {
-            case K8sUtil.RESOURCE_PODS -> new PodGrid();
-            case K8sUtil.RESOURCE_NODES -> new NodesGrid();
-            default -> new GenericGrid();
-        };
+        ResourceGridFactory foundFactory = GENERIC_GRID_FACTORY;
+        if (resourceType != null) {
+            for (ResourceGridFactory factory : resourceGridFactories)
+                if (    factory.canHandleResourceType(resourceType) &&
+                        securityService.hasRole(factory) &&
+                        foundFactory.getPriority(resourceType) > factory.getPriority(resourceType))
+                            foundFactory = factory;
+                    }
+
+        ResourcesGrid resourcesGrid = foundFactory.create(resourceType);
         mainView.getBeanFactory().autowireBean(resourcesGrid);
         return resourcesGrid;
     }
