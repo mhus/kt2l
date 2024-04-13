@@ -38,7 +38,7 @@ cd ../..
 FILENAME=kt2l-container-$NOW.zip
 TITLE="Docker Container"
 DESCRIPTION="Can be started as Server and accessed via Browser, locally also. Java JDK 21 is required."
-HREF="/docs/use_container.html"
+HREF="/docs/run-container"
 
 REGISTRY_URL="https://index.docker.io/v1/"
 docker login "$REGISTRY_URL" -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"

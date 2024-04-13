@@ -45,11 +45,20 @@ public class ActionExec implements ResourceAction {
                 final var pod = (V1Pod)p;
                 pod.getStatus().getContainerStatuses().forEach(cs -> {
                     containers.add(new ContainerResource(new PodGrid.Container(
-                            cs.getName(),
-                            pod.getMetadata().getNamespace(),
-                            cs.getState().getWaiting() != null ? "Waiting" : "Running",
-                            null,
-                            0,
+                            PodGrid.CONTAINER_TYPE.DEFAULT,
+                            cs,
+                            pod)));
+                });
+                pod.getStatus().getEphemeralContainerStatuses().forEach(cs -> {
+                    containers.add(new ContainerResource(new PodGrid.Container(
+                            PodGrid.CONTAINER_TYPE.EPHEMERAL,
+                            cs,
+                            pod)));
+                });
+                pod.getStatus().getInitContainerStatuses().forEach(cs -> {
+                    containers.add(new ContainerResource(new PodGrid.Container(
+                            PodGrid.CONTAINER_TYPE.INIT,
+                            cs,
                             pod)));
                 });
             });

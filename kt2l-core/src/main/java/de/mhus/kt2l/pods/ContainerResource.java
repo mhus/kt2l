@@ -14,25 +14,25 @@ public class ContainerResource implements KubernetesObject {
 
     @Override
     public V1ObjectMeta getMetadata() {
-        return container.pod().getMetadata();
+        return container.getPod().getMetadata();
     }
 
     @Override
     public String getApiVersion() {
-        return container.pod().getApiVersion();
+        return container.getPod().getApiVersion();
     }
 
     @Override
     public String getKind() {
-        return container.pod().getKind();
+        return container.getPod().getKind();
     }
 
     public String getContainerName() {
-        return container.name();
+        return container.getName();
     }
 
 
     public V1Pod getPod() {
-        return container.pod();
+        return container.getPod();
     }
 }

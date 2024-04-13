@@ -9,27 +9,38 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
+import de.mhus.commons.tools.MCast;
+import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.AbstractGrid;
 import de.mhus.kt2l.resources.ExecutionContext;
+import io.kubernetes.client.Metrics;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.custom.ContainerMetrics;
+import io.kubernetes.client.custom.PodMetrics;
+import io.kubernetes.client.openapi.models.V1ContainerStatus;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
 public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
+    public enum CONTAINER_TYPE {DEFAULT, INIT, EPHEMERAL};
     private List<Container> containerList = null;
     private Pod containerSelectedPod;
     private IRegistration podEventRegistration;
@@ -39,15 +50,19 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         addClassNames("contact-grid");
         detailsComponent.setWidthFull();
         detailsComponent.setHeight("200px");
-        detailsComponent.addColumn(cont -> cont.name()).setHeader("Name").setSortProperty("name");
-        detailsComponent.addColumn(cont -> cont.status()).setHeader("Status").setSortProperty("status");
-        detailsComponent.addColumn(cont -> cont.age()).setHeader("Age").setSortProperty("age");
+        detailsComponent.addColumn(cont -> cont.getName()).setHeader("Name").setSortProperty("name");
+        detailsComponent.addColumn(cont -> cont.getType()).setHeader("Type").setSortProperty("type");
+        detailsComponent.addColumn(cont -> cont.getRestarts()).setHeader("Restarts").setSortProperty("restarts");
+        detailsComponent.addColumn(cont -> cont.getStatus()).setHeader("Status").setSortProperty("status");
+        detailsComponent.addColumn(cont -> cont.getAge()).setHeader("Age").setSortProperty("age");
+        detailsComponent.addColumn(cont -> cont.getMetricCpuString()).setHeader("CPU").setSortProperty("cpu");
+        detailsComponent.addColumn(cont -> cont.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
         detailsComponent.getColumns().forEach(col -> col.setAutoWidth(true));
         detailsComponent.setDataProvider(new ContainerProvider());
         detailsComponent.setVisible(false);
         detailsComponent.addSelectionListener(event -> {
             if (detailsComponent.isVisible())
-                actions.forEach(a -> a.updateWithResources(event.getAllSelectedItems().stream().map(s -> new PodGrid.Pod(s.name(), s.namespace(), s.status(), s.created(), s.pod())).collect(Collectors.toSet()) ));
+                actions.forEach(a -> a.updateWithResources(event.getAllSelectedItems().stream().map(s -> new PodGrid.Pod(s.getPod())).collect(Collectors.toSet()) ));
         });
 
         GridContextMenu<Container> menu = detailsComponent.addContextMenu();
@@ -141,6 +156,64 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         return resource.getPod();
     }
 
+    public void refresh(long counter) {
+        if (counter % 10 != 0) return;
+
+        if (filteredList == null) return;
+
+        Map<String, PodMetrics> metricMap = new HashMap<>();
+        for (String ns : getKnownNamespaces()) {
+            getNamespaceMetrics(ns).forEach(
+                    metric -> metricMap.put(metric.getMetadata().getNamespace() + ":" + metric.getMetadata().getName(), metric)
+            );
+        }
+        final AtomicBoolean changed = new AtomicBoolean(false);
+        filteredList.stream().forEach(pod -> {
+            var metric = metricMap.get(pod.getNamespace() + ":" + pod.getName());
+            if (metric != null) {
+                if (pod.updateMetric(metric))
+                    changed.set(true);
+            }
+        } );
+        if (MCollection.isSet(containerList)) {
+            var v1Pod = containerList.getFirst().getPod();
+            var metric = metricMap.get(v1Pod.getMetadata().getNamespace() + ":" + v1Pod.getMetadata().getName());
+            if (metric != null) {
+                final Map<String, ContainerMetrics> containerMetricMap = new HashMap<>();
+                metric.getContainers().stream().forEach(m -> containerMetricMap.put(m.getName(), m));
+                containerList.stream().forEach(container -> {
+                    var containerMetric = containerMetricMap.get(container.getName());
+                    if (containerMetric != null) {
+                        if (container.updateMetric(containerMetric))
+                            changed.set(true);
+                    }
+                });
+            }
+        }
+
+        if (changed.get()) {
+            resourcesGrid.getDataProvider().refreshAll();
+            if (MCollection.isSet(containerList))
+                detailsComponent.getDataProvider().refreshAll();
+            UI.getCurrent().push();
+        }
+    }
+
+    private List<PodMetrics> getNamespaceMetrics(String ns) {
+        Metrics metrics = new Metrics(coreApi.getApiClient());
+        try {
+            var list = metrics.getPodMetrics(ns);
+            return list.getItems();
+        } catch (Exception e) {
+            LOGGER.error("Can't get metrics for namespace {}",ns,e);
+        }
+        return Collections.EMPTY_LIST;
+    }
+
+    private Set<String> getKnownNamespaces() {
+        return filteredList.stream().map(pod -> pod.getNamespace()).collect(Collectors.toSet());
+    }
+
     @Override
     public void destroy() {
         podEventRegistration.unregister();
@@ -148,9 +221,14 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
     @Override
     protected void createGridColumns(Grid<Pod> podGrid) {
+        podGrid.addColumn(pod -> pod.getNamespace()).setHeader("Namespace").setSortProperty("namespace");
         podGrid.addColumn(pod -> pod.getName()).setHeader("Name").setSortProperty("name");
+        podGrid.addColumn(pod -> pod.getReadyContainers()).setHeader("Ready").setSortProperty("ready");
+        podGrid.addColumn(pod -> pod.getRestarts()).setHeader("Restarts").setSortProperty("restarts");
         podGrid.addColumn(pod -> pod.getStatus()).setHeader("Status").setSortProperty("status");
         podGrid.addColumn(pod -> pod.getAge()).setHeader("Age").setSortProperty("age");
+        podGrid.addColumn(pod -> pod.getMetricCpuString()).setHeader("CPU").setSortProperty("cpu");
+        podGrid.addColumn(pod -> pod.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
     }
 
     @Override
@@ -166,13 +244,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
             final var foundPod = resourcesList.stream().filter(pod -> pod.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
-                        final var pod = new Pod(
-                                event.object.getMetadata().getName(),
-                                event.object.getMetadata().getNamespace(),
-                                event.object.getStatus().getPhase(),
-                                event.object.getMetadata().getCreationTimestamp().toEpochSecond(),
-                                event.object
-                        );
+                        final var pod = new Pod(event.object);
                         resourcesList.add(pod);
                         return pod;
                     }
@@ -214,16 +286,28 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                                 query.getSortOrders()) {
                             Collections.sort(containerList, (a, b) -> switch (queryOrder.getSorted()) {
                                 case "name" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.name().compareTo(b.name());
-                                    case DESCENDING -> b.name().compareTo(a.name());
+                                    case ASCENDING -> a.getName().compareTo(b.getName());
+                                    case DESCENDING -> b.getName().compareTo(a.getName());
                                 };
                                 case "status" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.status().compareTo(b.status());
-                                    case DESCENDING -> b.status().compareTo(a.status());
+                                    case ASCENDING -> a.getStatus().compareTo(b.getStatus());
+                                    case DESCENDING -> b.getStatus().compareTo(a.getStatus());
+                                };
+                                case "restarts" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> Long.compare(a.getRestarts(), b.getRestarts());
+                                    case DESCENDING -> Long.compare(b.getRestarts(), a.getRestarts());
                                 };
                                 case "age" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.created(), b.created());
-                                    case DESCENDING -> Long.compare(b.created(), a.created());
+                                    case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
+                                    case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
+                                };
+                                case "cpu" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> Double.compare(a.getMetricCpu(), b.getMetricCpu());
+                                    case DESCENDING -> Double.compare(b.getMetricCpu(), a.getMetricCpu());
+                                };
+                                case "memory" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> Long.compare(a.getMetricMemory(), b.getMetricMemory());
+                                    case DESCENDING -> Long.compare(b.getMetricMemory(), a.getMetricMemory());
                                 };
                                 default -> 0;
                             });
@@ -241,11 +325,26 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                                 selectedPod.getPod().getStatus().getContainerStatuses().forEach(
                                         cs -> {
                                             containerList.add(new Container(
-                                                    cs.getName(),
-                                                    selectedPod.getNamespace(),
-                                                    cs.getState().getWaiting() != null ? "Waiting" : "Running",
-                                                    K8sUtil.getAge(containerSelectedPod.getPod().getMetadata().getCreationTimestamp()), //TODO use container start time
-                                                    selectedPod.getPod().getMetadata().getCreationTimestamp().toEpochSecond(),
+                                                    CONTAINER_TYPE.DEFAULT,
+                                                    cs,
+                                                    selectedPod.getPod()
+                                            ));
+                                        }
+                                );
+                                selectedPod.getPod().getStatus().getEphemeralContainerStatuses().forEach(
+                                        cs -> {
+                                            containerList.add(new Container(
+                                                    CONTAINER_TYPE.EPHEMERAL,
+                                                    cs,
+                                                    selectedPod.getPod()
+                                            ));
+                                        }
+                                );
+                                selectedPod.getPod().getStatus().getInitContainerStatuses().forEach(
+                                        cs -> {
+                                            containerList.add(new Container(
+                                                    CONTAINER_TYPE.INIT,
+                                                    cs,
                                                     selectedPod.getPod()
                                             ));
                                         }
@@ -281,6 +380,26 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                                     case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
                                     case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
                                 };
+                                case "namespace" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> a.getNamespace().compareTo(b.getNamespace());
+                                    case DESCENDING -> b.getNamespace().compareTo(a.getNamespace());
+                                };
+                                case "ready" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> Long.compare(a.getRunningContainersCnt(), b.getRunningContainersCnt());
+                                    case DESCENDING -> Long.compare(b.getRunningContainersCnt(), a.getRunningContainersCnt());
+                                };
+                                case "restarts" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> Long.compare(a.getRestarts(), b.getRestarts());
+                                    case DESCENDING -> Long.compare(b.getRestarts(), a.getRestarts());
+                                };
+                                case "cpu" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> Double.compare(a.getMetricCpu(), b.getMetricCpu());
+                                    case DESCENDING -> Double.compare(b.getMetricCpu(), a.getMetricCpu());
+                                };
+                                case "memory" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> Long.compare(a.getMetricMemory(), b.getMetricMemory());
+                                    case DESCENDING -> Long.compare(b.getMetricMemory(), a.getMetricMemory());
+                                };
                                 default -> 0;
                             });
 
@@ -294,15 +413,9 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                             Try.of(() -> namespaceName == null ? coreApi.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null ) :  coreApi.listNamespacedPod(namespaceName, null, null, null, null, null, null, null, null, null, null))
                                     .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
                                     .onSuccess(podList -> {
-                                        podList.getItems().forEach(pod -> {
-                                            PodGrid.this.resourcesList.add(new Pod(
-                                                    pod.getMetadata().getName(),
-                                                    pod.getMetadata().getNamespace(),
-                                                    pod.getStatus().getPhase(),
-                                                    pod.getMetadata().getCreationTimestamp().toEpochSecond(),
-                                                    pod
-                                            ));
-                                        });
+                                        podList.getItems().forEach(pod ->
+                                            PodGrid.this.resourcesList.add(new Pod(pod))
+                                        );
                                     });
                         }
                         filterList();
@@ -314,28 +427,116 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
     }
 
     @Data
-    @AllArgsConstructor
     public static class Pod {
-        String name;
-        String namespace;
-        String status;
-        long created;
-        V1Pod pod;
+        private String name;
+        private String namespace;
+        private String status;
+        private long runningContainersCnt;
+        private long containerCnt;
+        private long created;
+        private long restarts;
+
+        private double metricCpu = Double.MAX_VALUE;
+        private long metricMemory = Long.MAX_VALUE;
+
+        private String metricCpuString = "-";
+        private String metricMemoryString = "-";
+
+        private V1Pod pod;
+        private PodMetrics metric;
+
+        public Pod(V1Pod pod) {
+            this.pod = pod;
+            this.name = pod.getMetadata().getName();
+            this.namespace = pod.getMetadata().getNamespace();
+            this.created = pod.getMetadata().getCreationTimestamp().toEpochSecond();
+            this.status = pod.getStatus().getPhase();
+            var containers = pod.getStatus().getContainerStatuses();
+            this.containerCnt = containers.size();
+            this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
+            for (V1ContainerStatus container : containers) {
+                this.restarts += container.getRestartCount();
+            }
+        }
 
         public String getAge() {
             return K8sUtil.getAge(pod.getMetadata().getCreationTimestamp());
         }
 
+        public String getReadyContainers() {
+            return runningContainersCnt + "/" + containerCnt;
+        }
+
+        public boolean updateMetric(PodMetrics metric) {
+            this.metric = metric;
+
+            double cpu = 0;
+            long mem = 0;
+            for (ContainerMetrics container : metric.getContainers()) {
+                cpu += container.getUsage().get("cpu").getNumber().doubleValue();
+                mem += container.getUsage().get("memory").getNumber().longValue();
+            }
+            var cpuString = MString.truncate(String.valueOf(cpu), 5);
+            var memoryString = MCast.toByteUnit(mem);
+            if (cpuString.equals(metricCpuString) && memoryString.equals(metricMemoryString)) return false;
+            metricCpuString = cpuString;
+            metricMemoryString = memoryString;
+            metricCpu = cpu;
+            metricMemory = mem;
+            return true;
+        }
     }
 
-    public record Container(
-            String name,
-            String namespace,
-            String status,
-            String age,
-            long created,
-            V1Pod pod
-    ) {
+    @Data
+    public static final class Container {
+        private final String name;
+        private final String namespace;
+        private final String status;
+        private final CONTAINER_TYPE type;
+        private String age = "-";
+        private long created = 0;
+        private long restarts = 0;
+        private final V1Pod pod;
+        private double metricCpu = Double.MAX_VALUE;
+        private long metricMemory = Long.MAX_VALUE;
+        private String metricCpuString = "-";
+        private String metricMemoryString = "-";
+
+        public Container(
+                CONTAINER_TYPE type,
+                V1ContainerStatus cs,
+                V1Pod pod
+        ) {
+            this.name = cs.getName();
+            this.namespace = pod.getMetadata().getNamespace();
+            if (cs.getState().getTerminated() != null) {
+                this.status = "Terminated";
+            } else if (cs.getState().getRunning() != null) {
+                this.status = "Running";
+                this.age = K8sUtil.getAge(cs.getState().getRunning().getStartedAt());
+                this.created = cs.getState().getRunning().getStartedAt().toEpochSecond();
+            } else if (cs.getState().getWaiting() != null) {
+                this.status = "Waiting";
+            } else {
+                this.status = "Unknown";
+            }
+            this.type = type;
+            this.restarts = cs.getRestartCount();
+            this.pod = pod;
+        }
+
+        public boolean updateMetric(ContainerMetrics containerMetric) {
+            var cpu = containerMetric.getUsage().get("cpu").getNumber().doubleValue();
+            var mem = containerMetric.getUsage().get("memory").getNumber().longValue();
+            var cpuString = MString.truncate(String.valueOf(cpu), 5);
+            var memoryString = MCast.toByteUnit(mem);
+            if (cpuString.equals(metricCpuString) && memoryString.equals(metricMemoryString)) return false;
+            metricCpuString = cpuString;
+            metricMemoryString = memoryString;
+            metricCpu = cpu;
+            metricMemory = mem;
+            return true;
+        }
 
     }
 

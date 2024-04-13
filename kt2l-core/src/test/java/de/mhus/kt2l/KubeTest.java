@@ -3,16 +3,22 @@ package de.mhus.kt2l;
 import com.google.gson.reflect.TypeToken;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
 import de.mhus.kt2l.k8s.K8sService;
+import io.kubernetes.client.Metrics;
+import io.kubernetes.client.custom.ContainerMetrics;
+import io.kubernetes.client.custom.PodMetrics;
+import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1EphemeralContainer;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1WatchEvent;
 import io.kubernetes.client.util.KubeConfig;
+import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
@@ -24,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.UUID;
 
 @Slf4j
 @Disabled
@@ -38,6 +45,78 @@ public class KubeTest {
         }
     }
     private static final String CLUSTER_NAME = LOCAL_PROPERTIES.getProperty("cluster.name", null);
+
+    @Test
+    public void testPodDebug() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+
+        final var service = new K8sService();
+        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+
+        CoreV1Api api = new CoreV1Api(client);
+
+        final var podName = LOCAL_PROPERTIES.getProperty("pod.name");
+        final var namespace = LOCAL_PROPERTIES.getProperty("namespace");
+
+        var debugger = new V1EphemeralContainer();
+        debugger.setName("debugger-" + UUID.randomUUID());
+        debugger.setImage("nginx");
+//        V1Patch patch = new V1Patch(debugger    );
+
+//        api.patchNamespacedPodEphemeralcontainers(name, namespace, )
+
+    }
+
+    @Test
+    public void testGetPod() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+
+        final var service = new K8sService();
+        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+
+        CoreV1Api api = new CoreV1Api(client);
+
+        final var podName = LOCAL_PROPERTIES.getProperty("pod.name");
+        final var namespace = LOCAL_PROPERTIES.getProperty("namespace");
+
+        var pod = api.readNamespacedPod(podName, namespace, null);
+        System.out.println(pod);
+
+        Metrics metrics = new Metrics(client);
+        var list = metrics.getPodMetrics(namespace);
+        for(PodMetrics podMetrics:list.getItems()){
+            System.out.println("=== " + podMetrics.getMetadata().getName());
+            for(ContainerMetrics containerMetrics:podMetrics.getContainers()){
+                System.out.println(containerMetrics.getUsage());
+            }
+        }
+    }
+
+
+    @Test
+    public void testWatchMetrics() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+
+        final var service = new K8sService();
+        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+
+        CoreV1Api api = new CoreV1Api(client);
+
+        Metrics metrics = new Metrics(client);
+
+    }
 
     @Test
     public void testGetAllApiResourceTypes() throws IOException, ApiException {

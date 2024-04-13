@@ -43,17 +43,27 @@ public class ActionLogs implements ResourceAction {
         } else
         if (context.getResourceType().equals(K8sUtil.RESOURCE_PODS)) {
             context.getSelected().forEach(p -> {
-                       final var pod = (V1Pod)p;
-                       pod.getStatus().getContainerStatuses().forEach(cs -> {
-                           containers.add(new ContainerResource(new PodGrid.Container(
-                                   cs.getName(),
-                                   pod.getMetadata().getNamespace(),
-                                   cs.getState().getWaiting() != null ? "Waiting" : "Running",
-                                   null,
-                                   0,
-                                   pod)));
-                       });
-                    });
+               final var pod = (V1Pod)p;
+               pod.getStatus().getContainerStatuses().forEach(cs -> {
+                   containers.add(new ContainerResource(new PodGrid.Container(
+                           PodGrid.CONTAINER_TYPE.DEFAULT,
+                           cs,
+                           pod)));
+               });
+                pod.getStatus().getEphemeralContainerStatuses().forEach(cs -> {
+                    containers.add(new ContainerResource(new PodGrid.Container(
+                            PodGrid.CONTAINER_TYPE.EPHEMERAL,
+                            cs,
+                            pod)));
+                });
+                pod.getStatus().getInitContainerStatuses().forEach(cs -> {
+                    containers.add(new ContainerResource(new PodGrid.Container(
+                            PodGrid.CONTAINER_TYPE.INIT,
+                            cs,
+                            pod)));
+                });
+
+            });
         }
 
         final var selected = (V1Pod)context.getSelected().iterator().next();
