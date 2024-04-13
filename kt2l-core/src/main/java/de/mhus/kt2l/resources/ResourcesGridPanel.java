@@ -320,4 +320,8 @@ io.kubernetes.client.openapi.ApiException: java.net.ConnectException: Failed to 
         resourceFilterButton.setEnabled(true);
         resourceFilterButton.setTooltipText(filter.getDescription());
     }
+
+    public void setNamespace(String namespace) {
+        namespaceSelector.setValue(namespace);
+    }
 }

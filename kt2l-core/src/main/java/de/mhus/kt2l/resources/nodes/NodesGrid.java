@@ -166,8 +166,8 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Nodes, Component> {
                             resourcesList = new ArrayList<>();
                             Try.of(() -> coreApi.listNode(null, null, null, null, null, null, null, null, null, null ) )
                                     .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
-                                    .onSuccess(podList -> {
-                                        podList.getItems().forEach(res -> {
+                                    .onSuccess(list -> {
+                                        list.getItems().forEach(res -> {
                                             NodesGrid.this.resourcesList.add(new Nodes(
                                                     res.getMetadata().getName(),
                                                     res.getMetadata().getName(), //XXX
@@ -181,7 +181,7 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Nodes, Component> {
                         return filteredList.size();
                     }
             );
-    }
+        }
 
     }
 

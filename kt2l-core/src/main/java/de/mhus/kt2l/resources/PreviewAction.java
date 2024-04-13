@@ -24,7 +24,7 @@ public class PreviewAction implements ResourceAction {
 
     @Override
     public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
-        return true;
+        return selected.size() > 0;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class PreviewAction implements ResourceAction {
 
     @Override
     public String getShortcutKey() {
-        return "p";
+        return "Z";
     }
 
     @Override

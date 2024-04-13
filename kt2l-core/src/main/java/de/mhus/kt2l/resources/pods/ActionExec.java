@@ -49,18 +49,20 @@ public class ActionExec implements ResourceAction {
                             cs,
                             pod)));
                 });
-                pod.getStatus().getEphemeralContainerStatuses().forEach(cs -> {
-                    containers.add(new ContainerResource(new PodGrid.Container(
-                            PodGrid.CONTAINER_TYPE.EPHEMERAL,
-                            cs,
-                            pod)));
-                });
-                pod.getStatus().getInitContainerStatuses().forEach(cs -> {
-                    containers.add(new ContainerResource(new PodGrid.Container(
-                            PodGrid.CONTAINER_TYPE.INIT,
-                            cs,
-                            pod)));
-                });
+                if (pod.getStatus().getEphemeralContainerStatuses() != null)
+                    pod.getStatus().getEphemeralContainerStatuses().forEach(cs -> {
+                        containers.add(new ContainerResource(new PodGrid.Container(
+                                PodGrid.CONTAINER_TYPE.EPHEMERAL,
+                                cs,
+                                pod)));
+                    });
+                if (pod.getStatus().getInitContainerStatuses() != null)
+                    pod.getStatus().getInitContainerStatuses().forEach(cs -> {
+                        containers.add(new ContainerResource(new PodGrid.Container(
+                                PodGrid.CONTAINER_TYPE.INIT,
+                                cs,
+                                pod)));
+                    });
             });
         }
 

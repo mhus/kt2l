@@ -331,24 +331,26 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                                             ));
                                         }
                                 );
-                                selectedPod.getPod().getStatus().getEphemeralContainerStatuses().forEach(
-                                        cs -> {
-                                            containerList.add(new Container(
-                                                    CONTAINER_TYPE.EPHEMERAL,
-                                                    cs,
-                                                    selectedPod.getPod()
-                                            ));
-                                        }
-                                );
-                                selectedPod.getPod().getStatus().getInitContainerStatuses().forEach(
-                                        cs -> {
-                                            containerList.add(new Container(
-                                                    CONTAINER_TYPE.INIT,
-                                                    cs,
-                                                    selectedPod.getPod()
-                                            ));
-                                        }
-                                );
+                                if (selectedPod.getPod().getStatus().getEphemeralContainerStatuses() != null)
+                                    selectedPod.getPod().getStatus().getEphemeralContainerStatuses().forEach(
+                                            cs -> {
+                                                containerList.add(new Container(
+                                                        CONTAINER_TYPE.EPHEMERAL,
+                                                        cs,
+                                                        selectedPod.getPod()
+                                                ));
+                                            }
+                                    );
+                                if (selectedPod.getPod().getStatus().getInitContainerStatuses() != null)
+                                    selectedPod.getPod().getStatus().getInitContainerStatuses().forEach(
+                                            cs -> {
+                                                containerList.add(new Container(
+                                                        CONTAINER_TYPE.INIT,
+                                                        cs,
+                                                        selectedPod.getPod()
+                                                ));
+                                            }
+                                    );
                             } catch (Exception e) {
                                 LOGGER.error("Can't fetch containers",e);
                             }

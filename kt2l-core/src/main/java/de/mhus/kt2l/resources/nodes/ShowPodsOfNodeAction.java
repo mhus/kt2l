@@ -1,4 +1,4 @@
-package de.mhus.kt2l.resources.pods;
+package de.mhus.kt2l.resources.nodes;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
@@ -9,17 +9,16 @@ import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.core.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1Pod;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
 @WithRole(ROLE.READ)
-public class ShowNodeAction implements ResourceAction {
+public class ShowPodsOfNodeAction implements ResourceAction {
     @Override
     public boolean canHandleResourceType(String resourceType) {
-        return K8sUtil.RESOURCE_PODS.equals(resourceType);
+        return K8sUtil.RESOURCE_NODES.equals(resourceType);
     }
 
     @Override
@@ -30,28 +29,26 @@ public class ShowNodeAction implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
 
-        var pod = (V1Pod)context.getSelected().iterator().next();
-        final var nodeName = pod.getSpec().getNodeName();
-        final var podName = pod.getMetadata().getName();
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8sUtil.RESOURCE_NODES, new ResourcesFilter() {
+        final String nodeName = context.getSelected().iterator().next().getMetadata().getName();
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8sUtil.RESOURCE_PODS, new ResourcesFilter() {
             @Override
             public boolean filter(KubernetesObject res) {
-                if (res instanceof io.kubernetes.client.openapi.models.V1Node node) {
-                    return node.getMetadata().getName().equals(nodeName);
+                if (res instanceof io.kubernetes.client.openapi.models.V1Pod pod) {
+                    return pod.getSpec().getNodeName().equals(nodeName);
                 }
                 return false;
             }
 
             @Override
             public String getDescription() {
-                return "Node for pod " + podName;
+                return "Pods on node " + nodeName;
             }
         });
     }
 
     @Override
     public String getTitle() {
-        return "Nodes;icon=" + VaadinIcon.OPEN_BOOK;
+        return "Pods;icon=" + VaadinIcon.OPEN_BOOK;
     }
 
     @Override
@@ -61,16 +58,16 @@ public class ShowNodeAction implements ResourceAction {
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.VIEW_ORDER + 100;
+        return ResourceAction.VIEW_ORDER + 110;
     }
 
     @Override
     public String getShortcutKey() {
-        return "n";
+        return "P";
     }
 
     @Override
     public String getDescription() {
-        return "Show node for the pod";
+        return "Show pods of the selected node";
     }
 }

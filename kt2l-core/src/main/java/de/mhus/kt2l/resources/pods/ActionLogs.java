@@ -50,20 +50,21 @@ public class ActionLogs implements ResourceAction {
                            cs,
                            pod)));
                });
-                pod.getStatus().getEphemeralContainerStatuses().forEach(cs -> {
+                if (pod.getStatus().getEphemeralContainerStatuses() != null)
+                    pod.getStatus().getEphemeralContainerStatuses().forEach(cs -> {
                     containers.add(new ContainerResource(new PodGrid.Container(
                             PodGrid.CONTAINER_TYPE.EPHEMERAL,
                             cs,
                             pod)));
-                });
-                pod.getStatus().getInitContainerStatuses().forEach(cs -> {
+                    });
+                if (pod.getStatus().getInitContainerStatuses() != null)
+                    pod.getStatus().getInitContainerStatuses().forEach(cs -> {
                     containers.add(new ContainerResource(new PodGrid.Container(
                             PodGrid.CONTAINER_TYPE.INIT,
                             cs,
                             pod)));
-                });
-
-            });
+                    });
+        });
         }
 
         final var selected = (V1Pod)context.getSelected().iterator().next();

@@ -4,6 +4,7 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
@@ -122,11 +123,15 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
             if (action.getAction().getShortcutKey() != null) {
                 final var k1 = action.getAction().getShortcutKey().split("\\+");
-                final var key = Key.of(k1[k1.length-1], cropArray(k1, 0, k1.length-1));
+                final var modifierStrings = cropArray(k1, 0, k1.length-1);
+                final var modifier = new KeyModifier[modifierStrings.length];
+                for (int i = 0; i < modifierStrings.length; i++)
+                    modifier[i] = KeyModifier.valueOf(modifierStrings[i].toUpperCase());
+                final var key = Key.of(k1[k1.length-1].toLowerCase());
                 if (key != null) {
                     var sl = UI.getCurrent().addShortcutListener(() -> {
                         action.execute();
-                    },key);
+                    }, key, modifier);
                     if (detailsComponent != null)
                         sl.listenOn(resourcesGrid, detailsComponent);
                     else
