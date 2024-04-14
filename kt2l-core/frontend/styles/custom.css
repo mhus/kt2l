@@ -159,5 +159,14 @@ span.logo {
 vaadin-vertical-layout.helpcontent {
     border-left-width: 1px;
     border-left-style: solid;
-    border-left-color: lightgray;
+    border-left-color: #e3e3e3;
+}
+
+div.menutitle {
+    width: 100%;
+}
+
+div.menutitle span.shortcut {
+    color: #c3c3c3;
+    float: right;
 }

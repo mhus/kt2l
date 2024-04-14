@@ -13,6 +13,7 @@ import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MString;
+import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.AbstractGrid;
 import de.mhus.kt2l.resources.ExecutionContext;
@@ -65,12 +66,25 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         detailsComponent.setDataProvider(new ContainerProvider());
         detailsComponent.setVisible(false);
         detailsComponent.addSelectionListener(event -> {
-            if (detailsComponent.isVisible())
-                actions.forEach(a -> a.updateWithResources(event.getAllSelectedItems().stream().map(s -> new PodGrid.Pod(s.getPod())).collect(Collectors.toSet()) ));
+            if (detailsComponent.isVisible()) {
+                final var selected = detailsComponent.getSelectedItems().stream().map(s -> new PodGrid.Pod(s.getPod())).collect(Collectors.toSet());
+                actions.forEach(a -> a.updateWithResources(selected));
+            }
         });
 
         GridContextMenu<Container> menu = detailsComponent.addContextMenu();
         actions.stream().sorted(Comparator.comparingInt((MenuAction a) -> a.getAction().getMenuOrder())).forEach(action -> {
+            // shortcut
+            if (action.getAction().getShortcutKey() != null) {
+                var shortcut = UiUtil.createShortcut(action.getAction().getShortcutKey());
+                if (shortcut != null) {
+                    shortcut.addShortcutListener(detailsComponent, () -> {
+                        action.execute();
+                    });
+                }
+            }
+
+            // context menu item
             var item = createContextMenuItem(menu, action.getAction());
             item.addMenuItemClickListener(event -> {
                         var selected = detailsComponent.getSelectedItems().stream().map(c -> new ContainerResource(c)).collect(Collectors.toSet());

@@ -26,6 +26,7 @@ import com.vaadin.flow.data.provider.DataProvider;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.core.UiUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.Getter;
@@ -122,20 +123,11 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             action.setMenuItem(item);
 
             if (action.getAction().getShortcutKey() != null) {
-                final var k1 = action.getAction().getShortcutKey().split("\\+");
-                final var modifierStrings = cropArray(k1, 0, k1.length-1);
-                final var modifier = new KeyModifier[modifierStrings.length];
-                for (int i = 0; i < modifierStrings.length; i++)
-                    modifier[i] = KeyModifier.valueOf(modifierStrings[i].toUpperCase());
-                final var key = Key.of(k1[k1.length-1].toLowerCase());
-                if (key != null) {
-                    var sl = UI.getCurrent().addShortcutListener(() -> {
+                var shortcut = UiUtil.createShortcut(action.getAction().getShortcutKey());
+                if (shortcut != null) {
+                    shortcut.addShortcutListener(resourcesGrid, () -> {
                         action.execute();
-                    }, key, modifier);
-                    if (detailsComponent != null)
-                        sl.listenOn(resourcesGrid, detailsComponent);
-                    else
-                        sl.listenOn(resourcesGrid);
+                    });
                 }
             }
 
@@ -145,12 +137,12 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     private MenuItem createMenuBarItem( ResourceAction action) {
         final var path = action.getMenuPath();
-        final var actionName = MString.beforeIndexOrAll(action.getTitle(), ';') + (action.getShortcutKey() == null ? "" : "  [" + action.getShortcutKey() + "]" );
+//        final var actionName = MString.beforeIndexOrAll(action.getTitle(), ';') + "  " + UiUtil.toShortcutString(action.getShortcutKey());
         final var actionDress = MString.afterIndex(action.getTitle(), ';');
 
-        if (MString.isEmptyTrim(path))
-            return dressUpMenuItem(menuBar.addItem(new Div(actionName)), action, false);
-
+        if (MString.isEmptyTrim(path)) {
+            return dressUpMenuItem(menuBar.addItem(createMenuBarTitle(action)), action, false);
+        }
         MenuItem current = null;
         for (String part : path.split("/")) {
             part = part.trim();
@@ -168,8 +160,20 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         }
 
         if (current == null)
-            return dressUpMenuItem(menuBar.addItem(new Div(actionName)), action, false);
-        return dressUpMenuItem(current.getSubMenu().addItem(new Div(actionName)), actionDress, true);
+            return dressUpMenuItem(menuBar.addItem(createMenuBarTitle(action)), action, false);
+        return dressUpMenuItem(current.getSubMenu().addItem(createMenuBarTitle(action)), actionDress, true);
+    }
+
+    private Component createMenuBarTitle(ResourceAction action) {
+        final var actionName = MString.beforeIndexOrAll(action.getTitle(), ';');
+        if (action.getShortcutKey() == null)
+            return new Div(actionName);
+        final var shortcut = UiUtil.toShortcutString(action.getShortcutKey());
+        var shortcutSpan = new Span(shortcut);
+        shortcutSpan.addClassName("shortcut");
+        var titleDiv = new Div(new Span(actionName + "  "), shortcutSpan);
+        titleDiv.addClassName("menutitle");
+        return titleDiv;
     }
 
     protected <T> GridMenuItem<T>createContextMenuItem( GridContextMenu<T> menu, ResourceAction action) {
@@ -203,11 +207,6 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     private <T extends MenuItemBase> T dressUpMenuItem(T item, ResourceAction action, boolean isChild) {
         if (action.getDescription() != null)
             item.getElement().setAttribute("title", action.getDescription());
-//        if (action.getShortcutKey() != null) {
-//            var shortCutText = new Div(action.getShortcutKey());
-//            //shortCutText.addClassName("shortcuttext");
-//            item.add(shortCutText);
-//        }
         final var actionDress = MString.afterIndex(action.getTitle(), ';');
         return dressUpMenuItem(item, actionDress, isChild);
     }
@@ -222,7 +221,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 icon.getStyle().set("height", "var(--lumo-icon-size-s)");
                 icon.getStyle().set("marginRight", "var(--lumo-space-s)");
             }
-            item.addComponentAsFirst(icon);
+           item.addComponentAsFirst(icon);
         }
         return item;
     }
@@ -463,7 +462,8 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 //                        .build();
 //
 //            } else {
-                if (!action.canHandleResource(getManagedResourceType(), resourcesGrid.getSelectedItems().stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet()) )) {
+                final var selected = resourcesGrid.getSelectedItems().stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet());
+                if (!action.canHandleResource(getManagedResourceType(), selected )) {
                     Notification notification = Notification
                             .show("Can't execute");
                     notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
@@ -471,7 +471,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 }
                 context = ExecutionContext.builder()
                         .resourceType(getManagedResourceType())
-                        .selected(resourcesGrid.getSelectedItems().stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet()))
+                        .selected(selected)
                         .namespace(namespace)
                         .api(coreApi)
                         .clusterConfiguration(clusterConfig)

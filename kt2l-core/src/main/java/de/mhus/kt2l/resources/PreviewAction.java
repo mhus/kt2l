@@ -75,7 +75,7 @@ public class PreviewAction implements ResourceAction {
 
     @Override
     public String getShortcutKey() {
-        return "Z";
+        return "CONTROL+P";
     }
 
     @Override
