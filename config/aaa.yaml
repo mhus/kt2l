@@ -1,5 +1,8 @@
 roles:
+  default:
+    resource: READ
+    namespace: READ
   action:
   resource:
-    default: READ
   resource_grid:
+  namespace:

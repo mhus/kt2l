@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import static de.mhus.commons.tools.MString.isEmpty;
@@ -108,6 +109,9 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     }
 
     private HorizontalLayout getToolbar() {
+
+        final var principal = securityService.getPrincipal(); // remember principal from current request
+
         // namespace selector
         namespaceSelector.setPlaceholder("Namespace");
         namespaceSelector.getStyle().set("--vaadin-combo-box-overlay-width", "350px");
@@ -117,10 +121,14 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
                 LOGGER.error("Can't fetch namespaces",t);
                 return Collections.emptyList();
             }
-            LOGGER.debug("Namespaces: {}",namespaces);
-            namespaces.addFirst(K8sUtil.NAMESPACE_ALL);
+            var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE);
+            if (securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_" + K8sUtil.NAMESPACE_ALL, defaultRole, principal))
+                namespaces.addFirst(K8sUtil.NAMESPACE_ALL);
+            final var namespacesFinal = namespaces.stream().filter(
+                    n -> n.equals(K8sUtil.NAMESPACE_ALL) || securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, n, defaultRole, principal) ).toList();
+            LOGGER.debug("Namespaces: {}",namespacesFinal);
             ui.access(() -> {
-                namespaceSelector.setItems(namespaces);
+                namespaceSelector.setItems(namespacesFinal);
                 Thread.startVirtualThread(() -> {
                     MThread.sleep(200);
                     ui.access(() -> {
@@ -147,10 +155,8 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
             resourceTypeChanged();
         });
 
-        final var principal = securityService.getPrincipal(); // remember principal from current request
-
         K8sUtil.getResourceTypesAsync(coreApi).handle((types, t) -> {
-            var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_RESOURCE, "default");
+            var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE);
             types = types.stream().filter(t2 -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, t2.getKind(), defaultRole, principal) ).toList();
             resourceList = Collections.synchronizedList(types);
             if (t != null) {

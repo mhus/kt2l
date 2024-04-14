@@ -26,7 +26,7 @@ import static de.mhus.commons.tools.MString.isEmpty;
 @Slf4j
 public class K8sUtil {
 
-    public static final String NAMESPACE_ALL = "all";
+    public static final String NAMESPACE_ALL = "[all]";
     public static final String RESOURCE_PODS =  "pods";
     public static final String RESOURCE_NODES = "nodes";
     public static final String RESOURCE_NAMESPACE = "namespaces";
@@ -45,8 +45,8 @@ public class K8sUtil {
         return namespaces;
     }
 
-    public static CompletableFuture<LinkedList<String>> getNamespacesAsync(CoreV1Api coreApi) {
-        CompletableFuture<LinkedList<String>> future = new CompletableFuture<>();
+    public static CompletableFuture<List<String>> getNamespacesAsync(CoreV1Api coreApi) {
+        CompletableFuture<List<String>> future = new CompletableFuture<>();
         try {
             coreApi.listNamespaceAsync(null, null, null, null, null, null, null, null, null, null, new ApiCallback<>() {
                 @Override

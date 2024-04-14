@@ -171,7 +171,9 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         final var shortcut = UiUtil.toShortcutString(action.getShortcutKey());
         var shortcutSpan = new Span(shortcut);
         shortcutSpan.addClassName("shortcut");
-        var titleDiv = new Div(new Span(actionName + "  "), shortcutSpan);
+        var titleSpan = new Span(actionName);
+        titleSpan.addClassName("title");
+        var titleDiv = new Div(titleSpan, shortcutSpan);
         titleDiv.addClassName("menutitle");
         return titleDiv;
     }

@@ -19,6 +19,8 @@ public class AaaConfiguration {
     public static final String SCOPE_ACTION = "action";
     public static final String SCOPE_RESOURCE_GRID = "resource_grid";
     public static final String SCOPE_RESOURCE = "resource";
+    public static final String SCOPE_NAMESPACE = "namespace";
+    public static final String SCOPE_DEFAULT = "default";
     @Autowired
     private Configuration configuration;
     private ITreeNode aaa;
