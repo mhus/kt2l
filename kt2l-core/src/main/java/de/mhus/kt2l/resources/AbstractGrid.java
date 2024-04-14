@@ -237,7 +237,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         resourcesGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         ((GridMultiSelectionModel)resourcesGrid.getSelectionModel()).setSelectAllCheckboxVisibility(GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE);
         createGridColumns(resourcesGrid);
-        resourcesGrid.getColumns().forEach(col -> col.setAutoWidth(true));
+        resourcesGrid.getColumns().forEach(col -> {
+            col.setAutoWidth(true);
+            col.setResizable(true);
+        });
         resourcesGrid.setDataProvider(createDataProvider());
 
         resourcesGrid.addCellFocusListener(event -> {

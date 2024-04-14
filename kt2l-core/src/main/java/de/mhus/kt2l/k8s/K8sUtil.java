@@ -81,9 +81,9 @@ public class K8sUtil {
         return types;
     }
 
-    public static CompletableFuture<LinkedList<V1APIResource>> getResourceTypesAsync(CoreV1Api coreApi) {
+    public static CompletableFuture<List<V1APIResource>> getResourceTypesAsync(CoreV1Api coreApi) {
 
-        CompletableFuture<LinkedList<V1APIResource>> future = new CompletableFuture<>();
+        CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
         try {
             coreApi.getAPIResourcesAsync(new ApiCallback<V1APIResourceList>() {
                 @Override

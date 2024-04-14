@@ -1,5 +1,6 @@
 package de.mhus.kt2l.resources;
 
+import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,7 @@ public class ActionService {
     }
 
     private boolean hasAccess(ResourceAction a) {
-        return securityService.hasRole(a);
+        return securityService.hasRole(AaaConfiguration.SCOPE_ACTION, a);
     }
 
 }

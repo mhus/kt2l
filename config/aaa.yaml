@@ -1,1 +1,5 @@
 roles:
+  action:
+  resource:
+    default: READ
+  resource_grid:

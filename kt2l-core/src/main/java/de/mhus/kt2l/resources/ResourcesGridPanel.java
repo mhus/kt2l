@@ -12,6 +12,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
@@ -136,28 +137,30 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         // resource type selector
         resourceSelector.setPlaceholder("Resource");
         resourceSelector.getStyle().set("--vaadin-combo-box-overlay-width", "350px");
-        resourceSelector.setItemLabelGenerator(new ItemLabelGenerator<V1APIResource>() {
-            @Override
-            public String apply(V1APIResource item) {
-                var shortNames = item.getShortNames();
-                var name = item.getSingularName();
-                if (isEmpty(name)) name = item.getName();
-                return name + (shortNames != null ? " " + shortNames : "");
-            }
+        resourceSelector.setItemLabelGenerator((ItemLabelGenerator<V1APIResource>) item -> {
+            var shortNames = item.getShortNames();
+            var name = item.getSingularName();
+            if (isEmpty(name)) name = item.getName();
+            return name + (shortNames != null ? " " + shortNames : "");
         });
         resourceSelector.addValueChangeListener(e -> {
             resourceTypeChanged();
         });
 
+        final var principal = securityService.getPrincipal(); // remember principal from current request
+
         K8sUtil.getResourceTypesAsync(coreApi).handle((types, t) -> {
+            var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_RESOURCE, "default");
+            types = types.stream().filter(t2 -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, t2.getKind(), defaultRole, principal) ).toList();
             resourceList = Collections.synchronizedList(types);
             if (t != null) {
                 LOGGER.error("Can't fetch resource types",t);
                 return Collections.emptyList();
             }
+            final var typesFinal = types;
             LOGGER.debug("Resource types: {}",types.stream().map(V1APIResource::getName).toList());
             ui.access(() -> {
-                resourceSelector.setItems(types);
+                resourceSelector.setItems(typesFinal);
                 Thread.startVirtualThread(() -> {
                     MThread.sleep(200);
                     ui.access(() -> {
@@ -197,7 +200,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         if (resourceType != null) {
             for (ResourceGridFactory factory : resourceGridFactories)
                 if (    factory.canHandleResourceType(resourceType) &&
-                        securityService.hasRole(factory) &&
+                        securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_GRID, factory) &&
                         foundFactory.getPriority(resourceType) > factory.getPriority(resourceType))
                             foundFactory = factory;
                     }
@@ -207,43 +210,6 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         return resourcesGrid;
     }
 
-    /*
-    TODO handle:
-java.io.IOException: Cannot run program "gke-gcloud-auth-plugin": error=2, No such file or directory
-	at java.base/java.lang.ProcessBuilder.start(Unknown Source)
-	at java.base/java.lang.ProcessBuilder.start(Unknown Source)
-	at io.kubernetes.client.util.KubeConfig.runExec(KubeConfig.java:345)
-	at io.kubernetes.client.util.KubeConfig.credentialsViaExecCredential(KubeConfig.java:281)
-	at io.kubernetes.client.util.KubeConfig.getCredentials(KubeConfig.java:237)
-	at io.kubernetes.client.util.credentials.KubeconfigAuthentication.<init>(KubeconfigAuthentication.java:59)
-	at io.kubernetes.client.util.ClientBuilder.kubeconfig(ClientBuilder.java:299)
-	at io.kubernetes.client.util.Config.fromConfig(Config.java:98)
-	at de.mhus.kt2l.k8s.K8sService.getKubeClient(K8sService.java:98)
-	at de.mhus.kt2l.k8s.K8sService.getCoreV1Api(K8sService.java:102)
-	at de.mhus.kt2l.resources.ResourcesGridPanel.lambda$tabInit$7518f186$1(ResourcesGridPanel.java:198)
-	at io.vavr.control.Try.of(Try.java:83)
-	at de.mhus.kt2l.resources.ResourcesGridPanel.tabInit(ResourcesGridPanel.java:198)
-	at de.mhus.kt2l.ui.XTabBar.lambda$addTab$0(XTabBar.java:45)
-	at io.vavr.control.Try.run(Try.java:154)
-
-io.kubernetes.client.openapi.ApiException: java.net.ConnectException: Failed to connect to /127.0.0.1:6443
-	at io.kubernetes.client.openapi.ApiClient.execute(ApiClient.java:888)
-	at io.kubernetes.client.openapi.apis.CoreV1Api.listPodForAllNamespacesWithHttpInfo(CoreV1Api.java:37296)
-	at io.kubernetes.client.openapi.apis.CoreV1Api.listPodForAllNamespaces(CoreV1Api.java:37189)
-	at de.mhus.kt2l.pods.PodGrid$PodProvider.lambda$new$56cc5271$1(PodGrid.java:294)
-	at io.vavr.control.Try.of(Try.java:83)
-	at de.mhus.kt2l.pods.PodGrid$PodProvider.lambda$new$512e4660$1(PodGrid.java:294)
-	at com.vaadin.flow.data.provider.CallbackDataProvider.sizeInBackEnd(CallbackDataProvider.java:142)
-	at com.vaadin.flow.data.provider.AbstractBackEndDataProvider.size(AbstractBackEndDataProvider.java:66)
-	at com.vaadin.flow.data.provider.DataCommunicator.getDataProviderSize(DataCommunicator.java:940)
-	at com.vaadin.flow.data.provider.DataCommunicator.flush(DataCommunicator.java:1193)
-	at com.vaadin.flow.data.provider.DataCommunicator.lambda$requestFlush$7258256f$1(DataCommunicator.java:1138)
-	at com.vaadin.flow.internal.StateTree.lambda$runExecutionsBeforeClientResponse$2(StateTree.java:397)
-	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(Unknown Source)
-	at java.base/java.util.stream.ReferencePipeline$2$1.accept(Unknown Source)
-	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(Unknown Source)
-
-     */
     @Override
     public void tabInit(XTab xTab) {
         this.xTab = xTab;

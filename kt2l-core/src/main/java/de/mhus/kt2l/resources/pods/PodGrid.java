@@ -11,6 +11,7 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.AbstractGrid;
@@ -57,7 +58,10 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         detailsComponent.addColumn(cont -> cont.getAge()).setHeader("Age").setSortProperty("age");
         detailsComponent.addColumn(cont -> cont.getMetricCpuString()).setHeader("CPU").setSortProperty("cpu");
         detailsComponent.addColumn(cont -> cont.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
-        detailsComponent.getColumns().forEach(col -> col.setAutoWidth(true));
+        detailsComponent.getColumns().forEach(col -> {
+            col.setAutoWidth(true);
+            col.setResizable(true);
+        });
         detailsComponent.setDataProvider(new ContainerProvider());
         detailsComponent.setVisible(false);
         detailsComponent.addSelectionListener(event -> {
@@ -171,8 +175,10 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         filteredList.stream().forEach(pod -> {
             var metric = metricMap.get(pod.getNamespace() + ":" + pod.getName());
             if (metric != null) {
-                if (pod.updateMetric(metric))
+                if (pod.updateMetric(metric)) {
+                    resourcesGrid.getDataProvider().refreshItem(pod);
                     changed.set(true);
+                }
             }
         } );
         if (MCollection.isSet(containerList)) {
@@ -184,17 +190,16 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                 containerList.stream().forEach(container -> {
                     var containerMetric = containerMetricMap.get(container.getName());
                     if (containerMetric != null) {
-                        if (container.updateMetric(containerMetric))
+                        if (container.updateMetric(containerMetric)) {
+                            detailsComponent.getDataProvider().refreshItem(container);
                             changed.set(true);
+                        }
                     }
                 });
             }
         }
 
         if (changed.get()) {
-            resourcesGrid.getDataProvider().refreshAll();
-            if (MCollection.isSet(containerList))
-                detailsComponent.getDataProvider().refreshAll();
             UI.getCurrent().push();
         }
     }
@@ -324,11 +329,18 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                             try {
                                 selectedPod.getPod().getStatus().getContainerStatuses().forEach(
                                         cs -> {
-                                            containerList.add(new Container(
+                                            var container = new Container(
                                                     CONTAINER_TYPE.DEFAULT,
                                                     cs,
                                                     selectedPod.getPod()
-                                            ));
+                                            );
+                                            var metric = selectedPod.getMetric();
+                                            if (metric != null) {
+                                                metric.getContainers().stream().filter(m -> m.getName().equals(container.getName())).findFirst().ifPresent(
+                                                        m -> container.updateMetric(m)
+                                                );
+                                            }
+                                            containerList.add(container);
                                         }
                                 );
                                 if (selectedPod.getPod().getStatus().getEphemeralContainerStatuses() != null)
@@ -365,7 +377,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
         public PodProvider() {
             super(query -> {
-                        LOGGER.debug("Do the query {}",query);
+                        LOGGER.debug("Do the pods query {}",query);
                         if (filteredList == null) return Stream.empty();
                         for(QuerySortOrder queryOrder :
                                 query.getSortOrders()) {
@@ -487,6 +499,14 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             metricMemory = mem;
             return true;
         }
+
+        public boolean equals(Object obj) {
+            if (obj instanceof Pod other) {
+                return MLang.tryThis(() -> other.getName().equals(name) && other.getNamespace().equals(namespace)).or(false);
+            }
+            return false;
+        }
+
     }
 
     @Data
@@ -538,6 +558,16 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             metricCpu = cpu;
             metricMemory = mem;
             return true;
+        }
+
+        public boolean equals(Object obj) {
+            if (obj instanceof Container other) {
+                return MLang.tryThis(() -> other.getName().equals(name) &&
+                        other.getPod().getMetadata().getName().equals(pod.getMetadata().getName()) &&
+                        other.getNamespace().equals(namespace)
+                    ).or(false);
+            }
+            return false;
         }
 
     }

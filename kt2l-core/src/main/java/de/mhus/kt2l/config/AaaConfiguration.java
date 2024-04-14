@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AaaConfiguration {
 
+    public static final String SCOPE_ACTION = "action";
+    public static final String SCOPE_RESOURCE_GRID = "resource_grid";
+    public static final String SCOPE_RESOURCE = "resource";
     @Autowired
     private Configuration configuration;
     private ITreeNode aaa;
@@ -28,8 +31,8 @@ public class AaaConfiguration {
         roles = aaa.getObject("roles").orElse(MTree.EMPTY_MAP);
     }
 
-    public Set<String> getRoles(String resourceName) {
-        final var values = roles.getString(resourceName, null);
+    public Set<String> getRoles(String resourceScope, String resourceName) {
+        final var values = roles.getObject(resourceScope).orElse(MTree.EMPTY_MAP).getString(resourceName, null);
         if (values == null) return null;
         try {
             return Collections.unmodifiableSet(Arrays.stream(values.split(",")).map(v -> v.trim().toUpperCase()).collect(Collectors.toSet()) );

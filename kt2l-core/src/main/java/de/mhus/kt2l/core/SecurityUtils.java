@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import java.security.Principal;
 import java.util.Set;
 
 @Component
@@ -20,7 +21,20 @@ public class SecurityUtils {
 
     private static final String LOGOUT_SUCCESS_URL = "/";
 
-    public static boolean hasPrincipalRoles(Object resource, Set<String> roles) {
+    static Principal getPrincipal() {
+        VaadinServletRequest request = VaadinServletRequest.getCurrent();
+        if (request == null) {
+            LOGGER.warn("Request not found");
+            return null;
+        }
+        var principal = request.getUserPrincipal();
+        if (principal == null) {
+            LOGGER.warn("Principal not found in request", new Throwable());
+        }
+        return principal;
+    }
+
+    boolean hasPrincipalRoles(Object resource, Set<String> roles) {
         if (resource == null || roles == null) return false;
 
         final var withRole = resource.getClass().getAnnotation(WithRole.class);
@@ -35,15 +49,19 @@ public class SecurityUtils {
      * @param roles
      * @return
      */
-    public static boolean hasPrincipalRoles(Set<String> roles) {
-        VaadinServletRequest request = VaadinServletRequest.getCurrent();
-        if (request == null) {
-            LOGGER.warn("Request not found");
-            return false;
-        }
-        final var principal = request.getUserPrincipal();
+    static boolean hasPrincipalRoles(Set<String> roles) {
+        final var principal = getPrincipal();
         if (principal == null) {
             LOGGER.warn("Principal not found in request");
+            return false;
+        }
+        return hasPrincipalRoles(roles, principal);
+    }
+
+    static boolean hasPrincipalRoles(Set<String> roles, Principal principal) {
+
+        if (principal == null) {
+            LOGGER.warn("Principal not found");
             return false;
         }
 
@@ -79,12 +97,7 @@ public class SecurityUtils {
 
         // do not use
     static boolean hasPrincipalResourceRoles(Object resource) {
-        VaadinServletRequest request = VaadinServletRequest.getCurrent();
-        if (request == null) {
-            LOGGER.warn("Request not found");
-            return false;
-        }
-        final var principal = request.getUserPrincipal();
+        final var principal = getPrincipal();
         if (principal == null) {
             LOGGER.warn("Principal not found in request");
             return false;

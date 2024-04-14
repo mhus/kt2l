@@ -58,6 +58,7 @@ public class ClusterConfiguration {
     }
 
     public static record Cluster(String name, String title, boolean enabled, String defaultNamespace, String defaultResourceType, UiUtil.COLOR color,
-                                 ITreeNode node) {}
+                                 ITreeNode node) {
+    }
 
 }
