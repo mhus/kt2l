@@ -33,13 +33,7 @@ public class AiService {
     private Map<String, ChatLanguageModel> models = new HashMap<>();
 
     @Autowired
-    Configuration configuration;
     AiConfiguration config;
-
-    @PostConstruct
-    public void init() {
-        config = configuration.getAiConfiguration();
-    }
 
     public synchronized ChatLanguageModel getModel(String modelName) {
         String[] parts = modelName.split(":");

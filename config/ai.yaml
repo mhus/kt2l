@@ -1,3 +1,4 @@
+enabled: false
 ollamaUrl: http://localhost:11434
 prompts:
   translate:

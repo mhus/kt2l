@@ -2,7 +2,9 @@ roles:
   default:
     resource: READ
     namespace: READ
+    cluster: READ
   action:
   resource:
   resource_grid:
   namespace:
+  cluster:

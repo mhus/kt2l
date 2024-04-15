@@ -6,7 +6,6 @@ import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
-import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
@@ -18,7 +17,6 @@ import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1WatchEvent;
 import io.kubernetes.client.util.KubeConfig;
-import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
@@ -301,7 +299,7 @@ public class KubeTest {
     @Test
     public void testKubeServiceAvailableContexts() {
         final var service = new K8sService();
-        service.availableContexts().forEach(LOGGER::info);
+        service.getAvailableContexts().forEach(LOGGER::info);
     }
 
     @Test

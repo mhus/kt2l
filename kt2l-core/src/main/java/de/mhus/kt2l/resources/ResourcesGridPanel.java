@@ -28,6 +28,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.security.Principal;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,7 +73,6 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     private String currentResourceType;
     @Getter
     private XTab xTab;
-    private List<V1APIResource> resourceList;
     private ResourcesFilter resourcesFilter;
     private Button resourceFilterButton;
 
@@ -110,25 +110,19 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
     private HorizontalLayout getToolbar() {
 
-        final var principal = securityService.getPrincipal(); // remember principal from current request
-
         // namespace selector
         namespaceSelector.setPlaceholder("Namespace");
         namespaceSelector.getStyle().set("--vaadin-combo-box-overlay-width", "350px");
         namespaceSelector.setItemLabelGenerator(String::toString);
-        K8sUtil.getNamespacesAsync(coreApi).handle((namespaces, t) -> {
+
+        k8s.getNamespacesAsync(true, coreApi).handle((namespaces, t) -> {
             if (t != null) {
                 LOGGER.error("Can't fetch namespaces",t);
                 return Collections.emptyList();
             }
-            var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE);
-            if (securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_" + K8sUtil.NAMESPACE_ALL, defaultRole, principal))
-                namespaces.addFirst(K8sUtil.NAMESPACE_ALL);
-            final var namespacesFinal = namespaces.stream().filter(
-                    n -> n.equals(K8sUtil.NAMESPACE_ALL) || securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, n, defaultRole, principal) ).toList();
-            LOGGER.debug("Namespaces: {}",namespacesFinal);
+            LOGGER.debug("Namespaces: {}",namespaces);
             ui.access(() -> {
-                namespaceSelector.setItems(namespacesFinal);
+                namespaceSelector.setItems(namespaces);
                 Thread.startVirtualThread(() -> {
                     MThread.sleep(200);
                     ui.access(() -> {
@@ -155,10 +149,9 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
             resourceTypeChanged();
         });
 
-        K8sUtil.getResourceTypesAsync(coreApi).handle((types, t) -> {
-            var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE);
-            types = types.stream().filter(t2 -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, t2.getKind(), defaultRole, principal) ).toList();
-            resourceList = Collections.synchronizedList(types);
+        final Principal principal = securityService.getPrincipal();
+
+        k8s.getResourceTypesAsync(coreApi).handle((types, t) -> {
             if (t != null) {
                 LOGGER.error("Can't fetch resource types",t);
                 return Collections.emptyList();
@@ -171,7 +164,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
                     MThread.sleep(200);
                     ui.access(() -> {
                         resourceSelector.setValue(
-                                K8sUtil.findResource(currentResourceType, resourceList));
+                                k8s.findResource(currentResourceType, coreApi, principal));
                     });
                 });
             });
@@ -281,7 +274,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         if (filter != null)
             setResourcesFilter(filter);
         if (resourceType != null) {
-            resourceSelector.setValue(K8sUtil.findResource(resourceType, resourceList));
+            resourceSelector.setValue(k8s.findResource(resourceType, coreApi));
             resourceTypeChanged();
         }
     }

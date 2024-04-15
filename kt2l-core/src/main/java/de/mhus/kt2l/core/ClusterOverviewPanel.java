@@ -43,7 +43,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
 
         add(new Text(" "));
         clusterBox = new ComboBox<>("Select a cluster");
-        clusterList = k8s.availableContexts().stream()
+        clusterList = k8s.getAvailableContexts().stream()
                 .map(name -> {
                     final var clusterConfig = clustersConfig.getClusterOrDefault(name);
                     return new Cluster(name, clusterConfig.title(), clusterConfig);

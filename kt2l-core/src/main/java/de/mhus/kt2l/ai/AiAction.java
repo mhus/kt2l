@@ -23,9 +23,12 @@ public class AiAction implements ResourceAction  {
     @Autowired
     private PanelService panelService;
 
+    @Autowired
+    private AiConfiguration aiConfiguration;
+
     @Override
     public boolean canHandleResourceType(String resourceType) {
-        return true;
+        return aiConfiguration.isEnabled();
     }
 
     @Override

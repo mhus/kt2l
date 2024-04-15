@@ -17,6 +17,7 @@ import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
+import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.core.MainView;
 import de.mhus.kt2l.core.XTab;
@@ -26,6 +27,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 
@@ -49,6 +51,9 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
     private AceEditor statusYaml;
     private V1APIResource resType;
 
+    @Autowired
+    private K8sService k8s;
+
     public ResourceDetailsPanel(ClusterConfiguration.Cluster clusterConfiguration, CoreV1Api api, MainView mainView, String resourceType, KubernetesObject resource) {
         this.resourceType = resourceType;
         this.resource = resource;
@@ -61,8 +66,11 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
         this.tab = xTab;
         this.ui = UI.getCurrent();
 
-        var types = K8sUtil.getResourceTypes(api);
-        resType = K8sUtil.findResource(resourceType, types);
+        resType = k8s.findResource(resourceType, api);
+        if (resType == null) {
+            Notification.show("Unknown resource type");
+            return;
+        }
 
         resContent = K8sUtil.toYaml(resource);
         YElement yDocument = MYaml.loadFromString(resContent);

@@ -21,6 +21,7 @@ public class AaaConfiguration {
     public static final String SCOPE_RESOURCE = "resource";
     public static final String SCOPE_NAMESPACE = "namespace";
     public static final String SCOPE_DEFAULT = "default";
+    public static final String SCOPE_CLUSTER = "cluster";
     @Autowired
     private Configuration configuration;
     private ITreeNode aaa;

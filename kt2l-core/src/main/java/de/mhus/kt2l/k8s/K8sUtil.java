@@ -35,7 +35,10 @@ public class K8sUtil {
     public static final String WATCH_EVENT_MODIFIED = "MODIFIED";
     public static final String WATCH_EVENT_DELETED = "DELETED";
 
-    public static LinkedList<String> getNamespaces(CoreV1Api coreApi) {
+    /**
+     * not public to force security checks, use K8sService instead.
+     */
+    static List<String> getNamespaces(CoreV1Api coreApi) {
         LinkedList<String> namespaces = new LinkedList<>();
         try {
             coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null)
@@ -45,7 +48,10 @@ public class K8sUtil {
         return namespaces;
     }
 
-    public static CompletableFuture<List<String>> getNamespacesAsync(CoreV1Api coreApi) {
+    /**
+     * not public to force security checks, use K8sService instead.
+     */
+    static CompletableFuture<List<String>> getNamespacesAsync(CoreV1Api coreApi) {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
         try {
             coreApi.listNamespaceAsync(null, null, null, null, null, null, null, null, null, null, new ApiCallback<>() {
@@ -71,7 +77,10 @@ public class K8sUtil {
         return future;
     }
 
-    public static LinkedList<V1APIResource> getResourceTypes(CoreV1Api coreApi) {
+    /**
+     * not public to force security checks, use K8sService instead.
+     */
+    static List<V1APIResource> getResourceTypes(CoreV1Api coreApi) {
         LinkedList<V1APIResource> types = new LinkedList<>();
         try {
             coreApi.getAPIResources().getResources().forEach(res -> types.add(res));
@@ -81,7 +90,10 @@ public class K8sUtil {
         return types;
     }
 
-    public static CompletableFuture<List<V1APIResource>> getResourceTypesAsync(CoreV1Api coreApi) {
+    /**
+     * not public to force security checks, use K8sService instead.
+     */
+    static CompletableFuture<List<V1APIResource>> getResourceTypesAsync(CoreV1Api coreApi) {
 
         CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
         try {
@@ -125,7 +137,7 @@ public class K8sUtil {
         return resource.getName();
     }
 
-    public static V1APIResource findResource(String resourceType, List<V1APIResource> resources) {
+    static V1APIResource findResource(String resourceType, List<V1APIResource> resources) {
         return resources.stream().filter(r -> toResourceType(r).endsWith(resourceType)).findFirst().orElse(null);
     }
 

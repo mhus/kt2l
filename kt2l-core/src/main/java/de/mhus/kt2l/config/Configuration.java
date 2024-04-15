@@ -172,7 +172,4 @@ public class Configuration {
         return new ClusterConfiguration(getSection("clusters"));
     }
 
-    public AiConfiguration getAiConfiguration() {
-        return new AiConfiguration(getSection("ai"));
-    }
 }

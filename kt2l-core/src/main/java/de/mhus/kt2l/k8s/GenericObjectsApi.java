@@ -4090,7 +4090,7 @@ public class GenericObjectsApi {
     }
     public KubernetesObject toKubernetesObject(Map<String, Object> o, String resourceType) {
 
-        LinkedList<V1APIResource> types = K8sUtil.getResourceTypes(new CoreV1Api(getApiClient()));
+        List<V1APIResource> types = K8sUtil.getResourceTypes(new CoreV1Api(getApiClient()));
         V1APIResource type = types.stream().filter(t -> K8sUtil.toResourceType(t).equals(resourceType)).findFirst().orElse(null);
 //        if (type == null)
 //            throw new NotFoundRuntimeException("Resource type not found: " + resourceType);
