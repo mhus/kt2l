@@ -174,3 +174,7 @@ div.menutitle span.shortcut {
 div.menutitle span.title {
     padding-right: 20px;
 }
+div.error-exception {
+    color: #000;
+    font-size: 12px;
+}

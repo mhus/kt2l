@@ -16,6 +16,7 @@ import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
@@ -68,7 +69,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
 
         resType = k8s.findResource(resourceType, api);
         if (resType == null) {
-            Notification.show("Unknown resource type");
+            UiUtil.showErrorNotification("Unknown resource type");
             return;
         }
 
@@ -132,7 +133,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
                 LOGGER.info("Result: {}", result);
             } catch (Exception ex) {
                 LOGGER.error("Error saving", ex);
-                Notification.show("Error saving resource: " + ex.getMessage());
+                UiUtil.showErrorNotification("Error saving resource", ex);
                 return;
             }
 
@@ -141,7 +142,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
             resMenuItemSave.setEnabled(false);
             resMenuItemCancel.setEnabled(false);
 
-            Notification.show("Resource saved");
+            UiUtil.showSuccessNotification("Resource saved");
         });
         resMenuItemCancel = resMenuBar.addItem("Cancel", e -> {
             resYamlEditor.setValue(resContent);

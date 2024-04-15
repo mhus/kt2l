@@ -10,6 +10,7 @@ import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.ConfigUtil;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
@@ -77,9 +78,9 @@ public class ActionTerminal implements ResourceAction {
             var res = MSystem.execute(osCmdArray);
             LOGGER.info("Result: {}", res);
             if (res.getRc() != 0)
-                Notification.show("Failed to start Terminal");
+                UiUtil.showErrorNotification("Failed to start Terminal");
         } catch (Exception e) {
-            Notification.show("Error: " + e.getMessage());
+            UiUtil.showErrorNotification("Unexpected Error", e);
             LOGGER.error("Error execute {}", Arrays.toString(osCmdArray), e);
         }
 

@@ -5,9 +5,11 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.StreamResource;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.k8s.K8sService;
 import lombok.Getter;
@@ -26,7 +28,11 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
     private Configuration configuration;
 
     @Autowired
-    private PanelService panelService;
+    private List<ClusterAction> clusterActions;
+
+    @Autowired
+    private SecurityService securityService;
+
     private XTab tab;
 
     @Getter
@@ -59,13 +65,22 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
         }
         add(clusterBox);
 
-        Button resourcesButton = new Button("Resources");
-        resourcesButton.addClickListener(click -> {
-            if (clusterBox.getValue() != null) {
-                panelService.addResourcesGrid(mainView, clusterBox.getValue()).select();
-            }
+        final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_CLUSTER_ACTION);
+        clusterActions.stream()
+                .filter(action -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER_ACTION, action.getClass().getCanonicalName(), defaultRole ))
+                .sorted((a,b) -> Integer.compare(a.getPriority(), b.getPriority()) )
+                .forEach(action -> {
+            Button button = new Button(action.getTitle(), action.getIcon());
+            button.addClickListener(click -> {
+                if (clusterBox.getValue() != null) {
+                    if (!validateCluster(clusterBox.getValue())) {
+                        return;
+                    }
+                    action.execute(mainView, clusterBox.getValue());
+                }
+            });
+            add(button);
         });
-        add(resourcesButton);
 
         StreamResource imageResource = new StreamResource("kt2l-logo.svg",
                 () -> getClass().getResourceAsStream("/images/kt2l-logo.svg"));
@@ -76,6 +91,19 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
         add(image);
 
         setWidthFull();
+    }
+
+    private boolean validateCluster(Cluster cluster) {
+        var clusterId = cluster.config().name();
+        try {
+            var coreApi = k8s.getCoreV1Api(clusterId);
+            coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null);
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Can't connect to cluster: " + clusterId, e);
+            UiUtil.showErrorNotification("Can't connect to cluster: " + clusterId, e);
+        }
+        return false;
     }
 
     @Override

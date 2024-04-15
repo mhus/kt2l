@@ -44,6 +44,7 @@ public class K8sUtil {
             coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null)
                     .getItems().forEach(ns -> namespaces.add(ns.getMetadata().getName()));
         } catch (ApiException e) {
+            LOGGER.warn("Error getting namespaces", e);
         }
         return namespaces;
     }

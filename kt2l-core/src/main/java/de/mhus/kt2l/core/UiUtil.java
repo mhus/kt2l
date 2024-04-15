@@ -2,12 +2,17 @@ package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.server.Command;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MSystem;
 import lombok.Getter;
 
 import static de.mhus.commons.tools.MCollection.cropArray;
 import static de.mhus.commons.tools.MString.isEmptyTrim;
+import static de.mhus.commons.tools.MString.isSet;
 
 public class UiUtil {
 
@@ -47,6 +52,37 @@ public class UiUtil {
         final var key = Key.of(k1[k1.length-1].toLowerCase());
         if (key != null) return new Shortcut(key, modifier);
         return null;
+    }
+
+    public static void showErrorNotification(String msg) {
+        showErrorNotification(msg, null);
+    }
+
+    public static void showErrorNotification(String msg, Exception e) {
+        Notification notification = new Notification();
+        Div text = new Div(
+                new Text(msg)
+        );
+        if (e != null) {
+            var error = new Div(e.toString());
+            error.addClassName("error-exception");
+            text = new Div(
+                    new Div(msg),
+                    error
+            );
+        }
+        notification.add(text);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        notification.setPosition(Notification.Position.TOP_START);
+        notification.setDuration(5000);
+        notification.open();
+    }
+
+    public static void showSuccessNotification(String msg) {
+        Notification notification = Notification.show(msg);
+        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        notification.setPosition(Notification.Position.TOP_START);
+        notification.setDuration(5000);
     }
 
     @Getter

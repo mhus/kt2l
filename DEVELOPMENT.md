@@ -1,5 +1,16 @@
 # Development
 
+## JUnit Testing
+
+
+* [https://docs.spring.io/spring-boot/how-to/testing.html]
+* [https://vaadin.com/docs/latest/testing]
+* [https://java.testcontainers.org/modules/k3s/]
+* [https://www.baeldung.com/spring-boot-testing]
+* [https://assertj.github.io/doc/]
+* [https://www.baeldung.com/mockito-series]
+
+
 ## Vaadin Development
 
 * [https://vaadin.com/docs/latest/overview]
@@ -23,6 +34,10 @@
 * [lombok](https://projectlombok.org/features/all)
 * [https://www.baeldung.com/spring-boot]
 
+## Github Actions
+
+* [https://docs.github.com/en/actions]
+* [https://github.com/actions/runner-images/blob/main/images/macos/macos-14-arm64-Readme.md]
 
 # Sample kubernetes pods
 

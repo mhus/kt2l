@@ -3,6 +3,7 @@ roles:
     resource: READ
     namespace: READ
     cluster: READ
+    cluster_action: READ
   action:
   resource:
   resource_grid:

@@ -466,9 +466,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 //            } else {
                 final var selected = resourcesGrid.getSelectedItems().stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet());
                 if (!action.canHandleResource(getManagedResourceType(), selected )) {
-                    Notification notification = Notification
-                            .show("Can't execute");
-                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    UiUtil.showErrorNotification("Can't execute action");
                     return;
                 }
                 context = ExecutionContext.builder()
