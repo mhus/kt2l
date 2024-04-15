@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.StreamResource;
@@ -65,13 +66,16 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
         }
         add(clusterBox);
 
+        var menuBar = new MenuBar();
+        add(menuBar);
+
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_CLUSTER_ACTION);
         clusterActions.stream()
                 .filter(action -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER_ACTION, action.getClass().getCanonicalName(), defaultRole ))
                 .sorted((a,b) -> Integer.compare(a.getPriority(), b.getPriority()) )
                 .forEach(action -> {
-            Button button = new Button(action.getTitle(), action.getIcon());
-            button.addClickListener(click -> {
+
+            var item = menuBar.addItem(action.getTitle(), click -> {
                 if (clusterBox.getValue() != null) {
                     if (!validateCluster(clusterBox.getValue())) {
                         return;
@@ -79,7 +83,9 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
                     action.execute(mainView, clusterBox.getValue());
                 }
             });
-            add(button);
+            var icon = action.getIcon();
+            if (icon != null)
+                item.addComponentAsFirst(action.getIcon());
         });
 
         StreamResource imageResource = new StreamResource("kt2l-logo.svg",
