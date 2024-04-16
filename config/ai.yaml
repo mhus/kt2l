@@ -1,5 +1,6 @@
 enabled: false
 ollamaUrl: http://localhost:11434
+openAiKey:
 prompts:
   translate:
     model: ollama:yi

@@ -1,6 +1,7 @@
 package de.mhus.kt2l.ai;
 
 import de.mhus.commons.errors.NotFoundRuntimeException;
+import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.config.Configuration;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -8,6 +9,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.ollama.OllamaChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,7 @@ import java.util.Optional;
 public class AiService {
 
     private static final String OLLAMA = "ollama";
+    private static final String OPENAI = "openai";
     public static final String MODEL_MISTRAL = OLLAMA + ":mistral:";
     public static final String MODEL_CODELLAMA = OLLAMA + ":codellama:";
     public static final String MODEL_LLAMA2 = OLLAMA + ":llama2:";
@@ -42,6 +45,17 @@ public class AiService {
                 ChatLanguageModel model = OllamaChatModel.builder()
                         .baseUrl(config.getOllamaUrl())
                         .modelName(name)
+                        .build();
+                return model;
+            });
+        } else if (parts[0].equals(OPENAI)) {
+            return models.computeIfAbsent(parts[1], name -> {
+                var openAiKey = config.getOpenAiKey();
+                if (MString.isEmpty(openAiKey))
+                    throw new NotFoundRuntimeException("OpenAi key not configured in ai configuration");
+                ChatLanguageModel model = OpenAiChatModel.builder()
+                        .modelName(name)
+                        .apiKey(openAiKey)
                         .build();
                 return model;
             });

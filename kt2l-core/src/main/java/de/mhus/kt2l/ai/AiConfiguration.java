@@ -34,4 +34,7 @@ public class AiConfiguration extends AbstractUserRelatedConfig {
         return config().getBoolean("enabled", false);
     }
 
+    public String getOpenAiKey() {
+        return config().getString("openAiKey").orElse(null);
+    }
 }
