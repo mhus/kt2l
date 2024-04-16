@@ -13,25 +13,19 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class HelpConfiguration {
-
-    @Autowired
-    private Configuration configuration;
-
-    private ITreeNode config;
-
-    @PostConstruct
-    private void init() {
-        this.config = configuration.getSection("help");
-    }
+public class HelpConfiguration extends AbstractUserRelatedConfig {
 
     public String getWindowWidth() {
-        return config.getString("windowWidth", "300px");
+        return config().getString("windowWidth", "300px");
+    }
+
+    public HelpConfiguration() {
+        super("help");
     }
 
     public HelpContext getContext(String name) {
         return new HelpContext(
-                config.getObject("contexts").orElse(MTree.EMPTY_MAP)
+                config().getObject("contexts").orElse(MTree.EMPTY_MAP)
                         .getArray(name).orElse(MTree.EMPTY_LIST));
     }
 

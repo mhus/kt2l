@@ -2,6 +2,7 @@ package de.mhus.kt2l.ai;
 
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
+import de.mhus.kt2l.config.AbstractUserRelatedConfig;
 import de.mhus.kt2l.config.Configuration;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,34 +13,25 @@ import java.util.Optional;
 
 @Getter
 @Component
-public class AiConfiguration {
+public class AiConfiguration extends AbstractUserRelatedConfig {
 
-    @Autowired
-    private Configuration configuration;
-    private ITreeNode config;
-    private boolean enabled;
-
-    private String ollamaUrl;
-    private ITreeNode prompts;
-
-    @PostConstruct
-    private void init() {
-        this.config = configuration.getSection("ai");
-        enabled = config.getBoolean("enabled", false);
-        ollamaUrl = config.getString("ollamaUrl").orElseGet(() -> String.format("http://%s:%d", "127.0.0.1", 11434));
-        prompts = config.getObject("prompts").orElseGet(() -> MTree.EMPTY_MAP);
+    public AiConfiguration() {
+        super("ai");
     }
-    
+
+    public String getOllamaUrl() {
+        return config().getString("ollamaUrl").orElseGet(() -> String.format("http://%s:%d", "127.0.0.1", 11434));
+    }
     public Optional<String> getTemplate(String name) {
-        return prompts.getObject(name).orElse(MTree.EMPTY_MAP).getString("template");
+        return config().getObject("prompts").orElseGet(() -> MTree.EMPTY_MAP).getObject(name).orElse(MTree.EMPTY_MAP).getString("template");
     }
 
     public Optional<String> getModel(String name) {
-        return prompts.getObject(name).orElse(MTree.EMPTY_MAP).getString("model");
+        return config().getObject("prompts").orElseGet(() -> MTree.EMPTY_MAP).getObject(name).orElse(MTree.EMPTY_MAP).getString("model");
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return config().getBoolean("enabled", false);
     }
 
 }

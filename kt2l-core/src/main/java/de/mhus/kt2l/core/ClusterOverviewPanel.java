@@ -26,7 +26,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
     private K8sService k8s;
 
     @Autowired
-    private Configuration configuration;
+    private ClusterConfiguration clustersConfig;
 
     @Autowired
     private List<ClusterAction> clusterActions;
@@ -46,7 +46,6 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
     }
 
     public void createUi() {
-        final var clustersConfig = configuration.getClusterConfiguration();
 
         add(new Text(" "));
         clusterBox = new ComboBox<>("Select a cluster");

@@ -3,12 +3,14 @@ package de.mhus.kt2l.config;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNodeList;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class UsersConfiguration {
+@Component
+public class UsersConfiguration extends AbstractSingleConfig {
 
     public enum ROLE {
         READ,
@@ -18,15 +20,13 @@ public class UsersConfiguration {
         ADMIN
     }
 
-    private final ITreeNode config;
-
-    public UsersConfiguration(ITreeNode config) {
-        this.config = config;
+    public UsersConfiguration() {
+        super("users");
     }
 
     public List<User> getUsers() {
         final var users = new ArrayList<User>();
-        final var userConfig = config.getArray("users");
+        final var userConfig = config().getArray("users");
         if (userConfig.isPresent())
             userConfig.get().forEach(user -> {
                 users.add(new User(
@@ -37,7 +37,6 @@ public class UsersConfiguration {
             });
         return users;
     }
-
 
     public static record User(String name, String password, Collection<String> roles) {
     }

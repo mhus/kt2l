@@ -49,7 +49,6 @@ public class ContainerShellPanel extends VerticalLayout implements XTabListener 
     private Thread threadError;
     private MenuItem menuItemEsc;
 
-
     public ContainerShellPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, V1Pod pod) {
         this.clusterConfig = clusterConfig;
         this.api = api;
@@ -184,30 +183,6 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
                 LOGGER.error("Key", ex);
             }
         });
-//        xterm.addLineListener(e -> {
-//            if (proc == null) return;
-//            var line = e.getLine();
-//            System.out.println("Line: " + line);
-//            var pos = line.indexOf('#'); // TODO this is a hack
-//            if (pos >= 0) {
-//                line = line.substring(pos + 1);
-//            }
-//
-//            try {
-//                proc.getOutputStream().write(line.getBytes());
-//                proc.getOutputStream().write('\n');
-//                LOGGER.info("Alive: {}", proc.isAlive());
-//            } catch (IOException ex) {
-//                LOGGER.error("Write error", ex);
-//                closeTerminal();
-//            }
-//        });
-
-//        for (Key key : new Key[]{Key.ENTER, Key.BACKSPACE, Key.DELETE, Key.ESCAPE, Key.TAB, Key.SPACE, Key.ARROW_DOWN, Key.ARROW_LEFT, Key.ARROW_RIGHT, Key.ARROW_UP, Key.PAGE_DOWN, Key.PAGE_UP, Key.END, Key.HOME, Key.INSERT, Key.F1, Key.F2, Key.F3, Key.F4, Key.F5, Key.F6, Key.F7, Key.F8, Key.F9, Key.F10, Key.F11, Key.F12}) {
-//            UI.getCurrent().addShortcutListener(
-//                    () -> handleKey(key),
-//                    key).listenOn(xterm);
-//        }
 
         var xTermMenuBar = new MenuBar();
         menuItemEsc = xTermMenuBar.addItem("ESC", e -> {

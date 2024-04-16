@@ -1,6 +1,8 @@
 package de.mhus.kt2l.k8s;
 
+import com.vaadin.flow.component.UI;
 import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.SecurityService;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -63,16 +65,20 @@ public class K8sService {
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
+        Configuration.ConfigurationContext cc = Configuration.getContext(); // need to export the configuration context to another thread
+
         CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
         K8sUtil.getResourceTypesAsync(coreApi).handle((resources, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
                 return Collections.emptyList();
             }
-            final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
-            resources = resources.stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal )).toList();
-            future.complete(resources);
-            return resources;
+            try (Configuration.Environment cce = cc.enter()) {
+                final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE);
+                resources = resources.stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal)).toList();
+                future.complete(resources);
+                return resources;
+            }
         });
         return future;
     }
@@ -116,20 +122,24 @@ public class K8sService {
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
+        Configuration.ConfigurationContext cc = Configuration.getContext(); // need to export the configuration context to another thread
+
         CompletableFuture<List<String>> future = new CompletableFuture<>();
         K8sUtil.getNamespacesAsync(coreApi).handle((namespaces, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
                 return Collections.emptyList();
             }
-            var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE);
-            if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, principalFinal))
-                namespaces.addFirst(K8sUtil.NAMESPACE_ALL);
+            try (Configuration.Environment cce = cc.enter()){
+                var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE);
+                if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, principalFinal))
+                    namespaces.addFirst(K8sUtil.NAMESPACE_ALL);
 
-            namespaces = namespaces.stream().filter(
-                    n -> n.equals(K8sUtil.NAMESPACE_ALL) || securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, n, defaultRole, principalFinal) ).toList();
-            future.complete(namespaces);
-            return namespaces;
+                namespaces = namespaces.stream().filter(
+                        n -> n.equals(K8sUtil.NAMESPACE_ALL) || securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, n, defaultRole, principalFinal)).toList();
+                future.complete(namespaces);
+                return namespaces;
+            }
         });
         return future;
     }

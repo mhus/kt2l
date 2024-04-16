@@ -8,29 +8,27 @@ import javax.annotation.PostConstruct;
 import java.util.UUID;
 
 @Component
-public class LoginConfiguration {
+public class LoginConfiguration extends AbstractSingleConfig {
 
     @Autowired
     private Configuration configuration;
 
-    private ITreeNode config;
     private static String autoLoginPassword;
 
-    @PostConstruct
-    private void init() {
-        this.config = configuration.getSection("login");
+    public LoginConfiguration() {
+        super("login", true);
     }
 
     public boolean isAutoLogin() {
-        return config.getBoolean("autoLogin", false);
+        return config().getBoolean("autoLogin", false);
     }
 
     public boolean isAutoLoginLocalhostOnly() {
-        return config.getBoolean("autoLoginLocalhostOnly", true);
+        return config().getBoolean("autoLoginLocalhostOnly", true);
     }
 
     public String getAutoLoginUser() {
-        return config.getString("autoLoginUser", null);
+        return config().getString("autoLoginUser", null);
     }
 
     public String getLocalAutoLoginPassword() {

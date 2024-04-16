@@ -2,34 +2,36 @@ package de.mhus.kt2l.cluster;
 
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
+import de.mhus.kt2l.config.AbstractUserRelatedConfig;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.core.UiUtil;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-public class ClusterConfiguration {
-    private final ITreeNode config;
+@Component
+public class ClusterConfiguration extends AbstractUserRelatedConfig {
 
-    public ClusterConfiguration(ITreeNode config) {
-        this.config = config;
+    public ClusterConfiguration() {
+        super("clusters");
     }
 
     public String defaultClusterName() {
-        return config.getString("defaultCluster", "");
+        return config().getString("defaultCluster", "");
     }
 
     public String defaultResourceType() {
-        return config.getString("defaultResourceType", K8sUtil.RESOURCE_PODS);
+        return config().getString("defaultResourceType", K8sUtil.RESOURCE_PODS);
     }
 
     public String defaultNamespace() {
-        return config.getString("defaultNamespace", K8sUtil.NAMESPACE_ALL);
+        return config().getString("defaultNamespace", K8sUtil.NAMESPACE_ALL);
     }
 
     public Map<String, Cluster> getClusters() {
         final var clusters = new TreeMap<String, Cluster>();
-        final var clusterConfig = config.getArray("clusters");
+        final var clusterConfig = config().getArray("clusters");
         if (clusterConfig.isPresent())
             clusterConfig.get().forEach(cluster -> {
                 clusters.put(cluster.getString("name").get(), new Cluster(

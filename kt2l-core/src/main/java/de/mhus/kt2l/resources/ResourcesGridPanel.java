@@ -48,7 +48,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
     @Autowired
     @Getter
-    private Configuration config;
+    private ClusterConfiguration clusterConfiguration;
 
     @Autowired
     private List<ResourceGridFactory> resourceGridFactories;
@@ -214,7 +214,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         this.xTab = xTab;
         coreApi = Try.of(() -> k8s.getCoreV1Api(clusterId)).onFailure(e -> LOGGER.error("Error ",e) ).get();
         LOGGER.info("ClusterId: {}",clusterId);
-        clusterConfig = config.getClusterConfiguration().getClusterOrDefault(clusterId);
+        clusterConfig = clusterConfiguration.getClusterOrDefault(clusterId);
         currentResourceType = clusterConfig.defaultResourceType();
 
         createUI();

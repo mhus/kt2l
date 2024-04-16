@@ -1,14 +1,15 @@
 package de.mhus.kt2l.config;
 
 import com.vaadin.flow.component.UI;
+import de.mhus.commons.errors.AuthorizationException;
+import de.mhus.commons.lang.ICloseable;
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNode;
 import de.mhus.kt2l.Kt2lApplication;
-import de.mhus.kt2l.ai.AiConfiguration;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
 import io.vavr.control.Try;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static de.mhus.commons.tools.MCollection.toSet;
 import static de.mhus.commons.tools.MString.isSet;
 
 @Component
@@ -38,6 +40,8 @@ public class Configuration {
     private static final String LOCAL_DIR = "local";
     private static final String USERS_DIR = "users";
 
+    private static final ThreadLocal<ConfigurationContext> threadLocalConfigurationContext = new ThreadLocal<>();
+
     @Value("${configuration.directory:config}")
     private String configurationDirectory;
 
@@ -50,7 +54,7 @@ public class Configuration {
     @Value("${configuration.create:false}")
     private boolean createConfiguration;
 
-    private static final Set<String> PROTECTED_CONFIGS = Collections.unmodifiableSet(Set.of("users", "aaa", "login"));
+    private static final Set<String> protectedConfigs = Collections.synchronizedSet(toSet("users", "aaa", "login"));
 
     private Map<String, ITreeNode> sections = new HashMap<>();
     private File configurationDirectoryFile;
@@ -119,21 +123,46 @@ public class Configuration {
 
     }
 
+    /**
+     * Return a not user related section.
+     * This method is not cached.
+     *
+     * @param sectionNameIn Name of the section
+     * @return The section
+     */
     public synchronized ITreeNode getSection(String sectionNameIn) {
+        return getSection(sectionNameIn, null);
+    }
+
+    /**
+     * Return a user related section. Or a default section if no user is given.
+     * This method is not cached.
+     *
+     * @param sectionNameIn Name of the section
+     * @param userName Name of the user
+     * @return The section
+     */
+    public synchronized ITreeNode getSection(String sectionNameIn, String userName) {
         if (sections.containsKey(sectionNameIn))
             return sections.get(sectionNameIn);
 
-        final var userName = Try.of(() -> (String)UI.getCurrent().getSession().getAttribute(Kt2lApplication.UI_USERNAME)).getOrElse((String)null);
         final var sectionName = sectionNameIn.toLowerCase();
+        userName = userName == null ? null : MFile.normalize(userName.toLowerCase());
 
         File file = null;
         final var normalizedSectionFileName = MFile.normalize(sectionName) + ".yaml";
-        if (!PROTECTED_CONFIGS.contains(sectionName) && userName != null) {
+        // 1. try to get config from user directory
+        if (!protectedConfigs.contains(sectionName) && userName != null) {
             final var user = MFile.normalize(userName.toLowerCase());
             file = new File(getUserConfigurationDirectory(user), normalizedSectionFileName);
         }
+        // 2. try to get config from local user directory
+        if (file == null || !file.exists())
+            file = new File(getLocalConfigurationDirectory(), "users/" + userName + "/" + normalizedSectionFileName);
+        // 3. try to get config from local directory
         if (file == null || !file.exists())
             file = new File(getLocalConfigurationDirectory(), normalizedSectionFileName);
+        // 4. try to get config from configuration directory
         if (file == null || !file.exists())
             file = new File(configurationDirectoryFile, normalizedSectionFileName);
         final var finalFile = file;
@@ -164,12 +193,49 @@ public class Configuration {
         return new File( configurationDirectoryFile, USERS_DIR + "/" + user);
     }
 
-    public UsersConfiguration getUserDetailsConfiguration() {
-        return new UsersConfiguration(getSection("users"));
+    void addProtectedConfiguration(String sectionName) {
+        LOGGER.info("Add protected configuration {}", sectionName);
+        protectedConfigs.add(sectionName);
     }
 
-    public ClusterConfiguration getClusterConfiguration() {
-        return new ClusterConfiguration(getSection("clusters"));
+    public static ConfigurationContext getContext() {
+        return new ConfigurationContext();
     }
 
+    public static String lookupUserName() {
+        var context = threadLocalConfigurationContext.get();
+        final var userName = context != null ? context.getUserName() : Try.of(() -> (String) UI.getCurrent().getSession().getAttribute(Kt2lApplication.UI_USERNAME)).getOrElseThrow(() -> {
+            LOGGER.error("Calling config() without user in UI context", new Exception());
+            return new AuthorizationException("No user in UI context");
+        });
+        return userName;
+    }
+
+    public static class ConfigurationContext {
+        @Getter
+        private final String userName;
+
+        protected ConfigurationContext() {
+            var context = threadLocalConfigurationContext.get();
+            userName = lookupUserName();
+        }
+        
+        public Environment enter() {
+            return new Environment(this);
+        }
+    }
+
+    public static class Environment implements ICloseable {
+        private final ConfigurationContext context;
+
+        private Environment(ConfigurationContext context) {
+            this.context = context;
+            threadLocalConfigurationContext.set(context);
+        }
+
+        @Override
+        public void close() {
+            threadLocalConfigurationContext.remove();
+        }
+    }
 }
