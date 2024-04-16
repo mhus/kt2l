@@ -1,12 +1,9 @@
 package de.mhus.kt2l.config;
 
-import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -16,7 +13,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AaaConfiguration extends AbstractUserRelatedConfig {
 
-    public static final String SCOPE_ACTION = "action";
+    public static final String SCOPE_RESOURCE_ACTION = "resource_action";
     public static final String SCOPE_RESOURCE_GRID = "resource_grid";
     public static final String SCOPE_RESOURCE = "resource";
     public static final String SCOPE_NAMESPACE = "namespace";

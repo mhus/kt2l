@@ -3,7 +3,7 @@ default:
   namespace: READ
   cluster: READ
   cluster_action: READ
-action:
+resource_action:
 resource:
 resource_grid:
 namespace:

@@ -5,7 +5,6 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.tabs.Tabs;
@@ -16,6 +15,9 @@ import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.core.SecurityUtils;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
 import de.mhus.kt2l.k8s.K8sService;
@@ -24,12 +26,15 @@ import de.mhus.kt2l.core.MainView;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
@@ -54,6 +59,9 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
 
     @Autowired
     private K8sService k8s;
+
+    @Autowired
+    private SecurityService securityService;
 
     public ResourceDetailsPanel(ClusterConfiguration.Cluster clusterConfiguration, CoreV1Api api, MainView mainView, String resourceType, KubernetesObject resource) {
         this.resourceType = resourceType;
@@ -113,24 +121,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
         resMenuItemSave = resMenuBar.addItem("Save", e -> {
             // TODO save
             try {
-                var yaml = resYamlEditor.getValue();
-
-                yaml = "apiVersion: " + toApiVersion(resType) + "\nkind: " + resType.getKind() + "\n" + yaml;
-
-                var yamlObj = Yaml.load(yaml);
-
-                GenericObjectsApi genericObjectsApi = new GenericObjectsApi(api.getApiClient());
-                var result = genericObjectsApi.patchClusterCustomObject(
-                        resType.getGroup(),
-                        resType.getVersion() == null ? "v1" : resType.getVersion(),
-                        resType.getName(),
-                        null,
-                        yamlObj,
-                        null,
-                        managedFieldsContent,
-                        false
-                        );
-                LOGGER.info("Result: {}", result);
+                doSave();
             } catch (Exception ex) {
                 LOGGER.error("Error saving", ex);
                 UiUtil.showErrorNotification("Error saving resource", ex);
@@ -160,7 +151,10 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
 
         var resLayout = new VerticalLayout();
         resLayout.setSizeFull();
-        resLayout.add(resMenuBar, resInfo, resYamlEditor);
+        if (securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_ACTION,SecurityUtils.getResourceId(this) + "_write", "WRITE" ))
+            resLayout.add(resMenuBar, resInfo, resYamlEditor);
+        else
+            resLayout.add(resInfo, resYamlEditor);
 
         if (statusContent != null) {
             statusYaml = new AceEditor();
@@ -188,8 +182,50 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
         if (managedFieldsContent != null)
             tabSheet.add("Managed Fields", fieldsYaml);
 
+        UI.getCurrent().getPage().addBrowserWindowResizeListener(e -> {
+            resYamlEditor.setHeight( (e.getHeight()-300) + "px");
+            if (fieldsYaml != null)
+                fieldsYaml.setHeight( (e.getHeight()-250) + "px");
+            if (statusYaml != null)
+                statusYaml.setHeight( (e.getHeight()-250) + "px");
+        });
+        UI.getCurrent().getPage().retrieveExtendedClientDetails(details -> {
+            resYamlEditor.setHeight( (details.getWindowInnerHeight()- 300) + "px");
+            if (fieldsYaml != null)
+                fieldsYaml.setHeight( (details.getWindowInnerHeight()-250) + "px");
+            if (statusYaml != null)
+                statusYaml.setHeight( (details.getWindowInnerHeight()-250) + "px");
+        });
+
         tabSheet.setSizeFull();
         add(tabSheet);
+
+    }
+
+    private void doSave() throws ApiException, IOException {
+        var yaml = resYamlEditor.getValue();
+
+        yaml = "apiVersion: " + toApiVersion(resType) + "\nkind: " + resType.getKind() + "\n" + yaml;
+
+        var handler = k8s.getResourceHandler(resType.getKind());
+
+        if (handler == null) {
+            var yamlObj = Yaml.loadAs(yaml, V1Pod.class);
+            GenericObjectsApi genericObjectsApi = new GenericObjectsApi(api.getApiClient());
+            genericObjectsApi.patchClusterCustomObject(
+                    resType.getGroup(),
+                    resType.getVersion() == null ? "v1" : resType.getVersion(),
+                    resType.getName(),
+                    null,
+                    yamlObj,
+                    null,
+                    managedFieldsContent,
+                    false
+            );
+
+        } else {
+            handler.replace(api, resource.getMetadata().getName(), resource.getMetadata().getNamespace(), yaml);
+        }
 
     }
 

@@ -28,7 +28,7 @@ public class ActionService {
     }
 
     private boolean hasAccess(ResourceAction a) {
-        return securityService.hasRole(AaaConfiguration.SCOPE_ACTION, a);
+        return securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_ACTION, a);
     }
 
 }

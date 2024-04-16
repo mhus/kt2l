@@ -34,6 +34,9 @@ public class K8sUtil {
     public static final String WATCH_EVENT_ADDED = "ADDED";
     public static final String WATCH_EVENT_MODIFIED = "MODIFIED";
     public static final String WATCH_EVENT_DELETED = "DELETED";
+    public static final String KIND_POD = "Pod";
+    public static final String KIND_NODE = "Node";
+    public static final String KIND_NAMESPACE = "Namespace";
 
     /**
      * not public to force security checks, use K8sService instead.

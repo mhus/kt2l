@@ -39,6 +39,9 @@ public class K8sService {
     @Autowired
     private SecurityService securityService;
 
+    @Autowired
+    private List<KHandler> resourceHandlers;
+
     public V1APIResource findResource(String resourceType, CoreV1Api coreApi) {
         return findResource(resourceType, coreApi, null);
     }
@@ -229,6 +232,10 @@ public class K8sService {
         final var kubeClient = getKubeClient(contextName);
         CoreV1Api api = new CoreV1Api(kubeClient);
         return api;
+    }
+
+    public KHandler getResourceHandler(String kind) {
+        return resourceHandlers.stream().filter(h -> h.getManagedKind().equals(kind)).findFirst().orElse(null);
     }
 
 }

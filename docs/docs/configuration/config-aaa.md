@@ -13,7 +13,7 @@ default:
   namespace: READ
   cluster: READ
   cluster_action: READ
-action:
+resource_action:
 resource:
 resource_grid:
 namespace:
@@ -30,4 +30,8 @@ need a default configured in the `default` section.
 
 The resource id can be a class name or a specific id. In case of `resource` is the
 kubernetes resource plural. In case of `namespace` is the namespace name.
+
+Special resource ids are:
+
+* resource_action: "de.mhus.kt2l.resources.ResourceDetailsPanel_write": WRITE
 
