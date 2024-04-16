@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -70,8 +71,8 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_CLUSTER_ACTION);
         clusterActions.stream()
-                .filter(action -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER_ACTION, action.getClass().getCanonicalName(), defaultRole ))
-                .sorted((a,b) -> Integer.compare(a.getPriority(), b.getPriority()) )
+                .filter(action -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER_ACTION, SecurityUtils.getResourceId(action), defaultRole ))
+                .sorted(Comparator.comparingInt(a -> a.getPriority()))
                 .forEach(action -> {
 
             var item = menuBar.addItem(action.getTitle(), click -> {

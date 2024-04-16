@@ -30,7 +30,6 @@ public class AaaConfiguration extends AbstractUserRelatedConfig {
 
     public Set<String> getRoles(String resourceScope, String resourceName) {
         final var values = config()
-                .getObject("roles").orElse(MTree.EMPTY_MAP)
                 .getObject(resourceScope).orElse(MTree.EMPTY_MAP)
                 .getString(resourceName, null);
         if (values == null) return null;

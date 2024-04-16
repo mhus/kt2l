@@ -4,6 +4,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.VaadinSession;
 import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import jakarta.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,14 @@ public class SecurityUtils {
             LOGGER.warn("Principal not found in request", new Throwable());
         }
         return principal;
+    }
+
+    public static String getResourceId(Object resource) {
+        if (resource == null) return null;
+        ResourceId idAnnotation = resource.getClass().getAnnotation(ResourceId.class);
+        if (idAnnotation != null)
+            return idAnnotation.value();
+        return MSystem.getClassName(resource);
     }
 
     boolean hasPrincipalRoles(Object resource, Set<String> roles) {

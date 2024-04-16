@@ -14,11 +14,22 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
+import org.springframework.security.crypto.password.StandardPasswordEncoder;
+import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @EnableWebSecurity
 @Configuration
@@ -87,12 +98,17 @@ public class SecurityConfiguration
             LOGGER.info("Add user {} with roles {}", u.name(), u.roles());
             var password = u.password();
             if (loginConfig.isAutoLogin() && u.name().equals(loginConfig.getAutoLoginUser())) {
-                password = "{noop}" + loginConfig.getLocalAutoLoginPassword();
-                LOGGER.info("Set autologin password for user {} to {}", u.name(), password);
+                var p = loginConfig.getLocalAutoLoginPassword();
+                password = passwordEncoder().encode(p);
+                LOGGER.info("Set autologin password for user {} to {}", u.name(), p);
             } else
-            if ("{generate}".equals(password)) {
-                password = "{noop}" + loginConfig.getLocalAutoLoginPassword();
-                LOGGER.info("Set login password for user {} to {}", u.name(), password);
+            if (password == null || "{generate}".equals(password)) {
+                var p = UUID.randomUUID().toString();
+                password = passwordEncoder().encode(p);
+                LOGGER.info("Set login password for user {} to {}", u.name(), p);
+            } else
+            if (password.startsWith("{env}")) {
+                password = passwordEncoder().encode(System.getenv(password.substring(5)));
             }
             userDetails.add(User.withUsername(u.name())
                     .password(password)
@@ -100,5 +116,23 @@ public class SecurityConfiguration
                     .build());
         });
         return new InMemoryUserDetailsManager(userDetails);
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        Map encoders = new HashMap();
+        encoders.put("bcrypt", new BCryptPasswordEncoder());
+        encoders.put("noop", NoOpPasswordEncoder.getInstance());
+        encoders.put("pbkdf2", Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5());
+        encoders.put("pbkdf2@SpringSecurity_v5_8", Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8());
+        encoders.put("scrypt", SCryptPasswordEncoder.defaultsForSpringSecurity_v4_1());
+        encoders.put("scrypt@SpringSecurity_v5_8", SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8());
+        encoders.put("argon2", Argon2PasswordEncoder.defaultsForSpringSecurity_v5_2());
+        encoders.put("argon2@SpringSecurity_v5_8", Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8());
+        encoders.put("sha256", new StandardPasswordEncoder());
+
+        PasswordEncoder passwordEncoder =
+                new DelegatingPasswordEncoder("bcrypt",encoders);
+        return passwordEncoder;
     }
 }

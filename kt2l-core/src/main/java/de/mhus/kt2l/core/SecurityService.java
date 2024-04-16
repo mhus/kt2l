@@ -55,7 +55,7 @@ public class SecurityService {
 
     public boolean hasRole(String resourceScope, Object resource) {
         if (resource == null) return false;
-        final var roles = configuration.getRoles(resourceScope, MSystem.getClassName(resource));
+        final var roles = configuration.getRoles(resourceScope, SecurityUtils.getResourceId(resource));
         if (roles != null) {
             return SecurityUtils.hasPrincipalRoles(roles);
         }
