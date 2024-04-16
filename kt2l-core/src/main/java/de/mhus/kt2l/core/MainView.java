@@ -26,6 +26,8 @@ import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.config.HelpConfiguration;
+import de.mhus.kt2l.help.HelpAction;
+import de.mhus.kt2l.help.LinkHelpAction;
 import de.mhus.kt2l.resources.pods.ContainerShellPanel;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
@@ -35,10 +37,7 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.annotation.PostConstruct;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Supplier;
@@ -61,6 +60,9 @@ public class MainView extends AppLayout {
 
     @Autowired
     private HelpConfiguration helpConfiguration;
+
+    @Autowired
+    private List<HelpAction> helpActions;
 
     private final transient AuthenticationContext authContext;
     private XTabBar tabBar;
@@ -201,24 +203,23 @@ public class MainView extends AppLayout {
         helpMenu.removeAll();
         var links = ctx.getLinks();
         links.forEach(
-                link -> {
-                    if (link.isEnabled()) {
-                        var item = helpMenu.addItem(link.getName(), event -> {
-                            if (link.isExternalLink()) {
-                                MSystem.openBrowserUrl(link.getHref());
-                            } else {
-                                helpBrowser.setSrc(link.getHref());
-                                showHelpBrowser();
-                                helpBrowser.reload();
-                            }
-                        });
-                        var icon = link.isExternalLink() ? VaadinIcon.EXTERNAL_LINK.create() : VaadinIcon.FILE_O.create();
-                        icon.getStyle().set("width", "var(--lumo-icon-size-s)");
-                        icon.getStyle().set("height", "var(--lumo-icon-size-s)");
-                        icon.getStyle().set("marginRight", "var(--lumo-space-s)");
-                        item.addComponentAsFirst(icon);
-                    }
+            link -> {
+                if (!link.isEnabled()) return;
+                var action = getHelpAction(link);
+                if (action == null) return;
+                link.setHelpAction(action);
+                var item = helpMenu.addItem(link.getName(), event -> {
+                    action.execute(this, link);
                 });
+                var icon = action.getIcon(link);
+                if (icon != null) {
+                    icon.getStyle().set("width", "var(--lumo-icon-size-s)");
+                    icon.getStyle().set("height", "var(--lumo-icon-size-s)");
+                    icon.getStyle().set("marginRight", "var(--lumo-space-s)");
+                    item.addComponentAsFirst(icon);
+                }
+            }
+        );
         if (helpContent.isVisible()) {
             if (!links.isEmpty())
                 helpMenu.add(new Hr());
@@ -228,17 +229,24 @@ public class MainView extends AppLayout {
                 updateHelpMenu(false);
             });
             if (setDefaultDocu) {
-                links.stream().filter(link -> !link.isExternalLink() && link.isDefault()).findFirst().ifPresent(
+                links.stream().filter(link ->
+                            link.getHelpAction() != null &&
+                            !(link.getHelpAction() instanceof LinkHelpAction) &&
+                            link.isDefault())
+                        .findFirst().ifPresent(
                         link -> {
-                            helpBrowser.setSrc(link.getHref());
-                            helpBrowser.reload();
+                            link.getHelpAction().execute(this, link);
                         }
                 );
             }
         }
     }
 
-    private void showHelpBrowser() {
+    private HelpAction getHelpAction(HelpConfiguration.HelpLink link) {
+        return helpActions.stream().filter(a -> a.canHandle(link)).findFirst().orElse(null);
+    }
+
+    public void showHelp() {
         if (helpContent.isVisible()) return;
         helpContent.setVisible(true);
         updateHelpMenu(true);
@@ -329,6 +337,19 @@ public class MainView extends AppLayout {
         synchronized (backgroundJobs) {
             return Optional.ofNullable(backgroundJobs.computeIfAbsent(clusterId, k -> new HashMap<>()).get(jobId));
         }
+    }
+
+    public void setHelpUrl(String url) {
+        helpContent.removeAll();
+        helpContent.add(helpBrowser);
+        helpBrowser.setSrc(url);
+        showHelp();
+        helpBrowser.reload();
+    }
+    public void setHelpPanel(Component helpComponent) {
+        helpContent.removeAll();
+        helpContent.add(helpComponent);
+        showHelp();
     }
 
 }

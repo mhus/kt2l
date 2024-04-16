@@ -2,44 +2,62 @@ windowWidth: 400px
 
 contexts:
   default:
+    - name: Chat Agent
+      action: ai
     - name: Documentation
+      action: docs
       document: index
-      default: true
     - name: Kubernetes
+      action: link
       href: https://kubernetes.io/docs/home/
   details:
+    - name: Chat Agent
+      action: ai
+      prompt: Answer with a new resources example. [resource] {{content}}
     - name: Details
+      action: docs
       document: details
       default: true
     - name: Kubernetes
+      action: link
       href: https://kubernetes.io/docs/home/
   resources:
     - name: Resources
+      action: docs
       document: resources
       default: true
     - name: Kubernetes
+      action: link
       href: https://kubernetes.io/docs/home/
   logs:
     - name: Logs
+      action: docs
       document: logs
       default: true
     - name: Kubernetes
+      action: link
       href: https://kubernetes.io/docs/home/
   shell:
     - name: Shell
+      action: docs
       document: shell
       default: true
     - name: Kubernetes
+      action: link
       href: https://kubernetes.io/docs/home/
   ai:
     - name: AI
+      action: docs
       document: ai
       default: true
     - name: Kubernetes
+      action: link
       href: https://kubernetes.io/docs/home/
   exec:
     - name: Exec
+      action: docs
       document: exec
       default: true
     - name: Kubernetes
+      action: link
       href: https://kubernetes.io/docs/home/

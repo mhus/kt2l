@@ -3,6 +3,7 @@ package de.mhus.kt2l.config;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNodeList;
+import de.mhus.kt2l.help.HelpAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,6 +55,7 @@ public class HelpConfiguration extends AbstractUserRelatedConfig {
     public static class HelpLink {
 
         private final ITreeNode link;
+        private HelpAction helpAction;
 
         private HelpLink(ITreeNode link) {
             this.link = link;
@@ -63,18 +65,12 @@ public class HelpConfiguration extends AbstractUserRelatedConfig {
             return link.getString("name").get();
         }
 
-        public String getHref() {
-            if (link.isProperty("document")) {
-                return "/public/docs/" + link.getString("document").get() + ".html";
-            }
-            if (link.isProperty("href")) {
-                return link.getString("href").get();
-            }
-            return "/public/default.html";
+        public String getAction() {
+            return link.getString("action").get();
         }
 
-        public boolean isExternalLink() {
-            return link.isProperty("href");
+        public ITreeNode getNode() {
+            return link;
         }
 
         public boolean isEnabled() {
@@ -83,6 +79,14 @@ public class HelpConfiguration extends AbstractUserRelatedConfig {
 
         public boolean isDefault() {
             return link.getBoolean("default", true);
+        }
+
+        public void setHelpAction(HelpAction helpAction) {
+            this.helpAction = helpAction;
+        }
+
+        public HelpAction getHelpAction() {
+            return helpAction;
         }
     }
 }

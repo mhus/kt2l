@@ -14,6 +14,7 @@ import de.f0rce.ace.enums.AceTheme;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
+import de.mhus.kt2l.ai.AiConnector;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
@@ -38,7 +39,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
-public class ResourceDetailsPanel extends VerticalLayout implements XTabListener {
+public class ResourceDetailsPanel extends VerticalLayout implements XTabListener, AiConnector {
 
     private final String resourceType;
     private final KubernetesObject resource;
@@ -269,5 +270,10 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
     @Override
     public void tabShortcut(ShortcutEvent event) {
 
+    }
+
+    @Override
+    public String getAiChatContent() {
+        return resYamlEditor.getValue();
     }
 }
