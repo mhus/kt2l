@@ -16,3 +16,7 @@ The goal of KT2L is to provide a tool to work with kubernetes clusters.
 4. Highly configurable environment.
 5. Role based user management enables the possibility for a read only application view.
 
+# License
+
+The software is licensed under the GPL 3.0 license. The software is free to use and modify. 
+The software is provided as is without any warranty. [See also GPLv3.](https://www.gnu.org/licenses/gpl-3.0.en.html)
