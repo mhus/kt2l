@@ -16,7 +16,6 @@
 # along with kt2l-server.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#set -x
 cd "$(dirname "$0")"
 cd ../target
 
@@ -74,7 +73,7 @@ aws s3 cp ../../kt2l-server.zip s3://kt2l-downloads/snapshots/$FILENAME || exit 
 echo "Copy kt2l-server.jar to aws cache"
 aws s3 cp ../../kt2l-server-0.0.1-SNAPSHOT.jar s3://kt2l-downloads/cache/kt2l-server.jar || exit 1
 echo "Copy kt2l-desktop.jar to aws cache"
-aws s3 cp ../../../kt2l-desktop/target/kt2l-desktop-0.0.1-SNAPSHOT.jar s3://kt2l-downloads/cache/kt2l-desktop.jar || exit 1
+aws s3 cp ../../../../kt2l-desktop/target/kt2l-desktop-0.0.1-SNAPSHOT.jar s3://kt2l-downloads/cache/kt2l-desktop.jar || exit 1
 
 # create download information
 CREATED=$NOW
