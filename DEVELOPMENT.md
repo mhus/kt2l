@@ -45,3 +45,12 @@
 * `kubectl run test --image mhus/playground-pod --rm -it`
 * `kubectl create job throw-dice-job --image=kodekloud/throw-dice`
 * [https://github.com/PSanetra/demo-pod] - `kubectl run --image psanetra/demo-pod demo-pod --port 8080 --expose`
+
+# Update dependencies
+
+```bash
+mvn versions:display-dependency-updates
+mvn versions:display-plugin-updates
+
+mvn versions:use-next-releases
+```

@@ -68,9 +68,13 @@ for e in "$ENTRIES"; do
     aws s3 rm "s3://kt2l-downloads/snapshots/$e"
 done
 
-# copy
+# copy to aws
 echo "Copy kt2l-server.zip to aws"
 aws s3 cp ../../kt2l-server.zip s3://kt2l-downloads/snapshots/$FILENAME || exit 1
+echo "Copy kt2l-server.jar to aws cache"
+aws s3 cp ../../kt2l-server-0.0.1-SNAPSHOT.jar s3://kt2l-downloads/cache/kt2l-server.jar || exit 1
+echo "Copy kt2l-desktop.jar to aws cache"
+aws s3 cp ../../../kt2l-desktop/target/kt2l-desktop-0.0.1-SNAPSHOT.jar s3://kt2l-downloads/cache/kt2l-desktop.jar || exit 1
 
 # create download information
 CREATED=$NOW
