@@ -15,7 +15,7 @@
 # along with kt2l.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-enabled: true
+enabled: false
 ollamaUrl: http://localhost:11434
 openAiKey:
 prompts:
