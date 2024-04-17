@@ -170,7 +170,7 @@
                         <artifactId>license-maven-plugin</artifactId>
                         <version>${license.plugin}</version>
                         <configuration>
-                            <aggregate>true</aggregate>
+                            <aggregate>false</aggregate>
                             <header>com/mycila/maven/plugin/license/templates/GPL-3.txt</header>
                             <properties>
                                 <owner>Mike Hummel</owner>
