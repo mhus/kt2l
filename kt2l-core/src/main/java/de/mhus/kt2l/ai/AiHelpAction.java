@@ -2,7 +2,7 @@ package de.mhus.kt2l.ai;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.config.HelpConfiguration;
+import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.core.MainView;
 import de.mhus.kt2l.help.HelpAction;
 import org.springframework.beans.factory.annotation.Autowired;

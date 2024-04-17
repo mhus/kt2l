@@ -1,4 +1,4 @@
-enabled: false
+enabled: true
 ollamaUrl: http://localhost:11434
 openAiKey:
 prompts:

@@ -22,10 +22,11 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.config.HelpConfiguration;
+import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.help.HelpAction;
 import de.mhus.kt2l.help.LinkHelpAction;
 import de.mhus.kt2l.resources.pods.ContainerShellPanel;
@@ -43,6 +44,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.function.Supplier;
 
 import static de.mhus.commons.tools.MCollection.detached;
+import static de.mhus.commons.tools.MCollection.notNull;
 
 @PermitAll
 @Route(value = "/")
@@ -98,19 +100,23 @@ public class MainView extends AppLayout {
         var content = new HorizontalLayout();
         content.setSizeFull();
         super.setContent(content);
-        helpContent = new VerticalLayout();
-        helpContent.setVisible(false);
-        helpContent.setWidth(helpConfiguration.getWindowWidth());
-        helpContent.setHeightFull();
-
-        helpBrowser = new IFrame();
-        helpBrowser.setSizeFull();
-        helpBrowser.getElement().setAttribute("frameborder", "0");
-        helpBrowser.setSrc("/public/docs/index.html");
-        helpContent.add(helpBrowser);
-        helpContent.setClassName("helpcontent");
         contentContainer = new VerticalLayout();
-        content.add(contentContainer, helpContent);
+
+        if (helpConfiguration.isEnabled()) {
+            helpContent = new VerticalLayout();
+            helpContent.setVisible(false);
+            helpContent.setWidth(helpConfiguration.getWindowWidth());
+            helpContent.setHeightFull();
+
+            helpBrowser = new IFrame();
+            helpBrowser.setSizeFull();
+            helpBrowser.getElement().setAttribute("frameborder", "0");
+            helpBrowser.setSrc("/public/docs/index.html");
+            helpContent.add(helpBrowser);
+            helpContent.setClassName("helpcontent");
+        }
+        content.add(notNull(contentContainer, helpContent));
+
     }
 
     @Override
@@ -165,11 +171,12 @@ public class MainView extends AppLayout {
                     tabTitle.setWidthFull();
                     tabTitle.addClassName("ktool-title");
 
-                    helpToggel = new Button(VaadinIcon.QUESTION_CIRCLE_O.create());
-                    helpMenu = new ContextMenu();
-                    helpMenu.setTarget(helpToggel);
-                    helpMenu.setOpenOnClick(true);
-
+                    if (helpConfiguration.isEnabled()) {
+                        helpToggel = new Button(VaadinIcon.QUESTION_CIRCLE_O.create());
+                        helpMenu = new ContextMenu();
+                        helpMenu.setTarget(helpToggel);
+                        helpMenu.setOpenOnClick(true);
+                    }
                     var space = new Span(" ");
 
 
@@ -178,9 +185,9 @@ public class MainView extends AppLayout {
                     }
                     if (userDetails != null && !userDetails.getUsername().equals("autologin")) { //XXX config
                         var logout = new Button("Logout", click -> authContext.logout());
-                        return new HorizontalLayout(new DrawerToggle(), createLogo(), tabTitle, logout, helpToggel,space);
+                        return new HorizontalLayout(notNull(new DrawerToggle(), createLogo(), tabTitle, logout, helpToggel,space));
                     }
-                    return new HorizontalLayout(new DrawerToggle(), createLogo(), tabTitle, helpToggel, space);
+                    return new HorizontalLayout(notNull(new DrawerToggle(), createLogo(), tabTitle, helpToggel, space));
 
                 }).orElse(
                         new HorizontalLayout(createLogo())
@@ -197,6 +204,7 @@ public class MainView extends AppLayout {
     }
     
     protected void updateHelpMenu(boolean setDefaultDocu) {
+        if (!helpConfiguration.isEnabled()) return;
 
         String helpContext = getTabBar().getSelectedTab().getHelpContext();
         var ctx = helpConfiguration.getContext(helpContext == null ? "default" : helpContext);
@@ -247,6 +255,7 @@ public class MainView extends AppLayout {
     }
 
     public void showHelp() {
+        if (!helpConfiguration.isEnabled()) return;
         if (helpContent.isVisible()) return;
         helpContent.setVisible(true);
         updateHelpMenu(true);
@@ -340,6 +349,7 @@ public class MainView extends AppLayout {
     }
 
     public void setHelpUrl(String url) {
+        if (!helpConfiguration.isEnabled()) return;
         helpContent.removeAll();
         helpContent.add(helpBrowser);
         helpBrowser.setSrc(url);
@@ -347,6 +357,7 @@ public class MainView extends AppLayout {
         helpBrowser.reload();
     }
     public void setHelpPanel(Component helpComponent) {
+        if (!helpConfiguration.isEnabled()) return;
         helpContent.removeAll();
         helpContent.add(helpComponent);
         showHelp();

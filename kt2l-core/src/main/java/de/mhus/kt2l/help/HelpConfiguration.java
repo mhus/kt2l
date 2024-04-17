@@ -1,13 +1,11 @@
-package de.mhus.kt2l.config;
+package de.mhus.kt2l.help;
 
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNodeList;
-import de.mhus.kt2l.help.HelpAction;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.mhus.kt2l.config.AbstractUserRelatedConfig;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +16,10 @@ public class HelpConfiguration extends AbstractUserRelatedConfig {
 
     public String getWindowWidth() {
         return config().getString("windowWidth", "300px");
+    }
+
+    public boolean isEnabled() {
+        return config().getBoolean("enabled", true);
     }
 
     public HelpConfiguration() {

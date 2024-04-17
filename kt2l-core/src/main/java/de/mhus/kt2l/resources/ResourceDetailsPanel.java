@@ -14,7 +14,7 @@ import de.f0rce.ace.enums.AceTheme;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
-import de.mhus.kt2l.ai.AiConnector;
+import de.mhus.kt2l.help.HelpResourceConnector;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
@@ -39,7 +39,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
-public class ResourceDetailsPanel extends VerticalLayout implements XTabListener, AiConnector {
+public class ResourceDetailsPanel extends VerticalLayout implements XTabListener, HelpResourceConnector {
 
     private final String resourceType;
     private final KubernetesObject resource;
@@ -273,7 +273,26 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
     }
 
     @Override
-    public String getAiChatContent() {
-        return resYamlEditor.getValue();
+    public String getHelpContent() {
+
+        return
+            "kind: " + resType.getKind() + "\n" +
+            "apiVersion: " + resType.getVersion() + "\n"
+            + resYamlEditor.getValue();
+    }
+
+    @Override
+    public boolean canSetHelpContent() {
+        return !resYamlEditor.isReadOnly();
+    }
+
+    @Override
+    public void setHelpContent(String content) {
+        content = content.replaceAll("kind: " + resType.getKind() + "\n", "");
+        content = content.replaceAll("apiVersion:.*\n", "");
+        final var contentFinal = content;
+        getUI().get().access(() -> {
+            resYamlEditor.setValue(contentFinal);
+        });
     }
 }

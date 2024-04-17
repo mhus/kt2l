@@ -1,5 +1,6 @@
 package de.mhus.kt2l.config;
 
+import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.ITreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,17 @@ public class LoginConfiguration extends AbstractSingleConfig {
 
     public LoginConfiguration() {
         super("login", true);
+    }
+
+    @PostConstruct
+    public void init() {
+        super.init();
+        config().getString("protectedConfigurations").ifPresent(protectedConfigurations -> {
+            for (String protectedConfiguration : protectedConfigurations.split(",")) {
+                if (MString.isSetTrim(protectedConfiguration))
+                    configuration.addProtectedConfiguration(protectedConfiguration.trim());
+            }
+        });
     }
 
     public boolean isAutoLogin() {
