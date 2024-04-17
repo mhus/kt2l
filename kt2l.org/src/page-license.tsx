@@ -8,6 +8,7 @@ export default function pageLicense() {
                     <p className="mt-6 text-lg leading-8 text-gray-600">
                         The software is licensed under the GPL 3.0 license. The software is free to use and modify.
                         The software is provided as is without any warranty. <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">See also GPLv3.</a>
+                    </p>
                 </div>
             </div>
         </div>
