@@ -45,19 +45,17 @@ jobs:
           mkdir -p kt2l-server/target
           cd kt2l-server/target
 
-          ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|sed "s/  / /g"|cut -d ' ' -f 4|grep -e ^kt2l-server)
-          echo Found $ENTRIES
-          FILENAME=$ENTRIES
-          for e in "$ENTRIES"; do
-            FILENAME=$e
-          done
-          echo "Download $FILENAME"
-          aws s3 cp s3://kt2l-downloads/snapshots/$FILENAME kt2l-server.zip || exit 1
-          unzip kt2l-server.zip || exit 1
-          cp kt2l-server/kt2l-server-0.0.1-SNAPSHOT.jar . || exit 1
+          echo "Download kt2l-desktop.jar from cache"
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop.jar kt2l-desktop-0.0.1-SNAPSHOT.jar || exit 1
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
       - name: create Mac desktop bundle
         run: ./kt2l-desktop/launcher/create-mac.sh
+      - name: Deploy Mac desktop bundle
+        run: ./kt2l-desktop/launcher/deploy-mac.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
