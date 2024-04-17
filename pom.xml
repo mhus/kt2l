@@ -17,7 +17,32 @@
     <properties>
         <java.version>21</java.version>
         <vaadin.version>24.3.5</vaadin.version> <!--23.3.33 - 24.3.5-->
+        <tmpl.plugin>1.1.0</tmpl.plugin>
+        <license.plugin>2.11.1</license.plugin>
     </properties>
+
+    <inceptionYear>2024</inceptionYear>
+    <licenses>
+        <license>
+            <name>GNU GENERAL PUBLIC LICENSE GPLv3</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>mhu</id>
+            <name>Mike Hummel</name>
+            <email>mh@mhus.de</email>
+            <url>http://www.mhus.de</url>
+        </developer>
+    </developers>
+    <scm>
+        <url>https://github.com/mhus/kt2l</url>
+        <connection>scm:git:https://github.com/mhus/kt2l/</connection>
+        <tag>HEAD</tag>
+    </scm>
+
     <dependencyManagement>
         <dependencies>
 
@@ -128,12 +153,52 @@
         </repository>
     </repositories>
 
-
     <modules>
         <module>vaadin-xterm-addon</module>
         <module>kt2l-core</module>
         <module>kt2l-desktop</module>
         <module>kt2l-server</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>deploy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>de.mhus.mvn.plugin</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <version>${license.plugin}</version>
+                        <configuration>
+                            <aggregate>true</aggregate>
+                            <header>com/mycila/maven/plugin/license/templates/GPL-3.txt</header>
+                            <properties>
+                                <owner>Mike Hummel</owner>
+                                <email>mh@mhus.de</email>
+                            </properties>
+                            <excludes>
+                                <exclude>README.*</exclude>
+                                <exclude>readme.*</exclude>
+                                <exclude>LICENSE</exclude>
+                                <exclude>LICENSE_HEADER</exclude>
+                                <exclude>src/test/resources/**</exclude>
+                                <exclude>src/main/resources/**</exclude>
+                                <exclude>mhu-liferay-theme/src/main/webapp/**</exclude>
+                                <exclude>docs/**</exclude>
+                            </excludes>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>format</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
