@@ -36,9 +36,11 @@
 
 
 cd "$(dirname "$0")"
+cd ..
 
-PID_FILE=kt2l-server.pid
-LOG_FILE=kt2l-server.log
+PID_FILE=var/kt2l-server.pid
+LOG_FILE=var/logs/kt2l-server.log
+RUN=./bin/run.sh
 . ./env.sh
 
 function wait_for_pid {
@@ -76,7 +78,7 @@ case $1 in
             fi
         fi
 
-        nohup ./run.sh > $LOG_FILE 2>&1 &
+        nohup $RUN > $LOG_FILE 2>&1 &
         echo $! > $PID_FILE
         echo "kt2l-server started on $(cat $PID_FILE)"
         ;;

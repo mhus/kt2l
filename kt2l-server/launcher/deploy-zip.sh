@@ -72,7 +72,7 @@ fi
 
 
 FILENAME=kt2l-server-$NOW.zip
-TITLE="Server Bundled"
+TITLE="Server ZIP"
 DESCRIPTION="Can be started as Server and accessed via Browser, locally also. Java JDK 21 is required."
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
 
