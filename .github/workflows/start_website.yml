@@ -24,7 +24,6 @@ on:
 jobs:
 
   website:
-    needs: [mac, windows, documentation]
     runs-on: ubuntu-latest
     steps:
       - run: |
