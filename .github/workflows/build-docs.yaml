@@ -29,7 +29,9 @@ jobs:
   deploy:
     permissions: write-all
     runs-on: ubuntu-latest
-
+    concurrency:
+      group: deploy_page
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 

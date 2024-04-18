@@ -29,6 +29,9 @@ jobs:
   release:
     runs-on: self-hosted
     permissions: write-all
+    concurrency:
+      group: deploy_page
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -59,9 +62,6 @@ jobs:
       - name: create Mac desktop bundle
         run: ./kt2l-desktop/launcher/create-mac.sh
       - name: Deploy Mac desktop bundle
-        concurrency:
-          group: deploy_page
-          cancel-in-progress: false
         run: ./kt2l-desktop/launcher/deploy-mac.sh
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

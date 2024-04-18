@@ -26,6 +26,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions: write-all
+    concurrency:
+      group: deploy_page
+      cancel-in-progress: false
     steps:
 
       - uses: actions/checkout@v4
@@ -57,18 +60,12 @@ jobs:
       - name: Build Server Container
         run: ./kt2l-server/launcher/create-container.sh
       - name: Deploy Server ZIP
-        concurrency:
-          group: deploy_page
-          cancel-in-progress: false
         run: ./kt2l-server/launcher/deploy-zip.sh
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
       - name: Deploy Server Container
-        concurrency:
-          group: deploy_page
-          cancel-in-progress: false
         run: ./kt2l-server/launcher/deploy-container.sh
         env:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
