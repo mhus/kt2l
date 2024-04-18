@@ -27,7 +27,8 @@ on:
 jobs:
 
   release:
-    runs-on: self-hosted
+#    runs-on: self-hosted
+    runs-on: macos-latest
     permissions: write-all
     concurrency:
       group: deploy_page
