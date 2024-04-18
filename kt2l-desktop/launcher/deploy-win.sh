@@ -60,6 +60,6 @@ fi
 
 # copy
 echo "Copy KT2L.exe to aws"
-aws s3 cp ../../KT2L.exe s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
+aws s3 cp ../KT2L.exe s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
 echo "Copy download-snapshot-desktop-win.ts to cache"
 aws s3 cp download-snapshot-desktop-win.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-win.ts --quiet || exit 1
