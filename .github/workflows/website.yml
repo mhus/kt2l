@@ -1,4 +1,4 @@
-name: Deploy Website CI
+name: Website
 
 on:
   push:
@@ -6,6 +6,8 @@ on:
       - gh-pages
     paths:
       - 'kt2l.org/**'
+  repository_dispatch:
+    types: webhook
 jobs:
   build:
     permissions: write-all
