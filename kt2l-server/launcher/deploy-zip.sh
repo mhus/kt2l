@@ -52,10 +52,12 @@ HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
 echo "Cleanup old snapshots in aws"
 ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|sed "s/  / /g"|cut -d ' ' -f 4|grep -e ^kt2l-server-)
 echo Found $ENTRIES
-for e in "$ENTRIES"; do
-    echo "Delete $e"
-    aws s3 rm "s3://kt2l-downloads/snapshots/$e"
-done
+if [ ! -z "$ENTRIES" ]; then
+    for e in "$ENTRIES"; do
+        echo "Delete $e"
+        aws s3 rm "s3://kt2l-downloads/snapshots/$e"
+    done
+fi
 
 # copy to aws
 echo "Copy kt2l-server.zip to aws"
