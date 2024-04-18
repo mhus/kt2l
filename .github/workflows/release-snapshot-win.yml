@@ -15,7 +15,7 @@
 # along with kt2l.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-name: Release snapshot mac
+name: Release snapshot win
 
 on:
   workflow_dispatch:
