@@ -9,12 +9,25 @@ Hello!
 
 The goal of KT2L is to provide a tool to work with kubernetes clusters.
 
-1. Full web based tool which uses the power of web to provide more support for the administrator
-   then pure shell based tools. e.g. direct links to the related documentation, context menus.
-2. Enable keyboard navigation to the greatest extent possible in the web browser.
-3. Clever solutions to support administrators.
-4. Highly configurable environment.
-5. Role based user management enables the possibility for a read only application view.
+* A comprehensive web-based tool harnessing the capabilities of the web to offer enhanced support 
+  for administrators compared to traditional shell-based tools. For instance, it includes direct 
+  links to relevant documentation and context menus.
+* Facilitate extensive keyboard navigation within the web browser for improved accessibility.
+* Implement ingenious solutions to assist administrators in their tasks effectively.
+* Offer a highly customizable environment, allowing tailored configurations to suit specific needs.
+* Incorporate role-based user management, allowing for a read-only application view for certain users.
+* Support the administrator in their daily tasks by providing intelligent insights, automating routine 
+  tasks, and enhancing decision-making processes.
+* Role-based resources and user management.
+* Help system for administrators using active assistance systems like AI chatbots or snippets and 
+  examples library.
+* Ensures robust security measures are in place to safeguard sensitive data and system integrity.
+
+# Applications
+
+* As local administrative tooling for Kubernetes clusters.
+* As remote administrative tooling for Kubernetes clusters.
+* As a view-only tool for Kubernetes clusters for non-administrative users.
 
 # License
 

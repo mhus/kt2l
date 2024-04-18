@@ -14,3 +14,9 @@ the application in /Applications you can run it like each other application.
 
 It will use autologin and create a `.kt2l` directory in user home by default.
 
+## Windows Bundle
+
+The bundle is a exe file which contains the application. If you download it
+you can use it as native windows application.
+
+It will use autologin and create a `.kt2l` directory in user home by default.
