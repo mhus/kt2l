@@ -117,7 +117,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
         image.setMaxWidth("800px");
         add(image);
 
-        Div version = new Div("Version: " + DeployInfo.VERSION + " (" + DeployInfo.CREATED + ")");
+        Div version = new Div("Version: " + DeployInfo.VERSION + " (" + MString.beforeIndexOrAll(DeployInfo.CREATED, ' ') + ")");
         version.addClassName("version");
         add(version);
 
