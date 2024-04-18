@@ -72,6 +72,7 @@ jobs:
           DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
 
   mac:
+    needs: build
     #    runs-on: self-hosted
     runs-on: macos-latest
     permissions: write-all
@@ -115,6 +116,7 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
 
   windows:
+    needs: build
     runs-on: windows-2022
     permissions: write-all
     concurrency:
@@ -208,6 +210,7 @@ jobs:
           git commit -m "Update docs"
           git push
   website:
+    needs: [mac, windows, documentation]
     runs-on: ubuntu-latest
     steps:
       - run: |
