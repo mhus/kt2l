@@ -4,6 +4,6 @@ package de.mhus.kt2l.generated;
 public class DeployInfo {
 
     public static final String VERSION = "0.0.1-SNAPSHOT";
-    public static final String CREATED = "2024-04-18 20:17:51";
+    public static final String CREATED = "2024-04-18";
 
 }
