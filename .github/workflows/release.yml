@@ -52,8 +52,8 @@ jobs:
         run: |
           git config --global user.name 'Robot'
           git config --global user.email 'mhus@users.noreply.github.com'
-          git commit -am "Build ${{ github.run_id }}"
-          git push
+          git commit -am "Build ${{ github.run_id }}" || true
+          git push || true
       - name: Build Server ZIP
         run: ./kt2l-server/launcher/create-zip.sh
       - name: Build Server Container
