@@ -1,0 +1,72 @@
+#
+# This file is part of kt2l.
+#
+# kt2l is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# kt2l is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with kt2l.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+name: Release snapshot mac
+
+on:
+  workflow_dispatch:
+#  workflow_run:
+#    workflows: ["Release snapshot"]
+#    types:
+#      - completed
+
+jobs:
+
+  release:
+    runs-on: windows-2022
+    permissions: write-all
+    concurrency:
+      group: deploy_page
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.1.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: download server binaries
+        shell: bash
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
+              echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
+              exit 1
+          fi
+          if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+              echo "Fatal: AWS_SECRET_ACCESS_KEY not correct set"
+              exit 1
+          fi
+
+          echo "Download kt2l-desktop.jar from cache"
+          mkdir -p kt2l-desktop/target
+          cd kt2l-desktop/target
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop.jar kt2l-desktop-0.0.1-SNAPSHOT.jar --quiet || exit 1
+
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+      - name: create Windows desktop bundle
+        shell: cmd
+        run: ./kt2l-desktop/launcher/create-mac.bat
+      - name: Deploy Mac desktop bundle
+        shell: bash
+        run: ./kt2l-desktop/launcher/deploy-win.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
