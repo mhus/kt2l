@@ -1,14 +1,11 @@
 name: Deploy Website CI
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - gh-pages
-  workflow_run:
-    workflows: ["Release snapshot", "Release snapshot mac"]
-    types:
-      - completed
+    paths:
+      - 'kt2l.org/**'
 jobs:
   build:
     permissions: write-all
