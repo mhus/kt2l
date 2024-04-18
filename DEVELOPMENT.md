@@ -54,3 +54,11 @@ mvn versions:display-plugin-updates
 
 mvn versions:use-next-releases
 ```
+
+# Recreate custom.css in kt2l-core
+
+```bash
+mvn clean package -Pproduction -Dvaadin.force.production.build=true
+```
+
+and rerun the application.

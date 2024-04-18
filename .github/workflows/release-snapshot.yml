@@ -45,7 +45,13 @@ jobs:
       - name: Prepare
         run: ./kt2l-desktop/launcher/prepare.sh
       - name: Build maven
-        run: mvn clean install -B -Pproduction -Dspring.profiles.active=prod
+        run: mvn clean install -B -Pdeploy -Pproduction -Dspring.profiles.active=prod
+      - name: Commit maybe changes to git
+        run: |
+          git config --global user.name 'Robot'
+          git config --global user.email 'mhus@users.noreply.github.com'
+          git commit -am "Build ${{ github.run_id }}"
+          git push
       - name: Build Server ZIP
         run: ./kt2l-server/launcher/create-zip.sh
       - name: Build Server Container

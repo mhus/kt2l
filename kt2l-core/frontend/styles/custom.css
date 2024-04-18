@@ -178,3 +178,8 @@ div.error-exception {
     color: #000;
     font-size: 12px;
 }
+div.version {
+    color: #c3c3c3;
+    font-size: 12px;
+    font-style: italic;
+}

@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
+    kt2l - KT2L (ktool) is a web based tool to manage your kubernetes clusters.
+    Copyright © 2024 Mike Hummel (mh@mhus.de)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!--
+
     This file is part of kt2l.
 
     kt2l is free software: you can redistribute it and/or modify
@@ -30,13 +49,13 @@
     <artifactId>kt2l-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>kt2l</name>
-    <description>Demo project for Spring Boot</description>
+    <description>KT2L (ktool) is a web based tool to manage your kubernetes clusters.</description>
     <packaging>pom</packaging>
     <properties>
         <java.version>21</java.version>
         <vaadin.version>24.3.9</vaadin.version> <!--23.3.33 - 24.3.5-->
-        <tmpl.plugin>1.1.0</tmpl.plugin>
-        <license.plugin>2.11.1</license.plugin>
+        <tmpl.plugin>2.2.1</tmpl.plugin>
+        <license.plugin>4.3</license.plugin>
         <maven.version>3.2.5</maven.version>
     </properties>
 
@@ -236,7 +255,7 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>de.mhus.mvn.plugin</groupId>
+                        <groupId>com.mycila</groupId>
                         <artifactId>license-maven-plugin</artifactId>
                         <version>${license.plugin}</version>
                         <configuration>
@@ -269,6 +288,27 @@
                                 <phase>validate</phase>
                                 <goals>
                                     <goal>format</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>de.mhus.mvn</groupId>
+                        <version>${tmpl.plugin}</version>
+                        <artifactId>tmpl-maven-plugin</artifactId>
+                        <configuration>
+                            <files>
+                                <directory>${basedir}</directory>
+                                <includes>
+                                    <include>**/*</include>
+                                </includes>
+                            </files>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>tmpl</goal>
                                 </goals>
                             </execution>
                         </executions>
