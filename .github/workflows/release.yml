@@ -1,0 +1,209 @@
+
+#
+# This file is part of kt2l.
+#
+# kt2l is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# kt2l is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with kt2l.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    concurrency:
+      group: deploy_page
+      cancel-in-progress: false
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.1.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+#      - name: Checkout mhus-commons
+#        run: git clone https://github.com/mhus/mhus-commons.git
+#      - name: Build mhus-commons
+#        run: cd mhus-commons && mvn clean install -B -U
+#      - name: Cleanup mhus-commons
+#        run: rm -rf mhus-commons
+      - name: Prepare
+        run: ./kt2l-desktop/launcher/prepare.sh
+      - name: Build maven
+        run: mvn clean install -B -Pdeploy -Pproduction -Dspring.profiles.active=prod
+      - name: Commit maybe changes to git
+        run: |
+          git config --global user.name 'Robot'
+          git config --global user.email 'mhus@users.noreply.github.com'
+          git commit -am "Build ${{ github.run_id }}"
+          git push
+      - name: Build Server ZIP
+        run: ./kt2l-server/launcher/create-zip.sh
+      - name: Build Server Container
+        run: ./kt2l-server/launcher/create-container.sh
+      - name: Deploy Server ZIP
+        run: ./kt2l-server/launcher/deploy-zip.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+      - name: Deploy Server Container
+        run: ./kt2l-server/launcher/deploy-container.sh
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+
+  mac:
+    #    runs-on: self-hosted
+    runs-on: macos-latest
+    permissions: write-all
+    concurrency:
+      group: deploy_page
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.1.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: download server binaries
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
+              echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
+              exit 1
+          fi
+          if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+              echo "Fatal: AWS_SECRET_ACCESS_KEY not correct set"
+              exit 1
+          fi
+
+          echo "Download kt2l-desktop.jar from cache"
+          mkdir -p kt2l-desktop/target
+          cd kt2l-desktop/target
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop.jar kt2l-desktop-0.0.1-SNAPSHOT.jar --quiet || exit 1
+
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+      - name: create Mac desktop bundle
+        run: ./kt2l-desktop/launcher/create-mac.sh
+      - name: Deploy Mac desktop bundle
+        run: ./kt2l-desktop/launcher/deploy-mac.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+
+  windows:
+    runs-on: windows-2022
+    permissions: write-all
+    concurrency:
+      group: deploy_page
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.1.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: download server binaries
+        shell: bash
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
+              echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
+              exit 1
+          fi
+          if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+              echo "Fatal: AWS_SECRET_ACCESS_KEY not correct set"
+              exit 1
+          fi
+
+          echo "Download kt2l-desktop.jar from cache"
+          mkdir -p kt2l-desktop/target
+          cd kt2l-desktop/target
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop.jar kt2l-desktop-0.0.1-SNAPSHOT.jar --quiet || exit 1
+
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+      - name: create Windows desktop bundle
+        shell: cmd
+        run: kt2l-desktop/launcher/create-win.bat
+      - name: Deploy Windows desktop bundle
+        shell: bash
+        run: ./kt2l-desktop/launcher/deploy-win.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+
+  documentation:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy_page
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      #      - name: Generate Javadoc
+      #        run: mvn javadoc:aggregate -DskipTests
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      - run: cd docs && npm ci
+      - run: cd docs && npm run build
+      #      - run: cp -R target/site/apidocs docs/build/
+      - name: Setup gh-pages
+        run: git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages
+      - name: Copy content
+        run: cd gh-pages/docs; rm -rf docs;cp -r ../../docs/build docs
+      - name: prepare git config
+        run: |
+          cd gh-pages
+          pwd
+          echo "[gc]" >> .git/config
+          echo "	auto = 0" >> .git/config
+          echo "[http \"https://github.com/\"]" >> .git/config
+          cat ../.git/config|grep "extraheader" >> .git/config
+      - name: commit
+        run: |
+          set -x
+          cd gh-pages
+          git add docs/docs
+          git config --global user.name 'Robot'
+          git config --global user.email 'mhus@users.noreply.github.com'
+          git commit -m "Update docs"
+          git push
