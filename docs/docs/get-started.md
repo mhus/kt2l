@@ -14,9 +14,9 @@ sidebar_position: 5
   if you try to access GKE or EKS clouds.
 * ***Kubernetes Container***: You can also use the software as a kubernetes container. This will allow you to manage the cluster
   from within the cluster or allow non admin users to access the cluster.
-* ***Local Mac OSX (M1) Bundle****: This is a software bundle with the server, Java RJE and a Browser Application. It will run
+* ***Local Mac OSX (M1) Bundle***: This is a software bundle with the server, Java RJE and a Browser Application. It will run
   as mac native application.
-* ***Local Windows Bundle****: This is a windows executable bundle with the server, Java JRE and a Browser Application. It
+* ***Local Windows Bundle***: This is a windows executable bundle with the server, Java JRE and a Browser Application. It
   will run as windows native application.
 
 ## Download
