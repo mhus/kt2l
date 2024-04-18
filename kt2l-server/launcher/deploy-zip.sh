@@ -50,7 +50,7 @@ HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
 
 # cleanup
 echo "Cleanup old snapshots in aws"
-ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|sed "s/  / /g"|cut -d ' ' -f 4|grep -e ^kt2l-server-)
+ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|cut -b 32-|grep -e ^kt2l-server-)
 echo Found $ENTRIES
 if [ ! -z "$ENTRIES" ]; then
     for e in "$ENTRIES"; do
