@@ -67,15 +67,11 @@ done
 
 # copy
 echo "Copy KT2L.dmg to aws"
-aws s3 cp ../../launcher/KT2L.dmg s3://kt2l-downloads/snapshots/$FILENAME || exit 1
+aws s3 cp ../../launcher/KT2L.dmg s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
 
 # create download information
-cat kt2l.org/templates/download.ts \
- | sed s/xhrefx/"$HREF"/g \
- | sed s/xcreatedx/"$NOW"/g \
- | sed s/xtitlex/"$TITLE"/g \
- | sed s/xdescriptionx/"$DESCRIPTION"/g \
- > kt2l.org/src/downloads/download-snapshot-desktop-mac.ts  || exit 1
+CREATED=$NOW
+. ./kt2l.org/templates/download.ts.sh > kt2l.org/src/downloads/download-snapshot-desktop-mac.ts
 
 git config --global user.name 'Robot'
 git config --global user.email 'mhus@users.noreply.github.com'

@@ -46,7 +46,7 @@ jobs:
           echo "Download kt2l-desktop.jar from cache"
           mkdir -p kt2l-desktop/target
           cd kt2l-desktop/target
-          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop.jar kt2l-desktop-0.0.1-SNAPSHOT.jar || exit 1
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop.jar kt2l-desktop-0.0.1-SNAPSHOT.jar --quiet || exit 1
 
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
