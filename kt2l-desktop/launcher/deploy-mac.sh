@@ -55,24 +55,15 @@ rm -rf deploy
 mkdir deploy
 cd deploy
 
-NOW=$(date +"%Y-%m-%d")
+CREATED=$(date +"%Y-%m-%d")
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
-cd gh-pages
 
-if [ "$(grep -c "extraheader" ../../../../.git/config)" -gt "0" ]; then
-  set -x
-  cd gh-pages
-  pwd
-  echo "[gc]" >> .git/config
-  echo "	auto = 0" >> .git/config
-  echo "[http \"https://github.com/\"]" >> .git/config
-  cat ../../../../.git/config|grep "extraheader" >> .git/config
-fi
-
-FILENAME=kt2l-desktop-mac-$NOW.dmg
+FILENAME=kt2l-desktop-mac-$CREATED.dmg
 TITLE="Desktop Mac OSX Bundled"
 DESCRIPTION="Can be executed directly in Mac OS X M1. Java JDK 21 is included."
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
+# create download information
+. ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-mac.ts
 
 # cleanup
 echo "Cleanup old snapshots in aws"
@@ -85,14 +76,7 @@ done
 
 # copy
 echo "Copy KT2L.dmg to aws"
-aws s3 cp ../../launcher/KT2L.dmg s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
-
-# create download information
-CREATED=$NOW
-. ./kt2l.org/templates/download.ts.sh > kt2l.org/src/downloads/download-snapshot-desktop-mac.ts
-
-git config --global user.name 'Robot'
-git config --global user.email 'mhus@users.noreply.github.com'
-git commit -am "Update desktop mac snapshot $NOW"
-git push
+aws s3 cp ../launcher/KT2L.dmg s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
+echo "Copy download-snapshot-desktop-mac.ts to cache"
+aws s3 cp download-snapshot-desktop-mac.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-mac.ts --quiet || exit 1
 

@@ -38,24 +38,14 @@ rm -rf deploy
 mkdir deploy
 cd deploy
 
-NOW=$(date +"%Y-%m-%d")
+CREATED=$(date +"%Y-%m-%d")
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
-cd gh-pages
-
-if [ "$(grep -c "extraheader" ../../../../.git/config)" -gt "0" ]; then
-  set -x
-  cd gh-pages
-  pwd
-  echo "[gc]" >> .git/config
-  echo "	auto = 0" >> .git/config
-  echo "[http \"https://github.com/\"]" >> .git/config
-  cat ../../../../.git/config|grep "extraheader" >> .git/config
-fi
 
 FILENAME=kt2l-desktop-win-$NOW.exe
 TITLE="Desktop Windows Bundled"
 DESCRIPTION="Can be executed directly in Windows. Java JDK 21 is included."
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
+. ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-win.ts
 
 # cleanup
 echo "Cleanup old snapshots in aws"
@@ -69,13 +59,5 @@ done
 # copy
 echo "Copy KT2L.exe to aws"
 aws s3 cp ../../KT2L.exe s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
-
-# create download information
-CREATED=$NOW
-. ./kt2l.org/templates/download.ts.sh > kt2l.org/src/downloads/download-snapshot-desktop-win.ts
-
-git config --global user.name 'Robot'
-git config --global user.email 'mhus@users.noreply.github.com'
-git commit -am "Update desktop windows snapshot $NOW"
-git push
-
+echo "Copy download-snapshot-desktop-win.ts to cache"
+aws s3 cp download-snapshot-desktop-win.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-win.ts --quiet || exit 1

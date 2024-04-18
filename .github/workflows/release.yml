@@ -20,19 +20,18 @@ name: Release
 
 on:
   workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
   build:
     runs-on: ubuntu-latest
     permissions: write-all
-    concurrency:
-      group: deploy_page
-      cancel-in-progress: false
     steps:
 
       - uses: actions/checkout@v4
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4.1.0
         with:
@@ -70,15 +69,15 @@ jobs:
         env:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
 
   mac:
     needs: build
     #    runs-on: self-hosted
     runs-on: macos-latest
     permissions: write-all
-    concurrency:
-      group: deploy_page
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -119,9 +118,6 @@ jobs:
     needs: build
     runs-on: windows-2022
     permissions: write-all
-    concurrency:
-      group: deploy_page
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
