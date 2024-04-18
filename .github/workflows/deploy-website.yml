@@ -1,15 +1,21 @@
-name: Node.js CI
+name: Deploy Website CI
 
 on:
   workflow_dispatch:
   push:
     branches:
       - gh-pages
-
+  workflow_run:
+    workflows: ["Release snapshot", "Release snapshot mac"]
+    types:
+      - completed
 jobs:
   build:
     permissions: write-all
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy_page
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js
