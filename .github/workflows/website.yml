@@ -37,6 +37,7 @@ jobs:
 #      - run: npm test
       - run: rm -rf docs/static
       - run: cp -r kt2l.org/build/* docs/
+      - run: date > docs/lastupdate.txt
       - name: commit snapshot
         if: ${{ !startsWith(github.event.head_commit.message, 'wip:') }}
         run: |
