@@ -15,11 +15,15 @@
 # along with kt2l.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-name: Build and Publish Docs to GitHub Pages
+name: Build docs
 
 on:
   # Allow running this workflow manually from the Actions tab
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Release snapshot"]
+    types:
+      - completed
 
 jobs:
   deploy:
