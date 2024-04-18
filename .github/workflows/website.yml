@@ -7,7 +7,6 @@ on:
     paths:
       - 'kt2l.org/**'
   repository_dispatch:
-    types: webhook
 jobs:
   build:
     permissions: write-all
