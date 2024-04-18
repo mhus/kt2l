@@ -50,4 +50,4 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 
 * https://tailwindcss.com/docs/guides/nextjs
 
-X
+
