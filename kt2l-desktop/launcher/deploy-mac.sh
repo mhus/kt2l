@@ -24,8 +24,11 @@ if [ ! -f launcher/KT2L.dmg ]; then
     echo "Fatal: KT2L.dmg not found"
     exit 1
 fi
-
-if [ "x$AWS_ACCESS_KEY_ID" -ne "xAKIASJLQRE2PBBXZ34PC" ]; then
+if [ -z "$AWS_ACCESS_KEY_ID" ]; then
+    echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
+    exit 1
+fi
+if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
     echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
     exit 1
 fi
