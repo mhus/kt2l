@@ -16,6 +16,18 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
+      - name: Import download templates
+        run: |
+          ENTRIES=$(aws s3 ls kt2l-downloads/cache/downloads/|sed "s/  / /g"|cut -d ' ' -f 4|grep -e ^download-)
+          echo Found $ENTRIES
+          for e in "$ENTRIES"; do
+            echo "Copy $e"
+            aws s3 cp "s3://kt2l-downloads/cache/downloads/$e kt2l.org/src/downloads/$e" --quiet || exit 1
+          done
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
