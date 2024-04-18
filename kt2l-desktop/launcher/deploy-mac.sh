@@ -70,7 +70,7 @@ echo "Cleanup old snapshots in aws"
 ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|cut -b 32-|grep -e ^kt2l-desktop-mac-)
 echo Found $ENTRIES
 if [ ! -z "$ENTRIES" ]; then
-  for e in $ENTRIES; do
+  for e in $(echo $ENTRIES); do
       echo "Delete $e"
       aws s3 rm "s3://kt2l-downloads/snapshots/$e"
   done
