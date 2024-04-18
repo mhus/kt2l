@@ -20,7 +20,7 @@ jobs:
         run: |
           ENTRIES=$(aws s3 ls kt2l-downloads/cache/downloads/ --no-paginate|cut -b 32-|grep -e ^download-)
           echo Found $ENTRIES
-          for e in "$ENTRIES"; do
+          for e in $(echo $ENTRIES); do
             echo "Copy $e"
             aws s3 cp "s3://kt2l-downloads/cache/downloads/$e kt2l.org/src/downloads/$e" --quiet || exit 1
           done
