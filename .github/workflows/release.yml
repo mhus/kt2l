@@ -196,6 +196,7 @@ jobs:
           echo "	auto = 0" >> .git/config
           echo "[http \"https://github.com/\"]" >> .git/config
           cat ../.git/config|grep "extraheader" >> .git/config
+      - run: date > gh-pages/docs/docs/lastupdate.txt
       - name: commit
         run: |
           set -x
