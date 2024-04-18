@@ -62,7 +62,7 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
       - name: create Windows desktop bundle
         shell: cmd
-        run: ./kt2l-desktop/launcher/create-mac.bat
+        run: kt2l-desktop/launcher/create-mac.bat
       - name: Deploy Mac desktop bundle
         shell: bash
         run: ./kt2l-desktop/launcher/deploy-win.sh
