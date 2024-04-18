@@ -20,8 +20,9 @@
 cd "$(dirname "$0")"
 cd ../target
 
-if [ ! -f launcher/KT2L.exe ]; then
+if [ ! -f KT2L.exe ]; then
     echo "Fatal: KT2L.exe not found"
+    ls -la
     exit 1
 fi
 if [ -z "$AWS_ACCESS_KEY_ID" ]; then
@@ -67,7 +68,7 @@ done
 
 # copy
 echo "Copy KT2L.exe to aws"
-aws s3 cp ../../launcher/KT2L.exe s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
+aws s3 cp ../../KT2L.exe s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
 
 # create download information
 CREATED=$NOW
