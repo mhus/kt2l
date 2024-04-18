@@ -1,5 +1,6 @@
 import { CloudArrowDownIcon } from '@heroicons/react/24/outline'
 import {download as snapshotDesktopMacDownload} from './downloads/download-snapshot-desktop-mac';
+import {download as snapshotDesktopWinDownload} from './downloads/download-snapshot-desktop-win';
 import {download as snapshotServerDownload} from './downloads/download-snapshot-server';
 import {download as snapshotContainerDownload} from './downloads/download-snapshot-container';
 // import {download as snapshotDisabledDownload} from './downloads/download-snapshot-disabled';
@@ -7,7 +8,8 @@ import {download as snapshotContainerDownload} from './downloads/download-snapsh
 const snapshotDownloads = [
     snapshotServerDownload,
     snapshotContainerDownload,
-    snapshotDesktopMacDownload
+    snapshotDesktopMacDownload,
+    snapshotDesktopWinDownload
 ]
 
 export default function pageDownloads() {
