@@ -68,7 +68,7 @@ git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
 FILENAME=kt2l-container-$CREATED.zip
 TITLE="Docker Container"
 DESCRIPTION="Can be started as Server and accessed via Browser, locally also. Java JDK 21 is required."
-HREF="/docs/installation/run-container"
+HREF="/docs/installation/container"
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-container.ts
 
 REGISTRY_URL="https://index.docker.io/v1/"
