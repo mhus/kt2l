@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Import download templates
         run: |
-          ENTRIES=$(aws s3 ls kt2l-downloads/cache/downloads/|sed "s/  / /g"|cut -d ' ' -f 4|grep -e ^download-)
+          ENTRIES=$(aws s3 ls kt2l-downloads/cache/downloads/ --no-paginate|cut -b 32-|grep -e ^download-)
           echo Found $ENTRIES
           for e in "$ENTRIES"; do
             echo "Copy $e"
