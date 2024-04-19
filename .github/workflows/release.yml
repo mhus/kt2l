@@ -89,7 +89,6 @@ jobs:
       - name: Prepare
         run: ./kt2l-desktop/launcher/prepare.sh
       - name: Build maven linux-amd64
-        if: ${{ inputs.create_all_others }}
         run: mvn clean install -B -Plinux-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
       - name: Build maven macosx-aarch64
         if:  ${{ inputs.create_macosx_aarch64 }}
