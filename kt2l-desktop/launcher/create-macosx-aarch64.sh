@@ -34,51 +34,38 @@
 # along with kt2l-desktop.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 cd "$(dirname "$0")"
 cd ../target
+rm -rf launcher
+mkdir launcher
+cd launcher
 
-if [ ! -f launcher/KT2L.dmg ]; then
-    echo "Fatal: KT2L.dmg not found"
-    exit 1
-fi
-if [ -z "$AWS_ACCESS_KEY_ID" ]; then
-    echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
-    exit 1
-fi
-if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
-    echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
-    exit 1
-fi
+#cp ../../src/main/resources/icons/kt2l128.png kt2l.png
+#sips --resampleHeightWidth 120 120 --padToHeightWidth 175 175 \
+#   kt2l.png --out kt2l-background.png
+#cp -v kt2l-background.png kt2l-background-darkAqua.png
+#mkdir kt2l.iconset
+#sips --resampleHeightWidth 128 128 \
+#   kt2l.png --out kt2l.iconset/icon_128x128.png
+#iconutil --convert icns kt2l.iconset
+#mkdir -p package/macos
+#cp -v *.png *.icns package/macos
 
-rm -rf deploy
-mkdir deploy
-cd deploy
-
-CREATED=$(date +"%Y-%m-%d")
-git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
-
-FILENAME=kt2l-desktop-mac-$CREATED.dmg
-TITLE="Desktop Mac OSX Bundled"
-DESCRIPTION="Can be executed directly in Mac OS X M1. Java JDK 21 is included."
-HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
-# create download information
-. ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-mac.ts
-
-# cleanup
-echo "Cleanup old snapshots in aws"
-ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|cut -b 32-|grep -e ^kt2l-desktop-mac-)
-echo Found $ENTRIES
-if [ ! -z "$ENTRIES" ]; then
-  for e in $(echo $ENTRIES); do
-      echo "Delete $e"
-      aws s3 rm "s3://kt2l-downloads/snapshots/$e"
-  done
+cp -r ../../launcher/mac/* .
+if [ -f kt2l-desktop-macosx-aarch64.jar ]; then
+  cp ../kt2l-desktop-macosx-aarch64.jar kt2l-desktop-macosx-aarch64.jar
+else
+  cp ../kt2l-desktop-macosx-aarch64-0.0.1-SNAPSHOT.jar kt2l-desktop-macosx-aarch64.jar
 fi
 
-# copy
-echo "Copy KT2L.dmg to aws"
-aws s3 cp ../launcher/KT2L.dmg s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
-echo "Copy download-snapshot-desktop-mac.ts to cache"
-aws s3 cp download-snapshot-desktop-mac.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-mac.ts --quiet || exit 1
+jpackage \
+  --name KT2L \
+  --input . \
+  --main-jar kt2l-desktop-macosx-aarch64.jar \
+  --resource-dir package/macos \
+  --type dmg \
+  --java-options "-XstartOnFirstThread -Dspring.profiles.active=prod" \
+  --icon kt2l.icns \
+  --vendor "www.kt2l.org"
 
+mv KT2L-1.0.dmg KT2L.dmg

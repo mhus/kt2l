@@ -46,8 +46,14 @@ jobs:
 #        run: rm -rf mhus-commons
       - name: Prepare
         run: ./kt2l-desktop/launcher/prepare.sh
-      - name: Build maven
-        run: mvn clean install -B -Pdeploy -Pproduction -Dspring.profiles.active=prod
+      - name: Build maven linux-amd64
+        run: mvn clean install -B -Plinux-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
+      - name: Build maven macosx-aarch64
+        run: cd kt2l-desktop;mvn install -B -Pmacosx-aarch64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
+      - name: Build maven macosx-x86_64
+        run: cd kt2l-desktop;mvn install -B -Pmacosx-x86_64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
+      - name: Build maven windows-amd64
+        run: cd kt2l-desktop;mvn install -B -Pwindows-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
       - name: Commit maybe changes to git
         run: |
           git config --global user.name 'Robot'
@@ -64,6 +70,12 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
+      - name: Deploy Desktop Jars
+        run: ./kt2l-desktop/launcher/deploy-jars.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
       - name: Deploy Server Container
         run: ./kt2l-server/launcher/deploy-container.sh
         env:
@@ -73,11 +85,10 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
 
-  mac:
+  macosx-aarch64:
     needs: build
-    #    runs-on: self-hosted
+    # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
     runs-on: macos-latest
-    permissions: write-all
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -85,39 +96,29 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: download server binaries
+      - name: Download Binaries
         run: |
-          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
-              echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
-              exit 1
-          fi
-          if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
-              echo "Fatal: AWS_SECRET_ACCESS_KEY not correct set"
-              exit 1
-          fi
-
           echo "Download kt2l-desktop.jar from cache"
           mkdir -p kt2l-desktop/target
           cd kt2l-desktop/target
-          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop.jar kt2l-desktop-0.0.1-SNAPSHOT.jar --quiet || exit 1
-
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-macosx-aarch64.jar kt2l-desktop-macosx-aarch64.jar --quiet || exit 1
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-macosx-aarch64.txt kt2l-desktop-macosx-aarch64.txt --quiet || exit 1
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
-      - name: create Mac desktop bundle
-        run: ./kt2l-desktop/launcher/create-mac.sh
-      - name: Deploy Mac desktop bundle
-        run: ./kt2l-desktop/launcher/deploy-mac.sh
+      - name: Create Desktop Bundle
+        run: ./kt2l-desktop/launcher/create-macosx-aarch64.sh
+      - name: Deploy Desktop Bundle
+        run: ./kt2l-desktop/launcher/deploy-macosx-aarch64.sh
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
 
-  windows:
+  windows-amd64:
     needs: build
-    runs-on: windows-2022
-    permissions: write-all
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -125,33 +126,24 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: download server binaries
+      - name: Download Binaries
         shell: bash
         run: |
-          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
-              echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
-              exit 1
-          fi
-          if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
-              echo "Fatal: AWS_SECRET_ACCESS_KEY not correct set"
-              exit 1
-          fi
-
-          echo "Download kt2l-desktop.jar from cache"
+          echo "Download Binaries from cache"
           mkdir -p kt2l-desktop/target
           cd kt2l-desktop/target
-          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop.jar kt2l-desktop-0.0.1-SNAPSHOT.jar --quiet || exit 1
-
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-windows-amd64.jar kt2l-desktop-windows-amd64.jar --quiet || exit 1
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-windows-amd64.txt kt2l-desktop-windows-amd64.txt --quiet || exit 1
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
       - name: create Windows desktop bundle
         shell: cmd
-        run: kt2l-desktop/launcher/create-win.bat
+        run: kt2l-desktop/launcher/create-windows-amd64.bat
       - name: Deploy Windows desktop bundle
         shell: bash
-        run: ./kt2l-desktop/launcher/deploy-win.sh
+        run: ./kt2l-desktop/launcher/deploy-windows-amd64.sh
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -207,7 +199,7 @@ jobs:
           git commit -m "Update docs"
           git push
   website:
-    needs: [mac, windows, documentation]
+    needs: [macosx-aarch64, windows-amd64, documentation]
     runs-on: ubuntu-latest
     steps:
       - run: |

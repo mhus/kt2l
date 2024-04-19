@@ -39,17 +39,21 @@ mkdir deploy
 cd deploy
 
 CREATED=$(date +"%Y-%m-%d")
+if [ -f kt2l-desktop-windows-amd64.txt ]; then
+  CREATED=$(cat kt2l-desktop-windows-amd64.txt|cut -d ' ' -f 2)
+  echo "Use existing date $CREATED"
+fi
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
 
-FILENAME=kt2l-desktop-win-$NOW.exe
-TITLE="Desktop Windows Bundled"
+FILENAME=kt2l-desktop-windows-amd64-$NOW.exe
+TITLE="Desktop Windows (x86) Bundled"
 DESCRIPTION="Can be executed directly in Windows. Java JDK 21 is included."
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
-. ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-win.ts
+. ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-windows-amd64.ts
 
 # cleanup
 echo "Cleanup old snapshots in aws"
-ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|cut -b 32-|grep -e ^kt2l-desktop-win-)
+ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|cut -b 32-|grep -e ^kt2l-desktop-windows-amd64-)
 echo Found $ENTRIES
 if [ ! -z "$ENTRIES" ]; then
   for e in $(echo $ENTRIES); do
@@ -61,5 +65,5 @@ fi
 # copy
 echo "Copy KT2L.exe to aws"
 aws s3 cp ../KT2L.exe s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
-echo "Copy download-snapshot-desktop-win.ts to cache"
-aws s3 cp download-snapshot-desktop-win.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-win.ts --quiet || exit 1
+echo "Copy download-snapshot-desktop-windows-amd64.ts to cache"
+aws s3 cp download-snapshot-desktop-windows-amd64.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-windows-amd64.ts --quiet || exit 1

@@ -16,8 +16,8 @@ Create MacOS App:
 ```bash
 ./kt2l-desktop/launcher/prepare.sh
 mvn clean install -Pproduction -Dspring.profiles.active=prod
-./kt2l-desktop/launcher/create-mac.sh
-./kt2l-desktop/launcher/deploy-mac.sh
+./kt2l-desktop/launcher/create-macosx-aarch64.sh
+./kt2l-desktop/launcher/deploy-macosx-aarch64.sh
 
 open kt2l-desktop/target/launcher
 ```
