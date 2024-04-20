@@ -57,6 +57,7 @@
         <tmpl.plugin>2.2.1</tmpl.plugin>
         <license.plugin>4.3</license.plugin>
         <maven.version>3.2.5</maven.version>
+        <testcontainers.version>1.19.7</testcontainers.version>
     </properties>
 
     <inceptionYear>2024</inceptionYear>
@@ -127,16 +128,21 @@
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers</artifactId>
-                <version>1.19.2</version>
+                <version>${testcontainers.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>junit-jupiter</artifactId>
-                <version>1.19.2</version>
+                <version>${testcontainers.version}</version>
                 <scope>test</scope>
             </dependency>
-
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>k3s</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -191,13 +197,6 @@
         </repository>
     </repositories>
 
-    <modules>
-        <module>vaadin-xterm-addon</module>
-        <module>kt2l-core</module>
-        <module>kt2l-desktop</module>
-        <module>kt2l-server</module>
-    </modules>
-
     <build>
         <plugins>
             <plugin>
@@ -249,9 +248,25 @@
         </plugins>
     </build>
 
+    <modules>
+        <module>vaadin-xterm-addon</module>
+        <module>kt2l-core</module>
+        <module>kt2l-desktop</module>
+        <module>kt2l-server</module>
+        <module>kt2l-test</module>
+    </modules>
+
     <profiles>
         <profile>
             <id>deploy</id>
+
+            <modules>
+                <module>vaadin-xterm-addon</module>
+                <module>kt2l-core</module>
+                <module>kt2l-desktop</module>
+                <module>kt2l-server</module>
+            </modules>
+
             <build>
                 <plugins>
                     <plugin>

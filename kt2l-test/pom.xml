@@ -29,10 +29,10 @@
     <properties>
         <start-class>de.mhus.kt2l.Kt2lServerApplication</start-class>
     </properties>
-    <artifactId>kt2l-server</artifactId>
+    <artifactId>kt2l-test</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>kt2l-server</name>
-    <description>kt2l as server</description>
+    <name>kt2l-test</name>
+    <description>kt2l integration tests</description>
     <dependencies>
 
         <dependency>
@@ -56,6 +56,35 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>k3s</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.19.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>5.8.0</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

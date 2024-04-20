@@ -19,6 +19,7 @@
 package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.tools.MCollection;
@@ -109,7 +110,7 @@ public class XTabBar extends VerticalLayout {
                 Try.run(() -> ((XTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));
             }
             mainView.updateHelpMenu(true);
-
+            UI.getCurrent().getPage().setTitle("KT2L " + selectedTab.getWindowTitle());
         }
     }
 

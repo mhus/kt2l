@@ -42,6 +42,7 @@ import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MSystem;
+import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.help.HelpConfiguration;
@@ -104,6 +105,13 @@ public class MainView extends AppLayout {
 
     @PostConstruct
     public void createUi() {
+        var ui = UI.getCurrent();
+        Thread.startVirtualThread(() -> {
+            MThread.sleep(200);
+            ui.access(() -> {
+                ui.getPage().setTitle("KT2L");
+            });
+        });
 
         createContent();
         createHeader();
