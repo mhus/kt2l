@@ -16,11 +16,11 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-defaultCluster: test
+defaultCluster: aremorica
 defaultResourceType: "pods"
 defaultNamespace: default
 clusters:
-  - name: test
-    title: "Test"
+  - name: aremorica
+    title: "Aremorica"
     enabled: true
-    color: green
+    color: blue

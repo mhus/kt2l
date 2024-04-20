@@ -101,7 +101,7 @@ public class ClusterPodWatch extends ClusterBackgroundJob {
                 }
                 eventHandler.fire(event);
             }
-        } catch (ApiException e) {
+        } catch (Exception e) {
             LOGGER.error("ApiException", e);
         }
     }

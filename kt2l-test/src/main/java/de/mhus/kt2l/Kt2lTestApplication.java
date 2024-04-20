@@ -35,20 +35,17 @@ package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MCast;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.scheduling.annotation.EnableScheduling;
+
+import javax.swing.*;
 
 @Slf4j
 public class Kt2lTestApplication extends Kt2lApplication {
 
-    public static final boolean DEBUG = MCast.toboolean(System.getenv("DEBUG"), false);
-
     public static void main(String[] args) {
-        System.setProperty("java.awt.headless", ""+(!DEBUG));
         SpringApplicationBuilder builder = new SpringApplicationBuilder(Kt2lApplication.class);
-        builder.headless(!DEBUG);
+        builder.headless(!DebugTestUtil.TEST_DEBUG);
         ConfigurableApplicationContext context = builder.run(args);
     }
 
