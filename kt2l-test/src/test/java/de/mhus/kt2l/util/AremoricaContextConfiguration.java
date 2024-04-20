@@ -1,4 +1,4 @@
-package de.mhus.kt2l;
+package de.mhus.kt2l.util;
 
 import de.mhus.kt2l.k8s.K8sService;
 import org.springframework.boot.test.context.TestConfiguration;

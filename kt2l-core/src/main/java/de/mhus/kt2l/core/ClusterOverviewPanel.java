@@ -80,6 +80,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
                 .toList();
 
         clusterBox.setItems(clusterList);
+        clusterBox.setId("clusterSelector");
         clusterBox.setItemLabelGenerator(Cluster::title);
         clusterBox.setWidthFull();
         if (clustersConfig.defaultClusterName() != null) {
@@ -107,6 +108,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
             var icon = action.getIcon();
             if (icon != null)
                 item.addComponentAsFirst(action.getIcon());
+            item.setId(UiUtil.toId("action-" + action.getTitle()));
         });
 
         StreamResource imageResource = new StreamResource("kt2l-logo.svg",

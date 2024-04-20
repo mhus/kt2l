@@ -99,6 +99,11 @@ public class UiUtil {
         notification.setDuration(5000);
     }
 
+    public static String toId(String in) {
+        if (in == null) return null;
+        return in.replaceAll("[^A-Za-z0-9\\-]", "");
+    }
+
     @Getter
     public static class Shortcut {
 

@@ -2,13 +2,13 @@
 
 ## JUnit Testing
 
-
 * [https://docs.spring.io/spring-boot/how-to/testing.html]
 * [https://vaadin.com/docs/latest/testing]
 * [https://java.testcontainers.org/modules/k3s/]
 * [https://www.baeldung.com/spring-boot-testing]
 * [https://assertj.github.io/doc/]
 * [https://www.baeldung.com/mockito-series]
+* [https://vaadin.com/docs/next/flow/testing/selenium]
 
 
 ## Vaadin Development

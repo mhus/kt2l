@@ -2,6 +2,8 @@ package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MThread;
+import de.mhus.kt2l.util.AremoricaContextConfiguration;
+import de.mhus.kt2l.util.AremoricaK8sService;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.openqa.selenium.By;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import org.springframework.context.annotation.Import;
 import java.io.IOException;
 
 import static java.time.Duration.ofSeconds;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
 
@@ -36,6 +40,7 @@ public class LocalServerTest {
 
     @Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
+    private boolean firstResetUi = true;
 
     @BeforeAll
     public static void beforeAll() throws IOException, ApiException {
@@ -63,18 +68,39 @@ public class LocalServerTest {
 
     public void resetUi() {
         LOGGER.info("Reset test on port {}", webServerAppCtxt.getWebServer().getPort());
-        driver.get("http://localhost:"+webServerAppCtxt.getWebServer().getPort());
-        MThread.sleep(1000 * 2);
-        driver.get("http://localhost:"+webServerAppCtxt.getWebServer().getPort());
+        if (firstResetUi) {
+            driver.get("http://localhost:" + webServerAppCtxt.getWebServer().getPort());
+            MThread.sleep(1000 * 2);
+            firstResetUi = false;
+        }
+        driver.get("http://localhost:" + webServerAppCtxt.getWebServer().getPort());
+        MThread.sleep(1000 * 1);
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                 .until(titleIs("KT2L"));
     }
 
-        @Test
+    @Test
     @Order(2)
     public void testLogin() {
         resetUi();
-        DebugTestUtil.debugBreakpoint("After Login");
+        DebugTestUtil.doScreenshot(driver, "login");
+        DebugTestUtil.debugBreakpoint("Login");
+
+        // Cluster Name
+        var clusterSelector = driver.findElement(By.id("input-vaadin-combo-box-4"));
+        assertThat(clusterSelector).isNotNull();
+        assertThat(clusterSelector.getAttribute("value")).isEqualTo("Aremorica");
+
+    }
+
+    @Test
+    @Order(3)
+    public void testDetails() {
+        resetUi();
+
+        driver.findElement(By.id("action-Resources")).click();
+
+        DebugTestUtil.debugBreakpoint("Details");
     }
 
 }
