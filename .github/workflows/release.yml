@@ -286,7 +286,7 @@ jobs:
 
   website:
     if:  ${{ inputs.update_website }}
-    needs: [macosx-aarch64, windows-amd64, documentation]
+    needs: [macosx-aarch64, windows-amd64, deb-amd64, documentation]
     runs-on: ubuntu-latest
     steps:
       - run: |
