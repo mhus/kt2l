@@ -49,7 +49,7 @@ on:
       create_deb_amd64:
         description: 'Create Linux deb AMD64 Package'
         required: true
-        default: false
+        default: true
         type: boolean
       create_all_others:
         description: 'Create Other Platform Desktop Jars'
