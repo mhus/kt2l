@@ -46,8 +46,8 @@ fi
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
 
 FILENAME=kt2l-desktop-windows-amd64-$NOW.exe
-TITLE="Desktop Windows (x86) Bundled"
-DESCRIPTION="Can be executed directly in Windows. Java JDK 21 is included."
+TITLE="Desktop Windows (amd64) Installer"
+DESCRIPTION="Installer for Windows amd64 systems. Java JDK 21 is included."
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-windows-amd64.ts
 
