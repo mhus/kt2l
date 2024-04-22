@@ -46,6 +46,11 @@ on:
         required: true
         default: true
         type: boolean
+      create_deb_amd64:
+        description: 'Create Linux deb AMD64 Package'
+        required: true
+        default: false
+        type: boolean
       create_all_others:
         description: 'Create Other Platform Desktop Jars'
         required: true
@@ -132,6 +137,36 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
 
+  deb-amd64:
+    if:  ${{ inputs.create_deb_amd64 }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.1.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Download Binaries
+        run: |
+          echo "Download kt2l-desktop.jar from cache"
+          mkdir -p kt2l-desktop/target
+          cd kt2l-desktop/target
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-linux-amd64.jar kt2l-desktop-linux-amd64.jar --quiet || exit 1
+          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-linux-amd64.txt kt2l-desktop-linux-amd64.txt --quiet || exit 1
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+      - name: Create Desktop Bundle
+        run: ./kt2l-desktop/launcher/create-deb-amd64.sh
+      - name: Deploy Desktop Bundle
+        run: ./kt2l-desktop/launcher/deploy-deb-amd64.sh
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
   macosx-aarch64:
     needs: build
     if:  ${{ inputs.create_macosx_aarch64 }}

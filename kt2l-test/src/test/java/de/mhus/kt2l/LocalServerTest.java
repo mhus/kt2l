@@ -26,6 +26,7 @@ import java.io.IOException;
 import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
 
 @Slf4j
@@ -90,6 +91,10 @@ public class LocalServerTest {
         var clusterSelector = driver.findElement(By.id("input-vaadin-combo-box-4"));
         assertThat(clusterSelector).isNotNull();
         assertThat(clusterSelector.getAttribute("value")).isEqualTo("Aremorica");
+        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                .until(titleIs("KT2L"));
+
+        assertThat(driver.findElement(By.xpath("//vaadin-menu-bar-item[contains(.,\"Resources\")]"))).isNotNull();
 
     }
 
@@ -98,9 +103,19 @@ public class LocalServerTest {
     public void testDetails() {
         resetUi();
 
-        driver.findElement(By.id("action-Resources")).click();
+        // click on Resources on Main
+        driver.findElement(By.xpath("//vaadin-menu-bar-item[contains(.,\"Resources\")]")).click();
+        // wait for the view menu
+        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                .until(presenceOfElementLocated(By.xpath("//vaadin-menu-bar-item[contains(.,\"View\")]")));
+
+        // click on pod idefix
+        driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]")).click();
+        // should be selected
+        assertThat(driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]/../..")).getAttribute("selected")).isEqualTo("true");
 
         DebugTestUtil.debugBreakpoint("Details");
+
     }
 
 }
