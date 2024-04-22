@@ -258,19 +258,20 @@
         <module>kt2l-core</module>
         <module>kt2l-desktop</module>
         <module>kt2l-server</module>
-        <module>kt2l-test</module>
     </modules>
 
     <profiles>
         <profile>
-            <id>deploy</id>
-
+            <id>integration_tests</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <modules>
-                <module>vaadin-xterm-addon</module>
-                <module>kt2l-core</module>
-                <module>kt2l-desktop</module>
-                <module>kt2l-server</module>
+                <module>kt2l-test</module>
             </modules>
+        </profile>
+        <profile>
+            <id>deploy</id>
 
             <build>
                 <plugins>
