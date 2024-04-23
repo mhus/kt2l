@@ -20,7 +20,9 @@ package de.mhus.kt2l.config;
 
 import com.vaadin.flow.component.UI;
 import de.mhus.commons.errors.AuthorizationException;
+import de.mhus.commons.io.Zip;
 import de.mhus.commons.lang.ICloseable;
+import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
@@ -100,43 +102,13 @@ public class Configuration {
             LOGGER.error("Can't find default configuration package");
             return;
         }
-        unzip(zipFile, dir);
 
-    }
-
-    private static void unzip(InputStream fis, File dir) {
-        //buffer for read and write data to file
-        byte[] buffer = new byte[1024];
         try {
-            ZipInputStream zis = new ZipInputStream(fis);
-            ZipEntry ze = zis.getNextEntry();
-            while(ze != null) {
-                if (ze.isDirectory()) {
-                    String fileName = ze.getName();
-                    File newFile = new File(dir, fileName);
-                    newFile.mkdirs();
-                } else {
-                    String fileName = ze.getName();
-                    File newFile = new File(dir, fileName);
-                    LOGGER.debug("Unzipping to {}", newFile.getAbsolutePath());
-                    //create directories for sub directories in zip
-                    newFile.getParentFile().mkdirs();
-                    FileOutputStream fos = new FileOutputStream(newFile);
-                    int len;
-                    while ((len = zis.read(buffer)) > 0) {
-                        fos.write(buffer, 0, len);
-                    }
-                    fos.close();
-                    //close this ZipEntry
-                    zis.closeEntry();
-                }
-                ze = zis.getNextEntry();
-            }
-            //close last ZipEntry
-            zis.closeEntry();
-            zis.close();
+            var errors = Zip.builder().srcStream(zipFile).dst(dir).build().unzip().getErrors();
+            if (MCollection.isSet(errors))
+                LOGGER.error("Error on unzip: {}", errors);
         } catch (IOException e) {
-            LOGGER.error("Can't unzip", e);
+            LOGGER.error("Can't unzip default configuration", e);
         }
 
     }

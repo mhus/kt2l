@@ -90,12 +90,12 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-#      - name: Checkout mhus-commons
-#        run: git clone https://github.com/mhus/mhus-commons.git
-#      - name: Build mhus-commons
-#        run: cd mhus-commons && mvn clean install -B -U
-#      - name: Cleanup mhus-commons
-#        run: rm -rf mhus-commons
+      - name: Checkout mhus-commons
+        run: git clone https://github.com/mhus/mhus-commons.git
+      - name: Build mhus-commons
+        run: cd mhus-commons && mvn clean install -B -U
+      - name: Cleanup mhus-commons
+        run: rm -rf mhus-commons
       - name: Prepare
         run: ./kt2l-desktop/launcher/prepare.sh
       - name: Build maven linux-amd64
