@@ -46,6 +46,7 @@ FILENAME=kt2l-server-$CREATED.zip
 TITLE="Server ZIP"
 DESCRIPTION="Can be started as Server and accessed via Browser, locally also. Java JDK 21 is required."
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
+HREF_HELP="/docs/installation/server"
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-server.ts
 
 # cleanup

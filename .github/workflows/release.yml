@@ -104,6 +104,11 @@ jobs:
       - name: Build maven windows-amd64
         if:  ${{ inputs.create_windows_amd64 }}
         run: cd kt2l-desktop;mvn install -B -Pwindows-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
+      - name: Analyse
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=mhus_kt2l
       - name: Commit maybe changes to git
         run: |
           git config --global user.name 'Robot'

@@ -2,7 +2,7 @@
 sidebar_position: 6
 ---
 
-# Run Container
+# Container
 
 The simplest way to run the server is to use the container bundle.
 

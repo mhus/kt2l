@@ -48,6 +48,7 @@ FILENAME=kt2l-desktop-linux-amd64-$CREATED.deb
 TITLE="Desktop Linux amd64 DEB"
 DESCRIPTION="Can be installed on debian amd64 systems"
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
+HREF_HELP="/docs/installation/desktop#linux-deb"
 # create download information
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-linux-amd64.ts
 
