@@ -61,6 +61,11 @@ on:
         required: true
         default: true
         type: boolean
+      sonarcloud:
+        description: 'Push analysis to SonarCloud'
+        required: true
+        default: true
+        type: boolean
       create_release:
         description: 'Create new release version (TBD)'
         required: true
@@ -105,6 +110,7 @@ jobs:
         if:  ${{ inputs.create_windows_amd64 }}
         run: cd kt2l-desktop;mvn install -B -Pwindows-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
       - name: Analyse
+        if: ${{ inputs.sonarcloud }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
