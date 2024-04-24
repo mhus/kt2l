@@ -71,11 +71,11 @@ on:
         required: true
         default: true
         type: boolean
-      create_release:
-        description: 'Create new release version (TBD)'
-        required: true
-        default: false
-        type: boolean
+#      create_release:
+#        description: 'Create new release version (TBD)'
+#        required: true
+#        default: false
+#        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
