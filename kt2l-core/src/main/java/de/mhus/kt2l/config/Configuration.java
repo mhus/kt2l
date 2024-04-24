@@ -103,13 +103,9 @@ public class Configuration {
             return;
         }
 
-        try {
-            var errors = Zip.builder().srcStream(zipFile).dst(dir).build().unzip().getErrors();
-            if (MCollection.isSet(errors))
-                LOGGER.error("Error on unzip: {}", errors);
-        } catch (IOException e) {
-            LOGGER.error("Can't unzip default configuration", e);
-        }
+        var errors = Zip.builder().srcStream(zipFile).dst(dir).build().unzip().getErrors();
+        if (MCollection.isSet(errors))
+            LOGGER.error("Error on unzip: {}", errors);
 
     }
 

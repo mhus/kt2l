@@ -56,6 +56,11 @@ on:
         required: true
         default: false
         type: boolean
+      integration_tests:
+        description: 'Run integration tests'
+        required: true
+        default: true
+        type: boolean
       update_website:
         description: 'Trigger update website as final step'
         required: true
@@ -109,6 +114,24 @@ jobs:
       - name: Build maven windows-amd64
         if:  ${{ inputs.create_windows_amd64 }}
         run: cd kt2l-desktop;mvn install -B -Pwindows-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
+      - name: Integration Tests
+        if:  ${{ inputs.integration_tests }}
+        run: mvn -B verify -Pdeploy -Pproduction -Pintegration_tests -Dspring.profiles.active=prod
+        env:
+          TEST_DEBUG: false
+          TEST_SCREENSHOTS: true
+      - name: Copy Screenshots to cache
+        if:  ${{ inputs.integration_tests }}
+        run: |
+          cd kt2l-test/target/screenshots
+          for f in ls *.png; do 
+            echo "Copy $f to cache"
+            aws s3 cp $f s3://kt2l-downloads/cache/screenshots/$f; 
+          done
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
       - name: Analyse
         if: ${{ inputs.sonarcloud }}
         env:
