@@ -124,7 +124,7 @@ jobs:
         if:  ${{ inputs.integration_tests }}
         run: |
           cd kt2l-test/target/screenshots
-          for f in ls *.png; do 
+          for f in *.png; do 
             echo "Copy $f to cache"
             aws s3 cp $f s3://kt2l-downloads/cache/screenshots/$f; 
           done
