@@ -18,6 +18,7 @@
 package de.mhus.kt2l.util;
 
 import de.mhus.commons.tools.MLang;
+import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
@@ -58,6 +59,22 @@ public class AremoricaK8sService extends K8sService {
     public static void createAremorica() throws ApiException {
         createNamespace("aremorica");
         createPod("idefix", "aremorica", "nginx:latest");
+
+        waitForPodReady("idefix", "aremorica");
+    }
+
+    private static void waitForPodReady(String name, String namespace) {
+
+        MLang.tryThis(() -> {
+            while (true) {
+                V1Pod pod = api.readNamespacedPod(name, namespace, null);
+                if (pod.getStatus().getPhase().equals("Running")) {
+                    break;
+                }
+                MThread.sleep(1000);
+            }
+        }).onError(e -> LOGGER.error("Error on wait", e));
+
     }
 
     private static V1Namespace createNamespace(String name) throws ApiException {

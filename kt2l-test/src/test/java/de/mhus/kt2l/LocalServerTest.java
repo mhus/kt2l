@@ -77,6 +77,7 @@ public class LocalServerTest {
             chromeOptions.addArguments("--headless");
         chromeOptions.addArguments("disable-gpu");
         driver = new ChromeDriver(chromeOptions);
+        driver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
 
         AremoricaK8sService.createAremorica();
 
