@@ -21,11 +21,17 @@ package de.mhus.kt2l.help;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.commons.tools.MSystem;
+import de.mhus.kt2l.config.CmdConfiguration;
 import de.mhus.kt2l.core.MainView;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class LinkHelpAction implements HelpAction {
+
+    @Autowired
+    private CmdConfiguration cmdConfiguration;
+
     @Override
     public boolean canHandle(HelpConfiguration.HelpLink link) {
         return "link".equals(link.getAction());
@@ -34,7 +40,7 @@ public class LinkHelpAction implements HelpAction {
     @Override
     public void execute(MainView mainView, HelpConfiguration.HelpLink link) {
         link.getNode().getString("href").ifPresent(href ->
-                MSystem.openBrowserUrl(href)
+                cmdConfiguration.openWebBrowser(href)
         );
     }
 

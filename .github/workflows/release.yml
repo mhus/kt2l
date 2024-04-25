@@ -93,6 +93,7 @@ jobs:
         if:  ${{ contains(inputs.execute, ':integration-tests:') }}
         run: |
           cd kt2l-test/target/screenshots
+          cp * ../../../docs/docs/screenshots/
           for f in *.png; do 
             echo "Copy $f to cache"
             aws s3 cp $f s3://kt2l-downloads/cache/screenshots/$f; 
@@ -111,7 +112,11 @@ jobs:
         run: |
           git config --global user.name 'Robot'
           git config --global user.email 'mhus@users.noreply.github.com'
-          git add .
+          git add docs/docs/screenshots
+          git add kt2l-core/src/main/java
+          git add kt2l-desktop/src/main/java
+          git add kt2l-server/src/main/java
+          git add kt2l-test/src/main/java
           git commit -am "Build ${{ github.run_id }}" || true
           git push || true
       - name: Build Server ZIP

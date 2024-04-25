@@ -17,6 +17,8 @@
 #
 
 default: /bin/sh
-ubuntu: /bin/bash
-centos: /bin/bash
+images:
+contains:
+  ubuntu: /bin/bash
+  centos: /bin/bash
 

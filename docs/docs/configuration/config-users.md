@@ -3,7 +3,7 @@ sidebar_position: 11
 title: User Configuration
 ---
 
-## User Configuration
+# User Configuration
 
 The user configuration is used to configure the user specific settings. The configuration is stored in the `config/users.yaml` file.
 

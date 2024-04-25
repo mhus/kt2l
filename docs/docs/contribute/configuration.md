@@ -1,5 +1,9 @@
+---
+sidebar_position: 14
+title: Using Configurations
+---
 
-## Using Configurations
+# Using Configurations
 
 Configurations are services in KT2L. To use a configuration
 simply Autowire the `ConfigurationService` and call the `get` methods.
@@ -16,14 +20,14 @@ encapsulate the code with a try use block.
 
 ```java
 final var cc = ConfigurationContext.getContext();
-Thread.newVirtualThread(() -> {
+Thread.startVirtualThread(() -> {
     try (var cce = cc.enter()) {
         // your code here ...
     }
 });
 ```
 
-## Create custom Configuration services
+## Create a custom Configuration services
 
 To create a custom configuration service you need to extend the `AbstractUserRelatedConfig` or `AbstractSingleConfig` base class. Call the
 constructor with the basename of the configuration file and use `config()` to get the base node of the configuration each time you access a

@@ -3,7 +3,7 @@ sidebar_position: 10
 title: Login Configuration
 ---
 
-## Login Configuration
+# Login Configuration
 
 The configuration is used to configure the login process and the user interface. 
 The configuration is stored in the `config/login.yaml` file.

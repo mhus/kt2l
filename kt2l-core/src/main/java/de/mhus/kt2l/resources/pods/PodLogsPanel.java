@@ -33,6 +33,7 @@ import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.Configuration;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.MainView;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
@@ -57,7 +58,7 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
 
     private static final String CONFIG_VIEW_LOG = "log";
     @Autowired
-    private Configuration configuration;
+    private ViewsConfiguration viewsConfiguration;
 
     private static int maxCachedCharacters = 300000;
     private final ClusterConfiguration.Cluster clusterConfig;
@@ -95,8 +96,8 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     public void tabInit(XTab xTab) {
         this.tab = xTab;
 
-        maxCachedEntries = configuration.getSection(Configuration.SECTION_VIEWS).getObject(CONFIG_VIEW_LOG).orElse(MTree.EMPTY_MAP).getInt("maxCachedEntries", 1000);
-        maxCachedCharacters = configuration.getSection(Configuration.SECTION_VIEWS).getObject(CONFIG_VIEW_LOG).orElse(MTree.EMPTY_MAP).getInt("maxCachedCharacters", 300000);
+        maxCachedEntries = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("maxCachedEntries", 1000);
+        maxCachedCharacters = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("maxCachedCharacters", 300000);
 
         var menuBar = new MenuBar();
         var viewMenuItem = menuBar.addItem("View");

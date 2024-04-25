@@ -25,8 +25,10 @@ import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tree.MProperties;
 import de.mhus.commons.tree.MTree;
+import de.mhus.kt2l.config.CmdConfiguration;
 import de.mhus.kt2l.config.ConfigUtil;
 import de.mhus.kt2l.config.Configuration;
+import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8sUtil;
@@ -48,7 +50,9 @@ import java.util.Set;
 public class ActionTerminal implements ResourceAction {
 
     @Autowired
-    private Configuration configuration;
+    private CmdConfiguration cmdConfiguration;
+    @Autowired
+    private ShellConfiguration shellConfiguration;
 
 
     @Override
@@ -79,42 +83,17 @@ public class ActionTerminal implements ResourceAction {
             final String finalContainer = container;
             containerImage = containerResource.getPod().getStatus().getContainerStatuses().stream().filter(c -> c.getName().equals(finalContainer)).findFirst().get().getImage();
         }
-        final var conf = configuration.getSection("cmd-" + MSystem.getOS().name());
-        final var shell = ConfigUtil.getShellFor(configuration, context.getClusterConfiguration(), pod, containerImage);
+
+        final var shell =  shellConfiguration.getShellFor(context.getClusterConfiguration(), pod, containerImage);
         final var vars = new MProperties();
         vars.setString("pod", pod.getMetadata().getName());
         vars.setString("container", container);
         vars.setString("namespace", pod.getMetadata().getNamespace());
         vars.setString("context", context.getClusterConfiguration().name());
         vars.setString("cmd", shell);
-        final var osCmd = MTree.getArrayValueStringList(conf.getArray("exec").orElse(MTree.EMPTY_LIST));
-        final String[] osCmdArray = osCmd.toArray(new String[0]);
-        MCollection.replaceAll(osCmdArray, v -> MString.substitute(v, vars, v) );
-        LOGGER.info("Execute: {}", Arrays.toString(osCmdArray));
 
-        try {
-            var res = MSystem.execute(osCmdArray);
-            LOGGER.info("Result: {}", res);
-            if (res.getRc() != 0)
-                UiUtil.showErrorNotification("Failed to start Terminal");
-        } catch (Exception e) {
-            UiUtil.showErrorNotification("Unexpected Error", e);
-            LOGGER.error("Error execute {}", Arrays.toString(osCmdArray), e);
-        }
+        cmdConfiguration.execute("exec", vars);
 
-//        context.getMainView().getTabBar().addTab(
-//                context.getClusterConfiguration().name() + ":" + selected.getName() + ":logs",
-//                selected.getName(),
-//                true,
-//                true,
-//                VaadinIcon.NOTEBOOK.create(),
-//                () ->
-//                new ContainerExecuteView(
-//                        context.getClusterConfiguration(),
-//                        context.getApi(),
-//                        context.getMainView(),
-//                        selected
-//                        )).select().setParentTab(context.getSelectedTab());
     }
 
     @Override

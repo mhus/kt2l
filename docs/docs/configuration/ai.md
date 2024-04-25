@@ -3,7 +3,7 @@ sidebar_position: 10
 title: AI Integration
 ---
 
-## AI Integration
+# AI Integration
 
 To enable AI copy the ai configuration file to the local 
 directory and set the `enabled` flag to `true`.

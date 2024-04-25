@@ -3,7 +3,7 @@ sidebar_position: 1
 title: Authorization Configuration
 ---
 
-## Authorization Configuration
+# Authorization Configuration
 
 The authorization configuration is used to configure the role permissions on resources. The configuration is stored in the `config/aaa.yaml` file.
 
