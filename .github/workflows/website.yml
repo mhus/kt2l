@@ -24,6 +24,7 @@ jobs:
             echo "Copy $e"
             aws s3 cp "s3://kt2l-downloads/cache/downloads/$e" "kt2l.org/src/downloads/$e" --quiet || exit 1
           done
+          . ./kt2l.org/templates/download-list.ts.sh > kt2l.org/src/downloads/download-snapshot-list.ts
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -41,7 +42,7 @@ jobs:
       - name: commit snapshot
         if: ${{ !startsWith(github.event.head_commit.message, 'wip:') }}
         run: |
-          git add .
+          git add kt2l.org/src/downloads/.
           git config --global user.name 'Robot'
           git config --global user.email 'mhus@users.noreply.github.com'
           git commit -am "Webpage"

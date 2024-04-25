@@ -1,14 +1,10 @@
 import DownloadFile from '../download-ifc';
 export let download : DownloadFile = {
-    title: "Desktop Windows (x86) Bundled",
-    description: "Can be executed directly in Windows. Java JDK 21 is included.",
-<<<<<<< HEAD
-    href: "https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/kt2l-desktop-win-.exe",
-    href_help: "",
-=======
+    title: "Desktop Windows (amd64) Installer",
+    description: "Installer for Windows amd64 systems. Java JDK 21 is included.",
     href: "https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/kt2l-desktop-windows-amd64-.exe",
->>>>>>> 47619efaf22b05ba7509e0d86b2daec255aa44f8
+    href_help: "/docs/installation/desktop#windows-bundle",
     size: "",
     enabled: true,
-    created: "2024-04-19"
+    created: "2024-04-23"
 }
