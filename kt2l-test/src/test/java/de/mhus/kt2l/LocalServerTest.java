@@ -73,7 +73,7 @@ public class LocalServerTest {
         WebDriverManager.chromedriver().setup();
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("--no-sandbox");
-//        if (!DebugTestUtil.TEST_DEBUG)
+        if (!DebugTestUtil.TEST_DEBUG)
             chromeOptions.addArguments("--headless");
         chromeOptions.addArguments("disable-gpu");
         driver = new ChromeDriver(chromeOptions);
@@ -110,7 +110,7 @@ public class LocalServerTest {
     public void testClusterSelect() {
         resetUi();
         DebugTestUtil.doScreenshot(driver, "cluster_select");
-        DebugTestUtil.debugBreakpoint("Login");
+        DebugTestUtil.debugBreakpoint("Cluster Select");
 
         // Cluster Name
         var clusterSelector = driver.findElement(By.id("input-vaadin-combo-box-4"));
@@ -140,7 +140,7 @@ public class LocalServerTest {
 //XXX        assertThat(driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]/../..")).getAttribute("selected")).isEqualTo("true");
 
         DebugTestUtil.doScreenshot(driver, "pod_details");
-        DebugTestUtil.debugBreakpoint("Details");
+        DebugTestUtil.debugBreakpoint("Pod Details");
 
     }
 

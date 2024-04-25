@@ -497,11 +497,38 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             this.namespace = pod.getMetadata().getNamespace();
             this.created = pod.getMetadata().getCreationTimestamp().toEpochSecond();
             this.status = pod.getStatus().getPhase();
-            var containers = pod.getStatus().getContainerStatuses();
-            this.containerCnt = containers.size();
-            this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
-            for (V1ContainerStatus container : containers) {
-                this.restarts += container.getRestartCount();
+            this.restarts = 0;
+            this.runningContainersCnt = 0;
+            this.containerCnt = 0;
+            {
+                var containers = pod.getStatus().getContainerStatuses();
+                if (containers != null) {
+                    this.containerCnt = containers.size();
+                    this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
+                    for (V1ContainerStatus container : containers) {
+                        this.restarts += container.getRestartCount();
+                    }
+                }
+            }
+            {
+                var containers = pod.getStatus().getEphemeralContainerStatuses();
+                if (containers != null) {
+                    this.containerCnt = containers.size();
+                    this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
+                    for (V1ContainerStatus container : containers) {
+                        this.restarts += container.getRestartCount();
+                    }
+                }
+            }
+            {
+                var containers = pod.getStatus().getInitContainerStatuses();
+                if (containers != null) {
+                    this.containerCnt = containers.size();
+                    this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
+                    for (V1ContainerStatus container : containers) {
+                        this.restarts += container.getRestartCount();
+                    }
+                }
             }
         }
 

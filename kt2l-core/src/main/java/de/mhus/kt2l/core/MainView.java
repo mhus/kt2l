@@ -48,7 +48,10 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.help.HelpAction;
 import de.mhus.kt2l.help.LinkHelpAction;
+import de.mhus.kt2l.resources.ResourceDetailsPanel;
+import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.pods.ContainerShellPanel;
+import de.mhus.kt2l.resources.pods.PodLogsPanel;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -68,8 +71,13 @@ import static de.mhus.commons.tools.MCollection.notNull;
 @PermitAll
 @Route(value = "/")
 @CssImport("./styles/custom.css")
-@Uses(ContainerShellPanel.class)
 @Slf4j
+// add Used to include js files in the build, only once per vaadin component is needed
+@Uses(ContainerShellPanel.class)
+@Uses(ResourcesGridPanel.class)
+@Uses(ResourceDetailsPanel.class)
+@Uses(PodLogsPanel.class)
+
 public class MainView extends AppLayout {
 
     private @Autowired

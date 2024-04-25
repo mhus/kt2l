@@ -41,6 +41,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.DataProvider;
+import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
@@ -103,19 +104,24 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
         createActions();
         createGrid();
-        createDetailsComponent();
+        try {
+            createDetailsComponent();
+        } catch (Exception e) {
+            LOGGER.error("Error creating details component", e);
+            detailsComponent = null;
+        }
         createMenuBar();
 
-        if (detailsComponent != null)
-            add(menuBar, resourcesGrid, detailsComponent);
-        else
-            add(menuBar, resourcesGrid);
+        add(MCollection.notNull(menuBar, resourcesGrid, detailsComponent));
         setSizeFull();
 
         actions.forEach(a -> a.updateWithResources(Collections.emptySet()));
 
-        init();
-
+        try {
+            init();
+        } catch (Exception e) {
+            LOGGER.error("Error initializing", e);
+        }
     }
 
     protected abstract void init();
@@ -123,34 +129,40 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     public abstract String getManagedResourceType();
 
     private void createActions() {
-        actionService.findActionsForResource(getManagedResourceType()).forEach(action -> {
-            final MenuAction menuAction = new MenuAction();
-            menuAction.setAction(action);
-            actions.add(menuAction);
-        });
+        try {
+            actionService.findActionsForResource(getManagedResourceType()).forEach(action -> {
+                final MenuAction menuAction = new MenuAction();
+                menuAction.setAction(action);
+                actions.add(menuAction);
+            });
+        } catch (Exception e) {
+            LOGGER.error("Error creating actions", e);
+        }
     }
 
     private void createMenuBar() {
         menuBar = new MenuBar();
+        try {
+            actions.stream().sorted(Comparator.comparingInt((MenuAction a) -> a.getAction().getMenuOrder())).forEach(action -> {
+                MenuItem item = createMenuBarItem(action.getAction());
+                item.addClickListener((ComponentEventListener<ClickEvent<MenuItem>>) event -> action.execute());
+                item.setEnabled(false);
 
-        actions.stream().sorted(Comparator.comparingInt((MenuAction a) -> a.getAction().getMenuOrder())).forEach(action -> {
-            MenuItem item = createMenuBarItem(action.getAction());
-            item.addClickListener((ComponentEventListener<ClickEvent<MenuItem>>) event -> action.execute());
-            item.setEnabled(false);
+                action.setMenuItem(item);
 
-            action.setMenuItem(item);
-
-            if (action.getAction().getShortcutKey() != null) {
-                var shortcut = UiUtil.createShortcut(action.getAction().getShortcutKey());
-                if (shortcut != null) {
-                    shortcut.addShortcutListener(resourcesGrid, () -> {
-                        action.execute();
-                    });
+                if (action.getAction().getShortcutKey() != null) {
+                    var shortcut = UiUtil.createShortcut(action.getAction().getShortcutKey());
+                    if (shortcut != null) {
+                        shortcut.addShortcutListener(resourcesGrid, () -> {
+                            action.execute();
+                        });
+                    }
                 }
-            }
 
-        });
-
+            });
+        } catch (Exception e) {
+            LOGGER.error("Error creating menu bar", e);
+        }
     }
 
     private MenuItem createMenuBarItem( ResourceAction action) {
@@ -254,75 +266,76 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         addClassNames("contact-grid");
         resourcesGrid.setSizeFull();
         resourcesGrid.setSelectionMode(Grid.SelectionMode.MULTI);
-        ((GridMultiSelectionModel)resourcesGrid.getSelectionModel()).setSelectAllCheckboxVisibility(GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE);
-        createGridColumns(resourcesGrid);
-        resourcesGrid.getColumns().forEach(col -> {
-            col.setAutoWidth(true);
-            col.setResizable(true);
-        });
-        resourcesGrid.setDataProvider(createDataProvider());
+        try {
+            ((GridMultiSelectionModel) resourcesGrid.getSelectionModel()).setSelectAllCheckboxVisibility(GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE);
+            createGridColumns(resourcesGrid);
+            resourcesGrid.getColumns().forEach(col -> {
+                col.setAutoWidth(true);
+                col.setResizable(true);
+            });
+            resourcesGrid.setDataProvider(createDataProvider());
 
-        resourcesGrid.addCellFocusListener(event -> {
-            selectedResource = event.getItem();
-            if (selectedResource.isPresent())
-                onGridCellFocusChanged(selectedResource.get());
-        });
+            resourcesGrid.addCellFocusListener(event -> {
+                selectedResource = event.getItem();
+                if (selectedResource.isPresent())
+                    onGridCellFocusChanged(selectedResource.get());
+            });
 
-        resourcesGrid.addSelectionListener(event -> {
-            onGridSelectionChanged();
-            actions.forEach(a -> a.updateWithResources(event.getAllSelectedItems()));
-        });
-        resourcesGrid.addItemClickListener(event -> {
-            if (event.getClickCount() == 2) {
-                onShowDetails(event.getItem(), true);
-            } else
-            if (event.getClickCount() == 1) {
-                onDetailsChanged(event.getItem());
-                if (event.isAltKey()) {
-                    if (resourcesGrid.getSelectionModel().isSelected(event.getItem()))
-                        resourcesGrid.getSelectionModel().deselect(event.getItem());
-                    else
-                        resourcesGrid.getSelectionModel().select(event.getItem());
-                } else
-                if (event.isShiftKey()) {
-                    var first = resourcesGrid.getSelectionModel().getFirstSelectedItem();
-                    if (first == null) {
-                        resourcesGrid.getSelectionModel().select(event.getItem());
+            resourcesGrid.addSelectionListener(event -> {
+                onGridSelectionChanged();
+                actions.forEach(a -> a.updateWithResources(event.getAllSelectedItems()));
+            });
+            resourcesGrid.addItemClickListener(event -> {
+                if (event.getClickCount() == 2) {
+                    onShowDetails(event.getItem(), true);
+                } else if (event.getClickCount() == 1) {
+                    onDetailsChanged(event.getItem());
+                    if (event.isAltKey()) {
+                        if (resourcesGrid.getSelectionModel().isSelected(event.getItem()))
+                            resourcesGrid.getSelectionModel().deselect(event.getItem());
+                        else
+                            resourcesGrid.getSelectionModel().select(event.getItem());
+                    } else if (event.isShiftKey()) {
+                        var first = resourcesGrid.getSelectionModel().getFirstSelectedItem();
+                        if (first == null) {
+                            resourcesGrid.getSelectionModel().select(event.getItem());
+                        } else {
+                            var start = filteredList.indexOf(first.get());
+                            var end = filteredList.indexOf(event.getItem());
+                            if (start > end) {
+                                var tmp = start;
+                                start = end;
+                                end = tmp;
+                            }
+                            resourcesGrid.getSelectionModel().deselectAll();
+                            for (int i = start; i <= end; i++) {
+                                resourcesGrid.getSelectionModel().select(filteredList.get(i));
+                            }
+                        }
                     } else {
-                        var start = filteredList.indexOf(first.get());
-                        var end = filteredList.indexOf(event.getItem());
-                        if (start > end) {
-                            var tmp = start;
-                            start = end;
-                            end = tmp;
+                        if (resourcesGrid.getSelectionModel().isSelected(event.getItem()))
+                            resourcesGrid.getSelectionModel().deselectAll();
+                        else {
+                            resourcesGrid.getSelectionModel().deselectAll();
+                            resourcesGrid.getSelectionModel().select(event.getItem());
                         }
-                        resourcesGrid.getSelectionModel().deselectAll();
-                        for (int i = start; i <= end; i++) {
-                            resourcesGrid.getSelectionModel().select(filteredList.get(i));
-                        }
-                    }
-                } else {
-                    if (resourcesGrid.getSelectionModel().isSelected(event.getItem()))
-                        resourcesGrid.getSelectionModel().deselectAll();
-                    else {
-                        resourcesGrid.getSelectionModel().deselectAll();
-                        resourcesGrid.getSelectionModel().select(event.getItem());
                     }
                 }
-            }
-        });
+            });
 
 
-        GridContextMenu<T> menu = resourcesGrid.addContextMenu();
-        actions.stream().sorted(Comparator.comparingInt((MenuAction a) -> a.getAction().getMenuOrder())).forEach(action -> {
-            var item = createContextMenuItem(menu, action.getAction());
-            item.addMenuItemClickListener(event -> action.execute());
-            action.setContextMenuItem(item);
-        });
+            GridContextMenu<T> menu = resourcesGrid.addContextMenu();
+            actions.stream().sorted(Comparator.comparingInt((MenuAction a) -> a.getAction().getMenuOrder())).forEach(action -> {
+                var item = createContextMenuItem(menu, action.getAction());
+                item.addMenuItemClickListener(event -> action.execute());
+                action.setContextMenuItem(item);
+            });
 
-        UI.getCurrent().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
-        UI.getCurrent().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
-
+            UI.getCurrent().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
+            UI.getCurrent().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
+        } catch (Exception e) {
+            LOGGER.error("Error creating grid", e);
+        }
     }
 
     protected abstract void onDetailsChanged(T item);
