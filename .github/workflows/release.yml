@@ -68,16 +68,16 @@ jobs:
       - name: Build maven linux-amd64
         run: mvn clean install -B -Plinux-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
       - name: Build maven macosx-aarch64
-        if:  ${{ contains(":macosx-aarch64:" inputs.execute) }}
+        if:  ${{ contains(":macosx-aarch64:", inputs.execute) }}
         run: cd kt2l-desktop;mvn install -B -Pmacosx-aarch64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
       - name: Build maven macosx-x86_64
-        if:  ${{ contains(":all-others:" inputs.execute) }}
+        if:  ${{ contains(":all-others:", inputs.execute) }}
         run: cd kt2l-desktop;mvn install -B -Pmacosx-x86_64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
       - name: Build maven windows-amd64
-        if:  ${{ contains(":windows-amd64:" inputs.execute) }}
+        if:  ${{ contains(":windows-amd64:", inputs.execute) }}
         run: cd kt2l-desktop;mvn install -B -Pwindows-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
       - name: Integration Tests
-        if:  ${{ contains(":integration-tests:" inputs.execute) }}
+        if:  ${{ contains(":integration-tests:", inputs.execute) }}
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
@@ -86,7 +86,7 @@ jobs:
           TEST_DEBUG: false
           TEST_SCREENSHOTS: true
       - name: Copy Screenshots to cache
-        if:  ${{ contains(":integration-tests:" inputs.execute) }}
+        if:  ${{ contains(":integration-tests:", inputs.execute) }}
         run: |
           cd kt2l-test/target/screenshots
           for f in *.png; do 
@@ -98,7 +98,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
       - name: Analyse
-        if:  ${{ contains(":sonarcloud:" inputs.execute) }}
+        if:  ${{ contains(":sonarcloud:", inputs.execute) }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -112,10 +112,10 @@ jobs:
       - name: Build Server ZIP
         run: ./kt2l-server/launcher/create-zip.sh
       - name: Build Server Container
-        if:  ${{ contains(":container:" inputs.execute) }}
+        if:  ${{ contains(":container:", inputs.execute) }}
         run: ./kt2l-server/launcher/create-container.sh
       - name: Deploy Server ZIP
-        if:  ${{ contains(":server-zip:" inputs.execute) }}
+        if:  ${{ contains(":server-zip:", inputs.execute) }}
         run: ./kt2l-server/launcher/deploy-zip.sh
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -137,7 +137,7 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
 
   deb-amd64:
-    if:  ${{ contains(":deb-amd64:" inputs.execute) }}
+    if:  ${{ contains(":deb-amd64:", inputs.execute) }}
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -168,7 +168,7 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
   macosx-aarch64:
     needs: build
-    if:  ${{ contains(":macosx-aarch64:" inputs.execute) }}
+    if:  ${{ contains(":macosx-aarch64:", inputs.execute) }}
     # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
     runs-on: macos-latest
     steps:
@@ -199,7 +199,7 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
 
   windows-amd64:
-    if: ${{ contains(":windows-amd64:" inputs.execute) }}
+    if: ${{ contains(":windows-amd64:", inputs.execute) }}
     needs: build
     runs-on: windows-latest
     steps:
@@ -233,7 +233,7 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
 
   documentation:
-    if:  ${{ contains(":documentation:" inputs.execute) }}
+    if:  ${{ contains(":documentation:", inputs.execute) }}
     permissions: write-all
     runs-on: ubuntu-latest
     concurrency:
@@ -284,7 +284,7 @@ jobs:
           git push
 
   website:
-    if:  ${{ contains(":website:" inputs.execute) }}
+    if:  ${{ contains(":website:", inputs.execute) }}
     needs: [macosx-aarch64, windows-amd64, deb-amd64, documentation]
     runs-on: ubuntu-latest
     steps:
