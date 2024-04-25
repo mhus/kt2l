@@ -28,6 +28,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.CoreV1EventList;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1EphemeralContainer;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -61,6 +62,35 @@ public class KubeTest {
         }
     }
     private static final String CLUSTER_NAME = LOCAL_PROPERTIES.getProperty("cluster.name", null);
+
+    @Test
+    public void testWatchEvents2() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        final var service = new K8sService();
+        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+
+        CoreV1Api api = new CoreV1Api(client);
+
+        CoreV1EventList events=api.listNamespacedEvent("default", "no_pretty", null, null, null, null, null, null, null, null, true);
+        String rev=events.getMetadata().getResourceVersion();
+        Watch<V1WatchEvent> watch = Watch.createWatch(
+                client,
+                api.listEventForAllNamespacesCall(null, null, null, null, null, "no_pretty", null, rev,
+                        null, true, null),
+                new TypeToken<Watch.Response<CoreV1EventList>>(){}.getType());
+// iterate over the response
+        for (Watch.Response<V1WatchEvent> item : watch) {
+            System.out.printf("Object: %s, Type %s, Status %s\n",
+                    item.object,
+                    item.type,
+                    item.status);
+        }
+
+    }
 
     @Test
     public void testPodDebug() throws IOException, ApiException {
@@ -157,7 +187,6 @@ public class KubeTest {
     }
 
     @Test
-    @Disabled
     public void testWatchEvents() throws IOException, ApiException {
 
         if (CLUSTER_NAME == null) {

@@ -46,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
+import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
 
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -59,7 +60,6 @@ public class LocalServerTest {
 
     @Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
-    private boolean firstResetUi = true;
 
     @BeforeAll
     public static void beforeAll() throws IOException, ApiException {
@@ -73,7 +73,7 @@ public class LocalServerTest {
         WebDriverManager.chromedriver().setup();
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("--no-sandbox");
-        if (!DebugTestUtil.TEST_DEBUG)
+//        if (!DebugTestUtil.TEST_DEBUG)
             chromeOptions.addArguments("--headless");
         chromeOptions.addArguments("disable-gpu");
         driver = new ChromeDriver(chromeOptions);
@@ -92,22 +92,24 @@ public class LocalServerTest {
 
     public void resetUi() {
         LOGGER.info("Reset test on port {}", webServerAppCtxt.getWebServer().getPort());
-        if (firstResetUi) {
+        for (int i = 0; i < 4; i++) {
             driver.get("http://localhost:" + webServerAppCtxt.getWebServer().getPort());
-            MThread.sleep(1000 * 2);
-            firstResetUi = false;
+            try {
+                new WebDriverWait(driver, ofSeconds(4), ofSeconds(1))
+                        .until(visibilityOfElementLocated(By.xpath("//span[contains(.,\"[KT2L]\")]")));
+                return;
+            } catch (Exception e) {
+                LOGGER.error("Reset failed", e);
+            }
         }
-        driver.get("http://localhost:" + webServerAppCtxt.getWebServer().getPort());
-        MThread.sleep(1000 * 1);
-        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
-                .until(titleIs("KT2L"));
+        throw new RuntimeException("Reset failed");
     }
 
     @Test
     @Order(2)
-    public void testLogin() {
+    public void testClusterSelect() {
         resetUi();
-        DebugTestUtil.doScreenshot(driver, "login");
+        DebugTestUtil.doScreenshot(driver, "cluster_select");
         DebugTestUtil.debugBreakpoint("Login");
 
         // Cluster Name
@@ -123,7 +125,7 @@ public class LocalServerTest {
 
     @Test
     @Order(3)
-    public void testDetails() {
+    public void testPodDetails() {
         resetUi();
 
         // click on Resources on Main
@@ -137,6 +139,7 @@ public class LocalServerTest {
         // should be selected
 //XXX        assertThat(driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]/../..")).getAttribute("selected")).isEqualTo("true");
 
+        DebugTestUtil.doScreenshot(driver, "pod_details");
         DebugTestUtil.debugBreakpoint("Details");
 
     }
