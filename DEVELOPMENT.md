@@ -62,3 +62,29 @@ mvn clean package -Pproduction -Dvaadin.force.production.build=true
 ```
 
 and rerun the application.
+
+# Local test of deb launcher script
+
+* Compile the project before with `mvn clean install -Pproduction -Dvaadin.force.production.build=true`
+* Start in the project directory if `kt2l` and run the following commands:
+
+```bash
+# Start docker container with java and ubuntu environment
+docker run --rm -it --entrypoint=bash -v $(pwd):/root/kt2l --platform=linux/amd64 eclipse-temurin:21-amd64
+# install packages
+apt update
+apt install -y fakeroot
+# start launch creator for desktop 
+cd /root/kt2l/
+./kt2l-desktop/launcher/create-deb-amd64.sh
+
+# install aws-cli
+apt install -y awscli git
+# export aws environment
+export AWS_ACCESS_KEY_ID=...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_DEFAULT_REGION=eu-central-1
+# execute deploy script
+./kt2l-desktop/launcher/deploy-deb-amd64.sh
+```
+
