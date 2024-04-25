@@ -34,6 +34,7 @@ import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.ConfigUtil;
 import de.mhus.kt2l.config.Configuration;
+import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.core.MainView;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
@@ -52,7 +53,7 @@ public class ContainerShellPanel extends VerticalLayout implements XTabListener 
 
 
     @Autowired
-    private Configuration configuration;
+    private ShellConfiguration shellConfiguration;
 
     private static final int MAX = 300000;
     private final ClusterConfiguration.Cluster clusterConfig;
@@ -225,7 +226,7 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
 
         try {
             Exec exec = new Exec(api.getApiClient());
-            proc = exec.exec(pod, new String[]{ConfigUtil.getShellFor(configuration, clusterConfig, pod )}, true, true);
+            proc = exec.exec(pod, new String[]{shellConfiguration.getShellFor(clusterConfig, pod )}, true, true);
 
             threadInput = Thread.startVirtualThread(this::loopInput);
             threadError = Thread.startVirtualThread(this::loopError);

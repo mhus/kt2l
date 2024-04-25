@@ -32,6 +32,7 @@ import de.f0rce.ace.enums.AceTheme;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.ConfigUtil;
 import de.mhus.kt2l.config.Configuration;
+import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.kscript.Block;
 import de.mhus.kt2l.kscript.RunCompiler;
 import de.mhus.kt2l.kscript.RunContext;
@@ -51,7 +52,7 @@ import java.util.List;
 public class PodExecPanel extends VerticalLayout implements XTabListener  {
 
     @Autowired
-    private Configuration configuration;
+    private ShellConfiguration shellConfiguration;
 
     private final ResourceManager<ContainerResource> resourceManager;
     private final ClusterConfiguration.Cluster clusterConfig;
@@ -191,7 +192,7 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
 
     private void runCommandInContainer(ContainerResource container, Block compiledBlock, TextArea text, RunContext context) {
         try {
-            context.getProperties().setString(RunCompiler.PROP_SHELL, ConfigUtil.getShellFor(configuration, clusterConfig, container.getPod()));
+            context.getProperties().setString(RunCompiler.PROP_SHELL, shellConfiguration.getShellFor(clusterConfig, container.getPod()));
             context.getProperties().setString(RunCompiler.PROP_CONTAINER, container.getContainerName());
             context.setTextChangedObserver(s -> {
                 ui.access(() -> {
