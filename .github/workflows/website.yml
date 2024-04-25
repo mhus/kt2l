@@ -42,7 +42,7 @@ jobs:
       - name: commit snapshot
         if: ${{ !startsWith(github.event.head_commit.message, 'wip:') }}
         run: |
-          git add kt2l.org/src/downloads/.
+          git add .
           git config --global user.name 'Robot'
           git config --global user.email 'mhus@users.noreply.github.com'
           git commit -am "Webpage"
