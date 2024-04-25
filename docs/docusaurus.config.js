@@ -78,6 +78,8 @@ const config = {
                 logo: {
                     alt: 'KT2L Logo',
                     src: 'img/kt2l-logo.svg',
+                    href: 'https://kt2l.org',
+                    target: '_self',
                 },
                 items: [
                     {
@@ -86,7 +88,11 @@ const config = {
                         position: 'left',
                         label: 'Introduction',
                     },
-                    {to: '/get-started', label: 'Get Started', position: 'left'},
+                    {
+                        to: '/get-started',
+                        label: 'Get Started',
+                        position: 'left'
+                    },
                     {
                         href: 'https://github.com/mhus/kt2l',
                         label: 'GitHub',
@@ -113,6 +119,11 @@ const config = {
                     {
                         title: 'More',
                         items: [
+                            {
+                                label: 'Website',
+                                href: 'https://kt2l.org',
+                                target: '_self',
+                            },
                             {
                                 label: 'GitHub',
                                 href: 'https://github.com/mhus/kt2l',

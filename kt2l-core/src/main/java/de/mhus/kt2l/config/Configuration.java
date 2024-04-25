@@ -28,6 +28,7 @@ import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNode;
 import de.mhus.kt2l.Kt2lApplication;
+import de.mhus.kt2l.generated.DeployInfo;
 import io.vavr.control.Try;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +82,7 @@ public class Configuration {
 
     @PostConstruct
     public void init() {
+        LOGGER.info("Application version {} created {}", DeployInfo.VERSION, DeployInfo.CREATED);
 
         if (configurationDirectory.startsWith("~")) {
             configurationDirectory = System.getProperty("user.home") + configurationDirectory.substring(1);
