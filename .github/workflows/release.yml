@@ -50,12 +50,19 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Checkout mhus-commons
-        run: git clone https://github.com/mhus/mhus-commons.git
-      - name: Build mhus-commons
-        run: cd mhus-commons && mvn clean install -B -U
-      - name: Cleanup mhus-commons
-        run: rm -rf mhus-commons
+      - name: Workflow Configuration
+        run: echo "{{ inputs.execute }}"
+      - name: mhus-commons
+        run: |
+          if [ $(cat pom.xml|grep mhus-common.version|grep -c SNAPSHOT) -eq 1 ]; then
+            echo "Build mhus-commons"
+            echo "================"
+            git clone https://github.com/mhus/mhus-commons.git
+            cd mhus-commons
+            mvn clean install -B -U || exit 1
+            cd ..
+            rm -rf mhus-commons
+          fi
       - name: Prepare
         run: ./kt2l-desktop/launcher/prepare.sh
       - name: Build maven linux-amd64
