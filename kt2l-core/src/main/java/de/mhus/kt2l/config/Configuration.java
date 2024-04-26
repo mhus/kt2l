@@ -101,9 +101,13 @@ public class Configuration {
             return;
         }
 
-        var errors = Zip.builder().srcStream(zipFile).dst(dir).throwException(false).build().unzip().getErrors();
-        if (MCollection.isSet(errors))
-            LOGGER.error("Error on unzip: {}", errors);
+        try {
+            var errors = Zip.builder().srcStream(zipFile).dst(dir).throwException(false).build().unzip().getErrors();
+            if (MCollection.isSet(errors))
+                LOGGER.error("Error on unzip: {}", errors);
+        } catch (Exception e) {
+            LOGGER.error("Can't unzip default configuration package", e);
+        }
 
     }
 
