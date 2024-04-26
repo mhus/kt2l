@@ -30,7 +30,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.tools.MJson;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MThread;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
@@ -59,7 +59,7 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     private ViewsConfiguration viewsConfiguration;
 
     private static int maxCachedCharacters = 300000;
-    private final ClusterConfiguration.Cluster clusterConfig;
+    private final Cluster clusterConfig;
     private final CoreV1Api api;
     private final Core core;
     private final UI ui;
@@ -82,7 +82,7 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     private TextField filterText;
     private String filter = null;
 
-    public PodLogsPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, Core core, List<ContainerResource> containers) {
+    public PodLogsPanel(Cluster clusterConfig, CoreV1Api api, Core core, List<ContainerResource> containers) {
         this.clusterConfig = clusterConfig;
         this.api = api;
         this.core = core;

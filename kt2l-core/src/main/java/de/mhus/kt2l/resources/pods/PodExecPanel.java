@@ -29,7 +29,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
 import de.f0rce.ace.enums.AceTheme;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.kscript.Block;
 import de.mhus.kt2l.kscript.RunCompiler;
@@ -53,7 +53,7 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
     private ShellConfiguration shellConfiguration;
 
     private final ResourceManager<ContainerResource> resourceManager;
-    private final ClusterConfiguration.Cluster clusterConfig;
+    private final Cluster clusterConfig;
     private final CoreV1Api api;
     private final Core core;
     private final UI ui;
@@ -65,7 +65,7 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
     private MenuItem menuItemClear;
     private MenuItem menuItemStop;
 
-    public PodExecPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, Core core, List<ContainerResource> containers) {
+    public PodExecPanel(Cluster clusterConfig, CoreV1Api api, Core core, List<ContainerResource> containers) {
         this.resourceManager = new ResourceManager(containers, true);
         this.clusterConfig = clusterConfig;
         this.api = api;

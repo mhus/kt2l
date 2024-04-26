@@ -29,6 +29,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.tools.MThread;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.k8s.K8sService;
@@ -83,7 +84,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     @Getter
     private UI ui;
     @Getter
-    private ClusterConfiguration.Cluster clusterConfig;
+    private Cluster clusterConfig;
     private VerticalLayout gridContainer;
     @Getter
     private String currentResourceType;

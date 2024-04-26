@@ -24,7 +24,7 @@ public interface ClusterAction {
 
     String getTitle();
 
-    void execute(Core core, ClusterOverviewPanel.Cluster cluster);
+    void execute(Core core, ClusterOverviewPanel.ClusterItem cluster);
 
     Icon getIcon();
 

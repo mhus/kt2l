@@ -27,6 +27,7 @@ import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.StreamResource;
 import de.mhus.commons.tools.MString;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.generated.DeployInfo;
@@ -57,8 +58,8 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
 
     @Getter
     private Core core;
-    private ComboBox<Cluster> clusterBox;
-    private List<Cluster> clusterList;
+    private ComboBox<ClusterItem> clusterBox;
+    private List<ClusterItem> clusterList;
 
     public ClusterOverviewPanel(Core core) {
         this.core = core;
@@ -71,13 +72,13 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
         clusterList = k8s.getAvailableContexts().stream()
                 .map(name -> {
                     final var clusterConfig = clustersConfig.getClusterOrDefault(name);
-                    return new Cluster(name, clusterConfig.title(), clusterConfig);
+                    return new ClusterItem(name, clusterConfig.title(), clusterConfig);
                 })
                 .filter(cluster -> cluster.config().enabled())
                 .toList();
 
         clusterBox.setItems(clusterList);
-        clusterBox.setItemLabelGenerator(Cluster::title);
+        clusterBox.setItemLabelGenerator(ClusterItem::title);
         clusterBox.setWidthFull();
         if (clustersConfig.defaultClusterName() != null) {
             clusterList.stream().filter(c -> c.name().equals(clustersConfig.defaultClusterName())).findFirst().ifPresent(clusterBox::setValue);
@@ -121,7 +122,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
         setWidthFull();
     }
 
-    private boolean validateCluster(Cluster cluster) {
+    private boolean validateCluster(ClusterItem cluster) {
         var clusterId = cluster.config().name();
         try {
             var coreApi = k8s.getCoreV1Api(clusterId);
@@ -168,7 +169,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
 
     }
 
-    public record Cluster(String name, String title, ClusterConfiguration.Cluster config) {
+    public record ClusterItem(String name, String title, Cluster config) {
     }
 
 }

@@ -16,18 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.nodes;
+package de.mhus.kt2l.resources.namespaces;
 
 import com.google.gson.reflect.TypeToken;
 import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.core.Core;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.Watch;
@@ -38,20 +38,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 
 @Slf4j
-public class ClusterNodeWatch extends ClusterBackgroundJob {
+public class ClusterNamespaceWatch extends ClusterBackgroundJob {
 
     @Autowired
     K8sService k8s;
 
     @Getter
-    private MEventHandler<Watch.Response<V1Node>> eventHandler = new MEventHandler<>();
+    private MEventHandler<Watch.Response<V1Namespace>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
     private ApiClient client;
     private CoreV1Api api;
-
-    public static ClusterNodeWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), ClusterNodeWatch.class, () -> new ClusterNodeWatch());
-    }
 
     @Override
     public void close() {
@@ -74,7 +70,7 @@ public class ClusterNodeWatch extends ClusterBackgroundJob {
     private void watch() {
 
         try {
-            var call = api.listNodeCall(
+            var call = api.listNamespaceCall(
                     null,
                     null,
                     null,
@@ -86,14 +82,14 @@ public class ClusterNodeWatch extends ClusterBackgroundJob {
                     null,
                     true,
                     null);
-            Watch<V1Node> watch = Watch.createWatch(
+            Watch<V1Namespace> watch = Watch.createWatch(
                     client,
                     call,
                     new TypeToken<Watch.Response<V1Node>>() {
                     }.getType());
 
-            for (Watch.Response<V1Node> event : watch) {
-                V1Node res = event.object;
+            for (Watch.Response<V1Namespace> event : watch) {
+                V1Namespace res = event.object;
                 V1ObjectMeta meta = res.getMetadata();
                 switch (event.type) {
                     case K8sUtil.WATCH_EVENT_ADDED:

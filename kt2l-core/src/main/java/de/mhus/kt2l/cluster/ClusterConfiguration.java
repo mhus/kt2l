@@ -79,8 +79,4 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
         return cluster;
     }
 
-    public record Cluster(String name, String title, boolean enabled, String defaultNamespace, String defaultResourceType, UiUtil.COLOR color,
-                                 ITreeNode node) {
-    }
-
 }

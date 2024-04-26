@@ -33,7 +33,7 @@ import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
 import de.mhus.kt2l.help.HelpResourceConnector;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.core.SecurityUtils;
@@ -82,7 +82,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
     @Autowired
     private SecurityService securityService;
 
-    public ResourceDetailsPanel(ClusterConfiguration.Cluster clusterConfiguration, CoreV1Api api, Core core, String resourceType, KubernetesObject resource) {
+    public ResourceDetailsPanel(Cluster clusterConfiguration, CoreV1Api api, Core core, String resourceType, KubernetesObject resource) {
         this.resourceType = resourceType;
         this.resource = resource;
         this.api = api;

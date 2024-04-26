@@ -42,7 +42,7 @@ import com.vaadin.flow.data.provider.DataProvider;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.UiUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -67,7 +67,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     private String filterText = "";
     protected String namespace;
     protected CoreV1Api coreApi;
-    protected ClusterConfiguration.Cluster clusterConfig;
+    protected Cluster clusterConfig;
     protected Grid<T> resourcesGrid;
     private MenuBar menuBar;
     protected List<MenuAction> actions = new ArrayList<>(10);
@@ -93,7 +93,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     }
 
     @Override
-    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesGridPanel view) {
+    public void init(CoreV1Api coreApi, Cluster clusterConfig, ResourcesGridPanel view) {
         this.coreApi = coreApi;
         this.view = view;
         this.clusterConfig = clusterConfig;

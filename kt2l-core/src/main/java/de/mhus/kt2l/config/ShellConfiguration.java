@@ -18,7 +18,7 @@
 package de.mhus.kt2l.config;
 
 import de.mhus.commons.tree.MTree;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.cluster.Cluster;
 import io.kubernetes.client.openapi.models.V1Pod;
 import org.springframework.stereotype.Component;
 
@@ -28,12 +28,12 @@ public class ShellConfiguration extends  AbstractUserRelatedConfig {
         super("shell");
     }
 
-    public String getShellFor(ClusterConfiguration.Cluster clusterConfig, V1Pod pod) {
+    public String getShellFor(Cluster clusterConfig, V1Pod pod) {
         var image = pod.getStatus().getContainerStatuses().get(0).getImage();
         return getShellFor(clusterConfig, pod, image);
     }
 
-    public String getShellFor(ClusterConfiguration.Cluster clusterConfig, V1Pod pod, String containerImage) {
+    public String getShellFor(Cluster clusterConfig, V1Pod pod, String containerImage) {
         var config = config();
 
         if (clusterConfig != null) {

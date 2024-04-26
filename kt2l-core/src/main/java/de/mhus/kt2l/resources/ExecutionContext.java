@@ -21,7 +21,7 @@ package de.mhus.kt2l.resources;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
 import io.kubernetes.client.common.KubernetesObject;
@@ -42,7 +42,7 @@ public class ExecutionContext {
     private Set<? extends KubernetesObject> selected;
     private CoreV1Api api;
     private String namespace;
-    private ClusterConfiguration.Cluster clusterConfiguration;
+    private Cluster clusterConfiguration;
     @Setter
     private boolean needGridRefresh;
     private List<Exception> errors = new LinkedList<>();

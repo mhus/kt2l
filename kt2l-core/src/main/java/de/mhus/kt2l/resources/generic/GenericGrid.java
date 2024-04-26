@@ -114,7 +114,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 //    private String filterText = "";
 //    private String namespace;
 //    private CoreV1Api coreApi;
-//    private ClusterConfiguration.Cluster clusterConfig;
+//    private Cluster clusterConfig;
     private String resourceType;
 //
 //    @Override
@@ -131,7 +131,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
     }
 //
 //    @Override
-//    public void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesGridPanel view) {
+//    public void init(CoreV1Api coreApi, Cluster clusterConfig, ResourcesGridPanel view) {
 //        this.coreApi = coreApi;
 //        this.clusterConfig = clusterConfig;
 //        addClassNames("contact-grid");

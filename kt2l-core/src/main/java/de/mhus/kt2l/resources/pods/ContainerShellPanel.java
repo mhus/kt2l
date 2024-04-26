@@ -31,7 +31,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.tools.MJson;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MThread;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
@@ -54,7 +54,7 @@ public class ContainerShellPanel extends VerticalLayout implements XTabListener 
     private ShellConfiguration shellConfiguration;
 
     private static final int MAX = 300000;
-    private final ClusterConfiguration.Cluster clusterConfig;
+    private final Cluster clusterConfig;
     private final CoreV1Api api;
     private final Core core;
     private final V1Pod pod;
@@ -66,7 +66,7 @@ public class ContainerShellPanel extends VerticalLayout implements XTabListener 
     private Thread threadError;
     private MenuItem menuItemEsc;
 
-    public ContainerShellPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, Core core, V1Pod pod) {
+    public ContainerShellPanel(Cluster clusterConfig, CoreV1Api api, Core core, V1Pod pod) {
         this.clusterConfig = clusterConfig;
         this.api = api;
         this.core = core;

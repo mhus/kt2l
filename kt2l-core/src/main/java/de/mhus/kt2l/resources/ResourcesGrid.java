@@ -20,7 +20,7 @@ package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ShortcutEvent;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.cluster.Cluster;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 public interface ResourcesGrid {
@@ -29,7 +29,7 @@ public interface ResourcesGrid {
 
     void refresh(long counter);
 
-    void init(CoreV1Api coreApi, ClusterConfiguration.Cluster clusterConfig, ResourcesGridPanel view);
+    void init(CoreV1Api coreApi, Cluster clusterConfig, ResourcesGridPanel view);
 
     void setFilter(String value, ResourcesFilter resourcesFilter);
 
