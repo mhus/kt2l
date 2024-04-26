@@ -93,11 +93,15 @@ jobs:
         if:  ${{ contains(inputs.execute, ':integration-tests:') }}
         run: |
           cd kt2l-test/target/screenshots
-          cp * ../../../docs/docs/screenshots/
-          for f in *.png; do 
+          rm ../../../docs/screenshots/*.png
+          cp *.png ../../../docs/screenshots/
+          echo "<html><body><h1>Screenshots</h1>" > ../../../docs/screenshots/index.html
+          for f in *.png; do  
             echo "Copy $f to cache"
             aws s3 cp $f s3://kt2l-downloads/cache/screenshots/$f; 
+            echo "<h2>$f</h2><img width='100%' src='$f'>" >> ../../../docs/screenshots/index.html
           done
+          echo "</body></html>" >> ../../../docs/screenshots/index.html
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -112,7 +116,7 @@ jobs:
         run: |
           git config --global user.name 'Robot'
           git config --global user.email 'mhus@users.noreply.github.com'
-          git add docs/docs/screenshots
+          git add docs/screenshots
           git add kt2l-core/src/main/java
           git add kt2l-desktop/src/main/java
           git add kt2l-server/src/main/java

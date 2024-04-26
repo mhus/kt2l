@@ -41,4 +41,4 @@ available in the application. It will be generated automatically when the applic
 ## Screenshots
 
 Screenshots are generated automatically in the release workflow while executing the integration tests. The screenshots 
-are located in the `docs/docs/screenshots`. 
+are located in the `docs/screenshots` and must be copied into `docs/docs/screenshots` after review. 

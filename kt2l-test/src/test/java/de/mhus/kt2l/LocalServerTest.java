@@ -140,7 +140,7 @@ public class LocalServerTest {
         // should be selected
 //XXX        assertThat(driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]/../..")).getAttribute("selected")).isEqualTo("true");
 
-        DebugTestUtil.doScreenshot(driver, "pod_details");
+        DebugTestUtil.doScreenshot(driver, "cluster_resources_pod");
         DebugTestUtil.debugBreakpoint("Pod Details");
 
     }
