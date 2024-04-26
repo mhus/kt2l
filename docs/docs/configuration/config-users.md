@@ -41,3 +41,6 @@ The password can also be set with other types
 
 For more options see the spring boot configuration 
 [Password Storage](https://docs.spring.io/spring-security/reference/features/authentication/password-storage.html).
+
+By default, generated passwords will be reported in the log file. If you want to suppress this, you can set the 
+environment variable `KT2L_UNSECURE` to `false`.

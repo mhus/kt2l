@@ -118,12 +118,14 @@ public class SecurityConfiguration
             if (loginConfig.isAutoLogin() && u.name().equals(loginConfig.getAutoLoginUser())) {
                 var p = loginConfig.getLocalAutoLoginPassword();
                 password = passwordEncoder().encode(p);
-                LOGGER.info("Set autologin password for user {} to {}", u.name(), p);
+                if (SecurityUtils.isUnsecure())
+                    LOGGER.info("Set autologin password for user {} to {}", u.name(), p);
             } else
             if (password == null || "{generate}".equals(password)) {
                 var p = UUID.randomUUID().toString();
                 password = passwordEncoder().encode(p);
-                LOGGER.info("Set login password for user {} to {}", u.name(), p);
+                if (SecurityUtils.isUnsecure())
+                    LOGGER.info("Set login password for user {} to {}", u.name(), p);
             } else
             if (password.startsWith("{env}")) {
                 password = passwordEncoder().encode(System.getenv(password.substring(5)));
@@ -150,7 +152,7 @@ public class SecurityConfiguration
         encoders.put("sha256", new StandardPasswordEncoder());
 
         PasswordEncoder passwordEncoder =
-                new DelegatingPasswordEncoder("bcrypt",encoders);
+                new DelegatingPasswordEncoder("sha256",encoders);
         return passwordEncoder;
     }
 }

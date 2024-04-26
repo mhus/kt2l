@@ -42,6 +42,10 @@ metadata:
   namespace: kt2l
 data:
     # kt2l-users
+    login.yaml: |
+      autoLogin: false
+      autoLoginUser: nouser
+      protectedConfigurations:
     users.yaml: |
       users:
         - name: "admin"
@@ -126,12 +130,36 @@ spec:
           name: kt2l-server
           ports:
             - containerPort: 8080
+              name: http
+          env:
+            - name: KT2L_UNSECURE
+              value: 'false'
           envFrom:
             - secretRef:
                 name: passwords
           volumeMounts:
             - name: config
               mountPath: /app/kt2l-server/config/local
+          livenessProbe:
+            failureThreshold: 60
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 5
       volumes:
         # You set volumes at the Pod level, then mount them into containers inside that Pod
         - name: config

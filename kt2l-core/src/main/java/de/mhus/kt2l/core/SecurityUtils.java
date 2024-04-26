@@ -21,6 +21,7 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.VaadinSession;
+import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
@@ -39,6 +40,7 @@ import java.util.Set;
 public class SecurityUtils {
 
     private static final String LOGOUT_SUCCESS_URL = "/";
+    private static Boolean unsecure = null;
 
     static Principal getPrincipal() {
         VaadinServletRequest request = VaadinServletRequest.getCurrent();
@@ -59,6 +61,12 @@ public class SecurityUtils {
         if (idAnnotation != null)
             return idAnnotation.value();
         return MSystem.getClassName(resource);
+    }
+
+    public static boolean isUnsecure() {
+        if (unsecure == null)
+            unsecure = MCast.toboolean(System.getProperty("KT2L_UNSECURE"), true);
+        return unsecure;
     }
 
     boolean hasPrincipalRoles(Object resource, Set<String> roles) {

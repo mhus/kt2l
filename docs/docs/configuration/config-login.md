@@ -20,4 +20,4 @@ Other IP sources will be prompted for login.
 
 The user specified in `autoLoginUser` must be a known user. The user must be defined in the `config/users.yaml` file.
 
-
+See also the [User Configuration](config-users) for more information about the user configuration.
