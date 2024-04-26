@@ -59,7 +59,20 @@ case $1 in
                 exit 1
             fi
         fi
-
+        # rotate log file
+        if [ "x$KT2L_ROTATE_LOG" == "xtrue" ]; then
+            for i in $(seq 8 -1 1); do
+                if [ -f $LOG_FILE.$i ]; then
+                    rm $LOG_FILE.$((i+1)) || true
+                    mv $LOG_FILE.$i $LOG_FILE.$((i+1))
+                fi
+            done
+            if [ -f $LOG_FILE ]; then
+                rm $LOG_FILE.1 || true
+                mv $LOG_FILE $LOG_FILE.1
+            fi
+        fi
+        # start in background
         nohup $RUN > $LOG_FILE 2>&1 &
         echo $! > $PID_FILE
         echo "kt2l-server started on $(cat $PID_FILE)"
@@ -74,6 +87,10 @@ case $1 in
         else
             echo "kt2l-server is not running"
         fi
+        ;;
+    restart)
+        $0 stop
+        $0 start
         ;;
     status)
         if [ -f $PID_FILE ]; then

@@ -16,20 +16,86 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-#
-# This file is part of kt2l-server.
-#
-# kt2l-server is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# kt2l-server is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with kt2l-server.  If not, see <http://www.gnu.org/licenses/>.
-#
-
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  name: kt2l
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: passwords
+  namespace: kt2l
+data:
+  # 2UKowq7JszoxAzfSvcCKRTpD4Cb
+  admin_password: MlVLb3dxN0pzem94QXpmU3ZjQ0tSVHBENENiCg==
+  # ov7yV9EzZRMp65ZHaurPRYy2PwD
+  user_password: b3Y3eVY5RXpaUk1wNjVaSGF1clBSWXkyUHdECg==
+  # tvanR3WHokmAexboBeaqGm6LVub
+  viewer_password: dHZhblIzV0hva21BZXhib0JlYXFHbTZMVnViCg==
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-config
+  namespace: kt2l
+data:
+    # kt2l-users
+    users.yaml: |
+      users:
+        - name: "admin"
+          password: "{env}admin_password"
+          roles:
+            - "READ"
+            - "WRITE"
+            - "LOCAL"
+            - "SETTINGS"
+            - "ADMIN"
+        - name: "user"
+          password: "{env}user_password"
+          roles:
+          - "READ"
+          - "WRITE"
+          - "SETTINGS"
+        - name: "viewer"
+          password: "{env}viewer_password"
+          roles:
+            - "READ"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kt2l
+  name: kt2l
+  namespace: kt2l
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kt2l
+  template:
+    metadata:
+      labels:
+        app: kt2l
+    spec:
+      containers:
+        - image: mhus/kt2l-server:snapshot
+          name: kt2l-server
+          resources: {}
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: passwords
+          volumeMounts:
+            - name: config
+              mountPath: /home/user/config/local
+      volumes:
+        # You set volumes at the Pod level, then mount them into containers inside that Pod
+        - name: config
+          configMap:
+            # Provide the name of the ConfigMap you want to mount.
+            name: local-config

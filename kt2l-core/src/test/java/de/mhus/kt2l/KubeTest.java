@@ -19,6 +19,7 @@
 package de.mhus.kt2l;
 
 import com.google.gson.reflect.TypeToken;
+import de.mhus.commons.tools.MDate;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.Metrics;
@@ -195,7 +196,7 @@ public class KubeTest {
         }
         final var service = new K8sService();
         ApiClient client = service.getKubeClient(CLUSTER_NAME);
-
+        //client.setDebugging(true);
         CoreV1Api api = new CoreV1Api(client);
 
         Watch<V1WatchEvent> watch = Watch.createWatch(
@@ -214,7 +215,7 @@ public class KubeTest {
                 new TypeToken<Watch.Response<V1WatchEvent>>(){}.getType());
 
         for (Watch.Response<V1WatchEvent> item : watch) {
-            System.out.printf("%s : %s %s%n", item.type, item.object, item.status);
+            System.out.printf("%s %s : %s %s%n", MDate.toIsoDateTime(System.currentTimeMillis()), item.type, item.object, item.status);
         }
     }
 
