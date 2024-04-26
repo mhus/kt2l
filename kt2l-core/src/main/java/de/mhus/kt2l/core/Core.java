@@ -40,7 +40,6 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.Kt2lApplication;
@@ -78,7 +77,7 @@ import static de.mhus.commons.tools.MCollection.notNull;
 @Uses(ResourceDetailsPanel.class)
 @Uses(PodLogsPanel.class)
 
-public class MainView extends AppLayout {
+public class Core extends AppLayout {
 
     private @Autowired
             @Getter
@@ -107,7 +106,7 @@ public class MainView extends AppLayout {
     private IFrame helpBrowser;
     private ContextMenu helpMenu;
 
-    public MainView(AuthenticationContext authContext) {
+    public Core(AuthenticationContext authContext) {
         this.authContext = authContext;
     }
 

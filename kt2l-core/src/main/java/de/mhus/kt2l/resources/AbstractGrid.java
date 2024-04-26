@@ -22,9 +22,7 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.ShortcutEvent;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.MenuItemBase;
@@ -60,8 +58,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static de.mhus.commons.tools.MCollection.cropArray;
 
 @Slf4j
 public abstract class AbstractGrid<T, S extends Component> extends VerticalLayout implements ResourcesGrid {
@@ -490,7 +486,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 //                        .clusterConfiguration(clusterConfig)
 //                        .ui(UI.getCurrent())
 //                        .grid(PodGrid.this)
-//                        .mainView(view.getMainView())
+//                        .core(view.getCore())
 //                        .selectedTab(view.getXTab())
 //                        .build();
 //
@@ -508,7 +504,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                         .clusterConfiguration(clusterConfig)
                         .ui(UI.getCurrent())
                         .grid(AbstractGrid.this)
-                        .mainView(view.getMainView())
+                        .core(view.getCore())
                         .selectedTab(view.getXTab())
                         .build();
 //            }

@@ -46,7 +46,7 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Nodes, Component> {
 
     @Override
     protected void init() {
-        eventRegistration = view.getMainView().getBackgroundJob(clusterConfig.name(), ClusterNodeWatch.class, () -> new ClusterNodeWatch()).getEventHandler().registerWeak(this::nodeEvent);
+        eventRegistration = view.getCore().getBackgroundJob(clusterConfig.name(), ClusterNodeWatch.class, () -> new ClusterNodeWatch()).getEventHandler().registerWeak(this::nodeEvent);
     }
 
     private void nodeEvent(Watch.Response<V1Node> event) {

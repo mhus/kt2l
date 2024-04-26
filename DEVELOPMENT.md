@@ -1,6 +1,6 @@
 # Development
 
-## JUnit Testing
+## JUnit Testing / Integration Testing
 
 * [https://docs.spring.io/spring-boot/how-to/testing.html]
 * [https://vaadin.com/docs/latest/testing]
@@ -9,7 +9,7 @@
 * [https://assertj.github.io/doc/]
 * [https://www.baeldung.com/mockito-series]
 * [https://vaadin.com/docs/next/flow/testing/selenium]
-
+* [https://asterix.com/de/die-charaktere/] [https://asterix.fandom.com/wiki/Main_Page] [https://asterix.fandom.com/wiki/Indomitable_village]
 
 ## Vaadin Development
 

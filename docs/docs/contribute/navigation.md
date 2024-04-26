@@ -5,7 +5,7 @@ title: Navigation
 
 # Navigation
 
-The mainView provides a navigation bar at the left side of the screen. The navigation bar is a Tab component that
+The Core provides a navigation bar at the left side of the screen. The navigation bar is a Tab component that
 displays the available views. To add a new view to the navigation bar, you need to use the `PanelService` to register
 new views.
 
@@ -20,7 +20,7 @@ panelService.addPanel(
                 new PodExecPanel(
                         context.getClusterConfiguration(),
                         context.getApi(),
-                        context.getMainView(),
+                        context.getCore(),
                         containers
                 )).setHelpContext("exec").select();
 ```

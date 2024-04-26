@@ -128,7 +128,8 @@ public class SecurityConfiguration
                     LOGGER.info("Set login password for user {} to {}", u.name(), p);
             } else
             if (password.startsWith("{env}")) {
-                password = passwordEncoder().encode(System.getenv(password.substring(5)));
+//                password = passwordEncoder().encode(System.getenv(password.substring(5)));
+                password = "{noop}" + System.getenv(password.substring(5)).trim();
             }
             userDetails.add(User.withUsername(u.name())
                     .password(password)

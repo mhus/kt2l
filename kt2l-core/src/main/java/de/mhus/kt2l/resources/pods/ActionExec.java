@@ -95,7 +95,7 @@ public class ActionExec implements ResourceAction {
                         new PodExecPanel(
                                 context.getClusterConfiguration(),
                                 context.getApi(),
-                                context.getMainView(),
+                                context.getCore(),
                                 containers
                         )).setHelpContext("exec").select();
     }

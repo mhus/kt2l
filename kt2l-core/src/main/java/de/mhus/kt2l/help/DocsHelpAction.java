@@ -20,7 +20,7 @@ package de.mhus.kt2l.help;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.Core;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,9 +32,9 @@ public class DocsHelpAction implements HelpAction {
     }
 
     @Override
-    public void execute(MainView mainView, HelpConfiguration.HelpLink link) {
+    public void execute(Core core, HelpConfiguration.HelpLink link) {
         link.getNode().getString("document").ifPresent(href ->
-                mainView.setHelpUrl("/public/docs/" + href + ".html")
+                core.setHelpUrl("/public/docs/" + href + ".html")
         );
     }
 

@@ -20,18 +20,15 @@ package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.StreamResource;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
-import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;
 import lombok.Getter;
@@ -59,12 +56,12 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
     private XTab tab;
 
     @Getter
-    private MainView mainView;
+    private Core core;
     private ComboBox<Cluster> clusterBox;
     private List<Cluster> clusterList;
 
-    public ClusterOverviewPanel(MainView mainView) {
-        this.mainView = mainView;
+    public ClusterOverviewPanel(Core core) {
+        this.core = core;
     }
 
     public void createUi() {
@@ -101,7 +98,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
                     if (!validateCluster(clusterBox.getValue())) {
                         return;
                     }
-                    action.execute(mainView, clusterBox.getValue());
+                    action.execute(core, clusterBox.getValue());
                 }
             });
             var icon = action.getIcon();

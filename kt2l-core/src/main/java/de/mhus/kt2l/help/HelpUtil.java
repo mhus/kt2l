@@ -28,7 +28,7 @@ import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
 import de.f0rce.ace.enums.AceTheme;
 import de.mhus.commons.tools.MLang;
-import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.Core;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public class HelpUtil {
     private volatile static boolean editMode;
     private static Button editButton;
 
-    public static Optional<HelpResourceConnector> getHelpResourceConnector(MainView view) {
+    public static Optional<HelpResourceConnector> getHelpResourceConnector(Core view) {
         return Optional.ofNullable(
                 MLang.tryThis(() -> {
                     var selectedPanel = view.getTabBar().getSelectedTab().getPanel();
@@ -54,11 +54,11 @@ public class HelpUtil {
         );
     }
 
-    public static boolean canSetHelpContent(MainView view) {
+    public static boolean canSetHelpContent(Core view) {
         return getHelpResourceConnector(view).map(HelpResourceConnector::canSetHelpContent).orElse(false);
     }
 
-    public static void setResourceContent(MainView view, String newContent) {
+    public static void setResourceContent(Core view, String newContent) {
         if (newContent == null) return;
         getHelpResourceConnector(view).ifPresent(connector -> {
             if (!connector.canSetHelpContent()) return;

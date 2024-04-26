@@ -41,7 +41,7 @@ import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
 import io.kubernetes.client.common.KubernetesObject;
@@ -82,7 +82,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
     @Autowired
     private SecurityService securityService;
 
-    public ResourceDetailsPanel(ClusterConfiguration.Cluster clusterConfiguration, CoreV1Api api, MainView mainView, String resourceType, KubernetesObject resource) {
+    public ResourceDetailsPanel(ClusterConfiguration.Cluster clusterConfiguration, CoreV1Api api, Core core, String resourceType, KubernetesObject resource) {
         this.resourceType = resourceType;
         this.resource = resource;
         this.api = api;

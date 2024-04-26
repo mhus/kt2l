@@ -96,7 +96,7 @@ public class ActionLogs implements ResourceAction {
                 new PodLogsPanel(
                         context.getClusterConfiguration(),
                         context.getApi(),
-                        context.getMainView(),
+                        context.getCore(),
                         containers
                         )).setHelpContext("logs").select();
     }

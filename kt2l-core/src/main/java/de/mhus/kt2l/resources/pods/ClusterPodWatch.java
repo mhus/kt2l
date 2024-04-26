@@ -23,9 +23,8 @@ import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.Core;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -57,7 +56,7 @@ public class ClusterPodWatch extends ClusterBackgroundJob {
     }
 
     @Override
-    public void init(MainView mainView, String clusterId, String jobId) throws IOException {
+    public void init(Core core, String clusterId, String jobId) throws IOException {
 
         client = k8s.getKubeClient(clusterId);
         api = new CoreV1Api(client);

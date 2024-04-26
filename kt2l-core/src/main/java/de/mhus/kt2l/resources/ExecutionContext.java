@@ -22,7 +22,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
-import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -47,7 +47,7 @@ public class ExecutionContext {
     private boolean needGridRefresh;
     private List<Exception> errors = new LinkedList<>();
     private ResourcesGrid grid;
-    private MainView mainView;
+    private Core core;
     private XTab selectedTab;
 
     public void finished() {

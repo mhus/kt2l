@@ -121,7 +121,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                                 .clusterConfiguration(clusterConfig)
                                 .ui(UI.getCurrent())
                                 .grid(PodGrid.this)
-                                .mainView(view.getMainView())
+                                .core(view.getCore())
                                 .selectedTab(view.getXTab())
                                 .build();
 
@@ -307,7 +307,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
     @Override
     protected void init() {
-        podEventRegistration = view.getMainView().getBackgroundJob(clusterConfig.name(), ClusterPodWatch.class, () -> new ClusterPodWatch()).getEventHandler().registerWeak(this::podEvent);
+        podEventRegistration = view.getCore().getBackgroundJob(clusterConfig.name(), ClusterPodWatch.class, () -> new ClusterPodWatch()).getEventHandler().registerWeak(this::podEvent);
     }
 
     @Override

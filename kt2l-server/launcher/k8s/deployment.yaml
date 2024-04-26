@@ -49,7 +49,7 @@ data:
     users.yaml: |
       users:
         - name: "admin"
-          password: "{env}admin_password"
+          password: "{noop}admin"
           roles:
             - "READ"
             - "WRITE"

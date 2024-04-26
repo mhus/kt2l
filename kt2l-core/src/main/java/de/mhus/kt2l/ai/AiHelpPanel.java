@@ -26,7 +26,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.help.HelpConfiguration;
-import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.help.HelpUtil;
 import dev.langchain4j.chain.ConversationalChain;
 import dev.langchain4j.memory.ChatMemory;
@@ -39,7 +39,7 @@ import java.util.Map;
 
 @Slf4j
 public class AiHelpPanel extends VerticalLayout {
-    private final MainView view;
+    private final Core view;
     private final HelpConfiguration.HelpLink link;
     private final AiService aiService;
     private ChatLanguageModel model;
@@ -49,7 +49,7 @@ public class AiHelpPanel extends VerticalLayout {
     private String lastResult;
     private MenuItem menuItemUse;
 
-    public AiHelpPanel(MainView view, HelpConfiguration.HelpLink link, AiService aiService) {
+    public AiHelpPanel(Core view, HelpConfiguration.HelpLink link, AiService aiService) {
         this.view = view;
         this.link = link;
         this.aiService = aiService;

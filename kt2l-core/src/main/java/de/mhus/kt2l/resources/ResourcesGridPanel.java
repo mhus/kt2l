@@ -31,11 +31,10 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
-import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.generic.GenericGridFactory;
-import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
@@ -48,7 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.security.Principal;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import static de.mhus.commons.tools.MString.isEmpty;
@@ -58,7 +56,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
     private static final ResourceGridFactory GENERIC_GRID_FACTORY = new GenericGridFactory();
     @Getter
-    private final MainView mainView;
+    private final Core core;
 
     @Autowired
     @Getter
@@ -94,9 +92,9 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     private ResourcesFilter resourcesFilter;
     private Button resourceFilterButton;
 
-    public ResourcesGridPanel(String clusterId, MainView mainView) {
+    public ResourcesGridPanel(String clusterId, Core core) {
         this.clusterId = clusterId;
-        this.mainView = mainView;
+        this.core = core;
     }
 
     public void createUI() {
@@ -223,7 +221,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
                     }
 
         ResourcesGrid resourcesGrid = foundFactory.create(resourceType);
-        mainView.getBeanFactory().autowireBean(resourcesGrid);
+        core.getBeanFactory().autowireBean(resourcesGrid);
         return resourcesGrid;
     }
 

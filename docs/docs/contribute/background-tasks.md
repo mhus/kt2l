@@ -14,11 +14,11 @@ a singleton instance for a cluster. The job will live as long as the cluster is 
 
 ## How to implement a background task
 
-To register a new Background Task you need to call the `getBackgroundJob` method of the `MainView` class and
+To register a new Background Task you need to call the `getBackgroundJob` method of the `Core` class and
 provide a creator lambda. The creator lambda will be called if the background task is not running for the cluster.
 
 ```java
-mainView.getBackgroundJob(clusterConfig.name(), ClusterNodeWatch.class, () -> new ClusterNodeWatch())
+core.getBackgroundJob(clusterConfig.name(), ClusterNodeWatch.class, () -> new ClusterNodeWatch())
 ```
 The Background Task class must implement the `ClusterBackgroundJob` interface. 
 

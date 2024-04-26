@@ -35,8 +35,8 @@ public class ResourcesClusterAction implements ClusterAction {
     }
 
     @Override
-    public void execute(MainView mainView, ClusterOverviewPanel.Cluster cluster) {
-        panelService.addResourcesGrid(mainView, cluster).select();
+    public void execute(Core core, ClusterOverviewPanel.Cluster cluster) {
+        panelService.addResourcesGrid(core, cluster).select();
     }
 
     @Override

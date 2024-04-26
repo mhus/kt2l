@@ -56,21 +56,21 @@ public class PanelService {
                         new ResourceDetailsPanel(
                                 cluster,
                                 api,
-                                parentTab.getViewer().getMainView(),
+                                parentTab.getViewer().getCore(),
                                 resourceType,
                                 resource
                         )).setColor(parentTab.getColor()).setParentTab(parentTab).setHelpContext("details");
 
     }
 
-    public XTab addResourcesGrid(MainView mainView, ClusterOverviewPanel.Cluster cluster) {
-        return mainView.getTabBar().addTab(
+    public XTab addResourcesGrid(Core core, ClusterOverviewPanel.Cluster cluster) {
+        return core.getTabBar().addTab(
                         "test/" + cluster.name(),
                         cluster.title(),
                         true,
                         false,
                         VaadinIcon.OPEN_BOOK.create(),
-                        () -> new ResourcesGridPanel(cluster.name(), mainView))
+                        () -> new ResourcesGridPanel(cluster.name(), core))
                 .setColor(cluster.config().color()).setHelpContext("resources");
 
     }

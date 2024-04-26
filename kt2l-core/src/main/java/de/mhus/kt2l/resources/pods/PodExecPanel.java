@@ -30,14 +30,12 @@ import de.f0rce.ace.AceEditor;
 import de.f0rce.ace.enums.AceMode;
 import de.f0rce.ace.enums.AceTheme;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
-import de.mhus.kt2l.config.ConfigUtil;
-import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.kscript.Block;
 import de.mhus.kt2l.kscript.RunCompiler;
 import de.mhus.kt2l.kscript.RunContext;
 import de.mhus.kt2l.resources.ResourceManager;
-import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -57,7 +55,7 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
     private final ResourceManager<ContainerResource> resourceManager;
     private final ClusterConfiguration.Cluster clusterConfig;
     private final CoreV1Api api;
-    private final MainView mainView;
+    private final Core core;
     private final UI ui;
     private XTab tab;
     private AceEditor editor;
@@ -67,11 +65,11 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
     private MenuItem menuItemClear;
     private MenuItem menuItemStop;
 
-    public PodExecPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, List<ContainerResource> containers) {
+    public PodExecPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, Core core, List<ContainerResource> containers) {
         this.resourceManager = new ResourceManager(containers, true);
         this.clusterConfig = clusterConfig;
         this.api = api;
-        this.mainView = mainView;
+        this.core = core;
         this.ui = UI.getCurrent();
     }
 

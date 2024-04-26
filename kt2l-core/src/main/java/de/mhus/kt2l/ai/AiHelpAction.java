@@ -21,7 +21,7 @@ package de.mhus.kt2l.ai;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.help.HelpConfiguration;
-import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.help.HelpAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,10 +41,10 @@ public class AiHelpAction implements HelpAction {
     }
 
     @Override
-    public void execute(MainView mainView, HelpConfiguration.HelpLink link) {
-        AiHelpPanel panel = new AiHelpPanel(mainView, link, aiService);
+    public void execute(Core core, HelpConfiguration.HelpLink link) {
+        AiHelpPanel panel = new AiHelpPanel(core, link, aiService);
         panel.setSizeFull();
-        mainView.setHelpPanel(panel);
+        core.setHelpPanel(panel);
         panel.getPrompt().focus();
 
     }

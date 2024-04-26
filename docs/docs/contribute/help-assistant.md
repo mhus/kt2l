@@ -14,7 +14,7 @@ public interface HelpAction {
 
     boolean canHandle(HelpConfiguration.HelpLink link);
 
-    void execute(MainView mainView, HelpConfiguration.HelpLink link);
+    void execute(Core core, HelpConfiguration.HelpLink link);
 
     Icon getIcon(HelpConfiguration.HelpLink link);
 }

@@ -32,10 +32,8 @@ import de.mhus.commons.tools.MJson;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
-import de.mhus.kt2l.config.ConfigUtil;
-import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.ShellConfiguration;
-import de.mhus.kt2l.core.MainView;
+import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
 import io.kubernetes.client.Exec;
@@ -58,7 +56,7 @@ public class ContainerShellPanel extends VerticalLayout implements XTabListener 
     private static final int MAX = 300000;
     private final ClusterConfiguration.Cluster clusterConfig;
     private final CoreV1Api api;
-    private final MainView mainView;
+    private final Core core;
     private final V1Pod pod;
     private final UI ui;
     private XTab tab;
@@ -68,10 +66,10 @@ public class ContainerShellPanel extends VerticalLayout implements XTabListener 
     private Thread threadError;
     private MenuItem menuItemEsc;
 
-    public ContainerShellPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, MainView mainView, V1Pod pod) {
+    public ContainerShellPanel(ClusterConfiguration.Cluster clusterConfig, CoreV1Api api, Core core, V1Pod pod) {
         this.clusterConfig = clusterConfig;
         this.api = api;
-        this.mainView = mainView;
+        this.core = core;
         this.pod = pod;
         this.ui = UI.getCurrent();
     }

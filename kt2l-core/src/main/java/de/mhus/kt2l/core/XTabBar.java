@@ -34,13 +34,13 @@ import java.util.function.Supplier;
 @Slf4j
 public class XTabBar extends VerticalLayout {
 
-    private final MainView mainView;
+    private final Core core;
     private List<XTab> tabs = new LinkedList<>();
     private XTab selectedTab;
 
-    public XTabBar(MainView mainView) {
+    public XTabBar(Core core) {
         setWidthFull();
-        this.mainView = mainView;
+        this.core = core;
         addClassName("xtabview");
     }
 
@@ -104,18 +104,18 @@ public class XTabBar extends VerticalLayout {
         // select
         selectedTab = tab;
         if (selectedTab != null) {
-            mainView.setContent(selectedTab.getPanel());
-            mainView.setWindowTitle(selectedTab.getWindowTitle(), selectedTab.getColor());
+            core.setContent(selectedTab.getPanel());
+            core.setWindowTitle(selectedTab.getWindowTitle(), selectedTab.getColor());
             if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof XTabListener) {
                 Try.run(() -> ((XTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));
             }
-            mainView.updateHelpMenu(true);
+            core.updateHelpMenu(true);
             UI.getCurrent().getPage().setTitle("KT2L " + selectedTab.getWindowTitle());
         }
     }
 
-    public MainView getMainView() {
-        return mainView;
+    public Core getCore() {
+        return core;
     }
 
     public XTab getSelectedTab() {

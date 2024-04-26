@@ -71,7 +71,7 @@ public class ActionShell implements ResourceAction {
                 () -> new ContainerShellPanel(
                         context.getClusterConfiguration(),
                         context.getApi(),
-                        context.getMainView(),
+                        context.getCore(),
                         selected
                         )).setHelpContext("shell").select();
     }

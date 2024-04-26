@@ -90,7 +90,7 @@ public class XTab extends HorizontalLayout {
 
     public void setXTabViewer(XTabBar tabViewer) {
         this.viewer = tabViewer;
-        viewer.getMainView().getBeanFactory().autowireBean(panel);
+        viewer.getCore().getBeanFactory().autowireBean(panel);
     }
 
     public XTab setParentTab(XTab parent) {
