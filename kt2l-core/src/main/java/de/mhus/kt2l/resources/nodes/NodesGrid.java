@@ -55,7 +55,7 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Nodes, Component> {
 
         if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
 
-            final var foundPod = resourcesList.stream().filter(pod -> pod.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
+            final var foundRes = resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
                         final var pod = new NodesGrid.Nodes(
                                 event.object.getMetadata().getName(),
@@ -68,16 +68,15 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Nodes, Component> {
                     }
             );
 
-            foundPod.setStatus(event.object.getStatus().getPhase());
-            foundPod.setNode(event.object);
+            foundRes.setStatus(event.object.getStatus().getPhase());
+            foundRes.setNode(event.object);
             filterList();
-            resourcesGrid.getDataProvider().refreshItem(foundPod);
-        }
-
+            resourcesGrid.getDataProvider().refreshItem(foundRes);
+        } else
         if (event.type.equals(K8sUtil.WATCH_EVENT_DELETED)) {
-            resourcesList.forEach(pod -> {
-                if (pod.getName().equals(event.object.getMetadata().getName())) {
-                    resourcesList.remove(pod);
+            resourcesList.forEach(res -> {
+                if (res.getName().equals(event.object.getMetadata().getName())) {
+                    resourcesList.remove(res);
                     filterList();
                     resourcesGrid.getDataProvider().refreshAll();
                 }
@@ -150,7 +149,9 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Nodes, Component> {
 
     @Override
     public void destroy() {
-        eventRegistration.unregister();
+        if (eventRegistration != null)
+            eventRegistration.unregister();
+        super.destroy();
     }
 
     public class NodesDataProvider extends CallbackDataProvider<Nodes, Void> {

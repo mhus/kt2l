@@ -253,7 +253,9 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
     @Override
     public void destroy() {
-        podEventRegistration.unregister();
+        if (podEventRegistration != null)
+            podEventRegistration.unregister();
+        super.destroy();
     }
 
     @Override

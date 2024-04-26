@@ -23,12 +23,16 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import de.mhus.commons.lang.IRegistration;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.AbstractGrid;
 import de.mhus.kt2l.resources.nodes.NodesGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -38,9 +42,42 @@ import java.util.stream.Stream;
 @Slf4j
 public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Component> {
 
+    private IRegistration namespaceEventRegistration;
+
     @Override
     protected void init() {
+        namespaceEventRegistration = ClusterNamespaceWatch.instance(view.getCore(), clusterConfig).getEventHandler().registerWeak(this::namespaceEvent);
+    }
 
+    private void namespaceEvent(Watch.Response<V1Namespace> event) {
+        if (resourcesList == null) return;
+
+        if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
+
+            final var foundRes = resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
+                    () -> {
+                        final var pod = new NamespacesGrid.Namespace(
+                                event.object.getMetadata().getName(),
+                                event.object
+                        );
+                        resourcesList.add(pod);
+                        return pod;
+                    }
+            );
+
+            foundRes.setResource(event.object);
+            filterList();
+            resourcesGrid.getDataProvider().refreshItem(foundRes);
+        } else
+        if (event.type.equals(K8sUtil.WATCH_EVENT_DELETED)) {
+            resourcesList.forEach(res -> {
+                if (res.getName().equals(event.object.getMetadata().getName())) {
+                    resourcesList.remove(res);
+                    filterList();
+                    resourcesGrid.getDataProvider().refreshAll();
+                }
+            });
+        }
     }
 
     @Override
@@ -85,7 +122,7 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
 
     @Override
     protected KubernetesObject getSelectedKubernetesObject(Namespace resource) {
-        return resource.resource();
+        return resource.getResource();
     }
 
     @Override
@@ -95,21 +132,32 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
 
     @Override
     protected boolean filterByContent(Namespace resource, String filter) {
-        return resource.name().contains(filter);
+        return resource.getName().contains(filter);
     }
 
     @Override
     protected void createGridColumns(Grid<Namespace> resourcesGrid) {
-        resourcesGrid.addColumn(res -> res.name()).setHeader("Name").setSortProperty("name");
+        resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
     }
 
     @Override
     public void destroy() {
-
+        if (namespaceEventRegistration != null)
+            namespaceEventRegistration.unregister();
+        super.destroy();
     }
 
-    public record Namespace(String name, V1Namespace resource) {
+    @Getter
+    public class Namespace {
 
+        private final String name;
+        @Setter
+        private V1Namespace resource;
+
+        Namespace(String name, V1Namespace resource) {
+            this.name = name;
+            this.resource = resource;
+        }
     }
 
     private class NamespacesDataProvider extends CallbackDataProvider<NamespacesGrid.Namespace, Void> {
@@ -121,8 +169,8 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
                                 query.getSortOrders()) {
                             Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
                                 case "name" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.name().compareTo(b.name());
-                                    case DESCENDING -> b.name().compareTo(a.name());
+                                    case ASCENDING -> a.getName().compareTo(b.getName());
+                                    case DESCENDING -> b.getName().compareTo(a.getName());
                                 };
                                 default -> 0;
                             });

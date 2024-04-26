@@ -28,6 +28,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
@@ -39,8 +40,11 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
+import de.mhus.kt2l.resources.namespaces.ClusterNamespaceWatch;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -92,6 +96,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     private XTab xTab;
     private ResourcesFilter resourcesFilter;
     private Button resourceFilterButton;
+    private IRegistration namespaceEventRegistration;
 
     public ResourcesGridPanel(String clusterId, Core core) {
         this.clusterId = clusterId;
@@ -132,23 +137,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         namespaceSelector.getStyle().set("--vaadin-combo-box-overlay-width", "350px");
         namespaceSelector.setItemLabelGenerator(String::toString);
 
-        k8s.getNamespacesAsync(true, coreApi).handle((namespaces, t) -> {
-            if (t != null) {
-                LOGGER.error("Can't fetch namespaces",t);
-                return Collections.emptyList();
-            }
-            LOGGER.debug("Namespaces: {}",namespaces);
-            ui.access(() -> {
-                namespaceSelector.setItems(namespaces);
-                Thread.startVirtualThread(() -> {
-                    MThread.sleep(200);
-                    ui.access(() -> {
-                        namespaceSelector.setValue(clusterConfig.defaultNamespace());
-                    });
-                });
-            });
-            return namespaces;
-        });
+        updateNamespaceSelector(true);
         namespaceSelector.addValueChangeListener(e -> {
             if (grid != null)
                 grid.setNamespace(e.getValue());
@@ -203,6 +192,28 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         return toolbar;
     }
 
+    private void updateNamespaceSelector(boolean selectDefault) {
+        k8s.getNamespacesAsync(true, coreApi).handle((namespaces, t) -> {
+            if (t != null) {
+                LOGGER.error("Can't fetch namespaces",t);
+                return Collections.emptyList();
+            }
+            LOGGER.debug("Namespaces: {}",namespaces);
+            ui.access(() -> {
+                namespaceSelector.setItems(namespaces);
+                if (selectDefault) {
+                    Thread.startVirtualThread(() -> {
+                        MThread.sleep(200);
+                        ui.access(() -> {
+                            namespaceSelector.setValue(clusterConfig.defaultNamespace());
+                        });
+                    });
+                }
+            });
+            return namespaces;
+        });
+    }
+
     private void resourceTypeChanged() {
         var rt = K8sUtil.toResourceType(resourceSelector.getValue());
         if (rt == null || rt.equals(currentResourceType)) return;
@@ -241,6 +252,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         grid = createGrid(clusterConfig.defaultResourceType());
         initGrid();
 
+        namespaceEventRegistration = ClusterNamespaceWatch.instance(getCore(), clusterConfig).getEventHandler().registerWeak(this::namespaceEvent);
     }
 
     private void initGrid() {
@@ -255,6 +267,10 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         }
     }
 
+    private void namespaceEvent(Watch.Response<V1Namespace> v1NamespaceResponse) {
+        updateNamespaceSelector(false);
+    }
+
     @Override
     public void tabSelected() {
         grid.setSelected();
@@ -267,6 +283,8 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
     @Override
     public void tabDestroyed() {
+        if (namespaceEventRegistration != null)
+            namespaceEventRegistration.unregister();
         if (grid != null)
             grid.destroy();
         grid = null;

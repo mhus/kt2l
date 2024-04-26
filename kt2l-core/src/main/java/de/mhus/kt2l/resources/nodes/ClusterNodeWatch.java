@@ -109,8 +109,8 @@ public class ClusterNodeWatch extends ClusterBackgroundJob {
                 }
                 eventHandler.fire(event);
             }
-        } catch (ApiException e) {
-            LOGGER.error("ApiException", e);
+        } catch (Exception e) {
+            LOGGER.error("Exception", e);
         }
     }
 

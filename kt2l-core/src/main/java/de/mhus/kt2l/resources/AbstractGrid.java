@@ -39,13 +39,17 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.DataProvider;
+import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.resources.namespaces.ClusterNamespaceWatch;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.util.Watch;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -118,6 +122,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         } catch (Exception e) {
             LOGGER.error("Error initializing", e);
         }
+
+    }
+
+    public void destroy() {
     }
 
     protected abstract void init();

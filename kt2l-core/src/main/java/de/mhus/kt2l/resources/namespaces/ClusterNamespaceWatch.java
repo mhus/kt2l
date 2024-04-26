@@ -93,7 +93,7 @@ public class ClusterNamespaceWatch extends ClusterBackgroundJob {
             Watch<V1Namespace> watch = Watch.createWatch(
                     client,
                     call,
-                    new TypeToken<Watch.Response<V1Node>>() {
+                    new TypeToken<Watch.Response<V1Namespace>>() {
                     }.getType());
 
             for (Watch.Response<V1Namespace> event : watch) {
@@ -110,8 +110,8 @@ public class ClusterNamespaceWatch extends ClusterBackgroundJob {
                 }
                 eventHandler.fire(event);
             }
-        } catch (ApiException e) {
-            LOGGER.error("ApiException", e);
+        } catch (Exception e) {
+            LOGGER.error("Exception", e);
         }
     }
 
