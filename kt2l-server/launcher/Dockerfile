@@ -33,7 +33,9 @@ RUN mkdir -p /app
 
 COPY target/kt2l-server.zip /app/kt2l-server.zip
 RUN unzip /app/kt2l-server.zip -d /app/ && \
-    rm /app/kt2l-server.zip
+    rm /app/kt2l-server.zip && \
+    chown -R $UID /app/kt2l-server/config && \
+    chown -R $UID /app/kt2l-server/var
 
 EXPOSE 8080
 
