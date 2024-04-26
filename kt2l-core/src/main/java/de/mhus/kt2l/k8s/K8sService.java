@@ -19,6 +19,7 @@
 package de.mhus.kt2l.k8s;
 
 import com.vaadin.flow.component.UI;
+import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.SecurityService;

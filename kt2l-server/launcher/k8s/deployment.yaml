@@ -62,6 +62,44 @@ data:
           password: "{env}viewer_password"
           roles:
             - "READ"
+    clusters.yaml: |
+        defaultCluster: .local-cluster
+        defaultResourceType: "pods"
+        defaultNamespace: default
+        clusters:
+            - name: .local-cluster
+              title: "This"
+              enabled: true
+              color: blue
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  # "namespace" omitted since ClusterRoles are not namespaced
+  name: kt2l-cluster-role
+rules:
+  - apiGroups: ["", "metrics.k8s.io","apps","batch","extensions","networking.k8s.io","storage.k8s.io","rbac.authorization.k8s.io","autoscaling","policy", "events.k8s.io"]
+    resources: ["*"]
+    verbs: ["*"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kt2l-service-account
+  namespace: kt2l
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kt2l-cluster-role-binding
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: kt2l-cluster-role
+subjects:
+    - kind: ServiceAccount
+      name: kt2l-service-account
+      namespace: kt2l
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -81,10 +119,11 @@ spec:
       labels:
         app: kt2l
     spec:
+      serviceAccountName: kt2l-service-account
       containers:
         - image: mhus/kt2l-server:snapshot
+          imagePullPolicy: Always
           name: kt2l-server
-          resources: {}
           ports:
             - containerPort: 8080
           envFrom:
@@ -92,10 +131,26 @@ spec:
                 name: passwords
           volumeMounts:
             - name: config
-              mountPath: /home/user/config/local
+              mountPath: /app/kt2l-server/config/local
       volumes:
         # You set volumes at the Pod level, then mount them into containers inside that Pod
         - name: config
           configMap:
             # Provide the name of the ConfigMap you want to mount.
             name: local-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kt2l
+  name: kt2l
+  namespace: kt2l
+spec:
+    ports:
+      - name: http
+        port: 80
+        targetPort: 8080
+    selector:
+        app: kt2l
+    type: ClusterIP

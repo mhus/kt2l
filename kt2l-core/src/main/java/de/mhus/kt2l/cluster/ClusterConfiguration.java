@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.cluster;
 
+import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.AbstractUserRelatedConfig;
@@ -32,7 +33,8 @@ import java.util.TreeMap;
 public class ClusterConfiguration extends AbstractUserRelatedConfig {
 
     public ClusterConfiguration() {
-        super("clusters");
+
+        super("clusters", MCast.toboolean(System.getenv("KT2L_PROTECTED_CLUSTERS_CONFIG"), false));
     }
 
     public String defaultClusterName() {
@@ -77,7 +79,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
         return cluster;
     }
 
-    public static record Cluster(String name, String title, boolean enabled, String defaultNamespace, String defaultResourceType, UiUtil.COLOR color,
+    public record Cluster(String name, String title, boolean enabled, String defaultNamespace, String defaultResourceType, UiUtil.COLOR color,
                                  ITreeNode node) {
     }
 

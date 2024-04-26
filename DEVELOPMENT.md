@@ -88,3 +88,22 @@ export AWS_DEFAULT_REGION=eu-central-1
 ./kt2l-desktop/launcher/deploy-deb-amd64.sh
 ```
 
+# Local run in Kubernetes cluster (mac)
+
+Need to build the docker container and push it to the docker registry before.
+
+```bash
+# Start colima
+colima start --kubernetes
+
+# deploy the application
+kubectl apply -f kt2l-server/launcher/k8s/deployment.yaml
+
+# expose the service to local machine
+kubectl port-forward -n kt2l service/kt2l 27017:80
+
+# open the browser
+open http://localhost:27017
+
+```
+

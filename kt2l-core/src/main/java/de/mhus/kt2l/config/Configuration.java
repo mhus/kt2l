@@ -54,10 +54,6 @@ import static de.mhus.commons.tools.MString.isSet;
 @Slf4j
 public class Configuration {
 
-    public static final String SECTION_VIEWS = "views";
-    public static final String SECTION_CLUSTERS = "clusters";
-    public static final String SECTION_USERS = "users";
-    public static final String SECTION_LOGIN = "login";
     private static final String LOCAL_DIR = "local";
     private static final String USERS_DIR = "users";
 
