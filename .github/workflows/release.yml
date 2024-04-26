@@ -89,7 +89,7 @@ jobs:
         env:
           TEST_DEBUG: false
           TEST_SCREENSHOTS: true
-      - name: Copy Screenshots to cache
+      - name: Copy Screenshots
         if:  ${{ contains(inputs.execute, ':integration-tests:') }}
         run: |
           cd kt2l-test/target/screenshots
@@ -97,15 +97,10 @@ jobs:
           cp *.png ../../../docs/screenshots/
           echo "<html><body><h1>Screenshots</h1>" > ../../../docs/screenshots/index.html
           for f in *.png; do  
-            echo "Copy $f to cache"
-            aws s3 cp $f s3://kt2l-downloads/cache/screenshots/$f; 
+            echo "Copy $f to docs"
             echo "<h2>$f</h2><img width='100%' src='$f'>" >> ../../../docs/screenshots/index.html
           done
           echo "</body></html>" >> ../../../docs/screenshots/index.html
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
       - name: Analyse
         if:  ${{ contains(inputs.execute, ':sonarcloud:') }}
         env:
@@ -254,20 +249,18 @@ jobs:
       group: deploy_page
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      #      - name: Generate Javadoc
-      #        run: mvn javadoc:aggregate -DskipTests
+#      - name: Set up JDK 21
+#        uses: actions/setup-java@v3
+#        with:
+#          java-version: '21'
+#          distribution: 'temurin'
+#          cache: 'maven'
+#      - name: Generate Javadoc
+#        run: mvn javadoc:aggregate -DskipTests
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
 
