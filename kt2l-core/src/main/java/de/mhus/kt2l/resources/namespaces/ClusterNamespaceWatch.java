@@ -20,6 +20,7 @@ package de.mhus.kt2l.resources.namespaces;
 
 import com.google.gson.reflect.TypeToken;
 import de.mhus.commons.util.MEventHandler;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.K8sService;
@@ -48,6 +49,13 @@ public class ClusterNamespaceWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private ApiClient client;
     private CoreV1Api api;
+
+    public static ClusterNamespaceWatch instance(Core core, Cluster clusterConfig) {
+        return core.getBackgroundJob(clusterConfig.name(), ClusterNamespaceWatch.class, () -> new ClusterNamespaceWatch());
+    }
+
+    private ClusterNamespaceWatch() {
+    }
 
     @Override
     public void close() {

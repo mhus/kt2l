@@ -53,6 +53,9 @@ public class ClusterNodeWatch extends ClusterBackgroundJob {
         return core.getBackgroundJob(clusterConfig.name(), ClusterNodeWatch.class, () -> new ClusterNodeWatch());
     }
 
+    private ClusterNodeWatch() {
+    }
+
     @Override
     public void close() {
         if (watchThread != null) {

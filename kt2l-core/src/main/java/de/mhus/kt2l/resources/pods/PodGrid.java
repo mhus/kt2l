@@ -307,7 +307,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
     @Override
     protected void init() {
-        podEventRegistration = view.getCore().getBackgroundJob(clusterConfig.name(), ClusterPodWatch.class, () -> new ClusterPodWatch()).getEventHandler().registerWeak(this::podEvent);
+        podEventRegistration = ClusterPodWatch.instance(view.getCore(), clusterConfig).getEventHandler().registerWeak(this::podEvent);
     }
 
     @Override

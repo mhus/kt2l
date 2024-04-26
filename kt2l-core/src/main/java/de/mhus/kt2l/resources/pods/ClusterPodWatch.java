@@ -20,6 +20,7 @@ package de.mhus.kt2l.resources.pods;
 
 import com.google.gson.reflect.TypeToken;
 import de.mhus.commons.util.MEventHandler;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
@@ -46,6 +47,13 @@ public class ClusterPodWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private ApiClient client;
     private CoreV1Api api;
+
+    public static ClusterPodWatch instance(Core core, Cluster clusterConfig) {
+        return  core.getBackgroundJob(clusterConfig.name(), ClusterPodWatch.class, () -> new ClusterPodWatch());
+    }
+
+    private ClusterPodWatch() {
+    }
 
     @Override
     public void close() {
