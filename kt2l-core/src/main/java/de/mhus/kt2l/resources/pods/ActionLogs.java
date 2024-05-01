@@ -20,11 +20,11 @@ package de.mhus.kt2l.resources.pods;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.core.PanelService;
+import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
-import de.mhus.kt2l.core.PanelService;
-import de.mhus.kt2l.core.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Pod;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -18,34 +18,24 @@
 
 package de.mhus.kt2l.config;
 
-import com.vaadin.flow.component.UI;
-import de.mhus.commons.errors.AuthorizationException;
 import de.mhus.commons.io.Zip;
-import de.mhus.commons.lang.ICloseable;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNode;
-import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.generated.DeployInfo;
 import io.vavr.control.Try;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static de.mhus.commons.tools.MCollection.toSet;
 import static de.mhus.commons.tools.MString.isSet;
@@ -56,8 +46,6 @@ public class Configuration {
 
     private static final String LOCAL_DIR = "local";
     private static final String USERS_DIR = "users";
-
-    private static final ThreadLocal<ConfigurationContext> threadLocalConfigurationContext = new ThreadLocal<>();
 
     @Value("${configuration.directory:config}")
     private String configurationDirectory;
@@ -186,44 +174,4 @@ public class Configuration {
         protectedConfigs.add(sectionName);
     }
 
-    public static ConfigurationContext getContext() {
-        return new ConfigurationContext();
-    }
-
-    public static String lookupUserName() {
-        var context = threadLocalConfigurationContext.get();
-        final var userName = context != null ? context.getUserName() : Try.of(() -> (String) UI.getCurrent().getSession().getAttribute(Kt2lApplication.UI_USERNAME)).getOrElseThrow(() -> {
-            LOGGER.error("Calling config() without user in UI context", new Exception());
-            return new AuthorizationException("No user in UI context");
-        });
-        return userName;
-    }
-
-    public static class ConfigurationContext {
-        @Getter
-        private final String userName;
-
-        protected ConfigurationContext() {
-            var context = threadLocalConfigurationContext.get();
-            userName = lookupUserName();
-        }
-        
-        public Environment enter() {
-            return new Environment(this);
-        }
-    }
-
-    public static class Environment implements ICloseable {
-        private final ConfigurationContext context;
-
-        private Environment(ConfigurationContext context) {
-            this.context = context;
-            threadLocalConfigurationContext.set(context);
-        }
-
-        @Override
-        public void close() {
-            threadLocalConfigurationContext.remove();
-        }
-    }
 }

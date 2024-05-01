@@ -18,12 +18,9 @@
 
 package de.mhus.kt2l.config;
 
-import com.vaadin.flow.component.UI;
-import de.mhus.commons.errors.AuthorizationException;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.util.SoftHashMap;
-import de.mhus.kt2l.Kt2lApplication;
-import io.vavr.control.Try;
+import de.mhus.kt2l.core.SecurityContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +56,7 @@ public abstract class AbstractUserRelatedConfig {
     }
 
     protected ITreeNode config() {
-        final var userName = Configuration.lookupUserName();
+        final var userName = SecurityContext.lookupUserName();
         synchronized (cache) {
             var config = cache.get(userName);
             if (config == null) {

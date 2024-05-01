@@ -18,15 +18,16 @@
 
 package de.mhus.kt2l.ai;
 
-import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import de.mhus.commons.tools.MString;
-import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.help.HelpUtil;
 import dev.langchain4j.chain.ConversationalChain;
 import dev.langchain4j.memory.ChatMemory;

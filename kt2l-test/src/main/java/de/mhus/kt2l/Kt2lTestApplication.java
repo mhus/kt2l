@@ -33,12 +33,9 @@
  */
 package de.mhus.kt2l;
 
-import de.mhus.commons.tools.MCast;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
-
-import javax.swing.*;
 
 @Slf4j
 public class Kt2lTestApplication extends Kt2lApplication {

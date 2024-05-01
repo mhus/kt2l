@@ -35,6 +35,8 @@ public interface ResourcesGrid {
 
     void setNamespace(String value);
 
+    String getNamespace();
+
     void setResourceType(String resourceType);
 
     void handleShortcut(ShortcutEvent event);

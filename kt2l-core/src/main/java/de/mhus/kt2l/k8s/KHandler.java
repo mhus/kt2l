@@ -19,7 +19,6 @@
 package de.mhus.kt2l.k8s;
 
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreApi;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 public interface KHandler {

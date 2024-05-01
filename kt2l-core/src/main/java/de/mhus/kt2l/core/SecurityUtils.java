@@ -85,7 +85,7 @@ public class SecurityUtils {
      * @return
      */
     static boolean hasPrincipalRoles(Set<String> roles) {
-        final var principal = getPrincipal();
+        final var principal = SecurityContext.lookupPrincipal();
         if (principal == null) {
             LOGGER.warn("Principal not found in request");
             return false;
@@ -96,7 +96,7 @@ public class SecurityUtils {
     static boolean hasPrincipalRoles(Set<String> roles, Principal principal) {
 
         if (principal == null) {
-            LOGGER.warn("Principal not found");
+            LOGGER.warn("Principal not found", new Throwable());
             return false;
         }
 
@@ -130,9 +130,9 @@ public class SecurityUtils {
 
     }
 
-        // do not use
+    // do not use
     static boolean hasPrincipalResourceRoles(Object resource) {
-        final var principal = getPrincipal();
+        final var principal = SecurityContext.lookupPrincipal();
         if (principal == null) {
             LOGGER.warn("Principal not found in request");
             return false;

@@ -233,7 +233,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                                     plural = parts[0];
                                 }
 
-                                final var list = genericApi.listNamespacedCustomObject(group, version, null, plural, null, null, null, null, null, null, null, null, null, null);
+                                final var list = genericApi.listNamespacedCustomObject(group, version, namespaceName, plural, null, null, null, null, null, null, null, null, null, null);
 
                                 list.forEach(item -> {
 //                                    final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
@@ -253,7 +253,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                                 });
 
                             } catch (ApiException e) {
-                                LOGGER.error("Can't fetch pods from cluster",e);
+                                LOGGER.error("Can't fetch resource from cluster",e);
                             }
                         }
                         filterList();

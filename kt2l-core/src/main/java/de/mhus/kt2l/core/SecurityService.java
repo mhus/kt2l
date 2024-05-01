@@ -20,7 +20,6 @@ package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
-import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.config.AaaConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
@@ -30,7 +29,6 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.stereotype.Component;
 
 import java.security.Principal;
-import java.util.HashSet;
 import java.util.Set;
 
 @Component
@@ -42,7 +40,7 @@ public class SecurityService {
     private static final String LOGOUT_SUCCESS_URL = "/";
 
     public Principal getPrincipal() {
-        return SecurityUtils.getPrincipal();
+        return de.mhus.kt2l.core.SecurityContext.lookupPrincipal();
     }
 
     public Set<String> getRolesForResource(String resourceScope, String resourceName) {

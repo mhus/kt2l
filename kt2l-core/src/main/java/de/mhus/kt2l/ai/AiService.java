@@ -20,7 +20,6 @@ package de.mhus.kt2l.ai;
 
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.tools.MString;
-import de.mhus.kt2l.config.Configuration;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -32,7 +31,6 @@ import dev.langchain4j.model.output.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;

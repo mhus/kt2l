@@ -24,7 +24,6 @@ import de.mhus.commons.tree.MProperties;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.core.UiUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;

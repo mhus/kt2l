@@ -39,6 +39,10 @@ The password can also be set with other types
 - `{env}ENV_KEY`: The password is stored and loaded from an environment variable.
 - `{bcrypt}hash`: The password is stored as a bcrypt hash.
 
+If you use `{env}ENV_KEY` the password is stored in the environment variable `ENV_KEY`. If the
+value starts with a wavy bracket `{` it is treated as encoded password. A password can't start 
+with a wavy bracket if loaded from environment variable.
+
 For more options see the spring boot configuration 
 [Password Storage](https://docs.spring.io/spring-security/reference/features/authentication/password-storage.html).
 

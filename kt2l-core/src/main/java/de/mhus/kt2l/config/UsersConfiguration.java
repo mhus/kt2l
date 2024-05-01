@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.config;
 
-import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNodeList;
 import org.springframework.stereotype.Component;

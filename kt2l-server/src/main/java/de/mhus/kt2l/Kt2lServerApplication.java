@@ -37,8 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import java.io.InputStream;
-
 @Slf4j
 public class Kt2lServerApplication extends Kt2lApplication {
 

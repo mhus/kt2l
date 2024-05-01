@@ -18,15 +18,11 @@
 
 package de.mhus.kt2l.ai;
 
-import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.AbstractUserRelatedConfig;
-import de.mhus.kt2l.config.Configuration;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Optional;
 
 @Getter

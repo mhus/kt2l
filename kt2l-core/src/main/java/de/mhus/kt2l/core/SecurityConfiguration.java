@@ -129,7 +129,13 @@ public class SecurityConfiguration
             } else
             if (password.startsWith("{env}")) {
 //                password = passwordEncoder().encode(System.getenv(password.substring(5)));
-                password = "{noop}" + System.getenv(password.substring(5)).trim();
+                final var envValue = System.getenv(password.substring(5)).trim();
+                if (envValue == null || envValue.length() == 0)
+                    throw new IllegalArgumentException("Environment variable not found: " + password.substring(5));
+                if (envValue.startsWith("{"))
+                    password = envValue;
+                else
+                    password = "{noop}" + envValue;
             }
             userDetails.add(User.withUsername(u.name())
                     .password(password)

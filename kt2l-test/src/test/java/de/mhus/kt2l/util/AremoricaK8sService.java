@@ -58,9 +58,9 @@ public class AremoricaK8sService extends K8sService {
 
     public static void createAremorica() throws ApiException {
         createNamespace("aremorica");
-        createPod("idefix", "aremorica", "nginx:latest");
+        createPod("asterix", "aremorica", "nginx:latest");
 
-        waitForPodReady("idefix", "aremorica");
+        waitForPodReady("asterix", "aremorica");
     }
 
     private static void waitForPodReady(String name, String namespace) {

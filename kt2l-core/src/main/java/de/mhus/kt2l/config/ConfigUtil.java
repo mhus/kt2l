@@ -18,9 +18,6 @@
 
 package de.mhus.kt2l.config;
 
-import de.mhus.kt2l.cluster.Cluster;
-import io.kubernetes.client.openapi.models.V1Pod;
-
 public class ConfigUtil {
 
 }

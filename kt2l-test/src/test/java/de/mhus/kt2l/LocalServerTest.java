@@ -18,9 +18,11 @@
 package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MLang;
-import de.mhus.commons.tools.MThread;
+import de.mhus.kt2l.resources.ResourcesGridPanel;
+import de.mhus.kt2l.resources.pods.PodGrid;
 import de.mhus.kt2l.util.AremoricaContextConfiguration;
 import de.mhus.kt2l.util.AremoricaK8sService;
+import de.mhus.kt2l.util.CoreHelper;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,10 +43,11 @@ import org.springframework.boot.web.servlet.context.ServletWebServerApplicationC
 import org.springframework.context.annotation.Import;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
 import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
@@ -53,13 +57,17 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"configuration.localDirectory=local_config"}
 )
-@Import(AremoricaContextConfiguration.class)
+@Import({AremoricaContextConfiguration.class, CoreHelper.class})
 public class LocalServerTest {
 
     private static ChromeDriver driver;
 
     @Autowired
-    private ServletWebServerApplicationContext webServerAppCtxt;
+    private ServletWebServerApplicationContext webServerApplicationContext;
+
+    @Autowired
+    private CoreHelper coreHelper;
+
 
     @BeforeAll
     public static void beforeAll() throws IOException, ApiException {
@@ -92,9 +100,9 @@ public class LocalServerTest {
     }
 
     public void resetUi() {
-        LOGGER.info("Reset test on port {}", webServerAppCtxt.getWebServer().getPort());
+        LOGGER.info("Reset test on port {}", webServerApplicationContext.getWebServer().getPort());
         for (int i = 0; i < 4; i++) {
-            driver.get("http://localhost:" + webServerAppCtxt.getWebServer().getPort());
+            driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort());
             try {
                 new WebDriverWait(driver, ofSeconds(4), ofSeconds(1))
                         .until(visibilityOfElementLocated(By.xpath("//span[contains(.,\"[KT2L]\")]")));
@@ -126,7 +134,7 @@ public class LocalServerTest {
 
     @Test
     @Order(3)
-    public void testPodDetails() {
+    public void testPodDetails() throws InterruptedException {
         resetUi();
 
         // click on Resources on Main
@@ -135,10 +143,31 @@ public class LocalServerTest {
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                 .until(presenceOfElementLocated(By.xpath("//vaadin-menu-bar-item[contains(.,\"View\")]")));
 
-        // click on pod idefix
-        driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]")).click();
+        // click on pod asterix
+        driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]")).click();
+
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(1));
+//        new WebDriverWait(driver, ofSeconds(600), ofSeconds(1))
+//                .until(ExpectedConditions.attributeToBe(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[2]/vaadin-checkbox"), "checked", ""));
+
+//        vaadinUiHelper.
         // should be selected
-//XXX        assertThat(driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]/../..")).getAttribute("selected")).isEqualTo("true");
+//XXX        assertThat(driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/../..")).getAttribute("selected")).isEqualTo("true");
+
+
+        var core = coreHelper.getLastCore();
+        ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("test/aremorica").get().getPanel();
+
+        AtomicBoolean finished = new AtomicBoolean(false);
+        core.getUI().get().access(() -> {
+            var selected = ((PodGrid)grid.getGrid()).getResourcesGrid().getSelectedItems();
+            LOGGER.info("Selected: {}", selected);
+            finished.set(true);
+        });
+
+        MLang.await(() -> finished.get() ? "yo" : null, 5000);
+
+        LOGGER.info("Core: {}", core);
 
         DebugTestUtil.doScreenshot(driver, "cluster_resources_pod");
         DebugTestUtil.debugBreakpoint("Pod Details");

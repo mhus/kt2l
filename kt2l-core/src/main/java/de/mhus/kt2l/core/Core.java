@@ -44,8 +44,8 @@ import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.help.HelpAction;
+import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.help.LinkHelpAction;
 import de.mhus.kt2l.resources.ResourceDetailsPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
@@ -59,7 +59,11 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Supplier;
@@ -91,6 +95,9 @@ public class Core extends AppLayout {
 
     @Autowired
     private List<HelpAction> helpActions;
+
+    @Autowired(required=false)
+    private List<CoreListener> coreListeners;
 
     private final transient AuthenticationContext authContext;
     private XTabBar tabBar;
@@ -127,6 +134,8 @@ public class Core extends AppLayout {
         LOGGER.info("Start Refresh Scheduler");
         closeScheduler = scheduler.scheduleAtFixedRate(this::fireRefresh, 1, 1, java.util.concurrent.TimeUnit.SECONDS);
 
+        if (coreListeners != null)
+            coreListeners.forEach(l -> l.onCoreCreated(this));
     }
 
     private void createContent() {
@@ -186,6 +195,8 @@ public class Core extends AppLayout {
         clusteredJobsCleanup();
         if (heartbeatRegistration != null)
             heartbeatRegistration.remove();
+        if (coreListeners != null)
+            coreListeners.forEach(l -> l.onCoreDestroyed(this));
     }
 
     private void clusteredJobsCleanup() {

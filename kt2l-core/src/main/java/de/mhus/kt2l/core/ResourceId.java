@@ -18,8 +18,6 @@
 
 package de.mhus.kt2l.core;
 
-import de.mhus.kt2l.config.UsersConfiguration;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 

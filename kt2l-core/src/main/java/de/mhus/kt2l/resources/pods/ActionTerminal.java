@@ -19,29 +19,20 @@
 package de.mhus.kt2l.resources.pods;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
-import de.mhus.commons.tools.MCollection;
-import de.mhus.commons.tools.MString;
-import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tree.MProperties;
-import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.CmdConfiguration;
-import de.mhus.kt2l.config.ConfigUtil;
-import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
-import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
-import de.mhus.kt2l.core.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Set;
 
 @Slf4j

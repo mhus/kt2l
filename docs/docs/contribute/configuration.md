@@ -15,11 +15,11 @@ the user can overwrite the configuration in its own home directory.
 Static configurations are stored in the `config` directory of the KT2L installation.
 
 The user is read from the vaadin UI variable. In some cases this is not available. In this case you need
-to remember the ConfigurationContext calling the static method `ConfigurationContext.getContext()` and
+to remember the SecurityContext calling the static method `SecurityContext.context()` and
 encapsulate the code with a try use block.
 
 ```java
-final var cc = ConfigurationContext.getContext();
+final var cc = SecurityContext.create();
 Thread.startVirtualThread(() -> {
     try (var cce = cc.enter()) {
         // your code here ...

@@ -18,10 +18,8 @@
 
 package de.mhus.kt2l.k8s;
 
-import com.vaadin.flow.component.UI;
-import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
-import de.mhus.kt2l.config.Configuration;
+import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -87,7 +85,7 @@ public class K8sService {
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
-        Configuration.ConfigurationContext cc = Configuration.getContext(); // need to export the configuration context to another thread
+        SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
 
         CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
         K8sUtil.getResourceTypesAsync(coreApi).handle((resources, t) -> {
@@ -95,7 +93,7 @@ public class K8sService {
                 future.completeExceptionally(t);
                 return Collections.emptyList();
             }
-            try (Configuration.Environment cce = cc.enter()) {
+            try (SecurityContext.Environment cce = cc.enter()) {
                 final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE);
                 resources = resources.stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal)).toList();
                 future.complete(resources);
@@ -143,8 +141,11 @@ public class K8sService {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
+        if (principal == null) {
+            throw new RuntimeException("Principal not found");
+        }
 
-        Configuration.ConfigurationContext cc = Configuration.getContext(); // need to export the configuration context to another thread
+        SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
 
         CompletableFuture<List<String>> future = new CompletableFuture<>();
         K8sUtil.getNamespacesAsync(coreApi).handle((namespaces, t) -> {
@@ -152,7 +153,7 @@ public class K8sService {
                 future.completeExceptionally(t);
                 return Collections.emptyList();
             }
-            try (Configuration.Environment cce = cc.enter()){
+            try (SecurityContext.Environment cce = cc.enter()){
                 var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE);
                 if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, principalFinal))
                     namespaces.addFirst(K8sUtil.NAMESPACE_ALL);

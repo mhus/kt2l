@@ -20,10 +20,10 @@ package de.mhus.kt2l.ai;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
-import de.mhus.kt2l.resources.ExecutionContext;
-import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
+import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

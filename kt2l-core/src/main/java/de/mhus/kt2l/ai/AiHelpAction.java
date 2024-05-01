@@ -20,9 +20,9 @@ package de.mhus.kt2l.ai;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.help.HelpAction;
+import de.mhus.kt2l.help.HelpConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

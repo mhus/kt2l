@@ -29,22 +29,25 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.lang.IRegistration;
+import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MString;
+import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
-import de.mhus.kt2l.k8s.K8sService;
-import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.resources.generic.GenericGridFactory;
+import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
+import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.resources.generic.GenericGridFactory;
 import de.mhus.kt2l.resources.namespaces.ClusterNamespaceWatch;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
-import io.kubernetes.client.openapi.models.V1Namespace;
-import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +83,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     @Autowired
     private SecurityService securityService;
 
+    @Getter
     private ResourcesGrid grid;
     private TextField filterText;
     private ComboBox<String> namespaceSelector;
@@ -97,6 +101,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     private ResourcesFilter resourcesFilter;
     private Button resourceFilterButton;
     private IRegistration namespaceEventRegistration;
+    private List<String> currentNamespaces;
 
     public ResourcesGridPanel(String clusterId, Core core) {
         this.clusterId = clusterId;
@@ -139,7 +144,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
         updateNamespaceSelector(true);
         namespaceSelector.addValueChangeListener(e -> {
-            if (grid != null)
+            if (grid != null && !MString.equals(e.getValue(), grid.getNamespace()))
                 grid.setNamespace(e.getValue());
         });
         // resource type selector
@@ -199,9 +204,17 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
                 return Collections.emptyList();
             }
             LOGGER.debug("Namespaces: {}",namespaces);
+            if (MCollection.equalsAnyOrder(namespaces, currentNamespaces))  {
+                if (selectDefault && !MSystem.equals(namespaceSelector.getValue(), clusterConfig.defaultNamespace())) {
+                    ui.access(() -> namespaceSelector.setValue(clusterConfig.defaultNamespace()));
+                }
+                return namespaces;
+            }
+            currentNamespaces = namespaces;
             ui.access(() -> {
                 namespaceSelector.setItems(namespaces);
-                if (selectDefault) {
+                ui.push();
+                if (selectDefault && !MSystem.equals(namespaceSelector.getValue(), clusterConfig.defaultNamespace())) {
                     Thread.startVirtualThread(() -> {
                         MThread.sleep(200);
                         ui.access(() -> {
@@ -252,7 +265,17 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         grid = createGrid(clusterConfig.defaultResourceType());
         initGrid();
 
-        namespaceEventRegistration = ClusterNamespaceWatch.instance(getCore(), clusterConfig).getEventHandler().registerWeak(this::namespaceEvent);
+        final var cc = SecurityContext.create();
+        namespaceEventRegistration = ClusterNamespaceWatch.instance(getCore(), clusterConfig).getEventHandler().register(
+                (event) -> {
+                    try (var cce = cc.enter()) {
+                        if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_DELETED))
+                            updateNamespaceSelector(false);
+                    } catch (Exception e) {
+                        LOGGER.error("Error in namespace event",e);
+                    }
+                }
+        );
     }
 
     private void initGrid() {
@@ -265,10 +288,6 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
             grid.init(coreApi, clusterConfig, this);
             gridContainer.add(grid.getComponent());
         }
-    }
-
-    private void namespaceEvent(Watch.Response<V1Namespace> v1NamespaceResponse) {
-        updateNamespaceSelector(false);
     }
 
     @Override

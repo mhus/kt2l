@@ -20,12 +20,12 @@ package de.mhus.kt2l.resources.nodes;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
-import de.mhus.kt2l.core.WithRole;
 import io.kubernetes.client.common.KubernetesObject;
 import org.springframework.stereotype.Component;
 

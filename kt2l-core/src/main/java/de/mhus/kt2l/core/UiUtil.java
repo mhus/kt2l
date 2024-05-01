@@ -18,20 +18,22 @@
 
 package de.mhus.kt2l.core;
 
-import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
+import com.vaadin.flow.component.ShortcutRegistration;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.server.Command;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MSystem;
 import lombok.Getter;
 
 import static de.mhus.commons.tools.MCollection.cropArray;
 import static de.mhus.commons.tools.MString.isEmptyTrim;
-import static de.mhus.commons.tools.MString.isSet;
 
 public class UiUtil {
 

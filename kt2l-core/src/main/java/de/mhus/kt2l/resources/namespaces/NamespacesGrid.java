@@ -26,7 +26,6 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.AbstractGrid;
-import de.mhus.kt2l.resources.nodes.NodesGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.util.Watch;
