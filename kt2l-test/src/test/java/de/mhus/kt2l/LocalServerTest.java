@@ -146,7 +146,18 @@ public class LocalServerTest {
         // click on pod asterix
         driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]")).click();
 
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(1));
+//        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(1));
+
+        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1)).until((d) ->
+        {
+            try {
+                var element = d.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[2]/vaadin-checkbox"));
+                return element.getAttribute("checked") != null;
+            } catch (Exception e) {
+                return false;
+            }
+        });
+
 //        new WebDriverWait(driver, ofSeconds(600), ofSeconds(1))
 //                .until(ExpectedConditions.attributeToBe(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[2]/vaadin-checkbox"), "checked", ""));
 
