@@ -27,6 +27,7 @@ import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodBuilder;
+import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.Config;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -57,10 +58,10 @@ public class AremoricaK8sService extends K8sService {
     }
 
     public static void createAremorica() throws ApiException {
-        createNamespace("aremorica");
-        createPod("asterix", "aremorica", "nginx:latest");
+        createNamespace("indomitable-village");
+        createPod("asterix", "indomitable-village", "nginx:latest");
 
-        waitForPodReady("asterix", "aremorica");
+        waitForPodReady("asterix", "indomitable-village");
     }
 
     private static void waitForPodReady(String name, String namespace) {
@@ -77,7 +78,8 @@ public class AremoricaK8sService extends K8sService {
 
     }
 
-    private static V1Namespace createNamespace(String name) throws ApiException {
+    public static V1Namespace createNamespace(String name) throws ApiException {
+        LOGGER.info("Create namespace: {}", name);
         V1Namespace namespace = new V1Namespace();
         V1ObjectMeta meta = new V1ObjectMeta();
         meta.name(name);
@@ -85,8 +87,13 @@ public class AremoricaK8sService extends K8sService {
         return api.createNamespace(namespace, null, null, null, null);
     }
 
-    private static V1Pod createPod(String name, String namespace, String image) throws ApiException {
+    public static V1Status deleteNamespace(String name) throws ApiException {
+        LOGGER.info("Delete namespace: {}", name);
+        return api.deleteNamespace(name, null, null, null, null, null, null);
+    }
 
+    public static V1Pod createPod(String name, String namespace, String image) throws ApiException {
+        LOGGER.info("Create pod: {} in namespace: {}", name, namespace);
         var pod = new V1PodBuilder()
                 .withNewMetadata()
                     .withName(name)

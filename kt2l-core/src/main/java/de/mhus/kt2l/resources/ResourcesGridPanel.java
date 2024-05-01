@@ -56,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static de.mhus.commons.tools.MString.isEmpty;
 
@@ -342,5 +343,9 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
     public void setNamespace(String namespace) {
         namespaceSelector.setValue(namespace);
+    }
+
+    public List<String> getNamespaces() {
+        return Collections.unmodifiableList(currentNamespaces);
     }
 }

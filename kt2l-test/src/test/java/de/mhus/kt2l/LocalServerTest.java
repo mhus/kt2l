@@ -18,6 +18,7 @@
 package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MLang;
+import de.mhus.commons.util.Value;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.pods.PodGrid;
 import de.mhus.kt2l.util.AremoricaContextConfiguration;
@@ -44,6 +45,8 @@ import org.springframework.context.annotation.Import;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.time.Duration.ofSeconds;
@@ -134,6 +137,32 @@ public class LocalServerTest {
 
     @Test
     @Order(3)
+    public void testNamespacePush() throws InterruptedException, ApiException {
+        resetUi();
+
+        // click on Resources on Main
+        driver.findElement(By.xpath("//vaadin-menu-bar-item[contains(.,\"Resources\")]")).click();
+        // wait for the view menu
+        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                .until(presenceOfElementLocated(By.xpath("//vaadin-menu-bar-item[contains(.,\"View\")]")));
+
+        var core = coreHelper.getLastCore();
+        ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("test/aremorica").get().getPanel();
+        assertThat(grid.getNamespaces().contains("little-bonum")).isFalse();
+
+        AremoricaK8sService.createNamespace("little-bonum");
+        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                .until( (d) -> grid.getNamespaces().contains("little-bonum"));
+
+        AremoricaK8sService.deleteNamespace("little-bonum");
+        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                .until( (d) -> !grid.getNamespaces().contains("little-bonum"));
+
+
+    }
+
+    @Test
+    @Order(4)
     public void testPodDetails() throws InterruptedException {
         resetUi();
 
@@ -169,16 +198,15 @@ public class LocalServerTest {
         var core = coreHelper.getLastCore();
         ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("test/aremorica").get().getPanel();
 
-        AtomicBoolean finished = new AtomicBoolean(false);
+        Value<Set<PodGrid.Pod>> selected = new Value<>();
         core.getUI().get().access(() -> {
-            var selected = ((PodGrid)grid.getGrid()).getResourcesGrid().getSelectedItems();
-            LOGGER.info("Selected: {}", selected);
-            finished.set(true);
+            selected.value = ((PodGrid)grid.getGrid()).getResourcesGrid().getSelectedItems();
+            LOGGER.debug("Selected: {}", selected.value);
         });
+        MLang.await(() -> selected.value, 5000);
 
-        MLang.await(() -> finished.get() ? "yo" : null, 5000);
-
-        LOGGER.info("Core: {}", core);
+        assertThat(selected.value).isNotNull();
+        assertThat(selected.value.size()).isEqualTo(1);
 
         DebugTestUtil.doScreenshot(driver, "cluster_resources_pod");
         DebugTestUtil.debugBreakpoint("Pod Details");
