@@ -64,7 +64,7 @@ public class AremoricaK8sService extends K8sService {
         waitForPodReady("asterix", "indomitable-village");
     }
 
-    private static void waitForPodReady(String name, String namespace) {
+    public static void waitForPodReady(String name, String namespace) {
 
         MLang.tryThis(() -> {
             while (true) {
@@ -114,6 +114,10 @@ public class AremoricaK8sService extends K8sService {
 
     public static void stop() {
         MLang.tryThis(() -> k3s.stop()).onError(e -> LOGGER.error("Error on quit", e));
+    }
+
+    public static V1Pod deletePod(String name, String namespace) throws ApiException {
+        return api.deleteNamespacedPod(name, namespace, null, null, null, null, null, null);
     }
 
     public Set<String> getAvailableContexts() {

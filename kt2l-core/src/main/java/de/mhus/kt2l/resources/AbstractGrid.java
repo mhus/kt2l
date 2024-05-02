@@ -63,12 +63,13 @@ import java.util.stream.Collectors;
 public abstract class AbstractGrid<T, S extends Component> extends VerticalLayout implements ResourcesGrid {
 
     protected List<T> resourcesList = null;
+    @Getter // for testing
     protected List<T> filteredList = null;
     private String filterText = "";
     protected String namespace;
     protected CoreV1Api coreApi;
     protected Cluster clusterConfig;
-    @Getter
+    @Getter // for testing
     protected Grid<T> resourcesGrid;
     private MenuBar menuBar;
     protected List<MenuAction> actions = new ArrayList<>(10);
