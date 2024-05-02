@@ -20,22 +20,18 @@ package de.mhus.kt2l;
 
 import com.google.gson.reflect.TypeToken;
 import de.mhus.commons.tools.MDate;
-import de.mhus.kt2l.k8s.GenericObjectsApi;
+import de.mhus.commons.tools.MLang;
+import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
+import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.CoreV1EventList;
-import io.kubernetes.client.openapi.models.V1APIResource;
-import io.kubernetes.client.openapi.models.V1EphemeralContainer;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodList;
-import io.kubernetes.client.openapi.models.V1WatchEvent;
+import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.KubeConfig;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
@@ -44,11 +40,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Disabled
@@ -65,34 +58,74 @@ public class KubeTest {
     private static final String CLUSTER_NAME = LOCAL_PROPERTIES.getProperty("cluster.name", null);
 
     @Test
-    public void testWatchEvents2() throws IOException, ApiException {
+    public void getNamespaces() throws IOException, ApiException {
 
         if (CLUSTER_NAME == null) {
             LOGGER.error("Local properties not found");
             return;
         }
+
         final var service = new K8sService();
         ApiClient client = service.getKubeClient(CLUSTER_NAME);
 
         CoreV1Api api = new CoreV1Api(client);
 
-        CoreV1EventList events=api.listNamespacedEvent("default", "no_pretty", null, null, null, null, null, null, null, null, true);
-        String rev=events.getMetadata().getResourceVersion();
-        Watch<V1WatchEvent> watch = Watch.createWatch(
-                client,
-                api.listEventForAllNamespacesCall(null, null, null, null, null, "no_pretty", null, rev,
-                        null, true, null),
-                new TypeToken<Watch.Response<CoreV1EventList>>(){}.getType());
-// iterate over the response
-        for (Watch.Response<V1WatchEvent> item : watch) {
-            System.out.printf("Object: %s, Type %s, Status %s\n",
-                    item.object,
-                    item.type,
-                    item.status);
-        }
-
+        final var list = api.listNamespace().execute();
+        list.getItems().forEach(item -> {
+            final var metadata = item.getMetadata();
+            final var name = metadata.getName();
+            final var creationTimestamp = metadata.getCreationTimestamp();
+            System.out.println(name + " " + creationTimestamp);
+        });
     }
 
+    @Test
+    public void getNamespacesAsync() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+
+        final var service = new K8sService();
+        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+
+        CoreV1Api api = new CoreV1Api(client);
+
+        AtomicBoolean done = new AtomicBoolean(false);
+        api.listNamespace().executeAsync(new ApiCallback<V1NamespaceList>() {
+            @Override
+            public void onFailure(ApiException e, int i, Map map) {
+                LOGGER.error("Failed to get namespaces: {}", e.getMessage());
+                done.set(true);
+            }
+
+            @Override
+            public void onSuccess(V1NamespaceList o, int i, Map map) {
+                LOGGER.info("Namespaces:");
+                o.getItems().forEach(item -> {
+                    final var metadata = item.getMetadata();
+                    final var name = metadata.getName();
+                    final var creationTimestamp = metadata.getCreationTimestamp();
+                    LOGGER.info(name + " " + creationTimestamp);
+                });
+                done.set(true);
+            }
+
+            @Override
+            public void onUploadProgress(long l, long l1, boolean b) {
+                LOGGER.info("Upload progress: {} {}", l, l1);
+            }
+
+            @Override
+            public void onDownloadProgress(long l, long l1, boolean b) {
+                LOGGER.info("Download progress: {} {}", l, l1);
+            }
+        });
+
+        MLang.await(() -> done.get() ? "yo" : null, 10000, 1000);
+
+    }
     @Test
     public void testPodDebug() throws IOException, ApiException {
 
@@ -134,7 +167,7 @@ public class KubeTest {
         final var podName = LOCAL_PROPERTIES.getProperty("pod.name");
         final var namespace = LOCAL_PROPERTIES.getProperty("namespace");
 
-        var pod = api.readNamespacedPod(podName, namespace, null);
+        var pod = api.readNamespacedPod(podName, namespace).execute();
         System.out.println(pod);
 
         Metrics metrics = new Metrics(client);
@@ -177,7 +210,7 @@ public class KubeTest {
 
         CoreV1Api api = new CoreV1Api(client);
 
-        final var list = api.getAPIResources();
+        final var list = api.getAPIResources().execute();
 
         final Map<String, V1APIResource> resources = new TreeMap<>();
         list.getResources().forEach(resource -> {
@@ -185,38 +218,6 @@ public class KubeTest {
         });
         resources.keySet().forEach(k -> System.out.println(k) );
 
-    }
-
-    @Test
-    public void testWatchEvents() throws IOException, ApiException {
-
-        if (CLUSTER_NAME == null) {
-            LOGGER.error("Local properties not found");
-            return;
-        }
-        final var service = new K8sService();
-        ApiClient client = service.getKubeClient(CLUSTER_NAME);
-        //client.setDebugging(true);
-        CoreV1Api api = new CoreV1Api(client);
-
-        Watch<V1WatchEvent> watch = Watch.createWatch(
-                client,
-                api.listEventForAllNamespacesCall(null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        120,
-                        Boolean.TRUE,
-                        null),
-                new TypeToken<Watch.Response<V1WatchEvent>>(){}.getType());
-
-        for (Watch.Response<V1WatchEvent> item : watch) {
-            System.out.printf("%s %s : %s %s%n", MDate.toIsoDateTime(System.currentTimeMillis()), item.type, item.object, item.status);
-        }
     }
 
     @Test
@@ -232,18 +233,8 @@ public class KubeTest {
         ApiClient client = service.getKubeClient(CLUSTER_NAME);
 
         CoreV1Api api = new CoreV1Api(client);
-        var call = api.listPodForAllNamespacesCall(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                120,
-                true,
-                null);
+        var call = api.listPodForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Pod>(LOGGER));
+
         Watch<V1Pod> watch = Watch.createWatch(
                 client,
                 call,
@@ -256,6 +247,7 @@ public class KubeTest {
                 case "ADDED":
                 case "MODIFIED":
                 case "DELETED":
+                    //System.out.println(event.type + " : " + pod );
                     System.out.println(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp() + " " + pod.getStatus().getPhase() + " " + pod.getStatus().getReason() + " " + pod.getStatus().getMessage() + " " + pod.getStatus().getStartTime() + " " + pod.getStatus().getContainerStatuses());
                     break;
                 default:
@@ -265,73 +257,53 @@ public class KubeTest {
 
     }
 
-    @Test
-    public void testListAllResources() throws IOException, ApiException {
-
-        if (CLUSTER_NAME == null) {
-            LOGGER.error("Local properties not found");
-            return;
-        }
-        final var service = new K8sService();
-        ApiClient client = service.getKubeClient(CLUSTER_NAME);
-
-        AppsV1Api api = new AppsV1Api(client);
-        GenericObjectsApi customApi = new GenericObjectsApi(client);
-//        Object list = customApi.listClusterCustomObject("storage.k8s.io", "v1", "csidrivers", "true", null, null, null, null, null, null, null, null, null);
-//        Object list = customApi.listNamespacedCustomObject("apps", "v1", "default", "daemonsets", null, null, null, null, null, null, null, null, null, null);
-//        Object list = customApi.listNamespacedCustomObject("apps", "v1", "", "daemonsets", null, null, null, null, null, null, null, null, null, null);
-        Object list = customApi.listNamespacedCustomObject(null, "v1", null, "pods", null, null, null, null, null, null, null, null, null, null);
-        System.out.println(list.getClass());
-        System.out.println(list);
-    }
-
-    @Test
-    public void testGenericApi() throws IOException, ApiException {
-
-        if (CLUSTER_NAME == null) {
-            LOGGER.error("Local properties not found");
-            return;
-        }
-        final var service = new K8sService();
-        ApiClient client = service.getKubeClient(CLUSTER_NAME);
-
-        AppsV1Api api = new AppsV1Api(client);
-        GenericObjectsApi genericApi = new GenericObjectsApi(client);
-
-//        String resourceType = "apps/v1/daemonsets";
-//        String resourceType = "pods";
-        String resourceType = "storage.k8s.io/v1/csidrivers";
-
-        // v1/pods
-        // apps/v1/daemonsets
-        // storage.k8s.io/v1/csidrivers
-        final var parts = resourceType.split("/");
-        String group = null;
-        String version = "v1";
-        String plural = null;
-        if (parts.length == 3) {
-            group = parts[0];
-            version = parts[1];
-            plural = parts[2];
-        } else if (parts.length == 2) {
-            group = parts[0];
-            plural = parts[1];
-        } else {
-            plural = parts[0];
-        }
-
-        final var items = genericApi.listNamespacedCustomObject(group, version, null, plural, null, null, null, null, null, null, null, null, null, null);
-        final var type = new TypeToken<Map<String, Object>>() {
-        }.getType();
-        items.forEach(item -> {
-            final var metadata = item.getMetadata();
-            final var name = metadata.getName();
-            final var creationTimestamp = metadata.getCreationTimestamp();
-            //final var status = item.get("status").toString();
-
-            System.out.println(name + " " + creationTimestamp);
-        });
-    }
+//    @Test
+//    public void testGenericApi() throws IOException, ApiException {
+//
+//        if (CLUSTER_NAME == null) {
+//            LOGGER.error("Local properties not found");
+//            return;
+//        }
+//        final var service = new K8sService();
+//        ApiClient client = service.getKubeClient(CLUSTER_NAME);
+//
+//        AppsV1Api api = new AppsV1Api(client);
+//        GenericObjectsApi genericApi = new GenericObjectsApi(client);
+//
+////        String resourceType = "apps/v1/daemonsets";
+////        String resourceType = "pods";
+//        String resourceType = "storage.k8s.io/v1/csidrivers";
+//
+//        // v1/pods
+//        // apps/v1/daemonsets
+//        // storage.k8s.io/v1/csidrivers
+//        final var parts = resourceType.split("/");
+//        String group = null;
+//        String version = "v1";
+//        String plural = null;
+//        if (parts.length == 3) {
+//            group = parts[0];
+//            version = parts[1];
+//            plural = parts[2];
+//        } else if (parts.length == 2) {
+//            group = parts[0];
+//            plural = parts[1];
+//        } else {
+//            plural = parts[0];
+//        }
+//
+//        final var items = genericApi.listNamespacedCustomObject(group, version, null, plural, null, null, null, null, null, null, null, null, null, null);
+//        final var type = new TypeToken<Map<String, Object>>() {
+//        }.getType();
+//        items.forEach(item -> {
+//            final var metadata = item.getMetadata();
+//            final var name = metadata.getName();
+//            final var creationTimestamp = metadata.getCreationTimestamp();
+//            //final var status = item.get("status").toString();
+//
+//            System.out.println(name + " " + creationTimestamp);
+//        });
+//    }
 
 
         @Test
@@ -391,7 +363,7 @@ public class KubeTest {
         CoreV1Api api = service.getCoreV1Api(CLUSTER_NAME);
         LOGGER.info("Api: {}", api);
         V1PodList list =
-                api.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null,  null);
+                api.listPodForAllNamespaces().execute();
         for (V1Pod item : list.getItems()) {
             System.out.println(item.getMetadata().getName());
         }    }

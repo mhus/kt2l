@@ -24,6 +24,7 @@ import de.mhus.kt2l.k8s.KHandler;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,13 +45,13 @@ public class KNamespace implements KHandler {
         var body = Yaml.loadAs(yaml, V1Namespace.class);
         api.replaceNamespace(
                 name,
-                body, null, null, null, null
-        );
+                body
+        ).execute();
     }
 
     @Override
-    public void delete(CoreV1Api api, String name, String namespace) throws ApiException {
+    public V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException {
         checkDeleteAccess(securityService, K8s.RESOURCE.NAMESPACE);
-        api.deleteNamespace(name, null, null, null, null, null, null);
+        return api.deleteNamespace(name).execute();
     }
 }

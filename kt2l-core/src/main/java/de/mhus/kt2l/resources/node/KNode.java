@@ -24,6 +24,7 @@ import de.mhus.kt2l.k8s.KHandler;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Node;
+import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,14 +47,14 @@ public class KNode implements KHandler {
         var body = Yaml.loadAs(yaml, V1Node.class);
         api.replaceNode(
                 name,
-                body, null, null, null, null
-        );
+                body
+        ).execute();
     }
 
     @Override
-    public void delete(CoreV1Api api, String name, String namespace) throws ApiException {
+    public V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException {
         // this is dangerous ... deny!
         checkDeleteAccess(securityService, K8s.RESOURCE.NODE);
-        api.deleteNode(name, null, null, null, null, null, null);
+        return api.deleteNode(name).execute();
     }
 }

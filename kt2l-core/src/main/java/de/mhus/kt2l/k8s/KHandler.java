@@ -22,6 +22,7 @@ import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Status;
 
 public interface KHandler {
 
@@ -29,7 +30,7 @@ public interface KHandler {
 
     void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException;
 
-    void delete(CoreV1Api api, String name, String namespace) throws ApiException;
+    V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException;
 
     default void checkDeleteAccess(SecurityService securityService, K8s.RESOURCE resource) throws ApiException {
         var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE_DELETE);

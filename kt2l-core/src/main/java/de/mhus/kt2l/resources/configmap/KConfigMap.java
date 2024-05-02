@@ -24,6 +24,7 @@ import de.mhus.kt2l.k8s.KHandler;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,14 +45,14 @@ public class KConfigMap implements KHandler {
         var body = Yaml.loadAs(yaml, V1ConfigMap.class);
         api.replaceNamespacedConfigMap(
                 name, namespace,
-                body, null, null, null, null
-        );
+                body
+        ).execute();
     }
 
     @Override
-    public void delete(CoreV1Api api, String name, String namespace) throws ApiException {
+    public V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException {
         checkDeleteAccess(securityService, K8s.RESOURCE.CONFIG_MAP);
-        api.deleteNamespacedConfigMap(name, namespace, null, null, null, null, null, null);
+        return api.deleteNamespacedConfigMap(name, namespace).execute();
     }
 
 }

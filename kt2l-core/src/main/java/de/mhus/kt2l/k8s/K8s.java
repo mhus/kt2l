@@ -32,6 +32,7 @@ import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -151,7 +152,7 @@ public class K8s {
     static List<String> getNamespaces(CoreV1Api coreApi) {
         LinkedList<String> namespaces = new LinkedList<>();
         try {
-            coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null)
+            coreApi.listNamespace().execute()
                     .getItems().forEach(ns -> namespaces.add(ns.getMetadata().getName()));
         } catch (ApiException e) {
             LOGGER.warn("Error getting namespaces", e);
@@ -165,10 +166,11 @@ public class K8s {
     static CompletableFuture<List<String>> getNamespacesAsync(CoreV1Api coreApi) {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
         try {
-            coreApi.listNamespaceAsync(null, null, null, null, null, null, null, null, null, null, new ApiCallback<>() {
+            coreApi.listNamespace().executeAsync(new ApiCallback<V1NamespaceList>() {
                 @Override
                 public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
                 }
+
                 @Override
                 public void onSuccess(V1NamespaceList result, int statusCode, Map<String, List<String>> responseHeaders) {
                     LinkedList<String> types = new LinkedList<>();
@@ -194,7 +196,7 @@ public class K8s {
     static List<V1APIResource> getResourceTypes(CoreV1Api coreApi) {
         LinkedList<V1APIResource> types = new LinkedList<>();
         try {
-            coreApi.getAPIResources().getResources().forEach(res -> types.add(res));
+            coreApi.getAPIResources().execute().getResources().forEach(res -> types.add(res));
         } catch (ApiException e) {
             LOGGER.error("Error getting resource types", e);
         }
@@ -208,7 +210,7 @@ public class K8s {
 
         CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
         try {
-            coreApi.getAPIResourcesAsync(new ApiCallback<V1APIResourceList>() {
+            coreApi.getAPIResources().executeAsync(new ApiCallback<V1APIResourceList>() {
                 @Override
                 public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) { }
 

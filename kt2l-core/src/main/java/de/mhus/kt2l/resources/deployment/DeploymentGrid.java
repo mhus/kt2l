@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.node;
+package de.mhus.kt2l.resources.deployment;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
@@ -24,15 +24,16 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
+import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.models.V1Node;
-import io.kubernetes.client.openapi.models.V1NodeList;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1DeploymentList;
 import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,37 +44,33 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 @Slf4j
-public class NodesGrid extends AbstractGrid<NodesGrid.Resource, Component> {
-
+public class DeploymentGrid extends AbstractGrid<DeploymentGrid.Resource, Component> {
 
     private IRegistration eventRegistration;
+    private AppsV1Api appsV1Api;
 
     @Override
     protected void init() {
-        eventRegistration = NodeWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        appsV1Api = new AppsV1Api( coreApi.getApiClient() );
+        eventRegistration = DeploymentWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
     }
 
-    private void changeEvent(Watch.Response<V1Node> event) {
+    private void changeEvent(Watch.Response<V1Deployment> event) {
         if (resourcesList == null) return;
+        if (namespace != null && !namespace.equals(K8s.NAMESPACE_ALL) && !namespace.equals(event.object.getMetadata().getNamespace())) return;
 
         if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
 
             AtomicBoolean added = new AtomicBoolean(false);
             final var foundRes = resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
-                        final var res = new Resource(
-                                event.object.getMetadata().getName(),
-                                "", //XXX
-                                event.object.getMetadata().getCreationTimestamp().toEpochSecond(),
-                                event.object
-                        );
+                        final var res = new Resource(event.object);
                         resourcesList.add(res);
                         added.set(true);
                         return res;
                     }
             );
 
-            foundRes.setStatus(event.object.getStatus().getPhase());
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
@@ -95,7 +92,7 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Resource, Component> {
 
     @Override
     public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.NODE;
+        return K8s.RESOURCE.SECRET;
     }
 
     @Override
@@ -124,7 +121,7 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Resource, Component> {
     }
 
     @Override
-    protected void onGridCellFocusChanged(Resource resource) {
+    protected void onGridCellFocusChanged(Resource resources) {
 
     }
 
@@ -136,7 +133,7 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Resource, Component> {
     @Override
     protected void createGridColumns(Grid<Resource> resourcesGrid) {
         resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
-        resourcesGrid.addColumn(res -> res.getStatus()).setHeader("Status").setSortProperty("status");
+        resourcesGrid.addColumn(res -> res.getNamespace()).setHeader("Namespace").setSortProperty("namespace");
         resourcesGrid.addColumn(res -> res.getAge()).setHeader("Age").setSortProperty("age");
     }
 
@@ -174,9 +171,9 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Resource, Component> {
                                     case ASCENDING -> a.getName().compareTo(b.getName());
                                     case DESCENDING -> b.getName().compareTo(a.getName());
                                 };
-                                case "status" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getStatus().compareTo(b.getStatus());
-                                    case DESCENDING -> b.getStatus().compareTo(a.getStatus());
+                                case "namespace" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> a.getNamespace().compareTo(b.getNamespace());
+                                    case DESCENDING -> b.getNamespace().compareTo(a.getNamespace());
                                 };
                                 case "age" -> switch (queryOrder.getDirection()) {
                                     case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
@@ -195,12 +192,7 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Resource, Component> {
                                     .onFailure(e -> LOGGER.error("Can't fetch resources from cluster",e))
                                     .onSuccess(list -> {
                                         list.getItems().forEach(res -> {
-                                            NodesGrid.this.resourcesList.add(new Resource(
-                                                    res.getMetadata().getName(),
-                                                    res.getMetadata().getName(), //XXX
-                                                    res.getMetadata().getCreationTimestamp().toEpochSecond(),
-                                                    res
-                                            ));
+                                            DeploymentGrid.this.resourcesList.add(new Resource(res));
                                         });
                                     });
                         }
@@ -212,17 +204,25 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Resource, Component> {
 
     }
 
-    private V1NodeList createRawResourceList() throws ApiException {
-        return coreApi.listNode().execute();
+    private V1DeploymentList createRawResourceList() throws ApiException {
+        if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
+            return appsV1Api.listDeploymentForAllNamespaces().execute();
+        return appsV1Api.listNamespacedDeployment(namespace).execute();
     }
 
     @Data
-    @AllArgsConstructor
     public static class Resource {
         String name;
-        String status;
+        String namespace;
         long created;
-        V1Node resource;
+        V1Deployment resource;
+
+        public Resource(V1Deployment resource) {
+            this.name = resource.getMetadata().getName();
+            this.namespace = resource.getMetadata().getNamespace();
+            this.created = MLang.tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
+            this.resource = resource;
+        }
 
         public String getAge() {
             return K8s.getAge(resource.getMetadata().getCreationTimestamp());
@@ -233,15 +233,15 @@ public class NodesGrid extends AbstractGrid<NodesGrid.Resource, Component> {
             if (this == o) return true;
             if (o == null) return false;
             if (o instanceof Resource res)
-                return Objects.equals(name, res.name);
-            if (o instanceof V1Node res)
-                return Objects.equals(name, res.getMetadata().getName());
+                return Objects.equals(name, res.name) && Objects.equals(namespace, res.namespace);
+            if (o instanceof V1Deployment res)
+                return Objects.equals(name, res.getMetadata().getName()) && Objects.equals(namespace, res.getMetadata().getNamespace());
             return false;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(name);
+            return Objects.hash(name, namespace);
         }
     }
 }

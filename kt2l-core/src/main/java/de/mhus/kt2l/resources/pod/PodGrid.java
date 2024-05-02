@@ -39,8 +39,10 @@ import io.kubernetes.client.Metrics;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ContainerStatus;
 import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
 import lombok.Data;
@@ -308,7 +310,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
     @Override
     protected void init() {
-        podEventRegistration = ClusterPodWatch.instance(view.getCore(), clusterConfig).getEventHandler().registerWeak(this::podEvent);
+        podEventRegistration = PodWatch.instance(view.getCore(), clusterConfig).getEventHandler().registerWeak(this::podEvent);
     }
 
     @Override
@@ -456,8 +458,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            final var namespaceName = namespace ==  null || namespace.equals(K8s.NAMESPACE_ALL) ? null : (String) namespace;
-                            Try.of(() -> namespaceName == null ? coreApi.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null ) :  coreApi.listNamespacedPod(namespaceName, null, null, null, null, null, null, null, null, null, null))
+                            Try.of(() -> createRawResourceList() )
                                     .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
                                     .onSuccess(podList -> {
                                         podList.getItems().forEach(pod ->
@@ -471,6 +472,12 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             );
         }
 
+    }
+
+    private V1PodList createRawResourceList() throws ApiException {
+        if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
+            return coreApi.listPodForAllNamespaces().execute();
+        return coreApi.listNamespacedPod(namespace).execute();
     }
 
     @Data

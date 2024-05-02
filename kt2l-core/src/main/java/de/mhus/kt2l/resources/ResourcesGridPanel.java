@@ -44,7 +44,7 @@ import de.mhus.kt2l.core.XTabListener;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.generic.GenericGridFactory;
-import de.mhus.kt2l.resources.namespace.ClusterNamespaceWatch;
+import de.mhus.kt2l.resources.namespace.NamespaceWatch;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.vavr.control.Try;
@@ -265,7 +265,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         initGrid();
 
         final var cc = SecurityContext.create();
-        namespaceEventRegistration = ClusterNamespaceWatch.instance(getCore(), clusterConfig).getEventHandler().register(
+        namespaceEventRegistration = NamespaceWatch.instance(getCore(), clusterConfig).getEventHandler().register(
                 (event) -> {
                     try (var cce = cc.enter()) {
                         if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_DELETED))

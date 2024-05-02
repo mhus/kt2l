@@ -23,9 +23,12 @@ import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
+import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -35,9 +38,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
-public class ClusterPodWatch extends ClusterBackgroundJob {
+public class PodWatch extends ClusterBackgroundJob {
 
     @Autowired
     K8sService k8s;
@@ -48,11 +53,11 @@ public class ClusterPodWatch extends ClusterBackgroundJob {
     private ApiClient client;
     private CoreV1Api api;
 
-    public static ClusterPodWatch instance(Core core, Cluster clusterConfig) {
-        return  core.getBackgroundJob(clusterConfig.name(), ClusterPodWatch.class, () -> new ClusterPodWatch());
+    public static PodWatch instance(Core core, Cluster clusterConfig) {
+        return  core.getBackgroundJob(clusterConfig.name(), PodWatch.class, () -> new PodWatch());
     }
 
-    private ClusterPodWatch() {
+    private PodWatch() {
     }
 
     @Override
@@ -75,41 +80,36 @@ public class ClusterPodWatch extends ClusterBackgroundJob {
 
     private void watch() {
 
-        try {
-            var call = api.listPodForAllNamespacesCall(
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    true,
-                    null);
-            Watch<V1Pod> watch = Watch.createWatch(
-                    client,
-                    call,
-                    new TypeToken<Watch.Response<V1Pod>>() {
-                    }.getType());
+        while (true) {
+            try {
+                var call = api.listPodForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Pod>(LOGGER));
+                Watch<V1Pod> watch = Watch.createWatch(
+                        client,
+                        call,
+                        new TypeToken<Watch.Response<V1Pod>>() {
+                        }.getType());
 
-            for (Watch.Response<V1Pod> event : watch) {
-                V1Pod res = event.object;
-                V1ObjectMeta meta = res.getMetadata();
-                switch (event.type) {
-                    case K8s.WATCH_EVENT_ADDED:
-                    case K8s.WATCH_EVENT_MODIFIED:
-                    case K8s.WATCH_EVENT_DELETED:
-                        LOGGER.debug(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp() + " " + res.getStatus().getPhase() + " " + res.getStatus().getReason() + " " + res.getStatus().getMessage() + " " + res.getStatus().getStartTime() + " " + res.getStatus().getContainerStatuses());
-                        break;
-                    default:
-                        LOGGER.warn("Unknown event type: " + event.type);
+                for (Watch.Response<V1Pod> event : watch) {
+                    V1Pod res = event.object;
+                    V1ObjectMeta meta = res.getMetadata();
+                    switch (event.type) {
+                        case K8s.WATCH_EVENT_ADDED:
+                        case K8s.WATCH_EVENT_MODIFIED:
+                        case K8s.WATCH_EVENT_DELETED:
+                            LOGGER.debug(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp() + " " + res.getStatus().getPhase() + " " + res.getStatus().getReason() + " " + res.getStatus().getMessage() + " " + res.getStatus().getStartTime() + " " + res.getStatus().getContainerStatuses());
+                            break;
+                        default:
+                            LOGGER.warn("Unknown event type: " + event.type);
+                    }
+                    eventHandler.fire(event);
                 }
-                eventHandler.fire(event);
+            } catch (Exception e) {
+                if (Thread.interrupted()) {
+                    LOGGER.debug("Interrupted");
+                    return;
+                }
+                LOGGER.error("ApiException", e);
             }
-        } catch (Exception e) {
-            LOGGER.error("ApiException", e);
         }
     }
 

@@ -41,7 +41,6 @@ import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
 import de.mhus.kt2l.help.HelpResourceConnector;
-import de.mhus.kt2l.k8s.GenericObjectsApi;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
@@ -229,19 +228,19 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
         var handler = k8s.getResourceHandler(resType.getKind());
 
         if (handler == null) {
-            var yamlObj = Yaml.loadAs(yaml, V1Pod.class);
-            GenericObjectsApi genericObjectsApi = new GenericObjectsApi(api.getApiClient());
-            genericObjectsApi.patchClusterCustomObject(
-                    resType.getGroup(),
-                    resType.getVersion() == null ? "v1" : resType.getVersion(),
-                    resType.getName(),
-                    null,
-                    yamlObj,
-                    null,
-                    managedFieldsContent,
-                    false
-            );
-
+//            var yamlObj = Yaml.loadAs(yaml, V1Pod.class);
+//            GenericObjectsApi genericObjectsApi = new GenericObjectsApi(api.getApiClient());
+//            genericObjectsApi.patchClusterCustomObject(
+//                    resType.getGroup(),
+//                    resType.getVersion() == null ? "v1" : resType.getVersion(),
+//                    resType.getName(),
+//                    null,
+//                    yamlObj,
+//                    null,
+//                    managedFieldsContent,
+//                    false
+//            );
+//XXX
         } else {
             handler.replace(api, resource.getMetadata().getName(), resource.getMetadata().getNamespace(), yaml);
         }

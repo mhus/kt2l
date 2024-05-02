@@ -16,18 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.namespace;
+package de.mhus.kt2l.resources.configmap;
 
 import com.google.gson.reflect.TypeToken;
 import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.Watch;
 import lombok.Getter;
@@ -37,22 +38,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 
 @Slf4j
-public class ClusterNamespaceWatch extends ClusterBackgroundJob {
+public class ConfigMapWatch extends ClusterBackgroundJob {
 
     @Autowired
     K8sService k8s;
 
     @Getter
-    private MEventHandler<Watch.Response<V1Namespace>> eventHandler = new MEventHandler<>();
+    private MEventHandler<Watch.Response<V1ConfigMap>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
     private ApiClient client;
     private CoreV1Api api;
 
-    public static ClusterNamespaceWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), ClusterNamespaceWatch.class, () -> new ClusterNamespaceWatch());
+    public static ConfigMapWatch instance(Core core, Cluster clusterConfig) {
+        return core.getBackgroundJob(clusterConfig.name(), ConfigMapWatch.class, () -> new ConfigMapWatch());
     }
 
-    private ClusterNamespaceWatch() {
+    private ConfigMapWatch() {
     }
 
     @Override
@@ -75,41 +76,36 @@ public class ClusterNamespaceWatch extends ClusterBackgroundJob {
 
     private void watch() {
 
-        try {
-            var call = api.listNamespaceCall(
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    true,
-                    null);
-            Watch<V1Namespace> watch = Watch.createWatch(
-                    client,
-                    call,
-                    new TypeToken<Watch.Response<V1Namespace>>() {
-                    }.getType());
+        while (true) {
+            try {
+                var call = api.listConfigMapForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1ConfigMap>(LOGGER));
+                Watch<V1ConfigMap> watch = Watch.createWatch(
+                        client,
+                        call,
+                        new TypeToken<Watch.Response<V1ConfigMap>>() {
+                        }.getType());
 
-            for (Watch.Response<V1Namespace> event : watch) {
-                V1Namespace res = event.object;
-                V1ObjectMeta meta = res.getMetadata();
-                switch (event.type) {
-                    case K8s.WATCH_EVENT_ADDED:
-                    case K8s.WATCH_EVENT_MODIFIED:
-                    case K8s.WATCH_EVENT_DELETED:
-                        LOGGER.debug(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp() + " " + res.getStatus().getPhase() );
-                        break;
-                    default:
-                        LOGGER.warn("Unknown event type: " + event.type);
+                for (Watch.Response<V1ConfigMap> event : watch) {
+                    V1ConfigMap res = event.object;
+                    V1ObjectMeta meta = res.getMetadata();
+                    switch (event.type) {
+                        case K8s.WATCH_EVENT_ADDED:
+                        case K8s.WATCH_EVENT_MODIFIED:
+                        case K8s.WATCH_EVENT_DELETED:
+                            LOGGER.debug(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp());
+                            break;
+                        default:
+                            LOGGER.warn("Unknown event type: " + event.type);
+                    }
+                    eventHandler.fire(event);
                 }
-                eventHandler.fire(event);
+            } catch (Exception e) {
+                if (Thread.interrupted()) {
+                    LOGGER.debug("Interrupted");
+                    return;
+                }
+                LOGGER.error("Exception", e);
             }
-        } catch (Exception e) {
-            LOGGER.error("Exception", e);
         }
     }
 

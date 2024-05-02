@@ -46,7 +46,7 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
 
     @Override
     protected void init() {
-        namespaceEventRegistration = ClusterNamespaceWatch.instance(view.getCore(), clusterConfig).getEventHandler().registerWeak(this::namespaceEvent);
+        namespaceEventRegistration = NamespaceWatch.instance(view.getCore(), clusterConfig).getEventHandler().registerWeak(this::namespaceEvent);
     }
 
     private void namespaceEvent(Watch.Response<V1Namespace> event) {
@@ -197,7 +197,7 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            Try.of(() -> coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null ) )
+                            Try.of(() -> coreApi.listNamespace().execute() )
                                     .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
                                     .onSuccess(list -> {
                                         list.getItems().forEach(res -> {

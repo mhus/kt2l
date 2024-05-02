@@ -24,14 +24,15 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
+import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
-import de.mhus.kt2l.resources.node.ClusterNodeWatch;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1Node;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,17 +43,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 @Slf4j
-public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Node, Component> {
-
+public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Resource, Component> {
 
     private IRegistration eventRegistration;
 
     @Override
     protected void init() {
-        eventRegistration = ClusterNodeWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::nodeEvent);
+        eventRegistration = ConfigMapWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
     }
 
-    private void nodeEvent(Watch.Response<V1Node> event) {
+    private void changeEvent(Watch.Response<V1ConfigMap> event) {
         if (resourcesList == null) return;
         if (namespace != null && !namespace.equals(K8s.NAMESPACE_ALL) && !namespace.equals(event.object.getMetadata().getNamespace())) return;
 
@@ -61,20 +61,14 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Node, Component> {
             AtomicBoolean added = new AtomicBoolean(false);
             final var foundRes = resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
-                        final var pod = new Node(
-                                event.object.getMetadata().getName(),
-                                event.object.getMetadata().getName(), //XXX
-                                event.object.getMetadata().getCreationTimestamp().toEpochSecond(),
-                                event.object
-                        );
-                        resourcesList.add(pod);
+                        final var res = new Resource(event.object);
+                        resourcesList.add(res);
                         added.set(true);
-                        return pod;
+                        return res;
                     }
             );
 
-            foundRes.setStatus(event.object.getStatus().getPhase());
-            foundRes.setNode(event.object);
+            foundRes.setResource(event.object);
             filterList();
             if (added.get())
                 getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
@@ -95,7 +89,7 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Node, Component> {
 
     @Override
     public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.NODE;
+        return K8s.RESOURCE.CONFIG_MAP;
     }
 
     @Override
@@ -104,12 +98,12 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Node, Component> {
     }
 
     @Override
-    protected void onDetailsChanged(Node item) {
+    protected void onDetailsChanged(Resource item) {
 
     }
 
     @Override
-    protected void onShowDetails(Node item, boolean flip) {
+    protected void onShowDetails(Resource item, boolean flip) {
 
     }
 
@@ -119,40 +113,40 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Node, Component> {
     }
 
     @Override
-    protected Class<Node> getManagedClass() {
-        return Node.class;
+    protected Class<Resource> getManagedClass() {
+        return Resource.class;
     }
 
     @Override
-    protected void onGridCellFocusChanged(Node nodes) {
+    protected void onGridCellFocusChanged(Resource resources) {
 
     }
 
     @Override
-    protected DataProvider<Node, ?> createDataProvider() {
-        return new NodesDataProvider();
+    protected DataProvider<Resource, ?> createDataProvider() {
+        return new ResourceDataProvider();
     }
 
     @Override
-    protected void createGridColumns(Grid<Node> resourcesGrid) {
+    protected void createGridColumns(Grid<Resource> resourcesGrid) {
         resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
-        resourcesGrid.addColumn(res -> res.getStatus()).setHeader("Status").setSortProperty("status");
+        resourcesGrid.addColumn(res -> res.getNamespace()).setHeader("Namespace").setSortProperty("namespace");
         resourcesGrid.addColumn(res -> res.getAge()).setHeader("Age").setSortProperty("age");
     }
 
     @Override
-    protected boolean filterByContent(Node resource, String filter) {
+    protected boolean filterByContent(Resource resource, String filter) {
         return resource.getName().contains(filter);
     }
 
     @Override
-    protected boolean filterByRegex(Node resource, String filter) {
+    protected boolean filterByRegex(Resource resource, String filter) {
         return resource.getName().matches(filter);
     }
 
     @Override
-    protected KubernetesObject getSelectedKubernetesObject(Node resource) {
-        return resource.getNode();
+    protected KubernetesObject getSelectedKubernetesObject(Resource resource) {
+        return resource.getResource();
     }
 
     @Override
@@ -162,8 +156,8 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Node, Component> {
         super.destroy();
     }
 
-    public class NodesDataProvider extends CallbackDataProvider<Node, Void> {
-        public NodesDataProvider() {
+    public class ResourceDataProvider extends CallbackDataProvider<Resource, Void> {
+        public ResourceDataProvider() {
             super(query -> {
                         LOGGER.debug("Do the query {}",query);
                         if (filteredList == null) return Stream.empty();
@@ -174,9 +168,9 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Node, Component> {
                                     case ASCENDING -> a.getName().compareTo(b.getName());
                                     case DESCENDING -> b.getName().compareTo(a.getName());
                                 };
-                                case "status" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getStatus().compareTo(b.getStatus());
-                                    case DESCENDING -> b.getStatus().compareTo(a.getStatus());
+                                case "namespace" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> a.getNamespace().compareTo(b.getNamespace());
+                                    case DESCENDING -> b.getNamespace().compareTo(a.getNamespace());
                                 };
                                 case "age" -> switch (queryOrder.getDirection()) {
                                     case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
@@ -191,16 +185,11 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Node, Component> {
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            Try.of(() -> coreApi.listNode(null, null, null, null, null, null, null, null, null, null ) )
+                            Try.of(() -> createRawResourceList() )
                                     .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
                                     .onSuccess(list -> {
                                         list.getItems().forEach(res -> {
-                                            ConfigMapGrid.this.resourcesList.add(new Node(
-                                                    res.getMetadata().getName(),
-                                                    res.getMetadata().getName(), //XXX
-                                                    res.getMetadata().getCreationTimestamp().toEpochSecond(),
-                                                    res
-                                            ));
+                                            ConfigMapGrid.this.resourcesList.add(new Resource(res));
                                         });
                                     });
                         }
@@ -212,32 +201,44 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Node, Component> {
 
     }
 
+    private V1ConfigMapList createRawResourceList() throws ApiException {
+        if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
+            return coreApi.listConfigMapForAllNamespaces().execute();
+        return coreApi.listNamespacedConfigMap(namespace).execute();
+    }
+
     @Data
-    @AllArgsConstructor
-    public static class Node {
+    public static class Resource {
         String name;
-        String status;
+        String namespace;
         long created;
-        V1Node node;
+        V1ConfigMap resource;
+
+        public Resource(V1ConfigMap resource) {
+            this.name = resource.getMetadata().getName();
+            this.namespace = resource.getMetadata().getNamespace();
+            this.created = MLang.tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
+            this.resource = resource;
+        }
 
         public String getAge() {
-            return K8s.getAge(node.getMetadata().getCreationTimestamp());
+            return K8s.getAge(resource.getMetadata().getCreationTimestamp());
         }
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null) return false;
-            if (o instanceof Node nodes)
-                return Objects.equals(name, nodes.name);
-            if (o instanceof V1Node nodes)
-                return Objects.equals(name, nodes.getMetadata().getName());
+            if (o instanceof Resource res)
+                return Objects.equals(name, res.name) && Objects.equals(namespace, res.namespace);
+            if (o instanceof V1ConfigMap res)
+                return Objects.equals(name, res.getMetadata().getName()) && Objects.equals(namespace, res.getMetadata().getNamespace());
             return false;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(name);
+            return Objects.hash(name, namespace);
         }
     }
 }

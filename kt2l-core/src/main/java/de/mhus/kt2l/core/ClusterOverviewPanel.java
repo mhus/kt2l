@@ -126,7 +126,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
         var clusterId = cluster.config().name();
         try {
             var coreApi = k8s.getCoreV1Api(clusterId);
-            coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null);
+            coreApi.listNamespace().execute();
             return true;
         } catch (Exception e) {
             LOGGER.error("Can't connect to cluster: " + clusterId, e);

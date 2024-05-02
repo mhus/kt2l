@@ -16,45 +16,44 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.pod;
+package de.mhus.kt2l.resources.secret;
 
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.KHandler;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KPod implements KHandler {
+public class KSecret implements KHandler {
 
     @Autowired
     private SecurityService securityService;
 
     @Override
     public K8s.RESOURCE getManagedKind() {
-        return K8s.RESOURCE.POD;
+        return K8s.RESOURCE.SECRET;
     }
 
     @Override
     public void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Pod.class);
-        api.replaceNamespacedPod(
-                name,
-                namespace,
+        var body = Yaml.loadAs(yaml, V1Secret.class);
+        api.replaceNamespacedSecret(
+                name, namespace,
                 body
         ).execute();
     }
 
     @Override
     public V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException {
-        checkDeleteAccess(securityService, K8s.RESOURCE.POD);
-        api.deleteNamespacedPod(name, namespace).execute();
-        return new V1Status(); //XXX
+        checkDeleteAccess(securityService, K8s.RESOURCE.SECRET);
+        return api.deleteNamespacedSecret(name, namespace).execute();
     }
 
 }
