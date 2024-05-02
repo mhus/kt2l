@@ -34,6 +34,7 @@ public class AaaConfiguration extends AbstractUserRelatedConfig {
     public static final String SCOPE_RESOURCE_ACTION = "resource_action";
     public static final String SCOPE_RESOURCE_GRID = "resource_grid";
     public static final String SCOPE_RESOURCE = "resource";
+    public static final String SCOPE_RESOURCE_DELETE = "resource_delete";
     public static final String SCOPE_NAMESPACE = "namespace";
     public static final String SCOPE_DEFAULT = "default";
     public static final String SCOPE_CLUSTER = "cluster";

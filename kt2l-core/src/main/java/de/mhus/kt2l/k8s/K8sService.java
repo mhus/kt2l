@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.k8s;
 
+import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
@@ -34,12 +35,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -59,17 +55,17 @@ public class K8sService {
     @Autowired
     private List<KHandler> resourceHandlers;
 
-    public V1APIResource findResource(String resourceType, CoreV1Api coreApi) {
+    public V1APIResource findResource(K8s.RESOURCE resourceType, CoreV1Api coreApi) {
         return findResource(resourceType, coreApi, null);
     }
 
-    public V1APIResource findResource(String resourceType, CoreV1Api coreApi, Principal principal) {
+    public V1APIResource findResource(K8s.RESOURCE resourceType, CoreV1Api coreApi, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
-        var types = K8sUtil.getResourceTypes(coreApi);
-        var resType = K8sUtil.findResource(resourceType, types);
+        var types = K8s.getResourceTypes(coreApi);
+        var resType = K8s.findResource(resourceType, types);
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
         return securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, resType.getName(), defaultRole, principalFinal ) ? resType : null;
@@ -88,7 +84,7 @@ public class K8sService {
         SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
 
         CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
-        K8sUtil.getResourceTypesAsync(coreApi).handle((resources, t) -> {
+        K8s.getResourceTypesAsync(coreApi).handle((resources, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
                 return Collections.emptyList();
@@ -113,7 +109,7 @@ public class K8sService {
         final var principalFinal = principal;
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
-        return K8sUtil.getResourceTypes(coreApi).stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal )).toList();
+        return K8s.getResourceTypes(coreApi).stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal )).toList();
     }
 
     public List<String> getNamespaces(boolean includeAllOption, CoreV1Api coreApi) {
@@ -125,10 +121,10 @@ public class K8sService {
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
-        var namespaces = K8sUtil.getNamespaces(coreApi);
+        var namespaces = K8s.getNamespaces(coreApi);
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_NAMESPACE);
         if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, principalFinal))
-            namespaces.addFirst(K8sUtil.NAMESPACE_ALL);
+            namespaces.addFirst(K8s.NAMESPACE_ALL);
 
         return namespaces.stream().filter(ns -> securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, ns, defaultRole, principalFinal) ).toList();
     }
@@ -148,7 +144,7 @@ public class K8sService {
         SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
 
         CompletableFuture<List<String>> future = new CompletableFuture<>();
-        K8sUtil.getNamespacesAsync(coreApi).handle((namespaces, t) -> {
+        K8s.getNamespacesAsync(coreApi).handle((namespaces, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
                 return Collections.emptyList();
@@ -156,10 +152,10 @@ public class K8sService {
             try (SecurityContext.Environment cce = cc.enter()){
                 var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE);
                 if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, principalFinal))
-                    namespaces.addFirst(K8sUtil.NAMESPACE_ALL);
+                    namespaces.addFirst(K8s.NAMESPACE_ALL);
 
                 namespaces = namespaces.stream().filter(
-                        n -> n.equals(K8sUtil.NAMESPACE_ALL) || securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, n, defaultRole, principalFinal)).toList();
+                        n -> n.equals(K8s.NAMESPACE_ALL) || securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, n, defaultRole, principalFinal)).toList();
                 future.complete(namespaces);
                 return namespaces;
             }
@@ -258,5 +254,15 @@ public class K8sService {
         return resourceHandlers.stream().filter(h -> h.getManagedKind().equals(kind)).findFirst().orElse(null);
     }
 
+    public K8s.RESOURCE findResource(V1APIResource value) {
+        if (value == null)
+            return null;
+        if (value.getKind() != null)
+            return K8s.RESOURCE.valueOf(value.getKind().toUpperCase());
+        if (value.getName() != null)
+            return Arrays.stream(K8s.RESOURCE.values()).filter(r -> r.resourceType().equalsIgnoreCase(value.getName())).findFirst()
+                    .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
+        throw new NotFoundRuntimeException("Resource not found: " + value.getName());
+    }
 }
 

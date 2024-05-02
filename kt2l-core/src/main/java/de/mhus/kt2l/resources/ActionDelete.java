@@ -25,6 +25,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.WithRole;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.common.KubernetesObject;
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +44,12 @@ public class ActionDelete implements ResourceAction {
     private K8sService k8s;
 
     @Override
-    public boolean canHandleResourceType(String resourceType) {
+    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 

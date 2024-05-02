@@ -43,7 +43,7 @@ import de.mhus.kt2l.core.XTabListener;
 import de.mhus.kt2l.help.HelpResourceConnector;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
 import de.mhus.kt2l.k8s.K8sService;
-import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -59,7 +59,7 @@ import java.util.Map;
 @Slf4j
 public class ResourceDetailsPanel extends VerticalLayout implements XTabListener, HelpResourceConnector {
 
-    private final String resourceType;
+    private final K8s.RESOURCE resourceType;
     private final KubernetesObject resource;
     private final CoreV1Api api;
     private AceEditor resYamlEditor;
@@ -82,7 +82,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
     @Autowired
     private SecurityService securityService;
 
-    public ResourceDetailsPanel(Cluster clusterConfiguration, CoreV1Api api, Core core, String resourceType, KubernetesObject resource) {
+    public ResourceDetailsPanel(Cluster clusterConfiguration, CoreV1Api api, Core core, K8s.RESOURCE resourceType, KubernetesObject resource) {
         this.resourceType = resourceType;
         this.resource = resource;
         this.api = api;
@@ -100,7 +100,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
             return;
         }
 
-        resContent = K8sUtil.toYaml(resource);
+        resContent = K8s.toYaml(resource);
         YElement yDocument = MYaml.loadFromString(resContent);
 
         YMap yMetadata = yDocument.asMap().getMap("metadata");

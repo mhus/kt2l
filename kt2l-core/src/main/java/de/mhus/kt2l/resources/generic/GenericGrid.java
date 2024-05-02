@@ -25,6 +25,7 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.kt2l.k8s.GenericObjectsApi;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
@@ -44,8 +45,8 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
     }
 
     @Override
-    public String getManagedResourceType() {
-        return "";
+    public K8s.RESOURCE getManagedResourceType() {
+        return K8s.RESOURCE.GENERIC;
     }
 
     @Override

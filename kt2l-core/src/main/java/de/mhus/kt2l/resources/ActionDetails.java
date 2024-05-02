@@ -22,6 +22,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
+import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -36,12 +37,12 @@ public class ActionDetails implements ResourceAction {
     private PanelService panelService;
 
     @Override
-    public boolean canHandleResourceType(String resourceType) {
+    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
         return selected.size() == 1;
     }
 

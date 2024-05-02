@@ -22,7 +22,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
-import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
@@ -42,12 +42,12 @@ public class ActionExec implements ResourceAction {
     private PanelService panelService;
 
     @Override
-    public boolean canHandleResourceType(String resourceType) {
-        return K8sUtil.RESOURCE_PODS.equals(resourceType) || K8sUtil.RESOURCE_CONTAINER.equals(resourceType);
+    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
+        return K8s.RESOURCE.POD.equals(resourceType) || K8s.RESOURCE.CONTAINER.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() > 0;
     }
 
@@ -55,10 +55,10 @@ public class ActionExec implements ResourceAction {
     public void execute(ExecutionContext context) {
         List<ContainerResource> containers = new ArrayList<>();
 
-        if (context.getResourceType().equals(K8sUtil.RESOURCE_CONTAINER)) {
+        if (context.getResourceType().equals(K8s.RESOURCE.CONTAINER)) {
             context.getSelected().forEach(c -> containers.add((ContainerResource)c));
         } else
-        if (context.getResourceType().equals(K8sUtil.RESOURCE_PODS)) {
+        if (context.getResourceType().equals(K8s.RESOURCE.POD)) {
             context.getSelected().forEach(p -> {
                 final var pod = (V1Pod)p;
                 pod.getStatus().getContainerStatuses().forEach(cs -> {

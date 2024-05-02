@@ -21,7 +21,7 @@ package de.mhus.kt2l.resources.pods;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.WithRole;
-import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.resources.ResourcesFilter;
@@ -36,12 +36,12 @@ import java.util.Set;
 @WithRole(ROLE.READ)
 public class ShowNodeOfPodAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(String resourceType) {
-        return K8sUtil.RESOURCE_PODS.equals(resourceType);
+    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
+        return K8s.RESOURCE.POD.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() == 1;
     }
 
@@ -51,7 +51,7 @@ public class ShowNodeOfPodAction implements ResourceAction {
         var pod = (V1Pod)context.getSelected().iterator().next();
         final var nodeName = pod.getSpec().getNodeName();
         final var podName = pod.getMetadata().getName();
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8sUtil.RESOURCE_NODES, new ResourcesFilter() {
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.RESOURCE.NODE, new ResourcesFilter() {
             @Override
             public boolean filter(KubernetesObject res) {
                 if (res instanceof io.kubernetes.client.openapi.models.V1Node node) {

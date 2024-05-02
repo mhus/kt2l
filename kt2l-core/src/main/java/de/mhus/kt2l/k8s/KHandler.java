@@ -18,15 +18,23 @@
 
 package de.mhus.kt2l.k8s;
 
+import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.core.SecurityService;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 public interface KHandler {
 
-    String getManagedKind();
+    K8s.RESOURCE getManagedKind();
 
     void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException;
 
     void delete(CoreV1Api api, String name, String namespace) throws ApiException;
+
+    default void checkDeleteAccess(SecurityService securityService, K8s.RESOURCE resource) throws ApiException {
+        var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE_DELETE);
+        if (!securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_DELETE, resource.resourceType(), defaultRole))
+            throw new ApiException(403, "Access denied for non admin users");
+    }
 
 }

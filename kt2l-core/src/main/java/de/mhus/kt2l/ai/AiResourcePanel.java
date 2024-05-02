@@ -27,7 +27,7 @@ import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
-import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
@@ -146,7 +146,7 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
 
 
         // get yaml
-        var resContent = K8sUtil.toYaml(resource);
+        var resContent = K8s.toYaml(resource);
         YElement yDocument = MYaml.loadFromString(resContent);
 
         YMap yMetadata = yDocument.asMap().getMap("metadata");

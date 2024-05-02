@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.events;
 
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
@@ -27,12 +28,12 @@ import java.util.Set;
 @Component
 public class EventResourceAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(String resourceType) {
+    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
         return false;
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
         return false;
     }
 

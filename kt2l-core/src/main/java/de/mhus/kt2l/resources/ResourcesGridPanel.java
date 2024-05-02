@@ -36,14 +36,13 @@ import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
-import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
 import de.mhus.kt2l.k8s.K8sService;
-import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.generic.GenericGridFactory;
 import de.mhus.kt2l.resources.namespaces.ClusterNamespaceWatch;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -56,7 +55,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static de.mhus.commons.tools.MString.isEmpty;
 
@@ -96,7 +94,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     private Cluster clusterConfig;
     private VerticalLayout gridContainer;
     @Getter
-    private String currentResourceType;
+    private K8s.RESOURCE currentResourceType;
     @Getter
     private XTab xTab;
     private ResourcesFilter resourcesFilter;
@@ -229,14 +227,14 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     }
 
     private void resourceTypeChanged() {
-        var rt = K8sUtil.toResourceType(resourceSelector.getValue());
+        var rt = K8s.toResourceType(resourceSelector.getValue());
         if (rt == null || rt.equals(currentResourceType)) return;
         currentResourceType = rt;
         grid = createGrid(rt);
         initGrid();
     }
 
-    private ResourcesGrid createGrid(String resourceType) {
+    private ResourcesGrid createGrid(K8s.RESOURCE resourceType) {
         ResourceGridFactory foundFactory = GENERIC_GRID_FACTORY;
         if (resourceType != null) {
             for (ResourceGridFactory factory : resourceGridFactories)
@@ -270,7 +268,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         namespaceEventRegistration = ClusterNamespaceWatch.instance(getCore(), clusterConfig).getEventHandler().register(
                 (event) -> {
                     try (var cce = cc.enter()) {
-                        if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_DELETED))
+                        if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_DELETED))
                             updateNamespaceSelector(false);
                     } catch (Exception e) {
                         LOGGER.error("Error in namespace event",e);
@@ -285,7 +283,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         if (grid != null) {
             grid.setFilter(filterText.getValue(), resourcesFilter);
             grid.setNamespace(namespaceSelector.getValue());
-            grid.setResourceType(K8sUtil.toResourceType(resourceSelector.getValue()));
+            grid.setResourceType(k8s.findResource(resourceSelector.getValue()));
             grid.init(coreApi, clusterConfig, this);
             gridContainer.add(grid.getComponent());
         }
@@ -325,7 +323,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         grid.handleShortcut(event);
     }
 
-    public void showResources(String resourceType, ResourcesFilter filter) {
+    public void showResources(K8s.RESOURCE resourceType, ResourcesFilter filter) {
         if (filter != null)
             setResourcesFilter(filter);
         if (resourceType != null) {

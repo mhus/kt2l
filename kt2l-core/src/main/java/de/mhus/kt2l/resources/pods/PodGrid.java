@@ -32,7 +32,7 @@ import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.core.UiUtil;
-import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
 import de.mhus.kt2l.resources.ExecutionContext;
 import io.kubernetes.client.Metrics;
@@ -46,13 +46,7 @@ import io.vavr.control.Try;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -106,7 +100,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             var item = createContextMenuItem(menu, action.getAction());
             item.addMenuItemClickListener(event -> {
                         var selected = detailsComponent.getSelectedItems().stream().map(c -> new ContainerResource(c)).collect(Collectors.toSet());
-                        if (!action.getAction().canHandleResource(K8sUtil.RESOURCE_CONTAINER, selected)) {
+                        if (!action.getAction().canHandleResource(K8s.RESOURCE.CONTAINER, selected)) {
                             Notification notification = Notification
                                     .show("Can't execute");
                             notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
@@ -114,7 +108,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                         }
 
                         var context = ExecutionContext.builder()
-                                .resourceType(K8sUtil.RESOURCE_CONTAINER)
+                                .resourceType(K8s.RESOURCE.CONTAINER)
                                 .selected(selected)
                                 .namespace(namespace)
                                 .api(coreApi)
@@ -278,10 +272,10 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
     private void podEvent(Watch.Response<V1Pod> event) {
         if (resourcesList == null) return;
         if (    namespace != null &&
-                !namespace.equals(K8sUtil.NAMESPACE_ALL) &&
+                !namespace.equals(K8s.NAMESPACE_ALL) &&
                 !namespace.equals(event.object.getMetadata().getNamespace())) return;
 
-        if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
+        if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
             AtomicBoolean added = new AtomicBoolean(false);
             final var foundPod = resourcesList.stream().filter(pod -> pod.equals(event.object)).findFirst().orElseGet(
                     () -> {
@@ -300,7 +294,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             else
                 getUI().get().access(() -> resourcesGrid.getDataProvider().refreshItem(foundPod));
         } else
-        if (event.type.equals(K8sUtil.WATCH_EVENT_DELETED)) {
+        if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(pod -> {
                 if (pod.equals(event.object)) {
                     resourcesList.remove(pod);
@@ -318,8 +312,8 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
     }
 
     @Override
-    public String getManagedResourceType() {
-        return K8sUtil.RESOURCE_PODS;
+    public K8s.RESOURCE getManagedResourceType() {
+        return K8s.RESOURCE.POD;
     }
 
     private class ContainerProvider extends CallbackDataProvider<Container, Void> {
@@ -462,7 +456,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            final var namespaceName = namespace ==  null || namespace.equals(K8sUtil.NAMESPACE_ALL) ? null : (String) namespace;
+                            final var namespaceName = namespace ==  null || namespace.equals(K8s.NAMESPACE_ALL) ? null : (String) namespace;
                             Try.of(() -> namespaceName == null ? coreApi.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null ) :  coreApi.listNamespacedPod(namespaceName, null, null, null, null, null, null, null, null, null, null))
                                     .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
                                     .onSuccess(podList -> {
@@ -540,7 +534,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         }
 
         public String getAge() {
-            return K8sUtil.getAge(pod.getMetadata().getCreationTimestamp());
+            return K8s.getAge(pod.getMetadata().getCreationTimestamp());
         }
 
         public String getReadyContainers() {
@@ -604,7 +598,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                 this.status = "Terminated";
             } else if (cs.getState().getRunning() != null) {
                 this.status = "Running";
-                this.age = K8sUtil.getAge(cs.getState().getRunning().getStartedAt());
+                this.age = K8s.getAge(cs.getState().getRunning().getStartedAt());
                 this.created = cs.getState().getRunning().getStartedAt().toEpochSecond();
             } else if (cs.getState().getWaiting() != null) {
                 this.status = "Waiting";
@@ -639,6 +633,10 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             return false;
         }
 
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, namespace);
+        }
     }
 
     private void setContainerPod(Pod item) {

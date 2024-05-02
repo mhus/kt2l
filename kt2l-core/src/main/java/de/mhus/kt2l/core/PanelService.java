@@ -21,6 +21,7 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourceDetailsPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
@@ -45,7 +46,7 @@ public class PanelService {
         .setColor(parentTab.getColor()).setParentTab(parentTab);
     }
 
-    public XTab addDetailsPanel(XTab parentTab, Cluster cluster, CoreV1Api api, String resourceType, KubernetesObject resource) {
+    public XTab addDetailsPanel(XTab parentTab, Cluster cluster, CoreV1Api api, K8s.RESOURCE resourceType, KubernetesObject resource) {
         return parentTab.getViewer().addTab(
                 cluster.name() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),

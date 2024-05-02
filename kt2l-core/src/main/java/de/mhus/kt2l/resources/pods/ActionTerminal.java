@@ -24,7 +24,7 @@ import de.mhus.kt2l.config.CmdConfiguration;
 import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.WithRole;
-import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
@@ -47,13 +47,13 @@ public class ActionTerminal implements ResourceAction {
 
 
     @Override
-    public boolean canHandleResourceType(String resourceType) {
+    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
         return
-                K8sUtil.RESOURCE_PODS.equals(resourceType) || K8sUtil.RESOURCE_CONTAINER.equals(resourceType);
+                K8s.RESOURCE.POD.equals(resourceType) || K8s.RESOURCE.CONTAINER.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() == 1;
     }
 
@@ -63,7 +63,7 @@ public class ActionTerminal implements ResourceAction {
         V1Pod pod = null;
         String container = null;
         String containerImage = null;
-        if (K8sUtil.RESOURCE_PODS.equals(context.getResourceType())) {
+        if (K8s.RESOURCE.POD.equals(context.getResourceType())) {
             pod = (V1Pod) context.getSelected().iterator().next();
             container = pod.getStatus().getContainerStatuses().get(0).getName();
             containerImage = pod.getStatus().getContainerStatuses().get(0).getImage();

@@ -18,11 +18,14 @@
 
 default:
   resource: READ
+  resource_delete: WRITE
   namespace: READ
   cluster: READ
   cluster_action: READ
 resource_action:
 resource:
+resource_delete:
+  Node: ADMIN
 resource_grid:
 namespace:
 cluster:

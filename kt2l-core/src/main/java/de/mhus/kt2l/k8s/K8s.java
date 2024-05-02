@@ -20,7 +20,7 @@ package de.mhus.kt2l.k8s;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import de.mhus.commons.tools.MString;
+import de.mhus.commons.errors.NotFoundRuntimeException;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiException;
@@ -33,6 +33,7 @@ import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,19 +43,107 @@ import java.util.stream.Collectors;
 import static de.mhus.commons.tools.MString.isEmpty;
 
 @Slf4j
-public class K8sUtil {
+public class K8s {
 
-    public static final String NAMESPACE_ALL = "[all]";
-    public static final String RESOURCE_PODS =  "pods";
-    public static final String RESOURCE_NODES = "nodes";
-    public static final String RESOURCE_NAMESPACE = "namespaces";
-    public static final String RESOURCE_CONTAINER =  "container";
     public static final String WATCH_EVENT_ADDED = "ADDED";
     public static final String WATCH_EVENT_MODIFIED = "MODIFIED";
     public static final String WATCH_EVENT_DELETED = "DELETED";
-    public static final String KIND_POD = "Pod";
-    public static final String KIND_NODE = "Node";
-    public static final String KIND_NAMESPACE = "Namespace";
+
+    public static RESOURCE toResourceType(String resourceType) {
+        if (isEmpty(resourceType))
+            throw new NullPointerException("Resource type is empty");
+        return Arrays.stream(RESOURCE.values()).filter(r -> r.resourceType().equals(resourceType)).findFirst()
+                .orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resourceType));
+    }
+
+    public enum RESOURCE {
+
+        POD("pods","Pod",null,"v1","pod","po","", true),
+        NODE("nodes","Node",null,"v1","node","no","", false),
+        NAMESPACE("namespaces","Namespace",null,"v1","namespace","ns","", false),
+        CONTAINER("containers","Container",null,"v1","container","co","", true),
+        CONFIG_MAP("configmaps","ConfigMap",null,"v1","configmap","cm","", true),
+        DEPLOYMENT("deployments","Deployment","apps","v1","deployment","deploy","", true),
+        STATEFUL_SET("statefulsets","StatefulSet","apps","v1","statefulset","sts","", true),
+        DAEMON_SET("daemonsets","DaemonSet","apps","v1","daemonset","ds","", true),
+        REPLICA_SET("replicasets","ReplicaSet","apps","v1","replicaset","rs","", true),
+        JOB("jobs","Job","batch","v1","job","job","", true),
+        CRON_JOB("cronjobs","CronJob","batch","v1","cronjob","cj","", true),
+        SECRET("secrets","Secret",null,"v1","secret","se","", true),
+        SERVICE("services","Service",null,"v1","service","svc","", true),
+        INGRESS("ingresses","Ingress","networking.k8s.io","v1","ingress","ing","", true),
+        NETWORK_POLICY("networkpolicies","NetworkPolicy","networking.k8s.io","v1","networkpolicy","np","", true),
+        PERSISTENT_VOLUME("persistentvolumes","PersistentVolume",null,"v1","persistentvolume","pv","", false),
+        PERSISTENT_VOLUME_CLAIM("persistentvolumeclaims","PersistentVolumeClaim",null,"v1","persistentvolumeclaim","pvc","", true),
+        STORAGE_CLASS("storageclasses","StorageClass","storage.k8s.io","v1","storageclass","sc","", false),
+        SERVICE_ACCOUNT("serviceaccounts","ServiceAccount",null,"v1","serviceaccount","sa","", true),
+        ROLE("roles","Role","rbac.authorization.k8s.io","v1","role","ro","", true),
+        ROLE_BINDING("rolebindings","RoleBinding","rbac.authorization.k8s.io","v1","rolebinding","rb","", true),
+        CLUSTER_ROLE("clusterroles","ClusterRole","rbac.authorization.k8s.io","v1","clusterrole","cr","", false),
+        CLUSTER_ROLE_BINDING("clusterrolebindings","ClusterRoleBinding","rbac.authorization.k8s.io","v1","clusterrolebinding","crb","", false),
+        CUSTOM_RESOURCE_DEFINITION("customresourcedefinitions","CustomResourceDefinition","apiextensions.k8s.io","","v1","crd", "", false),
+        HPA("horizontalpodautoscalers","HorizontalPodAutoscaler","autoscaling","","v1","hpa", "", true),
+        LIMIT_RANGE("limitranges","LimitRange",null,"v1","limitrange","lr","", true),
+        GENERIC("","","","","","", "", false),
+        CUSTOM("","","","","","", "", false);
+
+        private final String resourceType;
+        private final String kind;
+        private final String group;
+        private final String version;
+        private final String singular;
+        private final String shortNames;
+        private final String categories;
+        private final boolean namespaced;
+
+        public boolean isNamespaced() {
+            return namespaced;
+        }
+
+        public String resourceType() {
+            return resourceType;
+        }
+
+        public String kind() {
+            return kind;
+        }
+
+        public String group() {
+            return group;
+        }
+
+        public String version() {
+            return version;
+        }
+
+        public String singular() {
+            return singular;
+        }
+
+        public String shortNames() {
+            return shortNames;
+        }
+
+        public String categories() {
+            return categories;
+        }
+
+
+
+        private RESOURCE(String resourceType, String  kind, String  group, String  version, String  singular, String  shortNames, String  categories, boolean namespaced) {
+            this.resourceType = resourceType;
+            this.kind = kind;
+            this.group = group;
+            this.version = version;
+            this.singular = singular;
+            this.shortNames = shortNames;
+            this.categories = categories;
+            this.namespaced = namespaced;
+        }
+    }
+
+    public static final String NAMESPACE_ALL = "[all]";
+
 
     /**
      * not public to force security checks, use K8sService instead.
@@ -149,18 +238,23 @@ public class K8sUtil {
         return future;
     }
 
-    public static String toResourceType(V1APIResource resource) {
+    public static RESOURCE toResourceType(V1APIResource resource) {
         if (resource == null)
             return null;
-        if (MString.isSet(resource.getGroup()))
-            return resource.getGroup() + "/" + resource.getVersion() + "/" + resource.getName();
-        if (resource.getVersion() != null && !resource.getVersion().equals("v1"))
-            return resource.getVersion() + "/" + resource.getName();
-        return resource.getName();
+        return Arrays.stream(RESOURCE.values()).filter(r -> r.kind().equals(resource.getKind())).findFirst().orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resource.getKind()));
     }
 
-    static V1APIResource findResource(String resourceType, List<V1APIResource> resources) {
-        return resources.stream().filter(r -> toResourceType(r).endsWith(resourceType)).findFirst().orElse(null);
+    static V1APIResource findResource(RESOURCE resource, List<V1APIResource> resources) {
+        return resources.stream().filter(r ->  toResourceTypeString(r).endsWith(resource.resourceType())).findFirst().orElse(null);
+    }
+
+    static String toResourceTypeString(V1APIResource r) {
+        if (r == null) return null;
+        if (isEmpty(r.getGroup()) && isEmpty(r.getVersion()))
+            return r.getName();
+        if (isEmpty(r.getGroup()))
+            return r.getVersion() + "/" + r.getName();
+        return r.getGroup() + "/" + r.getVersion() + "/" + r.getName();
     }
 
     public static String toYaml(KubernetesObject resource) {

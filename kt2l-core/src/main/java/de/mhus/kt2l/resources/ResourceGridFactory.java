@@ -18,15 +18,17 @@
 
 package de.mhus.kt2l.resources;
 
+import de.mhus.kt2l.k8s.K8s;
+
 public interface ResourceGridFactory {
 
     int DEFAULT_PRIORITY = 100;
 
-    boolean canHandleResourceType(String resourceType);
+    boolean canHandleResourceType(K8s.RESOURCE resourceType);
 
-    ResourcesGrid create(String resourcesType);
+    ResourcesGrid create(K8s.RESOURCE resourcesType);
 
-    default int getPriority(String resourcesType) {
+    default int getPriority(K8s.RESOURCE resourcesType) {
         return DEFAULT_PRIORITY;
     }
 }

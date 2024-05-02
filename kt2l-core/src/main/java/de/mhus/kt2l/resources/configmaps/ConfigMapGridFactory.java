@@ -16,32 +16,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.k8s;
+package de.mhus.kt2l.resources.configmaps;
 
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Namespace;
-import io.kubernetes.client.util.Yaml;
+import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.core.WithRole;
+import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.resources.ResourceGridFactory;
+import de.mhus.kt2l.resources.ResourcesGrid;
+import de.mhus.kt2l.resources.namespaces.NamespacesGrid;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KNamespace implements KHandler {
+@WithRole(UsersConfiguration.ROLE.READ)
+public class ConfigMapGridFactory implements ResourceGridFactory {
     @Override
-    public String getManagedKind() {
-        return K8sUtil.KIND_NAMESPACE;
+    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
+        return K8s.RESOURCE.CONFIG_MAP.equals(resourceType);
     }
 
     @Override
-    public void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Namespace.class);
-        api.replaceNamespace(
-                name,
-                body, null, null, null, null
-        );
-    }
-
-    @Override
-    public void delete(CoreV1Api api, String name, String namespace) throws ApiException {
-        api.deleteNamespace(name, null, null, null, null, null, null);
+    public ResourcesGrid create(K8s.RESOURCE resourcesType) {
+        return new ConfigMapGrid();
     }
 }

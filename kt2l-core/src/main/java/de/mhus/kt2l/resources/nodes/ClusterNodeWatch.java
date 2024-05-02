@@ -24,7 +24,7 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.K8sService;
-import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Node;
@@ -98,9 +98,9 @@ public class ClusterNodeWatch extends ClusterBackgroundJob {
                 V1Node res = event.object;
                 V1ObjectMeta meta = res.getMetadata();
                 switch (event.type) {
-                    case K8sUtil.WATCH_EVENT_ADDED:
-                    case K8sUtil.WATCH_EVENT_MODIFIED:
-                    case K8sUtil.WATCH_EVENT_DELETED:
+                    case K8s.WATCH_EVENT_ADDED:
+                    case K8s.WATCH_EVENT_MODIFIED:
+                    case K8s.WATCH_EVENT_DELETED:
                         LOGGER.debug(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp() + " " + res.getStatus().getPhase() );
                         break;
                     default:

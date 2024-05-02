@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.namespaces;
+package de.mhus.kt2l.resources.configmaps;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
@@ -26,48 +26,60 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
+import de.mhus.kt2l.resources.nodes.ClusterNodeWatch;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 @Slf4j
-public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Component> {
+public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Node, Component> {
 
-    private IRegistration namespaceEventRegistration;
+
+    private IRegistration eventRegistration;
 
     @Override
     protected void init() {
-        namespaceEventRegistration = ClusterNamespaceWatch.instance(view.getCore(), clusterConfig).getEventHandler().registerWeak(this::namespaceEvent);
+        eventRegistration = ClusterNodeWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::nodeEvent);
     }
 
-    private void namespaceEvent(Watch.Response<V1Namespace> event) {
+    private void nodeEvent(Watch.Response<V1Node> event) {
         if (resourcesList == null) return;
+        if (namespace != null && !namespace.equals(K8s.NAMESPACE_ALL) && !namespace.equals(event.object.getMetadata().getNamespace())) return;
 
         if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
 
+            AtomicBoolean added = new AtomicBoolean(false);
             final var foundRes = resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
-                        final var pod = new NamespacesGrid.Namespace(
+                        final var pod = new Node(
                                 event.object.getMetadata().getName(),
+                                event.object.getMetadata().getName(), //XXX
+                                event.object.getMetadata().getCreationTimestamp().toEpochSecond(),
                                 event.object
                         );
                         resourcesList.add(pod);
+                        added.set(true);
                         return pod;
                     }
             );
 
-            foundRes.setResource(event.object);
+            foundRes.setStatus(event.object.getStatus().getPhase());
+            foundRes.setNode(event.object);
             filterList();
-            getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+            if (added.get())
+                getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+            else
+                getUI().get().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
@@ -78,15 +90,26 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
                 }
             });
         }
+
     }
 
     @Override
     public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.NAMESPACE;
+        return K8s.RESOURCE.NODE;
     }
 
     @Override
     protected void createDetailsComponent() {
+
+    }
+
+    @Override
+    protected void onDetailsChanged(Node item) {
+
+    }
+
+    @Override
+    protected void onShowDetails(Node item, boolean flip) {
 
     }
 
@@ -96,88 +119,51 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
     }
 
     @Override
-    protected Class<Namespace> getManagedClass() {
-        return Namespace.class;
+    protected Class<Node> getManagedClass() {
+        return Node.class;
     }
 
     @Override
-    protected void onGridCellFocusChanged(Namespace namespace) {
-
-    }
-
-    @Override
-    protected void onShowDetails(Namespace item, boolean flip) {
+    protected void onGridCellFocusChanged(Node nodes) {
 
     }
 
     @Override
-    protected void onDetailsChanged(Namespace item) {
-
+    protected DataProvider<Node, ?> createDataProvider() {
+        return new NodesDataProvider();
     }
 
     @Override
-    protected DataProvider<Namespace, ?> createDataProvider() {
-        return new NamespacesDataProvider();
+    protected void createGridColumns(Grid<Node> resourcesGrid) {
+        resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
+        resourcesGrid.addColumn(res -> res.getStatus()).setHeader("Status").setSortProperty("status");
+        resourcesGrid.addColumn(res -> res.getAge()).setHeader("Age").setSortProperty("age");
     }
 
     @Override
-    protected KubernetesObject getSelectedKubernetesObject(Namespace resource) {
-        return resource.getResource();
-    }
-
-    @Override
-    protected boolean filterByRegex(Namespace resource, String filter) {
-        return resource.name.matches(filter);
-    }
-
-    @Override
-    protected boolean filterByContent(Namespace resource, String filter) {
+    protected boolean filterByContent(Node resource, String filter) {
         return resource.getName().contains(filter);
     }
 
     @Override
-    protected void createGridColumns(Grid<Namespace> resourcesGrid) {
-        resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
+    protected boolean filterByRegex(Node resource, String filter) {
+        return resource.getName().matches(filter);
+    }
+
+    @Override
+    protected KubernetesObject getSelectedKubernetesObject(Node resource) {
+        return resource.getNode();
     }
 
     @Override
     public void destroy() {
-        if (namespaceEventRegistration != null)
-            namespaceEventRegistration.unregister();
+        if (eventRegistration != null)
+            eventRegistration.unregister();
         super.destroy();
     }
 
-    @Getter
-    public class Namespace {
-
-        private final String name;
-        @Setter
-        private V1Namespace resource;
-
-        Namespace(String name, V1Namespace resource) {
-            this.name = name;
-            this.resource = resource;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null) return false;
-            if (o instanceof NamespacesGrid.Namespace other)
-                return Objects.equals(name, other.name);
-            if (o instanceof V1Namespace other)
-                return Objects.equals(name, other.getMetadata().getName());
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name);
-        }
-    }
-
-    private class NamespacesDataProvider extends CallbackDataProvider<NamespacesGrid.Namespace, Void> {
-        public NamespacesDataProvider() {
+    public class NodesDataProvider extends CallbackDataProvider<Node, Void> {
+        public NodesDataProvider() {
             super(query -> {
                         LOGGER.debug("Do the query {}",query);
                         if (filteredList == null) return Stream.empty();
@@ -188,6 +174,14 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
                                     case ASCENDING -> a.getName().compareTo(b.getName());
                                     case DESCENDING -> b.getName().compareTo(a.getName());
                                 };
+                                case "status" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> a.getStatus().compareTo(b.getStatus());
+                                    case DESCENDING -> b.getStatus().compareTo(a.getStatus());
+                                };
+                                case "age" -> switch (queryOrder.getDirection()) {
+                                    case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
+                                    case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
+                                };
                                 default -> 0;
                             });
 
@@ -197,12 +191,14 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            Try.of(() -> coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null ) )
+                            Try.of(() -> coreApi.listNode(null, null, null, null, null, null, null, null, null, null ) )
                                     .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
                                     .onSuccess(list -> {
                                         list.getItems().forEach(res -> {
-                                            NamespacesGrid.this.resourcesList.add(new NamespacesGrid.Namespace(
+                                            ConfigMapGrid.this.resourcesList.add(new Node(
                                                     res.getMetadata().getName(),
+                                                    res.getMetadata().getName(), //XXX
+                                                    res.getMetadata().getCreationTimestamp().toEpochSecond(),
                                                     res
                                             ));
                                         });
@@ -212,6 +208,36 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
                         return filteredList.size();
                     }
             );
+        }
+
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class Node {
+        String name;
+        String status;
+        long created;
+        V1Node node;
+
+        public String getAge() {
+            return K8s.getAge(node.getMetadata().getCreationTimestamp());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null) return false;
+            if (o instanceof Node nodes)
+                return Objects.equals(name, nodes.name);
+            if (o instanceof V1Node nodes)
+                return Objects.equals(name, nodes.getMetadata().getName());
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name);
         }
     }
 }

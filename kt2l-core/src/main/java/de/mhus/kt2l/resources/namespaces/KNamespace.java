@@ -16,36 +16,33 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.k8s;
+package de.mhus.kt2l.resources.namespaces;
 
-import de.mhus.kt2l.config.AaaConfiguration;
-import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.k8s.KHandler;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Node;
+import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KNode implements KHandler {
+public class KNamespace implements KHandler {
 
     @Autowired
     private SecurityService securityService;
 
     @Override
-    public String getManagedKind() {
-        return K8sUtil.KIND_NODE;
+    public K8s.RESOURCE getManagedKind() {
+        return K8s.RESOURCE.NAMESPACE;
     }
 
     @Override
     public void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException {
-        // this is dangerous ... deny!
-        if (!securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, K8sUtil.KIND_NODE, UsersConfiguration.ROLE.ADMIN.name()))
-            throw new ApiException(403, "Access denied for non admin users");
-        var body = Yaml.loadAs(yaml, V1Node.class);
-        api.replaceNode(
+        var body = Yaml.loadAs(yaml, V1Namespace.class);
+        api.replaceNamespace(
                 name,
                 body, null, null, null, null
         );
@@ -53,9 +50,7 @@ public class KNode implements KHandler {
 
     @Override
     public void delete(CoreV1Api api, String name, String namespace) throws ApiException {
-        // this is dangerous ... deny!
-        if (!securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, K8sUtil.KIND_NODE, UsersConfiguration.ROLE.ADMIN.name()))
-            throw new ApiException(403, "Access denied for non admin users");
-        api.deleteNode(name, null, null, null, null, null, null);
+        checkDeleteAccess(securityService, K8s.RESOURCE.NAMESPACE);
+        api.deleteNamespace(name, null, null, null, null, null, null);
     }
 }

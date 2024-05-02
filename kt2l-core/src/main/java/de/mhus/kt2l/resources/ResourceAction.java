@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
 
 import java.util.Set;
@@ -31,8 +32,8 @@ public interface ResourceAction {
     int TOOLS_ORDER = 5000;
     String TOOLS_PATH = "Tools;icon=" + VaadinIcon.TOOLS;
 
-    boolean canHandleResourceType(String resourceType);
-    boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected);
+    boolean canHandleResourceType(K8s.RESOURCE resourceType);
+    boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected);
     void execute(ExecutionContext context);
     String getTitle();
     String getMenuPath();

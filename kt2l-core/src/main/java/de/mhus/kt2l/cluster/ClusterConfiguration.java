@@ -22,7 +22,7 @@ import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.AbstractUserRelatedConfig;
 import de.mhus.kt2l.core.UiUtil;
-import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.k8s.K8s;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -41,11 +41,11 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     }
 
     public String defaultResourceType() {
-        return config().getString("defaultResourceType", K8sUtil.RESOURCE_PODS);
+        return config().getString("defaultResourceType", K8s.RESOURCE.POD.resourceType());
     }
 
     public String defaultNamespace() {
-        return config().getString("defaultNamespace", K8sUtil.NAMESPACE_ALL);
+        return config().getString("defaultNamespace", K8s.NAMESPACE_ALL);
     }
 
     public Map<String, Cluster> getClusters() {
@@ -58,7 +58,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
                         cluster.getString("title").orElse(cluster.getString("name").get()),
                         cluster.getBoolean("enabled").orElse(true),
                         cluster.getString("defaultNamespace").orElse(defaultNamespace()),
-                        cluster.getString("defaultResourceType").orElse(defaultResourceType()),
+                        K8s.toResourceType(cluster.getString("defaultResourceType").orElse(defaultResourceType())),
                         UiUtil.toColor(cluster.getString("color").orElse(null)),
                         cluster
                 ));
@@ -73,7 +73,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     public Cluster getClusterOrDefault(String name) {
         final var cluster = getClusters().get(name);
         if (cluster == null) {
-            return new Cluster(name, name, true, defaultNamespace(), defaultResourceType(), UiUtil.COLOR.NONE, MTree.EMPTY_MAP);
+            return new Cluster(name, name, true, defaultNamespace(), K8s.toResourceType(defaultResourceType()), UiUtil.COLOR.NONE, MTree.EMPTY_MAP);
         }
         return cluster;
     }

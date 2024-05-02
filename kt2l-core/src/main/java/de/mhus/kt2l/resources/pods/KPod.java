@@ -16,38 +16,43 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources;
+package de.mhus.kt2l.resources.pods;
 
-import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.k8s.KHandler;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Collections;
-
 @Component
-public class ActionService {
-
-    @Autowired(required = false)
-    private Collection<ResourceAction> actions;
+public class KPod implements KHandler {
 
     @Autowired
     private SecurityService securityService;
 
-
-    public Collection<ResourceAction> findActionsForResource(K8s.RESOURCE resourceType) {
-        if (actions == null) return Collections.emptyList();
-        return actions.stream().filter(a -> hasAccess(a) && canHandle(resourceType, a)).toList();
+    @Override
+    public K8s.RESOURCE getManagedKind() {
+        return K8s.RESOURCE.POD;
     }
 
-    private boolean canHandle(K8s.RESOURCE resourceType, ResourceAction a) {
-        return a.canHandleResourceType(resourceType);
+    @Override
+    public void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1Pod.class);
+        api.replaceNamespacedPod(
+                name,
+                namespace,
+                body, null, null, null, null
+        );
     }
 
-    private boolean hasAccess(ResourceAction a) {
-        return securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_ACTION, a);
+    @Override
+    public void delete(CoreV1Api api, String name, String namespace) throws ApiException {
+        checkDeleteAccess(securityService, K8s.RESOURCE.POD);
+        api.deleteNamespacedPod(name, namespace, null, null, null, null, null, null);
     }
 
 }

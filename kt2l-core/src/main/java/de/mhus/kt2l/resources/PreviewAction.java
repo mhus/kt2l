@@ -24,7 +24,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextArea;
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.WithRole;
-import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -36,12 +36,12 @@ import java.util.Set;
 @WithRole(UsersConfiguration.ROLE.READ)
 public class PreviewAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(String resourceType) {
+    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(String resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 
@@ -53,7 +53,7 @@ public class PreviewAction implements ResourceAction {
                 res -> {
                     var kind = res.getKind() == null ? context.getResourceType() : res.getKind();
                     sb.append(">>> ").append(kind).append(" ").append(res.getMetadata().getName()).append('\n');
-                    sb.append(K8sUtil.toYaml(res)).append('\n');
+                    sb.append(K8s.toYaml(res)).append('\n');
                 }
         );
 
