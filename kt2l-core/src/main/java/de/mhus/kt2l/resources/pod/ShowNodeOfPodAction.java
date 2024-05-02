@@ -16,26 +16,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.namespaces;
+package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
+import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1Pod;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
-@WithRole(UsersConfiguration.ROLE.READ)
-public class ShowPodsOfNamespaceAction implements ResourceAction {
+@WithRole(ROLE.READ)
+public class ShowNodeOfPodAction implements ResourceAction {
     @Override
     public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
-        return K8s.RESOURCE.NAMESPACE.equals(resourceType);
+        return K8s.RESOURCE.POD.equals(resourceType);
     }
 
     @Override
@@ -45,15 +47,29 @@ public class ShowPodsOfNamespaceAction implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
-        final String namespace = context.getSelected().iterator().next().getMetadata().getName();
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).setNamespace(namespace);
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.RESOURCE.NAMESPACE, null);
 
+        var pod = (V1Pod)context.getSelected().iterator().next();
+        final var nodeName = pod.getSpec().getNodeName();
+        final var podName = pod.getMetadata().getName();
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.RESOURCE.NODE, new ResourcesFilter() {
+            @Override
+            public boolean filter(KubernetesObject res) {
+                if (res instanceof io.kubernetes.client.openapi.models.V1Node node) {
+                    return node.getMetadata().getName().equals(nodeName);
+                }
+                return false;
+            }
+
+            @Override
+            public String getDescription() {
+                return "Node for pod " + podName;
+            }
+        });
     }
 
     @Override
     public String getTitle() {
-        return "Pods;icon=" + VaadinIcon.OPEN_BOOK;
+        return "Nodes;icon=" + VaadinIcon.OPEN_BOOK;
     }
 
     @Override
@@ -63,17 +79,16 @@ public class ShowPodsOfNamespaceAction implements ResourceAction {
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.VIEW_ORDER + 110;
+        return ResourceAction.VIEW_ORDER + 100;
     }
 
     @Override
     public String getShortcutKey() {
-        return "P";
+        return "N";
     }
 
     @Override
     public String getDescription() {
-        return "Show pods of the selected namespace";
+        return "Show node for the pod";
     }
-
 }

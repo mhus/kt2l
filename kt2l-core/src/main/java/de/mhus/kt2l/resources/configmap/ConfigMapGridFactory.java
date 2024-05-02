@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.nodes;
+package de.mhus.kt2l.resources.configmap;
 
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.WithRole;
@@ -27,15 +27,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @WithRole(UsersConfiguration.ROLE.READ)
-public class NodesGridFactory implements ResourceGridFactory {
+public class ConfigMapGridFactory implements ResourceGridFactory {
     @Override
     public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
-        return K8s.RESOURCE.NODE.equals(resourceType);
+        return K8s.RESOURCE.CONFIG_MAP.equals(resourceType);
     }
 
     @Override
     public ResourcesGrid create(K8s.RESOURCE resourcesType) {
-        return new NodesGrid();
+        return new ConfigMapGrid();
     }
-
 }

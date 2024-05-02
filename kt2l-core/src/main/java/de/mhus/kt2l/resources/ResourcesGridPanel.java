@@ -44,7 +44,7 @@ import de.mhus.kt2l.core.XTabListener;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.generic.GenericGridFactory;
-import de.mhus.kt2l.resources.namespaces.ClusterNamespaceWatch;
+import de.mhus.kt2l.resources.namespace.ClusterNamespaceWatch;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.vavr.control.Try;

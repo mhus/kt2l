@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.nodes;
+package de.mhus.kt2l.resources.node;
 
 import com.google.gson.reflect.TypeToken;
 import de.mhus.commons.util.MEventHandler;

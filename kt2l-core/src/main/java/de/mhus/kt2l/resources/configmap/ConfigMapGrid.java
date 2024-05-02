@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.configmaps;
+package de.mhus.kt2l.resources.configmap;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
@@ -26,7 +26,7 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
-import de.mhus.kt2l.resources.nodes.ClusterNodeWatch;
+import de.mhus.kt2l.resources.node.ClusterNodeWatch;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.util.Watch;

@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.pods;
+package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;

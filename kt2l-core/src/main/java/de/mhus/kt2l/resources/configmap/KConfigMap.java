@@ -16,43 +16,42 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.pods;
+package de.mhus.kt2l.resources.configmap;
 
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.KHandler;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KPod implements KHandler {
+public class KConfigMap implements KHandler {
 
     @Autowired
     private SecurityService securityService;
 
     @Override
     public K8s.RESOURCE getManagedKind() {
-        return K8s.RESOURCE.POD;
+        return K8s.RESOURCE.CONFIG_MAP;
     }
 
     @Override
     public void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Pod.class);
-        api.replaceNamespacedPod(
-                name,
-                namespace,
+        var body = Yaml.loadAs(yaml, V1ConfigMap.class);
+        api.replaceNamespacedConfigMap(
+                name, namespace,
                 body, null, null, null, null
         );
     }
 
     @Override
     public void delete(CoreV1Api api, String name, String namespace) throws ApiException {
-        checkDeleteAccess(securityService, K8s.RESOURCE.POD);
-        api.deleteNamespacedPod(name, namespace, null, null, null, null, null, null);
+        checkDeleteAccess(securityService, K8s.RESOURCE.CONFIG_MAP);
+        api.deleteNamespacedConfigMap(name, namespace, null, null, null, null, null, null);
     }
 
 }

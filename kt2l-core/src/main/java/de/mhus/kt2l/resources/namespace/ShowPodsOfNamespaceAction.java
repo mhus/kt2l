@@ -16,15 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.nodes;
+package de.mhus.kt2l.resources.namespace;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
-import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
 import org.springframework.stereotype.Component;
@@ -32,11 +31,11 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
-@WithRole(ROLE.READ)
-public class ShowPodsOfNodeAction implements ResourceAction {
+@WithRole(UsersConfiguration.ROLE.READ)
+public class ShowPodsOfNamespaceAction implements ResourceAction {
     @Override
     public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
-        return K8s.RESOURCE.NODE.equals(resourceType);
+        return K8s.RESOURCE.NAMESPACE.equals(resourceType);
     }
 
     @Override
@@ -46,22 +45,10 @@ public class ShowPodsOfNodeAction implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
+        final String namespace = context.getSelected().iterator().next().getMetadata().getName();
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).setNamespace(namespace);
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.RESOURCE.NAMESPACE, null);
 
-        final String nodeName = context.getSelected().iterator().next().getMetadata().getName();
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.RESOURCE.POD, new ResourcesFilter() {
-            @Override
-            public boolean filter(KubernetesObject res) {
-                if (res instanceof io.kubernetes.client.openapi.models.V1Pod pod) {
-                    return pod.getSpec().getNodeName().equals(nodeName);
-                }
-                return false;
-            }
-
-            @Override
-            public String getDescription() {
-                return "Pods on node " + nodeName;
-            }
-        });
     }
 
     @Override
@@ -86,6 +73,7 @@ public class ShowPodsOfNodeAction implements ResourceAction {
 
     @Override
     public String getDescription() {
-        return "Show pods of the selected node";
+        return "Show pods of the selected namespace";
     }
+
 }

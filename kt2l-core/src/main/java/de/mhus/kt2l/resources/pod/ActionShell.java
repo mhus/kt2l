@@ -16,13 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.pods;
+package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.commons.tree.MProperties;
-import de.mhus.kt2l.config.CmdConfiguration;
-import de.mhus.kt2l.config.ShellConfiguration;
+import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
@@ -37,13 +36,14 @@ import java.util.Set;
 
 @Slf4j
 @Component
-@WithRole({ROLE.WRITE, ROLE.LOCAL})
-public class ActionTerminal implements ResourceAction {
+@WithRole(ROLE.WRITE)
+public class ActionShell implements ResourceAction {
 
     @Autowired
-    private CmdConfiguration cmdConfiguration;
+    private Configuration configuration;
+
     @Autowired
-    private ShellConfiguration shellConfiguration;
+    private PanelService panelService;
 
 
     @Override
@@ -60,36 +60,25 @@ public class ActionTerminal implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
 
-        V1Pod pod = null;
-        String container = null;
-        String containerImage = null;
-        if (K8s.RESOURCE.POD.equals(context.getResourceType())) {
-            pod = (V1Pod) context.getSelected().iterator().next();
-            container = pod.getStatus().getContainerStatuses().get(0).getName();
-            containerImage = pod.getStatus().getContainerStatuses().get(0).getImage();
-        } else {
-            var containerResource = (ContainerResource)context.getSelected().iterator().next();
-            pod = containerResource.getPod();
-            container = containerResource.getContainerName();
-            final String finalContainer = container;
-            containerImage = containerResource.getPod().getStatus().getContainerStatuses().stream().filter(c -> c.getName().equals(finalContainer)).findFirst().get().getImage();
-        }
+        var selected = (V1Pod)context.getSelected().iterator().next();
 
-        final var shell =  shellConfiguration.getShellFor(context.getClusterConfiguration(), pod, containerImage);
-        final var vars = new MProperties();
-        vars.setString("pod", pod.getMetadata().getName());
-        vars.setString("container", container);
-        vars.setString("namespace", pod.getMetadata().getNamespace());
-        vars.setString("context", context.getClusterConfiguration().name());
-        vars.setString("cmd", shell);
-
-        cmdConfiguration.execute("exec", vars);
-
+        panelService.addPanel(
+                context.getSelectedTab(),
+                context.getClusterConfiguration().name() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":shell",
+                selected.getMetadata().getName(),
+                true,
+                VaadinIcon.TERMINAL.create(),
+                () -> new ContainerShellPanel(
+                        context.getClusterConfiguration(),
+                        context.getApi(),
+                        context.getCore(),
+                        selected
+                        )).setHelpContext("shell").select();
     }
 
     @Override
     public String getTitle() {
-        return "Terminal;icon=" + VaadinIcon.TERMINAL;
+        return "Shell;icon=" + VaadinIcon.TERMINAL;
     }
 
     @Override
@@ -99,16 +88,16 @@ public class ActionTerminal implements ResourceAction {
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.ACTIONS_ORDER+30;
+        return ResourceAction.ACTIONS_ORDER+20;
     }
 
     @Override
     public String getShortcutKey() {
-        return "t";
+        return "s";
     }
 
     @Override
     public String getDescription() {
-        return "Open shell in terminal";
+        return "Open shell";
     }
 }

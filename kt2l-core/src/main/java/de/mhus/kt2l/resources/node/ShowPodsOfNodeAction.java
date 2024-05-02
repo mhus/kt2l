@@ -16,40 +16,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.pods;
+package de.mhus.kt2l.resources.node;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
-import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
+import de.mhus.kt2l.resources.ResourcesFilter;
+import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1Pod;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
-@Slf4j
 @Component
-@WithRole(ROLE.WRITE)
-public class ActionShell implements ResourceAction {
-
-    @Autowired
-    private Configuration configuration;
-
-    @Autowired
-    private PanelService panelService;
-
-
+@WithRole(ROLE.READ)
+public class ShowPodsOfNodeAction implements ResourceAction {
     @Override
     public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
-        return
-                K8s.RESOURCE.POD.equals(resourceType) || K8s.RESOURCE.CONTAINER.equals(resourceType);
+        return K8s.RESOURCE.NODE.equals(resourceType);
     }
 
     @Override
@@ -60,44 +47,45 @@ public class ActionShell implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
 
-        var selected = (V1Pod)context.getSelected().iterator().next();
+        final String nodeName = context.getSelected().iterator().next().getMetadata().getName();
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.RESOURCE.POD, new ResourcesFilter() {
+            @Override
+            public boolean filter(KubernetesObject res) {
+                if (res instanceof io.kubernetes.client.openapi.models.V1Pod pod) {
+                    return pod.getSpec().getNodeName().equals(nodeName);
+                }
+                return false;
+            }
 
-        panelService.addPanel(
-                context.getSelectedTab(),
-                context.getClusterConfiguration().name() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":shell",
-                selected.getMetadata().getName(),
-                true,
-                VaadinIcon.TERMINAL.create(),
-                () -> new ContainerShellPanel(
-                        context.getClusterConfiguration(),
-                        context.getApi(),
-                        context.getCore(),
-                        selected
-                        )).setHelpContext("shell").select();
+            @Override
+            public String getDescription() {
+                return "Pods on node " + nodeName;
+            }
+        });
     }
 
     @Override
     public String getTitle() {
-        return "Shell;icon=" + VaadinIcon.TERMINAL;
+        return "Pods;icon=" + VaadinIcon.OPEN_BOOK;
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.ACTIONS_PATH;
+        return ResourceAction.VIEW_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.ACTIONS_ORDER+20;
+        return ResourceAction.VIEW_ORDER + 110;
     }
 
     @Override
     public String getShortcutKey() {
-        return "s";
+        return "P";
     }
 
     @Override
     public String getDescription() {
-        return "Open shell";
+        return "Show pods of the selected node";
     }
 }
