@@ -258,7 +258,8 @@ public class K8sService {
         if (value == null)
             return null;
         if (value.getKind() != null)
-            return K8s.RESOURCE.valueOf(value.getKind().toUpperCase());
+            return Arrays.stream(K8s.RESOURCE.values()).filter(r -> r.kind().equalsIgnoreCase(value.getKind())).findFirst()
+                    .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
         if (value.getName() != null)
             return Arrays.stream(K8s.RESOURCE.values()).filter(r -> r.resourceType().equalsIgnoreCase(value.getName())).findFirst()
                     .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
