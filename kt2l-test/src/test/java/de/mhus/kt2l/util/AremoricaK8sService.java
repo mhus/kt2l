@@ -23,11 +23,7 @@ import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Namespace;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1PodBuilder;
-import io.kubernetes.client.openapi.models.V1Status;
+import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Config;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -36,6 +32,8 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static de.mhus.kt2l.DebugTestUtil.TEST_DEBUG;
@@ -59,7 +57,7 @@ public class AremoricaK8sService extends K8sService {
 
     public static void createAremorica() throws ApiException {
         createNamespace("indomitable-village");
-        createPod("asterix", "indomitable-village", "nginx:latest");
+        createPod("asterix", "indomitable-village", "mhus/example-dice:20240503", "INFINITE","true");
 
         waitForPodReady("asterix", "indomitable-village");
     }
@@ -68,7 +66,7 @@ public class AremoricaK8sService extends K8sService {
 
         MLang.tryThis(() -> {
             while (true) {
-                V1Pod pod = api.readNamespacedPod(name, namespace, null);
+                V1Pod pod = api.readNamespacedPod(name, namespace).execute();
                 if (pod.getStatus().getPhase().equals("Running")) {
                     break;
                 }
@@ -84,16 +82,20 @@ public class AremoricaK8sService extends K8sService {
         V1ObjectMeta meta = new V1ObjectMeta();
         meta.name(name);
         namespace.metadata(meta);
-        return api.createNamespace(namespace, null, null, null, null);
+        return api.createNamespace(namespace).execute();
     }
 
     public static V1Status deleteNamespace(String name) throws ApiException {
         LOGGER.info("Delete namespace: {}", name);
-        return api.deleteNamespace(name, null, null, null, null, null, null);
+        return api.deleteNamespace(name).execute();
     }
 
-    public static V1Pod createPod(String name, String namespace, String image) throws ApiException {
+    public static V1Pod createPod(String name, String namespace, String image, String ... env) throws ApiException {
         LOGGER.info("Create pod: {} in namespace: {}", name, namespace);
+        List<V1EnvVar> envList = new ArrayList<>();
+        for (int i = 0; i < env.length; i += 2) {
+            envList.add(new V1EnvVar().name(env[i]).value(env[i+1]));
+        }
         var pod = new V1PodBuilder()
                 .withNewMetadata()
                     .withName(name)
@@ -104,12 +106,13 @@ public class AremoricaK8sService extends K8sService {
                     .addNewContainer()
                         .withName(name)
                         .withImage(image)
+                        .withEnv(envList)
                         .withImagePullPolicy("IfNotPresent")
                     .endContainer()
                 .endSpec()
                 .build();
 
-        return api.createNamespacedPod(namespace, pod, null, null, null, null);
+        return api.createNamespacedPod(namespace, pod).execute();
     }
 
     public static void stop() {
@@ -117,7 +120,7 @@ public class AremoricaK8sService extends K8sService {
     }
 
     public static V1Pod deletePod(String name, String namespace) throws ApiException {
-        return api.deleteNamespacedPod(name, namespace, null, null, null, null, null, null);
+        return api.deleteNamespacedPod(name, namespace).execute();
     }
 
     public Set<String> getAvailableContexts() {

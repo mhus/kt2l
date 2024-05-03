@@ -220,7 +220,7 @@ public class LocalServerTest {
         assertThatThrownBy(() -> driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]")))
                 .isInstanceOf(NoSuchElementException.class);
         // create pod idefix
-        AremoricaK8sService.createPod("idefix", "indomitable-village", "nginx");
+        AremoricaK8sService.createPod("idefix", "indomitable-village", "mhus/example-dice:20240503", "INFINITE", "true");
         // wait for the pod to appear
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                 .until( (d) -> podGrid.getFilteredList().stream().map(pod -> pod.getName()).toList().contains("idefix"));
