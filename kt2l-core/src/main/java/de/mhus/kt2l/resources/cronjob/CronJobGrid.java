@@ -92,7 +92,7 @@ public class CronJobGrid extends AbstractGrid<CronJobGrid.Resource, Component> {
 
     @Override
     public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.SECRET;
+        return K8s.RESOURCE.CRON_JOB;
     }
 
     @Override

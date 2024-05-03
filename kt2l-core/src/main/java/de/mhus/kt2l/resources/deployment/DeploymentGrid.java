@@ -92,7 +92,7 @@ public class DeploymentGrid extends AbstractGrid<DeploymentGrid.Resource, Compon
 
     @Override
     public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.SECRET;
+        return K8s.RESOURCE.DEPLOYMENT;
     }
 
     @Override

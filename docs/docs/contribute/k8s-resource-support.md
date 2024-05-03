@@ -5,11 +5,11 @@ title: Kubernetes Resource Support
 
 # Kubernetes Resource Support
 
-To support handling Kubernetes resources in the background, you can implement the `KHandler` interface and provide
+To support handling Kubernetes resources in the background, you can implement the `HandlerK8s` interface and provide
 a new Service for the resource type.
 
 ```java
-public interface KHandler {
+public interface HandlerK8s {
 
     String getManagedKind();
 

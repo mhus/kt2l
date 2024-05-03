@@ -219,12 +219,12 @@ public class K8s {
                     LinkedList<V1APIResource> types = new LinkedList<>();
                     types.addAll(result.getResources().stream().collect(Collectors.toList()));
                     // add static resources
-                    types.add(new V1APIResource().kind("Deployment").name("deployments").addShortNamesItem("deploy").version("v1").group("apps"));
-                    types.add(new V1APIResource().kind("StatefulSet").name("statefulsets").version("v1").group("apps"));
-                    types.add(new V1APIResource().kind("DaemonSet").name("daemonsets").version("v1").group("apps"));
-                    types.add(new V1APIResource().kind("ReplicaSet").name("replicasets").version("v1").group("apps"));
-                    types.add(new V1APIResource().kind("Job").name("jobs").version("v1").group("batch"));
-                    types.add(new V1APIResource().kind("CronJob").name("cronjobs").version("v1").group("batch"));
+                    types.add(toV1APIResourc(RESOURCE.DEPLOYMENT));
+                    types.add(toV1APIResourc(RESOURCE.STATEFUL_SET));
+                    types.add(toV1APIResourc(RESOURCE.DAEMON_SET));
+                    types.add(toV1APIResourc(RESOURCE.REPLICA_SET));
+                    types.add(toV1APIResourc(RESOURCE.JOB));
+                    types.add(toV1APIResourc(RESOURCE.CRON_JOB));
 
                     future.complete(types);
                 }
@@ -238,6 +238,10 @@ public class K8s {
             LOGGER.error("Error getting resource types", e);
         }
         return future;
+    }
+
+    private static V1APIResource toV1APIResourc(RESOURCE resource) {
+        return new V1APIResource().kind(resource.kind()).name(resource.resourceType()).version(resource.version()).group(resource.group());
     }
 
     public static RESOURCE toResourceType(V1APIResource resource) {

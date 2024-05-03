@@ -92,7 +92,7 @@ public class JobGrid extends AbstractGrid<JobGrid.Resource, Component> {
 
     @Override
     public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.SECRET;
+        return K8s.RESOURCE.JOB;
     }
 
     @Override

@@ -53,7 +53,7 @@ public class K8sService {
     private SecurityService securityService;
 
     @Autowired
-    private List<KHandler> resourceHandlers;
+    private List<HandlerK8s> resourceHandlers;
 
     public V1APIResource findResource(K8s.RESOURCE resourceType, CoreV1Api coreApi) {
         return findResource(resourceType, coreApi, null);
@@ -250,7 +250,7 @@ public class K8sService {
         return api;
     }
 
-    public KHandler getResourceHandler(String kind) {
+    public HandlerK8s getResourceHandler(String kind) {
         return resourceHandlers.stream().filter(h -> h.getManagedKind().equals(kind)).findFirst().orElse(null);
     }
 

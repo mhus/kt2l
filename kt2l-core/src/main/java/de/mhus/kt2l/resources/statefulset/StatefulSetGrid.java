@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.replicaset;
+package de.mhus.kt2l.resources.statefulset;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
@@ -30,8 +30,8 @@ import de.mhus.kt2l.resources.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
-import io.kubernetes.client.openapi.models.V1ReplicaSet;
-import io.kubernetes.client.openapi.models.V1ReplicaSetList;
+import io.kubernetes.client.openapi.models.V1StatefulSet;
+import io.kubernetes.client.openapi.models.V1StatefulSetList;
 import io.kubernetes.client.util.Watch;
 import io.vavr.control.Try;
 import lombok.Data;
@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 @Slf4j
-public class ReplicaSetGrid extends AbstractGrid<ReplicaSetGrid.Resource, Component> {
+public class StatefulSetGrid extends AbstractGrid<StatefulSetGrid.Resource, Component> {
 
     private IRegistration eventRegistration;
     private AppsV1Api appsV1Api;
@@ -52,10 +52,10 @@ public class ReplicaSetGrid extends AbstractGrid<ReplicaSetGrid.Resource, Compon
     @Override
     protected void init() {
         appsV1Api = new AppsV1Api( coreApi.getApiClient() );
-        eventRegistration = ReplicaSetWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = StatefulSetWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
     }
 
-    private void changeEvent(Watch.Response<V1ReplicaSet> event) {
+    private void changeEvent(Watch.Response<V1StatefulSet> event) {
         if (resourcesList == null) return;
         if (namespace != null && !namespace.equals(K8s.NAMESPACE_ALL) && !namespace.equals(event.object.getMetadata().getNamespace())) return;
 
@@ -92,7 +92,7 @@ public class ReplicaSetGrid extends AbstractGrid<ReplicaSetGrid.Resource, Compon
 
     @Override
     public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.REPLICA_SET;
+        return K8s.RESOURCE.STATEFUL_SET;
     }
 
     @Override
@@ -192,7 +192,7 @@ public class ReplicaSetGrid extends AbstractGrid<ReplicaSetGrid.Resource, Compon
                                     .onFailure(e -> LOGGER.error("Can't fetch resources from cluster",e))
                                     .onSuccess(list -> {
                                         list.getItems().forEach(res -> {
-                                            ReplicaSetGrid.this.resourcesList.add(new Resource(res));
+                                            StatefulSetGrid.this.resourcesList.add(new Resource(res));
                                         });
                                     });
                         }
@@ -204,10 +204,10 @@ public class ReplicaSetGrid extends AbstractGrid<ReplicaSetGrid.Resource, Compon
 
     }
 
-    private V1ReplicaSetList createRawResourceList() throws ApiException {
+    private V1StatefulSetList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return appsV1Api.listReplicaSetForAllNamespaces().execute();
-        return appsV1Api.listNamespacedReplicaSet(namespace).execute();
+            return appsV1Api.listStatefulSetForAllNamespaces().execute();
+        return appsV1Api.listNamespacedStatefulSet(namespace).execute();
     }
 
     @Data
@@ -215,9 +215,9 @@ public class ReplicaSetGrid extends AbstractGrid<ReplicaSetGrid.Resource, Compon
         String name;
         String namespace;
         long created;
-        V1ReplicaSet resource;
+        V1StatefulSet resource;
 
-        public Resource(V1ReplicaSet resource) {
+        public Resource(V1StatefulSet resource) {
             this.name = resource.getMetadata().getName();
             this.namespace = resource.getMetadata().getNamespace();
             this.created = MLang.tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
@@ -234,7 +234,7 @@ public class ReplicaSetGrid extends AbstractGrid<ReplicaSetGrid.Resource, Compon
             if (o == null) return false;
             if (o instanceof Resource res)
                 return Objects.equals(name, res.name) && Objects.equals(namespace, res.namespace);
-            if (o instanceof V1ReplicaSet res)
+            if (o instanceof V1StatefulSet res)
                 return Objects.equals(name, res.getMetadata().getName()) && Objects.equals(namespace, res.getMetadata().getNamespace());
             return false;
         }
