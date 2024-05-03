@@ -24,15 +24,20 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
+import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -109,19 +114,17 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 
     }
 
-//    private List<Resource> resourcesList = null;
-//    private List<Resource> filteredList = null;
-//    private String filterText = "";
-//    private String namespace;
-//    private CoreV1Api coreApi;
-//    private Cluster clusterConfig;
-    private String resourceType;
-//
-//    @Override
-//    public Component getComponent() {
-//        return this;
-//    }
-//
+    private String filterText = "";
+    private String namespace;
+    private CoreV1Api coreApi;
+    private Cluster clusterConfig;
+    private V1APIResource resourceType;
+
+    @Override
+    public Component getComponent() {
+        return this;
+    }
+
     @Override
     public void refresh(long counter) {
         if (counter % 10 != 0) return;
@@ -129,62 +132,50 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         resourcesGrid.getDataProvider().refreshAll();
         UI.getCurrent().push();
     }
-//
-//    @Override
-//    public void init(CoreV1Api coreApi, Cluster clusterConfig, ResourcesGridPanel view) {
-//        this.coreApi = coreApi;
-//        this.clusterConfig = clusterConfig;
-//        addClassNames("contact-grid");
-//        setSizeFull();
-//        addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
-//        addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
-//        getColumns().forEach(col -> col.setAutoWidth(true));
-//        setDataProvider(new ResourcesProvider());
-//    }
-//
+
+    @Override
+    public void init(CoreV1Api coreApi, Cluster clusterConfig, ResourcesGridPanel view) {
+        this.coreApi = coreApi;
+        this.clusterConfig = clusterConfig;
+        addClassNames("contact-grid");
+        setSizeFull();
+        resourcesGrid = new Grid<>();
+        resourcesGrid.addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
+        resourcesGrid.addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
+        resourcesGrid.getColumns().forEach(col -> col.setAutoWidth(true));
+        resourcesGrid.setDataProvider(new ResourcesProvider());
+        resourcesGrid.setSizeFull();
+        add(resourcesGrid);
+    }
+
 //    @Override
 //    public void setFilter(String value) {
 //        filterText = value;
 //        if (resourcesList != null)
-//            getDataProvider().refreshAll();
+//            resourcesGrid.getDataProvider().refreshAll();
 //    }
-//
-//    @Override
-//    public void setNamespace(String value) {
-//        namespace = value;
-//        if (resourcesList != null) {
-//            resourcesList = null;
-//            getDataProvider().refreshAll();
-//        }
-//    }
-//
-//    @Override
-    public void setResourceType(String resourceType) {
+
+    @Override
+    public void setNamespace(String value) {
+        namespace = value;
+        if (resourcesList != null) {
+            resourcesList = null;
+            resourcesGrid.getDataProvider().refreshAll();
+        }
+    }
+
+    public void setResourceType(V1APIResource resourceType) {
         LOGGER.debug("Set resource type {}",resourceType);
         if (resourceType == null) return;
         this.resourceType = resourceType;
+        super.setResourceType(K8s.RESOURCE.CUSTOM);
     }
-//
-//    @Override
-//    public void handleShortcut(ShortcutEvent event) {
-//
-//    }
-//
-//    @Override
-//    public void setSelected() {
-//
-//    }
-//
-//    @Override
-//    public void setUnselected() {
-//
-//    }
-//
-//    @Override
-//    public void destroy() {
-//
-//    }
-//
+
+    @Override
+    public void setResourceType(K8s.RESOURCE resourceType) {
+        // no
+    }
+
     private class ResourcesProvider extends CallbackDataProvider<Resource, Void> {
 
         public ResourcesProvider() {
@@ -209,54 +200,40 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                         return filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
                         LOGGER.debug("Do the size query {}",query);
-//                        if (resourcesList == null) {
-//                            resourcesList = new ArrayList<>();
-//                            final var namespaceName = namespace ==  null || namespace.equals("all") ? null : (String) namespace;
-//                            final var genericApi = new GenericObjectsApi(coreApi.getApiClient());
-//
-//                            try {
-//                                // v1/pods
-//                                // apps/v1/daemonsets
-//                                // storage.k8s.io/v1/csidrivers
-//                                final var parts = resourceType.split("/");
-//                                String group = null;
-//                                String version = "v1";
-//                                String plural = null;
-//                                if (parts.length == 3) {
-//                                    group = parts[0];
-//                                    version = parts[1];
-//                                    plural = parts[2];
-//                                } else if (parts.length == 2) {
-//                                    group = parts[0];
-//                                    plural = parts[1];
-//                                } else {
-//                                    plural = parts[0];
-//                                }
-//
-//                                final var list = genericApi.listNamespacedCustomObject(group, version, namespaceName, plural, null, null, null, null, null, null, null, null, null, null);
-//
-//                                list.forEach(item -> {
-////                                    final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
-////                                    final var name = (String) metadata.get("name");
-////                                    final var creationTimestamp = (String) metadata.get("creationTimestamp");
-//                                    final var name = item.getMetadata().getName();
-//                                    final var creationTimestamp = item.getMetadata().getCreationTimestamp();
-//                                    resourcesList.add(new Resource(
-//                                            name,
-////                                            getAge(OffsetDateTime.parse(creationTimestamp)),
-//                                            getAge(creationTimestamp),
-////                                            OffsetDateTime.parse(creationTimestamp).toEpochSecond(),
-//                                            creationTimestamp == null ? 0 : creationTimestamp.toEpochSecond(),
-//                                            item
-//                                            )
-//                                    );
-//                                });
-//
-//                            } catch (ApiException e) {
-//                                LOGGER.error("Can't fetch resource from cluster",e);
-//                            }
-//                        }
-//                        filterList();
+                        if (resourcesList == null) {
+                            resourcesList = new ArrayList<>();
+                            final var namespaceName = namespace ==  null || namespace.equals("all") ? null : (String) namespace;
+                            final var genericApi = new GenericObjectsApi(coreApi.getApiClient(), resourceType);
+
+                            try {
+                                // v1/pods
+                                // apps/v1/daemonsets
+                                // storage.k8s.io/v1/csidrivers
+
+                                final var list = genericApi.listNamespacedCustomObject();
+
+                                list.forEach(item -> {
+//                                    final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
+//                                    final var name = (String) metadata.get("name");
+//                                    final var creationTimestamp = (String) metadata.get("creationTimestamp");
+                                    final var name = item.getMetadata().getName();
+                                    final var creationTimestamp = item.getMetadata().getCreationTimestamp();
+                                    resourcesList.add(new Resource(
+                                            name,
+//                                            getAge(OffsetDateTime.parse(creationTimestamp)),
+                                            getAge(creationTimestamp),
+//                                            OffsetDateTime.parse(creationTimestamp).toEpochSecond(),
+                                            creationTimestamp == null ? 0 : creationTimestamp.toEpochSecond(),
+                                            item
+                                            )
+                                    );
+                                });
+
+                            } catch (Exception e) {
+                                LOGGER.error("Can't fetch resource from cluster",e);
+                            }
+                        }
+                        filterList();
                         return filteredList.size();
                     }
             );

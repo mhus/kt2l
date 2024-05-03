@@ -21,6 +21,7 @@ package de.mhus.kt2l.k8s;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import de.mhus.commons.errors.NotFoundRuntimeException;
+import de.mhus.kt2l.resources.generic.GenericObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiException;
@@ -32,7 +33,6 @@ import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.LinkedList;

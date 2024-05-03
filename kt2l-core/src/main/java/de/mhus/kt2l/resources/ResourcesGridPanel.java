@@ -28,6 +28,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
@@ -43,6 +44,7 @@ import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.resources.generic.GenericGrid;
 import de.mhus.kt2l.resources.generic.GenericGridFactory;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -227,11 +229,20 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     }
 
     private void resourceTypeChanged() {
-        var rt = K8s.toResourceType(resourceSelector.getValue());
-        if (rt == null || rt.equals(currentResourceType)) return;
-        currentResourceType = rt;
-        grid = createGrid(rt);
+        try {
+            var rt = K8s.toResourceType(resourceSelector.getValue());
+            if (rt == null || rt.equals(currentResourceType)) return;
+            currentResourceType = rt;
+            grid = createGrid(rt);
+        } catch (NotFoundRuntimeException e) {
+            LOGGER.debug("Resource type not found: {}",resourceSelector.getValue());
+            grid = createDefaultGrid();
+        }
         initGrid();
+    }
+
+    private ResourcesGrid createDefaultGrid() {
+        return new GenericGrid();
     }
 
     private ResourcesGrid createGrid(K8s.RESOURCE resourceType) {
@@ -246,6 +257,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
         ResourcesGrid resourcesGrid = foundFactory.create(resourceType);
         core.getBeanFactory().autowireBean(resourcesGrid);
+        LOGGER.debug("Create grid: {}",resourcesGrid.getClass().getSimpleName());
         return resourcesGrid;
     }
 
@@ -283,7 +295,10 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         if (grid != null) {
             grid.setFilter(filterText.getValue(), resourcesFilter);
             grid.setNamespace(namespaceSelector.getValue());
-            grid.setResourceType(k8s.findResource(resourceSelector.getValue()));
+            if (grid instanceof GenericGrid genericGrid)
+                genericGrid.setResourceType(resourceSelector.getValue());
+            else
+                grid.setResourceType(k8s.findResource(resourceSelector.getValue()));
             grid.init(coreApi, clusterConfig, this);
             gridContainer.add(grid.getComponent());
         }
