@@ -27,9 +27,7 @@ import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1APIResource;
-import io.kubernetes.client.openapi.models.V1APIResourceList;
-import io.kubernetes.client.openapi.models.V1NamespaceList;
+import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,6 +83,7 @@ public class K8s {
         CUSTOM_RESOURCE_DEFINITION("customresourcedefinitions","CustomResourceDefinition","apiextensions.k8s.io","","v1","crd", "", false),
         HPA("horizontalpodautoscalers","HorizontalPodAutoscaler","autoscaling","","v1","hpa", "", true),
         LIMIT_RANGE("limitranges","LimitRange",null,"v1","limitrange","lr","", true),
+        ENDPOINTS("endpoints","Endpoints",null,"v1","endpoints","ep","", true),
         GENERIC("","","","","","", "", false),
         CUSTOM("","","","","","", "", false);
 
@@ -268,7 +267,7 @@ public class K8s {
         if (resource == null) return "";
         if (resource instanceof GenericObject) {
             Gson gson = new JSON().getGson();
-            JsonElement jsonElement = gson.toJsonTree(((GenericObject)resource).getData());
+            JsonElement jsonElement = gson.toJsonTree(((GenericObject)resource).toJson());
             String jsonTxt = gson.toJson(jsonElement);
             return jsonTxt; //TODO
         }
@@ -294,4 +293,12 @@ public class K8s {
         return age/86400 + "d";
     }
 
+
+    public static String getDns(V1Pod pod) {
+        return pod.getMetadata().getName() + "." + pod.getMetadata().getNamespace() + ".cluster.local";
+    }
+
+    public static String getDns(V1Service service) {
+        return service.getMetadata().getName() + "." + service.getMetadata().getNamespace() + ".svc.cluster.local";
+    }
 }

@@ -90,8 +90,9 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 
     @Override
     protected void createGridColumns(Grid<Resource> podGrid) {
-        podGrid.addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
-        podGrid.addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
+        resourcesGrid.addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
+        resourcesGrid.addColumn(pod -> pod.data()).setHeader("Data").setSortProperty("data");
+        resourcesGrid.addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
     }
 
     @Override
@@ -109,15 +110,6 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         return resource.resource();
     }
 
-    @Override
-    public void destroy() {
-
-    }
-
-    private String filterText = "";
-    private String namespace;
-    private CoreV1Api coreApi;
-    private Cluster clusterConfig;
     private V1APIResource resourceType;
 
     @Override
@@ -131,37 +123,6 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         resourcesList = null;
         resourcesGrid.getDataProvider().refreshAll();
         UI.getCurrent().push();
-    }
-
-    @Override
-    public void init(CoreV1Api coreApi, Cluster clusterConfig, ResourcesGridPanel view) {
-        this.coreApi = coreApi;
-        this.clusterConfig = clusterConfig;
-        addClassNames("contact-grid");
-        setSizeFull();
-        resourcesGrid = new Grid<>();
-        resourcesGrid.addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
-        resourcesGrid.addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
-        resourcesGrid.getColumns().forEach(col -> col.setAutoWidth(true));
-        resourcesGrid.setDataProvider(new ResourcesProvider());
-        resourcesGrid.setSizeFull();
-        add(resourcesGrid);
-    }
-
-//    @Override
-//    public void setFilter(String value) {
-//        filterText = value;
-//        if (resourcesList != null)
-//            resourcesGrid.getDataProvider().refreshAll();
-//    }
-
-    @Override
-    public void setNamespace(String value) {
-        namespace = value;
-        if (resourcesList != null) {
-            resourcesList = null;
-            resourcesGrid.getDataProvider().refreshAll();
-        }
     }
 
     public void setResourceType(V1APIResource resourceType) {
@@ -206,13 +167,10 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                             final var genericApi = new GenericObjectsApi(coreApi.getApiClient(), resourceType);
 
                             try {
-                                // v1/pods
-                                // apps/v1/daemonsets
-                                // storage.k8s.io/v1/csidrivers
 
-                                final var list = genericApi.listNamespacedCustomObject();
+                                final var list = genericApi.listNamespacedCustomObject(namespaceName);
 
-                                list.forEach(item -> {
+                                list.getItems().forEach(item -> {
 //                                    final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
 //                                    final var name = (String) metadata.get("name");
 //                                    final var creationTimestamp = (String) metadata.get("creationTimestamp");
@@ -220,6 +178,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                                     final var creationTimestamp = item.getMetadata().getCreationTimestamp();
                                     resourcesList.add(new Resource(
                                             name,
+                                            item.toJson().replace("\n", ""),
 //                                            getAge(OffsetDateTime.parse(creationTimestamp)),
                                             getAge(creationTimestamp),
 //                                            OffsetDateTime.parse(creationTimestamp).toEpochSecond(),
@@ -250,7 +209,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         return age/86400 + "d";
     }
 
-    public record Resource(String name, String age, long created, KubernetesObject resource) {
+    public record Resource(String name, String data, String age, long created, KubernetesObject resource) {
     }
 
 }
