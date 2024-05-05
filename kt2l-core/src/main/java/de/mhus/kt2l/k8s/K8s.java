@@ -218,12 +218,12 @@ public class K8s {
                     LinkedList<V1APIResource> types = new LinkedList<>();
                     types.addAll(result.getResources().stream().collect(Collectors.toList()));
                     // add static resources
-                    types.add(toV1APIResourc(RESOURCE.DEPLOYMENT));
-                    types.add(toV1APIResourc(RESOURCE.STATEFUL_SET));
-                    types.add(toV1APIResourc(RESOURCE.DAEMON_SET));
-                    types.add(toV1APIResourc(RESOURCE.REPLICA_SET));
-                    types.add(toV1APIResourc(RESOURCE.JOB));
-                    types.add(toV1APIResourc(RESOURCE.CRON_JOB));
+                    types.add(toResource(RESOURCE.DEPLOYMENT));
+                    types.add(toResource(RESOURCE.STATEFUL_SET));
+                    types.add(toResource(RESOURCE.DAEMON_SET));
+                    types.add(toResource(RESOURCE.REPLICA_SET));
+                    types.add(toResource(RESOURCE.JOB));
+                    types.add(toResource(RESOURCE.CRON_JOB));
 
                     future.complete(types);
                 }
@@ -239,7 +239,7 @@ public class K8s {
         return future;
     }
 
-    private static V1APIResource toV1APIResourc(RESOURCE resource) {
+    public static V1APIResource toResource(RESOURCE resource) {
         return new V1APIResource().kind(resource.kind()).name(resource.resourceType()).version(resource.version()).group(resource.group());
     }
 
@@ -249,11 +249,7 @@ public class K8s {
         return Arrays.stream(RESOURCE.values()).filter(r -> r.kind().equals(resource.getKind())).findFirst().orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resource.getKind()));
     }
 
-    static V1APIResource findResource(RESOURCE resource, List<V1APIResource> resources) {
-        return resources.stream().filter(r ->  toResourceTypeString(r).endsWith(resource.resourceType())).findFirst().orElse(null);
-    }
-
-    static String toResourceTypeString(V1APIResource r) {
+    public static String toResourceTypeString(V1APIResource r) {
         if (r == null) return null;
         if (isEmpty(r.getGroup()) && isEmpty(r.getVersion()))
             return r.getName();

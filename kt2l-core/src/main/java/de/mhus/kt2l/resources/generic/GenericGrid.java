@@ -24,20 +24,17 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
-import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
-import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -90,24 +87,24 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 
     @Override
     protected void createGridColumns(Grid<Resource> podGrid) {
-        resourcesGrid.addColumn(pod -> pod.name()).setHeader("Name").setSortProperty("name");
-        resourcesGrid.addColumn(pod -> pod.data()).setHeader("Data").setSortProperty("data");
-        resourcesGrid.addColumn(pod -> pod.age()).setHeader("Age").setSortProperty("age");
+        resourcesGrid.addColumn(pod -> pod.getName()).setHeader("Name").setSortProperty("name");
+        resourcesGrid.addColumn(pod -> pod.getData()).setHeader("Data").setSortProperty("data");
+        resourcesGrid.addColumn(pod -> pod.getAge()).setHeader("Age").setSortProperty("age");
     }
 
     @Override
     protected boolean filterByContent(Resource pod, String filter) {
-        return pod.name() == null || pod.name().contains(filter);
+        return pod.getName() == null || pod.getName().contains(filter);
     }
 
     @Override
     protected boolean filterByRegex(Resource pod, String filter) {
-        return pod.name() == null || pod.name().matches(filter);
+        return pod.getName() == null || pod.getName().matches(filter);
     }
 
     @Override
     protected KubernetesObject getSelectedKubernetesObject(Resource resource) {
-        return resource.resource();
+        return resource.getResource();
     }
 
     private V1APIResource resourceType;
@@ -147,12 +144,12 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                                 query.getSortOrders()) {
                             Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
                                 case "name" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.name().compareTo(b.name());
-                                    case DESCENDING -> b.name().compareTo(a.name());
+                                    case ASCENDING -> a.getName().compareTo(b.getName());
+                                    case DESCENDING -> b.getName().compareTo(a.getName());
                                 };
                                 case "age" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.created(), b.created());
-                                    case DESCENDING -> Long.compare(b.created(), a.created());
+                                    case ASCENDING -> MSystem.compare(a.getCreated(), b.getCreated());
+                                    case DESCENDING -> MSystem.compare(b.getCreated(), a.getCreated());
                                 };
                                 default -> 0;
                             });
@@ -180,9 +177,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                                             name,
                                             item.toJson().replace("\n", ""),
 //                                            getAge(OffsetDateTime.parse(creationTimestamp)),
-                                            getAge(creationTimestamp),
-//                                            OffsetDateTime.parse(creationTimestamp).toEpochSecond(),
-                                            creationTimestamp == null ? 0 : creationTimestamp.toEpochSecond(),
+                                            creationTimestamp,
                                             item
                                             )
                                     );
@@ -199,17 +194,24 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         }
 
     }
-//
-    private String getAge(OffsetDateTime creationTimestamp) {
-        if (creationTimestamp == null) return "";
-        final var age = System.currentTimeMillis()/1000 - creationTimestamp.toEpochSecond();
-        if (age < 60) return age + "s";
-        if (age < 3600) return age/60 + "m";
-        if (age < 86400) return age/3600 + "h";
-        return age/86400 + "d";
-    }
 
-    public record Resource(String name, String data, String age, long created, KubernetesObject resource) {
+    @Getter
+    public class Resource {
+        private final String name;
+        private final String data;
+        private final OffsetDateTime created;
+        private final KubernetesObject resource;
+
+        Resource(String name, String data, OffsetDateTime created, KubernetesObject resource) {
+            this.name = name;
+            this.data = data;
+            this.created = created;
+            this.resource = resource;
+        }
+
+        public String getAge() {
+            return K8s.getAge(created);
+        }
     }
 
 }

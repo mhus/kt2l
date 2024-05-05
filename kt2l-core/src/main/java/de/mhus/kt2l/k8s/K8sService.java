@@ -65,7 +65,7 @@ public class K8sService {
         final var principalFinal = principal;
 
         var types = K8s.getResourceTypes(coreApi);
-        var resType = K8s.findResource(resourceType, types);
+        var resType = K8s.toResource(resourceType);
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
         return securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, resType.getName(), defaultRole, principalFinal ) ? resType : null;

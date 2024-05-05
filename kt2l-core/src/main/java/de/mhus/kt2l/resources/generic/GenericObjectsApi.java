@@ -1,5 +1,7 @@
 package de.mhus.kt2l.resources.generic;
 
+import de.mhus.commons.errors.InternalRuntimeException;
+import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiResponse;
@@ -129,4 +131,119 @@ public class GenericObjectsApi {
         return path.toString();
     }
 
+    public GenericObject replace(String name, String namespace, String yaml) {
+        try {
+            //XXX yaml2json !!!!
+            // MYaml.toJson(yaml);
+            String basePath = null;
+            // Operation Servers
+            String[] localBasePaths = new String[] {  };
+
+            // Determine Base Path to Use
+            if (localCustomBaseUrl != null){
+                basePath = localCustomBaseUrl;
+            } else if ( localBasePaths.length > 0 ) {
+                basePath = localBasePaths[localHostIndex];
+            } else {
+                basePath = null;
+            }
+
+            Object localVarPostBody = null;
+
+            // create path and map variables
+            String localVarPath = createPath(resourceType, namespace) + "/" + name;
+
+            List<Pair> localVarQueryParams = new ArrayList<Pair>();
+            List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+            Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+            Map<String, String> localVarCookieParams = new HashMap<String, String>();
+            Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+            final String[] localVarAccepts = {
+                    "application/json",
+                    "application/yaml",
+                    "application/vnd.kubernetes.protobuf"
+            };
+            final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+            if (localVarAccept != null) {
+                localVarHeaderParams.put("Accept", localVarAccept);
+            }
+
+            final String[] localVarContentTypes = {
+            };
+            final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+            if (localVarContentType != null) {
+                localVarHeaderParams.put("Content-Type", localVarContentType);
+            }
+
+            String[] localVarAuthNames = new String[] { "BearerToken" };
+
+            LOGGER.debug("List custom objects: {}", localVarPath);
+            var callback = new CallBackAdapter(LOGGER);
+            var call = localVarApiClient.buildCall(basePath, localVarPath, "PUT", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, callback);
+
+            ApiResponse<GenericObject> response = localVarApiClient.execute(call, GenericObject.class);
+            return response.getData();
+        } catch (Exception e) {
+            LOGGER.error("Error while listing custom objects", e);
+            throw new InternalRuntimeException(e);
+        }
+    }
+
+    public GenericObject delete(String name, String namespace) {
+        try {
+            String basePath = null;
+            // Operation Servers
+            String[] localBasePaths = new String[] {  };
+
+            // Determine Base Path to Use
+            if (localCustomBaseUrl != null){
+                basePath = localCustomBaseUrl;
+            } else if ( localBasePaths.length > 0 ) {
+                basePath = localBasePaths[localHostIndex];
+            } else {
+                basePath = null;
+            }
+
+            Object localVarPostBody = null;
+
+            // create path and map variables
+            String localVarPath = createPath(resourceType, namespace) + "/" + name;
+
+            List<Pair> localVarQueryParams = new ArrayList<Pair>();
+            List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+            Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+            Map<String, String> localVarCookieParams = new HashMap<String, String>();
+            Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+            final String[] localVarAccepts = {
+                    "application/json",
+                    "application/yaml",
+                    "application/vnd.kubernetes.protobuf"
+            };
+            final String localVarAccept = localVarApiClient.selectHeaderAccept(localVarAccepts);
+            if (localVarAccept != null) {
+                localVarHeaderParams.put("Accept", localVarAccept);
+            }
+
+            final String[] localVarContentTypes = {
+            };
+            final String localVarContentType = localVarApiClient.selectHeaderContentType(localVarContentTypes);
+            if (localVarContentType != null) {
+                localVarHeaderParams.put("Content-Type", localVarContentType);
+            }
+
+            String[] localVarAuthNames = new String[] { "BearerToken" };
+
+            LOGGER.debug("List custom objects: {}", localVarPath);
+            var callback = new CallBackAdapter(LOGGER);
+            var call = localVarApiClient.buildCall(basePath, localVarPath, "DELETE", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, callback);
+
+            ApiResponse<GenericObject> response = localVarApiClient.execute(call, GenericObject.class);
+            return response.getData();
+        } catch (Exception e) {
+            LOGGER.error("Error while listing custom objects", e);
+            throw new InternalRuntimeException(e);
+        }
+    }
 }
