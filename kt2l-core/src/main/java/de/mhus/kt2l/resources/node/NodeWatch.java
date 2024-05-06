@@ -74,12 +74,11 @@ public class NodeWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new CoreV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
 
-                var call = api.listNode().watch(true).buildCall(new CallBackAdapter<V1Node>(LOGGER));
+                var call = apiProvider.getCoreV1Api().listNode().watch(true).buildCall(new CallBackAdapter<V1Node>(LOGGER));
                 Watch<V1Node> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1Node>>() {
                         }.getType());

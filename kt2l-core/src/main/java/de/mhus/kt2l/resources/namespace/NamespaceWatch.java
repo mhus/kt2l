@@ -74,12 +74,12 @@ public class NamespaceWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new CoreV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new CoreV1Api(apiProvider.getClient());
 
                 var call = api.listNamespace().watch(true).buildCall(new CallBackAdapter<V1Namespace>(LOGGER));
                 Watch<V1Namespace> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1Namespace>>() {
                         }.getType());

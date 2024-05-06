@@ -74,12 +74,12 @@ public class DaemonSetWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new AppsV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new AppsV1Api(apiProvider.getClient());
 
                 var call = api.listDaemonSetForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1DaemonSet>(LOGGER));
                 Watch<V1DaemonSet> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1DaemonSet>>() {
                         }.getType());

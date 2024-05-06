@@ -20,6 +20,7 @@ package de.mhus.kt2l.k8s;
 
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Status;
@@ -27,6 +28,12 @@ import io.kubernetes.client.openapi.models.V1Status;
 public interface HandlerK8s {
 
     K8s.RESOURCE getManagedResource();
+
+    default String getPreview(KubernetesObject res) {
+        var sb = new StringBuilder();
+        sb.append(K8s.toYaml(res));
+        return sb.toString();
+    }
 
     void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException;
 

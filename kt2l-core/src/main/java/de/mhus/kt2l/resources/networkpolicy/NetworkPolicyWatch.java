@@ -74,12 +74,12 @@ public class NetworkPolicyWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new NetworkingV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new NetworkingV1Api(apiProvider.getClient());
 
                 var call = api.listNetworkPolicyForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1NetworkPolicy>(LOGGER));
                 Watch<V1NetworkPolicy> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1NetworkPolicy>>() {
                         }.getType());

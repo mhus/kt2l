@@ -62,7 +62,6 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     private final Cluster clusterConfig;
     private final CoreV1Api api;
     private final Core core;
-    private final UI ui;
     private final List<ContainerResource> containers;
     private XTab tab;
     private TextArea logs;
@@ -87,7 +86,6 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
         this.api = api;
         this.core = core;
         this.containers = containers;
-        this.ui = UI.getCurrent();
     }
 
     @Override
@@ -207,13 +205,13 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
                             out.append(e.text).append("\n");
                         });
                     }
-                    ui.access(() -> {
+                    core.ui().access(() -> {
                         logs.setValue(out.toString());
                         if (menuItemAutoScroll.isChecked()) {
-                            ui.getPage().executeJs(
+                            core.ui().getPage().executeJs(
                                     "document.querySelector('.log-view').shadowRoot.querySelector(\"vaadin-input-container\").scrollTop = Number.MAX_SAFE_INTEGER");
                         }
-                        ui.push();
+                        core.ui().push();
                     });
                 }
                 MThread.sleep(100);

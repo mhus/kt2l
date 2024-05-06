@@ -74,12 +74,12 @@ public class CronJobWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new BatchV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new BatchV1Api(apiProvider.getClient());
 
                 var call = api.listJobForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1CronJob>(LOGGER));
                 Watch<V1CronJob> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1CronJob>>() {
                         }.getType());

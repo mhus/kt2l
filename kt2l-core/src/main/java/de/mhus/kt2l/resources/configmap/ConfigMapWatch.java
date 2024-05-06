@@ -74,12 +74,12 @@ public class ConfigMapWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new CoreV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new CoreV1Api(apiProvider.getClient());
 
                 var call = api.listConfigMapForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1ConfigMap>(LOGGER));
                 Watch<V1ConfigMap> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1ConfigMap>>() {
                         }.getType());

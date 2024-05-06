@@ -25,8 +25,10 @@ import com.vaadin.flow.component.textfield.TextArea;
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.common.KubernetesObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -40,6 +42,9 @@ public class PreviewAction implements ResourceAction {
         return true;
     }
 
+    @Autowired
+    private K8sService k8sService;
+
     @Override
     public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
@@ -47,13 +52,22 @@ public class PreviewAction implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
+
         // prepare preview
         StringBuilder sb = new StringBuilder();
         context.getSelected().forEach(
                 res -> {
-                    var kind = res.getKind() == null ? context.getResourceType() : res.getKind();
-                    sb.append(">>> ").append(kind).append(" ").append(res.getMetadata().getName()).append('\n');
-                    sb.append(K8s.toYaml(res)).append('\n');
+                    final var handler = k8sService.getResourceHandler(K8s.toResource(res, context.getClusterConfiguration()));
+                    final var previewText = handler.getPreview(res);
+                    sb.append(">>> ")
+                            .append(res.getKind() == null ? context.getResourceType() : res.getKind())
+                            .append(" ").append(res.getMetadata().getName()).append('\n');
+                    sb.append(previewText).append('\n');
+//
+//
+//                    var kind = res.getKind() == null ? context.getResourceType() : res.getKind();
+//                    sb.append(">>> ").append(kind).append(" ").append(res.getMetadata().getName()).append('\n');
+//                    sb.append(K8s.toYaml(res)).append('\n');
                 }
         );
 

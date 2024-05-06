@@ -74,12 +74,12 @@ public class PersistentVolumeWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new CoreV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new CoreV1Api(apiProvider.getClient());
 
                 var call = api.listPersistentVolume().watch(true).buildCall(new CallBackAdapter<V1PersistentVolume>(LOGGER));
                 Watch<V1PersistentVolume> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1PersistentVolume>>() {
                         }.getType());

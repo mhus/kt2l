@@ -42,6 +42,7 @@ import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
+import de.mhus.kt2l.k8s.ApiClientProvider;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.generic.GenericGrid;
@@ -89,9 +90,6 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     private TextField filterText;
     private ComboBox<String> namespaceSelector;
     private ComboBox<V1APIResource> resourceSelector;
-    private CoreV1Api coreApi;
-    @Getter
-    private UI ui;
     @Getter
     private Cluster cluster;
     private VerticalLayout gridContainer;
@@ -102,6 +100,8 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     private ResourcesFilter resourcesFilter;
     private Button resourceFilterButton;
     private IRegistration namespaceEventRegistration;
+    @Getter
+    private ApiClientProvider apiProvider;
 
     public ResourcesGridPanel(String clusterId, Core core) {
         this.clusterId = clusterId;
@@ -131,7 +131,6 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         gridContainer.setSizeFull();
 
         add(getToolbar(), gridContainer);
-        this.ui = UI.getCurrent();
 
     }
 
@@ -162,20 +161,20 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
         final Principal principal = securityService.getPrincipal();
 
-        k8s.getResourceTypesAsync(coreApi).handle((types, t) -> {
+        k8s.getResourceTypesAsync(apiProvider.getCoreV1Api()).handle((types, t) -> {
             if (t != null) {
                 LOGGER.error("Can't fetch resource types",t);
                 return Collections.emptyList();
             }
             cluster.setResourceTypes(types);
             LOGGER.debug("Resource types: {}",types.stream().map(V1APIResource::getName).toList());
-            ui.access(() -> {
+            core.ui().access(() -> {
                 resourceSelector.setItems(cluster.getResourceTypes());
                 Thread.startVirtualThread(() -> {
                     MThread.sleep(200);
-                    ui.access(() -> {
+                    core.ui().access(() -> {
                         resourceSelector.setValue(
-                                k8s.findResource(currentResourceType, coreApi, principal));
+                                k8s.findResource(currentResourceType, apiProvider.getCoreV1Api(), principal));
                     });
                 });
             });
@@ -198,7 +197,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     }
 
     private void updateNamespaceSelector(boolean selectDefault) {
-        k8s.getNamespacesAsync(true, coreApi).handle((namespaces, t) -> {
+        k8s.getNamespacesAsync(true, apiProvider.getCoreV1Api()).handle((namespaces, t) -> {
             if (t != null) {
                 LOGGER.error("Can't fetch namespaces",t);
                 return Collections.emptyList();
@@ -206,18 +205,18 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
             LOGGER.debug("Namespaces: {}",namespaces);
             if (MCollection.equalsAnyOrder(namespaces, cluster.getCurrentNamespaces()))  {
                 if (selectDefault && !MSystem.equals(namespaceSelector.getValue(), cluster.getDefaultNamespace())) {
-                    ui.access(() -> namespaceSelector.setValue(cluster.getDefaultNamespace()));
+                    core.ui().access(() -> namespaceSelector.setValue(cluster.getDefaultNamespace()));
                 }
                 return namespaces;
             }
             cluster.setCurrentNamespaces(namespaces);
-            ui.access(() -> {
+            core.ui().access(() -> {
                 namespaceSelector.setItems(namespaces);
-                ui.push();
+                core.ui().push();
                 if (selectDefault && !MSystem.equals(namespaceSelector.getValue(), cluster.getDefaultNamespace())) {
                     Thread.startVirtualThread(() -> {
                         MThread.sleep(200);
-                        ui.access(() -> {
+                        core.ui().access(() -> {
                             namespaceSelector.setValue(cluster.getDefaultNamespace());
                         });
                     });
@@ -263,7 +262,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     @Override
     public void tabInit(XTab xTab) {
         this.xTab = xTab;
-        coreApi = Try.of(() -> new CoreV1Api(k8s.getKubeClient(clusterId))).onFailure(e -> LOGGER.error("Error ",e) ).get();
+        apiProvider = Try.of(() -> k8s.getKubeClient(clusterId)).onFailure(e -> LOGGER.error("Error ",e) ).get();
         LOGGER.info("ClusterId: {}",clusterId);
         cluster = clusterConfiguration.getClusterOrDefault(clusterId);
         currentResourceType = cluster.getDefaultResourceType();
@@ -298,7 +297,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
                 genericGrid.setResourceType(resourceSelector.getValue());
             else
                 grid.setResourceType(k8s.findResource(resourceSelector.getValue()));
-            grid.init(coreApi, cluster, this);
+            grid.init(apiProvider.getCoreV1Api(), cluster, this);
             gridContainer.add(grid.getComponent());
         }
     }
@@ -324,8 +323,8 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
     @Override
     public void tabRefresh(long counter) {
-        if (ui != null && grid != null) {
-            ui.access(() -> {
+        if (core.ui() != null && grid != null) {
+            core.ui().access(() -> {
                 LOGGER.trace("Refresh " + grid.getClass().getSimpleName());
                 grid.refresh(counter);
             });
@@ -341,7 +340,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         if (filter != null)
             setResourcesFilter(filter);
         if (resourceType != null) {
-            resourceSelector.setValue(k8s.findResource(resourceType, coreApi));
+            resourceSelector.setValue(k8s.findResource(resourceType, apiProvider.getCoreV1Api()));
             resourceTypeChanged();
         }
     }

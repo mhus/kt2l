@@ -73,12 +73,11 @@ public class SecretWatch extends ClusterBackgroundJob {
     private void watch() {
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new CoreV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
 
-                var call = api.listSecretForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Secret>(LOGGER));
+                var call = apiProvider.getCoreV1Api().listSecretForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Secret>(LOGGER));
                 Watch<V1Secret> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1Secret>>() {
                         }.getType());

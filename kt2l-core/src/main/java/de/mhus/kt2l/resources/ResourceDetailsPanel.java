@@ -61,13 +61,13 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
     private final K8s.RESOURCE resourceType;
     private final KubernetesObject resource;
     private final CoreV1Api api;
+    private final Core core;
     private AceEditor resYamlEditor;
     private String resContent;
     private String managedFieldsContent;
     private Tabs tabs;
     private AceEditor fieldsYaml;
     private XTab tab;
-    private UI ui;
     private MenuItem resMenuItemEdit;
     private MenuItem resMenuItemSave;
     private MenuItem resMenuItemCancel;
@@ -85,13 +85,13 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
         this.resourceType = resourceType;
         this.resource = resource;
         this.api = api;
+        this.core = core;
     }
 
 
     @Override
     public void tabInit(XTab xTab) {
         this.tab = xTab;
-        this.ui = UI.getCurrent();
 
         resType = k8s.findResource(resourceType, api);
         if (resType == null) {
@@ -109,16 +109,17 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
         }
         if (yManagedFields != null) {
             managedFieldsContent = MYaml.toString(yManagedFields);
+            //noinspection unchecked
             ((Map<String, Object>) yMetadata.getObject()).remove("managedFields");
         }
         YMap yStatus = yDocument.asMap().getMap("status");
         if (yStatus != null) {
+            //noinspection unchecked
             ((Map<String, Object>)yDocument.asMap().getObject()).remove("status");
             statusContent = MYaml.toString(yStatus);
         }
 
         resContent = MYaml.toString(yDocument);
-
 
         resYamlEditor = new AceEditor();
         resYamlEditor.setTheme(AceTheme.terminal);
@@ -200,14 +201,14 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
         if (managedFieldsContent != null)
             tabSheet.add("Managed Fields", fieldsYaml);
 
-        UI.getCurrent().getPage().addBrowserWindowResizeListener(e -> {
+        core.ui().getPage().addBrowserWindowResizeListener(e -> {
             resYamlEditor.setHeight( (e.getHeight()-300) + "px");
             if (fieldsYaml != null)
                 fieldsYaml.setHeight( (e.getHeight()-250) + "px");
             if (statusYaml != null)
                 statusYaml.setHeight( (e.getHeight()-250) + "px");
         });
-        UI.getCurrent().getPage().retrieveExtendedClientDetails(details -> {
+        core.ui().getPage().retrieveExtendedClientDetails(details -> {
             resYamlEditor.setHeight( (details.getWindowInnerHeight()- 300) + "px");
             if (fieldsYaml != null)
                 fieldsYaml.setHeight( (details.getWindowInnerHeight()-250) + "px");

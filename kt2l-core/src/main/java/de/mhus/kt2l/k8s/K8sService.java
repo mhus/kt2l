@@ -231,23 +231,27 @@ public class K8sService {
         throw new RuntimeException("Context not found: " + contextName);
     }
 
-    public ApiClient getKubeClient(String contextName) throws IOException {
+    public ApiClientProvider getKubeClient(String contextName) throws IOException {
         if (contextName.equals(DEFAULT_CLUSTER_NAME)) {
-            return Config.defaultClient();
+            return new DefaultClientApiClientProvider();
         }
         if (contextName.equals(LOCAL_CLUSTER_NAME)) {
-            return Config.fromCluster();
+            return new FromClusterApiClientProvider();
         }
         final var kubeConfig = getKubeContext(contextName);
         if (!kubeConfig.setContext(contextName)) {
             throw new RuntimeException("Context not found: " + contextName);
         }
         LOGGER.info("load client for {}: {} {}",contextName, kubeConfig.getCurrentContext(), kubeConfig.getServer());
-        return Config.fromConfig(kubeConfig);
+        return new ClusterApiClientProvider(kubeConfig);
     }
 
     public HandlerK8s getResourceHandler(V1APIResource resource) {
         return resourceHandlers.stream().filter(h -> h.getManagedResource().kind().equals(resource.getKind())).findFirst().orElseGet(() -> new GenericK8s(resource));
+    }
+
+    public HandlerK8s getResourceHandler(K8s.RESOURCE resource) {
+        return resourceHandlers.stream().filter(h -> h.getManagedResource().equals(resource)).findFirst().orElseGet(() -> new GenericK8s(resource));
     }
 
     public K8s.RESOURCE findResource(V1APIResource value) {

@@ -74,12 +74,12 @@ public class ServiceWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new CoreV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new CoreV1Api(apiProvider.getClient());
 
                 var call = api.listConfigMapForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Service>(LOGGER));
                 Watch<V1Service> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1Service>>() {
                         }.getType());

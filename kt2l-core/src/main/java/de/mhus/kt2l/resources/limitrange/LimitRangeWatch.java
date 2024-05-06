@@ -74,12 +74,12 @@ public class LimitRangeWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new CoreV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new CoreV1Api(apiProvider.getClient());
 
                 var call = api.listLimitRangeForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1LimitRange>(LOGGER));
                 Watch<V1LimitRange> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1LimitRange>>() {
                         }.getType());

@@ -19,3 +19,9 @@
 log:
   maxCachedEntries: 1000
   maxCachedCharacters: 30000
+core:
+  idle:
+    enabled: true
+    autoExtend: true
+    autoExtendWaitSeconds: 5
+    notifyBeforeSeconds: 90

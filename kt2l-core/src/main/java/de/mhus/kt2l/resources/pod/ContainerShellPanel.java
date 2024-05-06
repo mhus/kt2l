@@ -58,7 +58,6 @@ public class ContainerShellPanel extends VerticalLayout implements XTabListener 
     private final CoreV1Api api;
     private final Core core;
     private final V1Pod pod;
-    private final UI ui;
     private XTab tab;
     private XTerm xterm;
     private Thread threadInput;
@@ -71,7 +70,6 @@ public class ContainerShellPanel extends VerticalLayout implements XTabListener 
         this.api = api;
         this.core = core;
         this.pod = pod;
-        this.ui = UI.getCurrent();
     }
 
     @Override
@@ -261,7 +259,7 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
                 }
                 System.out.println("ERead: " + len);
                 String line = new String(buffer, 0, len);
-                ui.access(() -> xterm.write(line));
+                core.ui().access(() -> xterm.write(line));
             }
         } catch (Exception e) {
             LOGGER.error("Loop", e);
@@ -280,7 +278,7 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
                 }
                 System.out.println("IRead: " + len);
                 String line = new String(buffer, 0, len);
-                ui.access(() -> xterm.write(line));
+                core.ui().access(() -> xterm.write(line));
             }
         } catch (Exception e) {
             LOGGER.error("Loop", e);

@@ -75,12 +75,12 @@ public class HorizontalPodAutoscalerWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new CoreV1Api(client);
-                var autoscalingApi = new AutoscalingV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var autoscalingApi = new AutoscalingV1Api(apiProvider.getClient());
+
                 var call = autoscalingApi.listHorizontalPodAutoscalerForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1HorizontalPodAutoscaler>(LOGGER));
                 Watch<V1HorizontalPodAutoscaler> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1HorizontalPodAutoscaler>>() {
                         }.getType());

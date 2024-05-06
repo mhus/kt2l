@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.core;
 
+import com.vaadin.componentfactory.IdleNotification;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
@@ -36,14 +37,19 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.server.VaadinSessionState;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
+import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.help.HelpAction;
 import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.help.LinkHelpAction;
@@ -63,6 +69,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -73,6 +80,7 @@ import static de.mhus.commons.tools.MCollection.notNull;
 
 @PermitAll
 @Route(value = "/")
+@PreserveOnRefresh
 @CssImport("./styles/custom.css")
 @Slf4j
 // add Used to include js files in the build, only once per vaadin component is needed
@@ -99,6 +107,9 @@ public class Core extends AppLayout {
     @Autowired(required=false)
     private List<CoreListener> coreListeners;
 
+    @Autowired
+    private ViewsConfiguration viewsConfiguration;
+
     private final transient AuthenticationContext authContext;
     private XTabBar tabBar;
     private ScheduledFuture<?> closeScheduler;
@@ -112,6 +123,8 @@ public class Core extends AppLayout {
     private Component contentContent;
     private IFrame helpBrowser;
     private ContextMenu helpMenu;
+    private UI ui;
+    private VaadinSession session;
 
     public Core(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -119,13 +132,10 @@ public class Core extends AppLayout {
 
     @PostConstruct
     public void createUi() {
-        var ui = UI.getCurrent();
-        Thread.startVirtualThread(() -> {
-            MThread.sleep(200);
-            ui.access(() -> {
-                ui.getPage().setTitle("KT2L");
-            });
-        });
+        if (closeScheduler != null) {
+            LOGGER.debug("Session already created");
+            return;
+        }
 
         createContent();
         createHeader();
@@ -181,15 +191,43 @@ public class Core extends AppLayout {
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
-        LOGGER.debug("UI on attach {}", MSystem.getObjectId(getUI().get()));
+        ui = attachEvent.getUI();
+        LOGGER.debug("UI on attach {}", MSystem.getObjectId(ui));
+
+        var idleConf = viewsConfiguration.getConfig("core").getObject("idle").orElse(MTree.EMPTY_MAP);
+        if (idleConf.getBoolean("enabled", true)) {
+            IdleNotification idleNotification = new IdleNotification();
+
+            idleNotification.setSecondsBeforeNotification( idleConf.getInt("notifyBeforeSeconds", 90) );
+            idleNotification.setMessage("Your session will expire in " +
+                    IdleNotification.MessageFormatting.SECS_TO_TIMEOUT
+                    + " seconds.");
+            idleNotification.addExtendSessionButton("Extend session");
+            idleNotification.addRedirectButton("Logout now", "/reset");
+            idleNotification.addCloseButton();
+            idleNotification.setExtendSessionOnOutsideClick(true);
+            idleNotification.addOpenListener(event -> {
+                LOGGER.debug("Idle Notification Opened");
+                if (idleConf.getBoolean("autoExtend", true))
+                    idleNotification.getElement().executeJs(
+                            "var self=this;setTimeout(() => { try {self.click(); }" +
+                                    " catch (error) {console.log(error);} }, " +
+                                    idleConf.getInt("autoExtendWaitSeconds", 5) * 1000 +
+                                    ");");
+            });
+            ui.add(idleNotification);
+        }
+
+        ui.getPage().setTitle("KT2L");
+        session = ui.getSession();
         heartbeatRegistration = getUI().get().addHeartbeatListener(event -> {
             LOGGER.debug("Heartbeat");
         });
-
     }
 
-    protected void onDetach(DetachEvent detachEvent) {
-        LOGGER.debug("UI on detach {}", MSystem.getObjectId(getUI().get()));
+    protected synchronized void closeSession() {
+        if (session == null) return;
+        LOGGER.debug("Close Session");
         closeScheduler.cancel(false);
         detached(tabBar.getTabs()).forEach(XTab::closeTab);
         clusteredJobsCleanup();
@@ -197,6 +235,12 @@ public class Core extends AppLayout {
             heartbeatRegistration.remove();
         if (coreListeners != null)
             coreListeners.forEach(l -> l.onCoreDestroyed(this));
+        session = null;
+    }
+    protected void onDetach(DetachEvent detachEvent) {
+        LOGGER.debug("UI on detach {} on session {}", MSystem.getObjectId(detachEvent.getUI()), session == null ? "?" : session.getState());
+        checkSession();
+        ui = null;
     }
 
     private void clusteredJobsCleanup() {
@@ -320,8 +364,18 @@ public class Core extends AppLayout {
     }
 
     private void fireRefresh() {
-        refreshCounter++;
+        if (session == null) return;
         try {
+//            LOGGER.debug("Refresh for session {} and ui {}", session, ui == null ? "?" : Objects.toIdentityString(ui));
+            refreshCounter++;
+
+
+//            if (ui != null) {
+//                ui.access(() -> {
+//                    checkSession();
+//                });
+//            }
+
             final var selected = tabBar.getSelectedTab();
             if (selected != null) {
                 final var panel = selected.getPanel();
@@ -332,6 +386,17 @@ public class Core extends AppLayout {
             }
         } catch (Exception e) {
             LOGGER.error("Error refreshing", e);
+        }
+    }
+
+    private void checkSession() {
+        try {
+            if (session == null) return;
+            if (session.getState() != VaadinSessionState.OPEN) {
+                closeSession();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error checking session", e);
         }
     }
 
@@ -407,4 +472,7 @@ public class Core extends AppLayout {
         showHelp();
     }
 
+    public UI ui() {
+        return ui;
+    }
 }

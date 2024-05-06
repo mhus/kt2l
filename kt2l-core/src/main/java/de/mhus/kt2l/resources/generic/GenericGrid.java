@@ -119,7 +119,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         if (counter % 10 != 0) return;
         resourcesList = null;
         resourcesGrid.getDataProvider().refreshAll();
-        UI.getCurrent().push();
+        getView().getCore().ui().push();
     }
 
     public void setResourceType(V1APIResource resourceType) {

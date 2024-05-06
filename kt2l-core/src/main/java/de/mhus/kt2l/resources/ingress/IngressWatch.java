@@ -74,12 +74,12 @@ public class IngressWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new NetworkingV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new NetworkingV1Api(apiProvider.getClient());
 
                 var call = api.listIngressForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Ingress>(LOGGER));
                 Watch<V1Ingress> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1Ingress>>() {
                         }.getType());

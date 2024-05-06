@@ -126,7 +126,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
     private boolean validateCluster(ClusterItem cluster) {
         var clusterId = cluster.config().getName();
         try {
-            var coreApi = new CoreV1Api(k8s.getKubeClient(clusterId));
+            var coreApi = k8s.getKubeClient(clusterId).getCoreV1Api();
             coreApi.listNamespace().execute();
             return true;
         } catch (Exception e) {

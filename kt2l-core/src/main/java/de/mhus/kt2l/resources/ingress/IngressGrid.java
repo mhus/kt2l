@@ -74,16 +74,16 @@ public class IngressGrid extends AbstractGrid<IngressGrid.Resource, Component> {
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                ui.get().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }

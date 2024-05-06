@@ -56,7 +56,6 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
     private final Cluster clusterConfig;
     private final CoreV1Api api;
     private final Core core;
-    private final UI ui;
     private XTab tab;
     private AceEditor editor;
     private VerticalLayout results;
@@ -70,7 +69,6 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
         this.clusterConfig = clusterConfig;
         this.api = api;
         this.core = core;
-        this.ui = UI.getCurrent();
     }
 
     @Override
@@ -193,7 +191,7 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
             context.getProperties().setString(RunCompiler.PROP_SHELL, shellConfiguration.getShellFor(clusterConfig, container.getPod()));
             context.getProperties().setString(RunCompiler.PROP_CONTAINER, container.getContainerName());
             context.setTextChangedObserver(s -> {
-                ui.access(() -> {
+                core.ui().access(() -> {
                     text.setValue(s);
                 });
             });
@@ -202,12 +200,12 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
 
             compiledBlock.run(context, null);
 
-            ui.access(() -> {
+            core.ui().access(() -> {
                 text.removeClassNames("bgcolor-yellow");
             });
         } catch (Exception e) {
             LOGGER.error("Execute", e);
-            ui.access(() -> {
+            core.ui().access(() -> {
                 text.removeClassNames("bgcolor-yellow");
                 text.addClassName("bgcolor-red");
                 text.setValue(text.getValue() + "\n" + e.getMessage());
@@ -242,7 +240,7 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
                     return;
                 }
             }
-            ui.access(() -> {
+            core.ui().access(() -> {
                 menuItemRun.setEnabled(true);
                 menuItemStop.setEnabled(false);
                 editor.setReadOnly(false);

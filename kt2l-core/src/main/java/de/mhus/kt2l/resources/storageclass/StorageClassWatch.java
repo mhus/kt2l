@@ -74,12 +74,12 @@ public class StorageClassWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new StorageV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new StorageV1Api(apiProvider.getClient());
 
                 var call = api.listStorageClass().watch(true).buildCall(new CallBackAdapter<V1StorageClass>(LOGGER));
                 Watch<V1StorageClass> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1StorageClass>>() {
                         }.getType());

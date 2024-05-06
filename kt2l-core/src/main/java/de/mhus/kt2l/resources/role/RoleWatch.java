@@ -75,13 +75,12 @@ public class RoleWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new CoreV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
 
-                RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(client);
+                RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(apiProvider.getClient());
                 var call = authenticationV1Api.listRoleForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Role>(LOGGER));
                 Watch<V1Role> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1Role>>() {
                         }.getType());

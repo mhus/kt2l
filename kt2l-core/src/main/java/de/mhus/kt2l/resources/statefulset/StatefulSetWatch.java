@@ -74,12 +74,12 @@ public class StatefulSetWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
-                var client = k8s.getKubeClient(clusterId);
-                var api = new AppsV1Api(client);
+                var apiProvider = k8s.getKubeClient(clusterId);
+                var api = new AppsV1Api(apiProvider.getClient());
 
                 var call = api.listStatefulSetForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1StatefulSet>(LOGGER));
                 Watch<V1StatefulSet> watch = Watch.createWatch(
-                        client,
+                        apiProvider.getClient(),
                         call,
                         new TypeToken<Watch.Response<V1StatefulSet>>() {
                         }.getType());

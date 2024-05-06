@@ -115,7 +115,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                                 .namespace(namespace)
                                 .api(coreApi)
                                 .clusterConfiguration(clusterConfig)
-                                .ui(UI.getCurrent())
+                                .ui(getView().getCore().ui())
                                 .grid(PodGrid.this)
                                 .core(view.getCore())
                                 .selectedTab(view.getXTab())
@@ -147,7 +147,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             detailsComponent.getDataProvider().refreshAll();
             if (focus)
                 detailsComponent.getElement().getNode()
-                        .runWhenAttached(ui -> ui.getPage().executeJs(
+                        .runWhenAttached(ui -> getView().getCore().ui().getPage().executeJs(
                                 "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", detailsComponent.getElement()));
         }
 
@@ -228,7 +228,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         }
 
         if (changed.get()) {
-            UI.getCurrent().push();
+            getView().getCore().ui().push();
         }
     }
 
@@ -292,16 +292,16 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             foundPod.setPod(event.object);
             filterList();
             if (added.get())
-                ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                ui.get().access(() -> resourcesGrid.getDataProvider().refreshItem(foundPod));
+                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundPod));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(pod -> {
                 if (pod.equals(event.object)) {
                     resourcesList.remove(pod);
                     filterList();
-                    ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }

@@ -77,11 +77,11 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     @Autowired
     private ActionService actionService;
+    @Getter
     protected ResourcesGridPanel view;
     private Optional<T> selectedResource;
     protected S detailsComponent;
     private ResourcesFilter resourcesFilter;
-    protected Optional<UI> ui = Optional.empty();
 
     @Override
     public Component getComponent() {
@@ -93,14 +93,13 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         if (counter % 10 != 0) return;
         filterList();
         resourcesGrid.getDataProvider().refreshAll();
-        ui.get().push();
+        view.getCore().ui().push();
     }
 
     @Override
     public void init(CoreV1Api coreApi, Cluster clusterConfig, ResourcesGridPanel view) {
         this.coreApi = coreApi;
         this.view = view;
-        this.ui = Optional.of(view.getUi());
         this.clusterConfig = clusterConfig;
 
         createActions();
@@ -336,8 +335,8 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 action.setContextMenuItem(item);
             });
 
-            UI.getCurrent().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
-            UI.getCurrent().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
+            getView().getCore().ui().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
+            getView().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
         } catch (Exception e) {
             LOGGER.error("Error creating grid", e);
         }
@@ -409,7 +408,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     public void setSelected() {
 
         resourcesGrid.getElement().getNode()
-                .runWhenAttached(ui -> ui.getPage().executeJs(
+                .runWhenAttached(ui -> getView().getCore().ui().getPage().executeJs(
                         "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", resourcesGrid.getElement()));
 
     }
@@ -498,7 +497,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 //                        .namespace(namespace)
 //                        .api(coreApi)
 //                        .clusterConfiguration(clusterConfig)
-//                        .ui(UI.getCurrent())
+//                        .ui(getView().getCore().ui())
 //                        .grid(PodGrid.this)
 //                        .core(view.getCore())
 //                        .selectedTab(view.getXTab())
@@ -516,7 +515,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                         .namespace(namespace)
                         .api(coreApi)
                         .clusterConfiguration(clusterConfig)
-                        .ui(UI.getCurrent())
+                        .ui(getView().getCore().ui())
                         .grid(AbstractGrid.this)
                         .core(view.getCore())
                         .selectedTab(view.getXTab())
