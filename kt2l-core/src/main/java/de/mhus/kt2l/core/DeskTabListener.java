@@ -18,15 +18,15 @@
 
 package de.mhus.kt2l.core;
 
-import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.ShortcutEvent;
 
-public interface ClusterAction {
+public interface DeskTabListener {
+    void tabInit(DeskTab xTab);
+    void tabSelected();
+    void tabUnselected();
+    void tabDestroyed();
 
-    String getTitle();
+    void tabRefresh(long counter);
 
-    void execute(Core core, ClusterOverviewPanel.ClusterItem cluster);
-
-    Icon getIcon();
-
-    int getPriority();
+    void tabShortcut(ShortcutEvent event);
 }

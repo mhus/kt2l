@@ -20,6 +20,8 @@ package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.cluster.ClusterAction;
+import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

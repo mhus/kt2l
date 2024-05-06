@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.daemonset;
 
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import io.kubernetes.client.openapi.ApiException;
@@ -42,9 +43,9 @@ public class DaemonSetK8s implements HandlerK8s {
     }
 
     @Override
-    public void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException {
+    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         var body = Yaml.loadAs(yaml, V1DaemonSet.class);
-        AppsV1Api appsV1Api = new AppsV1Api(api.getApiClient());
+        AppsV1Api appsV1Api = new AppsV1Api(apiProvider.getClient());
         appsV1Api.replaceNamespacedDaemonSet(
                 name, namespace,
                 body
@@ -52,9 +53,9 @@ public class DaemonSetK8s implements HandlerK8s {
     }
 
     @Override
-    public V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException {
+    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
         checkDeleteAccess(securityService, K8s.RESOURCE.DAEMON_SET);
-        AppsV1Api appsV1Api = new AppsV1Api(api.getApiClient());
+        AppsV1Api appsV1Api = new AppsV1Api(apiProvider.getClient());
         return appsV1Api.deleteNamespacedDaemonSet(name, namespace).execute();
     }
 

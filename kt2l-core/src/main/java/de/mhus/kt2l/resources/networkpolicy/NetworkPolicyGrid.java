@@ -47,12 +47,10 @@ import java.util.stream.Stream;
 public class NetworkPolicyGrid extends AbstractGrid<NetworkPolicyGrid.Resource, Component> {
 
     private IRegistration eventRegistration;
-    private NetworkingV1Api networkingV1Api;
 
     @Override
     protected void init() {
-        networkingV1Api = new NetworkingV1Api(view.getApiProvider().getClient());
-        eventRegistration = NetworkPolicyWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = NetworkPolicyWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1NetworkPolicy> event) {
@@ -74,16 +72,16 @@ public class NetworkPolicyGrid extends AbstractGrid<NetworkPolicyGrid.Resource, 
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -205,6 +203,7 @@ public class NetworkPolicyGrid extends AbstractGrid<NetworkPolicyGrid.Resource, 
     }
 
     private V1NetworkPolicyList createRawResourceList() throws ApiException {
+        var networkingV1Api = new NetworkingV1Api(cluster.getApiProvider().getClient());
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
             return networkingV1Api.listNetworkPolicyForAllNamespaces().execute();
         return networkingV1Api.listNamespacedNetworkPolicy(namespace).execute();

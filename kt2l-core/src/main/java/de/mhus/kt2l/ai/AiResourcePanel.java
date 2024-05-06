@@ -25,8 +25,8 @@ import com.vaadin.flow.component.textfield.TextArea;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
-import de.mhus.kt2l.core.XTab;
-import de.mhus.kt2l.core.XTabListener;
+import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import dev.langchain4j.model.input.Prompt;
@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
 
-public class AiResourcePanel extends VerticalLayout implements XTabListener {
+public class AiResourcePanel extends VerticalLayout implements DeskTabListener {
 
     private static final String LOADING = "Loading ... ";
     @Autowired
@@ -51,7 +51,7 @@ public class AiResourcePanel extends VerticalLayout implements XTabListener {
     }
 
     @Override
-    public void tabInit(XTab xTab) {
+    public void tabInit(DeskTab xTab) {
 
         resources.forEach(resource -> {
 

@@ -48,13 +48,10 @@ public class ClusterRoleGrid extends AbstractGrid<ClusterRoleGrid.Resource, Comp
 
 
     private IRegistration eventRegistration;
-    private RbacAuthorizationV1Api authenticationV1Api;
 
     @Override
     protected void init() {
-        eventRegistration = ClusterRoleWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
-        authenticationV1Api = new RbacAuthorizationV1Api(view.getApiProvider().getClient());
-
+        eventRegistration = ClusterRoleWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1ClusterRole> event) {
@@ -80,16 +77,16 @@ public class ClusterRoleGrid extends AbstractGrid<ClusterRoleGrid.Resource, Comp
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -216,6 +213,7 @@ public class ClusterRoleGrid extends AbstractGrid<ClusterRoleGrid.Resource, Comp
     }
 
     private V1ClusterRoleList createRawResourceList() throws ApiException {
+        var authenticationV1Api = new RbacAuthorizationV1Api(cluster.getApiProvider().getClient());
         return authenticationV1Api.listClusterRole().execute();
     }
 

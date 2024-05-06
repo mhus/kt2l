@@ -16,17 +16,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.core;
+package de.mhus.kt2l.cluster;
 
-import com.vaadin.flow.component.ShortcutEvent;
+import com.vaadin.flow.component.icon.Icon;
+import de.mhus.kt2l.core.Core;
 
-public interface XTabListener {
-    void tabInit(XTab xTab);
-    void tabSelected();
-    void tabUnselected();
-    void tabDestroyed();
+public interface ClusterAction {
 
-    void tabRefresh(long counter);
+    String getTitle();
 
-    void tabShortcut(ShortcutEvent event);
+    void execute(Core core, ClusterOverviewPanel.ClusterItem cluster);
+
+    Icon getIcon();
+
+    int getPriority();
 }

@@ -47,12 +47,10 @@ import java.util.stream.Stream;
 public class HorizontalPodAutoscalerGrid extends AbstractGrid<HorizontalPodAutoscalerGrid.Resource, Component> {
 
     private IRegistration eventRegistration;
-    private AutoscalingV1Api autoscalingApi;
 
     @Override
     protected void init() {
-        eventRegistration = HorizontalPodAutoscalerWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
-        autoscalingApi = new AutoscalingV1Api(view.getApiProvider().getClient());
+        eventRegistration = HorizontalPodAutoscalerWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1HorizontalPodAutoscaler> event) {
@@ -74,16 +72,16 @@ public class HorizontalPodAutoscalerGrid extends AbstractGrid<HorizontalPodAutos
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -205,6 +203,7 @@ public class HorizontalPodAutoscalerGrid extends AbstractGrid<HorizontalPodAutos
     }
 
     private V1HorizontalPodAutoscalerList createRawResourceList() throws ApiException {
+        var autoscalingApi = new AutoscalingV1Api(cluster.getApiProvider().getClient());
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
             return autoscalingApi.listHorizontalPodAutoscalerForAllNamespaces().execute();
         return autoscalingApi.listNamespacedHorizontalPodAutoscaler(namespace).execute();

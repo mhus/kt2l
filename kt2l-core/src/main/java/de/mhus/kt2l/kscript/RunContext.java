@@ -23,8 +23,7 @@ import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tree.IProperties;
 import de.mhus.commons.tree.MProperties;
 import de.mhus.kt2l.core.SecurityContext;
-import de.mhus.kt2l.k8s.ApiClientProvider;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
+import de.mhus.kt2l.k8s.ApiProvider;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,7 +44,7 @@ public class RunContext implements ICloseable {
 
     @Getter
     @Setter
-    ApiClientProvider apiProvider;
+    ApiProvider apiProvider;
     @Getter
     @Setter
     V1Pod pod;

@@ -5,7 +5,7 @@ import io.kubernetes.client.util.Config;
 
 import java.io.IOException;
 
-public class FromClusterApiClientProvider extends ApiClientProvider {
+public class FromClusterApiClientProvider extends ApiProvider {
     @Override
     protected ApiClient createClient() throws IOException {
         return Config.fromCluster();

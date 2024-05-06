@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.node;
 
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import io.kubernetes.client.openapi.ApiException;
@@ -41,20 +42,20 @@ public class NodeK8s implements HandlerK8s {
     }
 
     @Override
-    public void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException {
+    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         // this is dangerous ... deny like delete!
         checkDeleteAccess(securityService, K8s.RESOURCE.NODE);
         var body = Yaml.loadAs(yaml, V1Node.class);
-        api.replaceNode(
+        apiProvider.getCoreV1Api().replaceNode(
                 name,
                 body
         ).execute();
     }
 
     @Override
-    public V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException {
+    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
         // this is dangerous ... deny!
         checkDeleteAccess(securityService, K8s.RESOURCE.NODE);
-        return api.deleteNode(name).execute();
+        return apiProvider.getCoreV1Api().deleteNode(name).execute();
     }
 }

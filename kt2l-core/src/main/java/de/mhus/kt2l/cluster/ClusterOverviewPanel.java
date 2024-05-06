@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.core;
+package de.mhus.kt2l.cluster;
 
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
@@ -27,12 +27,15 @@ import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.StreamResource;
 import de.mhus.commons.tools.MString;
-import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.core.SecurityUtils;
+import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +44,13 @@ import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
-public class ClusterOverviewPanel extends VerticalLayout implements XTabListener {
+public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
     private K8sService k8s;
 
     @Autowired
-    private ClusterConfiguration clustersConfig;
+    private ClusterService clusterService;
 
     @Autowired
     private List<ClusterAction> clusterActions;
@@ -55,7 +58,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
     @Autowired
     private SecurityService securityService;
 
-    private XTab tab;
+    private DeskTab tab;
 
     @Getter
     private Core core;
@@ -72,8 +75,8 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
         clusterBox = new ComboBox<>("Select a cluster");
         clusterList = k8s.getAvailableContexts().stream()
                 .map(name -> {
-                    final var clusterConfig = clustersConfig.getClusterOrDefault(name);
-                    return new ClusterItem(name, clusterConfig.getTitle(), clusterConfig);
+                    final var cluster = clusterService.getCluster(name);
+                    return new ClusterItem(name, cluster.getTitle(), cluster);
                 })
                 .filter(cluster -> cluster.config().isEnabled())
                 .toList();
@@ -81,9 +84,9 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
         clusterBox.setItems(clusterList);
         clusterBox.setItemLabelGenerator(ClusterItem::title);
         clusterBox.setWidthFull();
-        if (clustersConfig.defaultClusterName() != null) {
-            clusterList.stream().filter(c -> c.name().equals(clustersConfig.defaultClusterName())).findFirst().ifPresent(clusterBox::setValue);
-        }
+        clusterService.defaultClusterName().ifPresent(defaultClusterName -> {
+            clusterList.stream().filter(c -> c.name().equals(defaultClusterName)).findFirst().ifPresent(clusterBox::setValue);
+        });
         add(clusterBox);
 
         var menuBar = new MenuBar();
@@ -137,7 +140,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
     }
 
     @Override
-    public void tabInit(XTab xTab) {
+    public void tabInit(DeskTab xTab) {
         LOGGER.debug("Main Init");
         this.tab = xTab;
         createUi();

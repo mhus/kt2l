@@ -6,7 +6,7 @@ import io.kubernetes.client.util.KubeConfig;
 
 import java.io.IOException;
 
-public class ClusterApiClientProvider extends ApiClientProvider {
+public class ClusterApiClientProvider extends ApiProvider {
     private final KubeConfig kubeConfig;
 
     public ClusterApiClientProvider(KubeConfig kubeConfig) {

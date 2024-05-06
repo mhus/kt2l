@@ -19,7 +19,6 @@
 package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.ShortcutEvent;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -32,14 +31,13 @@ import de.f0rce.ace.enums.AceTheme;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.core.XTab;
-import de.mhus.kt2l.core.XTabListener;
-import de.mhus.kt2l.k8s.ApiClientProvider;
+import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.kscript.Block;
 import de.mhus.kt2l.kscript.RunCompiler;
 import de.mhus.kt2l.kscript.RunContext;
 import de.mhus.kt2l.resources.ResourceManager;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,16 +46,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
-public class PodExecPanel extends VerticalLayout implements XTabListener  {
+public class PodExecPanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
     private ShellConfiguration shellConfiguration;
 
-    private final ApiClientProvider apiProvider;
+    private final ApiProvider apiProvider;
     private final ResourceManager<ContainerResource> resourceManager;
-    private final Cluster clusterConfig;
+    private final Cluster cluster;
     private final Core core;
-    private XTab tab;
+    private DeskTab tab;
     private AceEditor editor;
     private VerticalLayout results;
     private MenuItem menuItemRun;
@@ -65,15 +63,15 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
     private MenuItem menuItemClear;
     private MenuItem menuItemStop;
 
-    public PodExecPanel(Cluster clusterConfig, ApiClientProvider apiProvider, Core core, List<ContainerResource> containers) {
-        this.apiProvider = apiProvider;
+    public PodExecPanel(Cluster cluster, Core core, List<ContainerResource> containers) {
+        this.apiProvider = cluster.getApiProvider();
         this.resourceManager = new ResourceManager(containers, true);
-        this.clusterConfig = clusterConfig;
+        this.cluster = cluster;
         this.core = core;
     }
 
     @Override
-    public void tabInit(XTab xTab) {
+    public void tabInit(DeskTab xTab) {
         this.tab = xTab;
 
         var menuBar = new MenuBar();
@@ -189,7 +187,7 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
 
     private void runCommandInContainer(ContainerResource container, Block compiledBlock, TextArea text, RunContext context) {
         try (var sce = context.getSecurityContext().enter()) {
-            context.getProperties().setString(RunCompiler.PROP_SHELL, shellConfiguration.getShellFor(clusterConfig, container.getPod()));
+            context.getProperties().setString(RunCompiler.PROP_SHELL, shellConfiguration.getShellFor(cluster, container.getPod()));
             context.getProperties().setString(RunCompiler.PROP_CONTAINER, container.getContainerName());
             context.setTextChangedObserver(s -> {
                 core.ui().access(() -> {

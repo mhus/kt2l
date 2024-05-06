@@ -46,7 +46,7 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
 
     @Override
     protected void init() {
-        namespaceEventRegistration = NamespaceWatch.instance(view.getCore(), clusterConfig).getEventHandler().registerWeak(this::namespaceEvent);
+        namespaceEventRegistration = NamespaceWatch.instance(panel.getCore(), cluster).getEventHandler().registerWeak(this::namespaceEvent);
     }
 
     private void namespaceEvent(Watch.Response<V1Namespace> event) {
@@ -67,14 +67,14 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
 
             foundRes.setResource(event.object);
             filterList();
-            getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+            getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -197,7 +197,7 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            Try.of(() -> view.getApiProvider().getCoreV1Api().listNamespace().execute() )
+                            Try.of(() -> cluster.getApiProvider().getCoreV1Api().listNamespace().execute() )
                                     .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
                                     .onSuccess(list -> {
                                         list.getItems().forEach(res -> {

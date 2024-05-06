@@ -21,12 +21,12 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.k8s.ApiClientProvider;
+import de.mhus.kt2l.cluster.ClusterOverviewPanel;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourceDetailsPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Supplier;
@@ -34,8 +34,8 @@ import java.util.function.Supplier;
 @Component
 public class PanelService {
 
-    public XTab addPanel(
-            XTab parentTab,
+    public DeskTab addPanel(
+            DeskTab parentTab,
             String id, String title, boolean unique, Icon icon, Supplier<com.vaadin.flow.component.Component> panelCreator) {
         return parentTab.getViewer().addTab(
                 id,
@@ -47,7 +47,7 @@ public class PanelService {
         .setColor(parentTab.getColor()).setParentTab(parentTab);
     }
 
-    public XTab addDetailsPanel(XTab parentTab, Cluster cluster, ApiClientProvider apiProvider, K8s.RESOURCE resourceType, KubernetesObject resource) {
+    public DeskTab addDetailsPanel(DeskTab parentTab, Cluster cluster, K8s.RESOURCE resourceType, KubernetesObject resource) {
         return parentTab.getViewer().addTab(
                 cluster.getName() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),
@@ -57,7 +57,6 @@ public class PanelService {
                 () ->
                         new ResourceDetailsPanel(
                                 cluster,
-                                apiProvider,
                                 parentTab.getViewer().getCore(),
                                 resourceType,
                                 resource
@@ -65,7 +64,7 @@ public class PanelService {
 
     }
 
-    public XTab addResourcesGrid(Core core, ClusterOverviewPanel.ClusterItem cluster) {
+    public DeskTab addResourcesGrid(Core core, ClusterOverviewPanel.ClusterItem cluster) {
         return core.getTabBar().addTab(
                         "test/" + cluster.name(),
                         cluster.title(),

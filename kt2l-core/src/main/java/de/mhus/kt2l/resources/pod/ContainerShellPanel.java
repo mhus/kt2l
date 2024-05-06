@@ -23,7 +23,6 @@ import com.flowingcode.vaadin.addons.xterm.ITerminalOptions;
 import com.flowingcode.vaadin.addons.xterm.XTerm;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -34,11 +33,10 @@ import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.core.XTab;
-import de.mhus.kt2l.core.XTabListener;
-import de.mhus.kt2l.k8s.ApiClientProvider;
+import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.k8s.ApiProvider;
 import io.kubernetes.client.Exec;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,33 +46,33 @@ import java.io.InputStream;
 
 @Slf4j
 @Uses(XTerm.class)
-public class ContainerShellPanel extends VerticalLayout implements XTabListener {
+public class ContainerShellPanel extends VerticalLayout implements DeskTabListener {
 
 
     @Autowired
     private ShellConfiguration shellConfiguration;
 
     private static final int MAX = 300000;
-    private final Cluster clusterConfig;
-    private final ApiClientProvider apiProvider;
+    private final Cluster cluster;
+    private final ApiProvider apiProvider;
     private final Core core;
     private final V1Pod pod;
-    private XTab tab;
+    private DeskTab tab;
     private XTerm xterm;
     private Thread threadInput;
     private Process proc;
     private Thread threadError;
     private MenuItem menuItemEsc;
 
-    public ContainerShellPanel(Cluster clusterConfig, ApiClientProvider apiProvider, Core core, V1Pod pod) {
-        this.clusterConfig = clusterConfig;
-        this.apiProvider = apiProvider;
+    public ContainerShellPanel(Cluster cluster, Core core, V1Pod pod) {
+        this.cluster = cluster;
+        this.apiProvider = cluster.getApiProvider();
         this.core = core;
         this.pod = pod;
     }
 
     @Override
-    public void tabInit(XTab xTab) {
+    public void tabInit(DeskTab xTab) {
         this.tab = xTab;
 
         xterm = new XTerm();
@@ -223,7 +221,7 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
 
         try {
             Exec exec = new Exec(apiProvider.getClient());
-            proc = exec.exec(pod, new String[]{shellConfiguration.getShellFor(clusterConfig, pod )}, true, true);
+            proc = exec.exec(pod, new String[]{shellConfiguration.getShellFor(cluster, pod )}, true, true);
 
             threadInput = Thread.startVirtualThread(this::loopInput);
             threadError = Thread.startVirtualThread(this::loopError);

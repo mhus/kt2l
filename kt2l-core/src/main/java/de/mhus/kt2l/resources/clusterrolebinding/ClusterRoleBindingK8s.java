@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.clusterrolebinding;
 
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.openapi.ApiException;
@@ -42,9 +43,9 @@ public class ClusterRoleBindingK8s implements HandlerK8s {
     }
 
     @Override
-    public void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException {
+    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         var body = Yaml.loadAs(yaml, V1ClusterRoleBinding.class);
-        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(api.getApiClient());
+        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(apiProvider.getClient());
         authenticationV1Api.replaceClusterRoleBinding(
                 name,
                 body
@@ -52,10 +53,10 @@ public class ClusterRoleBindingK8s implements HandlerK8s {
     }
 
     @Override
-    public V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException {
+    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
         // this is dangerous ... deny!
         checkDeleteAccess(securityService, K8s.RESOURCE.CLUSTER_ROLE_BINDING);
-        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(api.getApiClient());
+        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(apiProvider.getClient());
         return authenticationV1Api.deleteClusterRoleBinding(name).execute();
     }
 }

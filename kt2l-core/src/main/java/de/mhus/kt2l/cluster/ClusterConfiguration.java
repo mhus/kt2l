@@ -21,6 +21,7 @@ package de.mhus.kt2l.cluster;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.AbstractUserRelatedConfig;
+import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import org.springframework.stereotype.Component;
@@ -54,7 +55,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
         return config().getString("defaultNamespace", K8s.NAMESPACE_ALL);
     }
 
-    public synchronized Map<String, Cluster> getClusters() {
+    private synchronized Map<String, Cluster> getClusters() {
 
         if (clusters != null) return clusters; //XXX refresh if cluster config changes
 
@@ -63,6 +64,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
         if (clusterConfig.isPresent())
             clusterConfig.get().forEach(cluster -> {
                 clusters.put(cluster.getString("name").get(), new Cluster(
+                        SecurityContext.lookupUserName(),
                         cluster.getString("name").get(),
                         cluster.getString("title").orElse(cluster.getString("name").get()),
                         cluster.getBoolean("enabled").orElse(true),
@@ -75,11 +77,11 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
         return clusters;
     }
 
-    public Cluster getCluster(String name) {
-        return getClusters().get(name);
-    }
+//    Cluster getCluster(String name) {
+//        return getClusters().get(name);
+//    }
 
-    public Cluster getClusterOrDefault(String name) {
+    Cluster getClusterOrDefault(String name) {
         final var cluster = getClusters().get(name);
         if (cluster == null) {
             return getDefault(name);
@@ -88,7 +90,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     }
 
     private synchronized Cluster getDefault(String name) {
-        return defaultClusters.computeIfAbsent(name,(n) -> new Cluster(n, n, true, defaultNamespace(), K8s.toResourceType(defaultResourceType()), UiUtil.COLOR.NONE, MTree.EMPTY_MAP));
+        return defaultClusters.computeIfAbsent(name,(n) -> new Cluster(SecurityContext.lookupUserName(), n, n, true, defaultNamespace(), K8s.toResourceType(defaultResourceType()), UiUtil.COLOR.NONE, MTree.EMPTY_MAP));
     }
 
 }

@@ -47,12 +47,10 @@ import java.util.stream.Stream;
 public class DaemonSetGrid extends AbstractGrid<DaemonSetGrid.Resource, Component> {
 
     private IRegistration eventRegistration;
-    private AppsV1Api appsV1Api;
 
     @Override
     protected void init() {
-        appsV1Api = new AppsV1Api( view.getApiProvider().getClient() );
-        eventRegistration = DaemonSetWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = DaemonSetWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1DaemonSet> event) {
@@ -74,16 +72,16 @@ public class DaemonSetGrid extends AbstractGrid<DaemonSetGrid.Resource, Componen
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -205,6 +203,7 @@ public class DaemonSetGrid extends AbstractGrid<DaemonSetGrid.Resource, Componen
     }
 
     private V1DaemonSetList createRawResourceList() throws ApiException {
+        var appsV1Api = new AppsV1Api( cluster.getApiProvider().getClient() );
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
             return appsV1Api.listDaemonSetForAllNamespaces().execute();
         return appsV1Api.listNamespacedDaemonSet(namespace).execute();

@@ -49,7 +49,7 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
 
     @Override
     protected void init() {
-        eventRegistration = LimitRangeWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = LimitRangeWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1LimitRange> event) {
@@ -71,16 +71,16 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -203,8 +203,8 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
 
     private V1LimitRangeList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return view.getApiProvider().getCoreV1Api().listLimitRangeForAllNamespaces().execute();
-        return view.getApiProvider().getCoreV1Api().listNamespacedLimitRange(namespace).execute();
+            return cluster.getApiProvider().getCoreV1Api().listLimitRangeForAllNamespaces().execute();
+        return cluster.getApiProvider().getCoreV1Api().listNamespacedLimitRange(namespace).execute();
     }
 
     @Data

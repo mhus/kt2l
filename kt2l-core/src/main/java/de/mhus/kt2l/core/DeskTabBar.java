@@ -32,43 +32,43 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 @Slf4j
-public class XTabBar extends VerticalLayout {
+public class DeskTabBar extends VerticalLayout {
 
     private final Core core;
-    private List<XTab> tabs = new LinkedList<>();
-    private XTab selectedTab;
+    private List<DeskTab> tabs = new LinkedList<>();
+    private DeskTab selectedTab;
 
-    public XTabBar(Core core) {
+    public DeskTabBar(Core core) {
         setWidthFull();
         this.core = core;
         addClassName("xtabview");
     }
 
-    synchronized XTab addTab(String id, String title, boolean closeable, boolean unique, Icon icon, Supplier<Component> panelCreator) {
+    synchronized DeskTab addTab(String id, String title, boolean closeable, boolean unique, Icon icon, Supplier<Component> panelCreator) {
         if (unique) {
-            Optional<XTab> tab = getTab(id);
+            Optional<DeskTab> tab = getTab(id);
             if (tab.isPresent()) {
                 return tab.get();
             }
         }
-        final var newTab = new XTab(id, title, closeable, icon, panelCreator.get());
+        final var newTab = new DeskTab(id, title, closeable, icon, panelCreator.get());
         return addTab(newTab);
     }
 
-    public synchronized XTab addTab(XTab tab) {
+    public synchronized DeskTab addTab(DeskTab tab) {
         tabs.add(tab);
         tab.setXTabViewer(this);
         add(tab);
 
-        if (tab.getPanel() != null && tab.getPanel() instanceof XTabListener) {
-            Try.run(() -> ((XTabListener) tab.getPanel()).tabInit(tab)).onFailure(e -> LOGGER.warn("TabListener:tabInit failed", e));
+        if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener) {
+            Try.run(() -> ((DeskTabListener) tab.getPanel()).tabInit(tab)).onFailure(e -> LOGGER.warn("TabListener:tabInit failed", e));
         }
 
         return tab;
     }
 
     // internal, use getTab().closeTab()
-    synchronized void closeTab(XTab tab) {
+    synchronized void closeTab(DeskTab tab) {
 
         if (selectedTab == tab) {
             setSelected(
@@ -76,22 +76,22 @@ public class XTabBar extends VerticalLayout {
                             ? selectedTab.getParentTab() : null );
         }
 
-        if (tab.getPanel() != null && tab.getPanel() instanceof XTabListener)
-            Try.run(() -> ((XTabListener) tab.getPanel()).tabDestroyed()).onFailure(e -> LOGGER.warn("TabListener:tabDestroyed failed", e));
+        if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener)
+            Try.run(() -> ((DeskTabListener) tab.getPanel()).tabDestroyed()).onFailure(e -> LOGGER.warn("TabListener:tabDestroyed failed", e));
 
         tabs.remove(tab);
         remove(tab);
     }
 
-    public Optional<XTab> getTab(String main) {
+    public Optional<DeskTab> getTab(String main) {
         return tabs.stream().filter(t -> t.getTabId().equals(main)).findFirst();
     }
 
-    public synchronized void setSelected(XTab tab) {
+    public synchronized void setSelected(DeskTab tab) {
         // deselect
         if (selectedTab != null) {
-            if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof XTabListener) {
-                Try.run(() -> ((XTabListener) selectedTab.getPanel()).tabUnselected()).onFailure(e -> LOGGER.warn("TabListener:tabDeselected failed", e));
+            if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof DeskTabListener) {
+                Try.run(() -> ((DeskTabListener) selectedTab.getPanel()).tabUnselected()).onFailure(e -> LOGGER.warn("TabListener:tabDeselected failed", e));
             }
         }
         // select fallback
@@ -106,8 +106,8 @@ public class XTabBar extends VerticalLayout {
         if (selectedTab != null) {
             core.setContent(selectedTab.getPanel());
             core.setWindowTitle(selectedTab.getWindowTitle(), selectedTab.getColor());
-            if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof XTabListener) {
-                Try.run(() -> ((XTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));
+            if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof DeskTabListener) {
+                Try.run(() -> ((DeskTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));
             }
             core.updateHelpMenu(true);
             UI.getCurrent().getPage().setTitle("KT2L " + selectedTab.getWindowTitle());
@@ -118,11 +118,11 @@ public class XTabBar extends VerticalLayout {
         return core;
     }
 
-    public XTab getSelectedTab() {
+    public DeskTab getSelectedTab() {
         return selectedTab;
     }
 
-    public List<XTab> getTabs() {
+    public List<DeskTab> getTabs() {
         return tabs;
     }
 }

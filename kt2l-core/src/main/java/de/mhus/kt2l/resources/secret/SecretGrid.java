@@ -49,7 +49,7 @@ public class SecretGrid extends AbstractGrid<SecretGrid.Resource, Component> {
 
     @Override
     protected void init() {
-        eventRegistration = SecretWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = SecretWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1Secret> event) {
@@ -71,16 +71,16 @@ public class SecretGrid extends AbstractGrid<SecretGrid.Resource, Component> {
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -203,8 +203,8 @@ public class SecretGrid extends AbstractGrid<SecretGrid.Resource, Component> {
 
     private V1SecretList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return view.getApiProvider().getCoreV1Api().listSecretForAllNamespaces().execute();
-        return view.getApiProvider().getCoreV1Api().listNamespacedSecret(namespace).execute();
+            return cluster.getApiProvider().getCoreV1Api().listSecretForAllNamespaces().execute();
+        return cluster.getApiProvider().getCoreV1Api().listNamespacedSecret(namespace).execute();
     }
 
     @Data

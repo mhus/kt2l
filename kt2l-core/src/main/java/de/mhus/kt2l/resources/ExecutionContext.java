@@ -23,11 +23,10 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.core.XTab;
-import de.mhus.kt2l.k8s.ApiClientProvider;
+import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,15 +41,14 @@ public class ExecutionContext {
     private UI ui;
     private K8s.RESOURCE resourceType;
     private Set<? extends KubernetesObject> selected;
-    private ApiClientProvider apiProvider;
     private String namespace;
-    private Cluster clusterConfiguration;
+    private Cluster cluster;
     @Setter
     private boolean needGridRefresh;
     private List<Exception> errors = new LinkedList<>();
     private ResourcesGrid grid;
     private Core core;
-    private XTab selectedTab;
+    private DeskTab selectedTab;
 
     public void finished() {
         if (errors.size() > 1) {

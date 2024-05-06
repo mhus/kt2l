@@ -20,7 +20,6 @@ package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -38,18 +37,15 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.core.SecurityUtils;
 import de.mhus.kt2l.core.UiUtil;
-import de.mhus.kt2l.core.XTab;
-import de.mhus.kt2l.core.XTabListener;
+import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.help.HelpResourceConnector;
-import de.mhus.kt2l.k8s.ApiClientProvider;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,18 +53,19 @@ import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
-public class ResourceDetailsPanel extends VerticalLayout implements XTabListener, HelpResourceConnector {
+public class ResourceDetailsPanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
 
-    private final ApiClientProvider apiProvider;
+    private final ApiProvider apiProvider;
     private final K8s.RESOURCE resourceType;
     private final KubernetesObject resource;
     private final Core core;
+    private final Cluster cluster;
     private AceEditor resYamlEditor;
     private String resContent;
     private String managedFieldsContent;
     private Tabs tabs;
     private AceEditor fieldsYaml;
-    private XTab tab;
+    private DeskTab tab;
     private MenuItem resMenuItemEdit;
     private MenuItem resMenuItemSave;
     private MenuItem resMenuItemCancel;
@@ -82,19 +79,20 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
     @Autowired
     private SecurityService securityService;
 
-    public ResourceDetailsPanel(Cluster clusterConfiguration, ApiClientProvider apiProvider, Core core, K8s.RESOURCE resourceType, KubernetesObject resource) {
-        this.apiProvider = apiProvider;
+    public ResourceDetailsPanel(Cluster cluster, Core core, K8s.RESOURCE resourceType, KubernetesObject resource) {
+        this.apiProvider = cluster.getApiProvider();
         this.resourceType = resourceType;
         this.resource = resource;
         this.core = core;
+        this.cluster = cluster;
     }
 
 
     @Override
-    public void tabInit(XTab xTab) {
+    public void tabInit(DeskTab xTab) {
         this.tab = xTab;
 
-        resType = k8s.findResource(resourceType, apiProvider.getCoreV1Api());
+        resType = k8s.findResource(resourceType, apiProvider);
         if (resType == null) {
             UiUtil.showErrorNotification("Unknown resource type");
             return;
@@ -244,7 +242,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
 //            );
 //XXX
         } else {
-            handler.replace(apiProvider.getCoreV1Api(), resource.getMetadata().getName(), resource.getMetadata().getNamespace(), yaml);
+            handler.replace(apiProvider, resource.getMetadata().getName(), resource.getMetadata().getNamespace(), yaml);
         }
 
     }

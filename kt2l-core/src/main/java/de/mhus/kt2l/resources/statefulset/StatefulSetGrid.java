@@ -47,12 +47,10 @@ import java.util.stream.Stream;
 public class StatefulSetGrid extends AbstractGrid<StatefulSetGrid.Resource, Component> {
 
     private IRegistration eventRegistration;
-    private AppsV1Api appsV1Api;
 
     @Override
     protected void init() {
-        appsV1Api = new AppsV1Api( view.getApiProvider().getCoreV1Api().getApiClient() );
-        eventRegistration = StatefulSetWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = StatefulSetWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1StatefulSet> event) {
@@ -74,16 +72,16 @@ public class StatefulSetGrid extends AbstractGrid<StatefulSetGrid.Resource, Comp
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -205,6 +203,7 @@ public class StatefulSetGrid extends AbstractGrid<StatefulSetGrid.Resource, Comp
     }
 
     private V1StatefulSetList createRawResourceList() throws ApiException {
+        var appsV1Api = new AppsV1Api( cluster.getApiProvider().getCoreV1Api().getApiClient() );
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
             return appsV1Api.listStatefulSetForAllNamespaces().execute();
         return appsV1Api.listNamespacedStatefulSet(namespace).execute();

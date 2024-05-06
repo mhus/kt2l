@@ -19,12 +19,11 @@
 package de.mhus.kt2l.resources.generic;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
-import de.mhus.commons.tools.MSystem;
+import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
@@ -119,7 +118,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         if (counter % 10 != 0) return;
         resourcesList = null;
         resourcesGrid.getDataProvider().refreshAll();
-        getView().getCore().ui().push();
+        getPanel().getCore().ui().push();
     }
 
     public void setResourceType(V1APIResource resourceType) {
@@ -148,8 +147,8 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                                     case DESCENDING -> b.getName().compareTo(a.getName());
                                 };
                                 case "age" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> MSystem.compare(a.getCreated(), b.getCreated());
-                                    case DESCENDING -> MSystem.compare(b.getCreated(), a.getCreated());
+                                    case ASCENDING -> MObject.compareTo(a.getCreated(), b.getCreated());
+                                    case DESCENDING -> MObject.compareTo(b.getCreated(), a.getCreated());
                                 };
                                 default -> 0;
                             });
@@ -161,7 +160,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
                             final var namespaceName = namespace ==  null || namespace.equals("all") ? null : (String) namespace;
-                            final var genericApi = new GenericObjectsApi(view.getApiProvider().getClient(), resourceType);
+                            final var genericApi = new GenericObjectsApi(cluster.getApiProvider().getClient(), resourceType);
 
                             try {
 

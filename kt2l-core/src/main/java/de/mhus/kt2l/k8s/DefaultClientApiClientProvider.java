@@ -5,7 +5,7 @@ import io.kubernetes.client.util.Config;
 
 import java.io.IOException;
 
-public class DefaultClientApiClientProvider extends ApiClientProvider {
+public class DefaultClientApiClientProvider extends ApiProvider {
 
 
     @Override

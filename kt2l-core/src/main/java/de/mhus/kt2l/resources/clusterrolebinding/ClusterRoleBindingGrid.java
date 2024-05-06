@@ -48,13 +48,10 @@ public class ClusterRoleBindingGrid extends AbstractGrid<ClusterRoleBindingGrid.
 
 
     private IRegistration eventRegistration;
-    private RbacAuthorizationV1Api authenticationV1Api;
 
     @Override
     protected void init() {
-        eventRegistration = ClusterRoleBindingWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
-        authenticationV1Api = new RbacAuthorizationV1Api(view.getApiProvider().getClient());
-
+        eventRegistration = ClusterRoleBindingWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1ClusterRoleBinding> event) {
@@ -80,16 +77,16 @@ public class ClusterRoleBindingGrid extends AbstractGrid<ClusterRoleBindingGrid.
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -216,6 +213,7 @@ public class ClusterRoleBindingGrid extends AbstractGrid<ClusterRoleBindingGrid.
     }
 
     private V1ClusterRoleBindingList createRawResourceList() throws ApiException {
+        var authenticationV1Api = new RbacAuthorizationV1Api(cluster.getApiProvider().getClient());
         return authenticationV1Api.listClusterRoleBinding().execute();
     }
 

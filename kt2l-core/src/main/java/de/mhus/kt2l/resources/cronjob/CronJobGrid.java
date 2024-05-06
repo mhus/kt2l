@@ -47,12 +47,10 @@ import java.util.stream.Stream;
 public class CronJobGrid extends AbstractGrid<CronJobGrid.Resource, Component> {
 
     private IRegistration eventRegistration;
-    private BatchV1Api batchV1Api;
 
     @Override
     protected void init() {
-        batchV1Api = new BatchV1Api( view.getApiProvider().getClient() );
-        eventRegistration = CronJobWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = CronJobWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1CronJob> event) {
@@ -74,16 +72,16 @@ public class CronJobGrid extends AbstractGrid<CronJobGrid.Resource, Component> {
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -205,6 +203,7 @@ public class CronJobGrid extends AbstractGrid<CronJobGrid.Resource, Component> {
     }
 
     private V1CronJobList createRawResourceList() throws ApiException {
+        var batchV1Api = new BatchV1Api( cluster.getApiProvider().getClient() );
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
             return batchV1Api.listCronJobForAllNamespaces().execute();
         return batchV1Api.listNamespacedCronJob(namespace).execute();

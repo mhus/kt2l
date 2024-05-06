@@ -19,15 +19,12 @@
 package de.mhus.kt2l.k8s;
 
 import de.mhus.commons.errors.NotFoundRuntimeException;
-import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.resources.generic.GenericK8s;
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
-import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.KubeConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,16 +54,16 @@ public class K8sService {
     @Autowired
     private List<HandlerK8s> resourceHandlers;
 
-    public V1APIResource findResource(K8s.RESOURCE resourceType, CoreV1Api coreApi) {
-        return findResource(resourceType, coreApi, null);
+    public V1APIResource findResource(K8s.RESOURCE resourceType, ApiProvider apiProvider) {
+        return findResource(resourceType, apiProvider, null);
     }
 
-    public V1APIResource findResource(K8s.RESOURCE resourceType, CoreV1Api coreApi, Principal principal) {
+    public V1APIResource findResource(K8s.RESOURCE resourceType, ApiProvider apiProvider, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
-        var types = K8s.getResourceTypes(coreApi);
+        var types = K8s.getResourceTypes(apiProvider.getCoreV1Api());
         var resType = K8s.toResource(resourceType);
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
@@ -74,11 +71,11 @@ public class K8sService {
 
     }
 
-    public CompletableFuture<List<V1APIResource>> getResourceTypesAsync(CoreV1Api coreApi) {
-        return getResourceTypesAsync(coreApi, null);
+    public CompletableFuture<List<V1APIResource>> getResourceTypesAsync(ApiProvider apiProvider) {
+        return getResourceTypesAsync(apiProvider, null);
     }
 
-    public CompletableFuture<List<V1APIResource>> getResourceTypesAsync(CoreV1Api coreApi, Principal principal) {
+    public CompletableFuture<List<V1APIResource>> getResourceTypesAsync(ApiProvider apiProvider, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
@@ -86,7 +83,7 @@ public class K8sService {
         SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
 
         CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
-        K8s.getResourceTypesAsync(coreApi).handle((resources, t) -> {
+        K8s.getResourceTypesAsync(apiProvider.getCoreV1Api()).handle((resources, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
                 return Collections.emptyList();
@@ -101,29 +98,29 @@ public class K8sService {
         return future;
     }
 
-    public List<V1APIResource> getResourceTypes(CoreV1Api coreApi) {
-        return getResourceTypes(coreApi, null);
+    public List<V1APIResource> getResourceTypes(ApiProvider apiProvider) {
+        return getResourceTypes(apiProvider, null);
     }
 
-    public List<V1APIResource> getResourceTypes(CoreV1Api coreApi, Principal principal) {
+    public List<V1APIResource> getResourceTypes(ApiProvider apiProvider, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
-        return K8s.getResourceTypes(coreApi).stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal )).toList();
+        return K8s.getResourceTypes(apiProvider.getCoreV1Api()).stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal )).toList();
     }
 
-    public List<String> getNamespaces(boolean includeAllOption, CoreV1Api coreApi) {
-        return getNamespaces(includeAllOption, coreApi, null);
+    public List<String> getNamespaces(boolean includeAllOption, ApiProvider apiProvider) {
+        return getNamespaces(includeAllOption, apiProvider, null);
     }
 
-    public List<String> getNamespaces(boolean includeAllOption, CoreV1Api coreApi, Principal principal) {
+    public List<String> getNamespaces(boolean includeAllOption, ApiProvider apiProvider, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
-        var namespaces = K8s.getNamespaces(coreApi);
+        var namespaces = K8s.getNamespaces(apiProvider.getCoreV1Api());
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_NAMESPACE);
         if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, principalFinal))
             namespaces.addFirst(K8s.NAMESPACE_ALL);
@@ -131,11 +128,11 @@ public class K8sService {
         return namespaces.stream().filter(ns -> securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, ns, defaultRole, principalFinal) ).toList();
     }
 
-    public CompletableFuture<List<String>> getNamespacesAsync(boolean includeAllOption, CoreV1Api coreApi) {
-        return getNamespacesAsync(includeAllOption, coreApi, null);
+    public CompletableFuture<List<String>> getNamespacesAsync(boolean includeAllOption, ApiProvider apiProvider) {
+        return getNamespacesAsync(includeAllOption, apiProvider, null);
     }
 
-    public CompletableFuture<List<String>> getNamespacesAsync(boolean includeAllOption,CoreV1Api coreApi, Principal principal) {
+    public CompletableFuture<List<String>> getNamespacesAsync(boolean includeAllOption,ApiProvider apiProvider, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
@@ -146,7 +143,7 @@ public class K8sService {
         SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
 
         CompletableFuture<List<String>> future = new CompletableFuture<>();
-        K8s.getNamespacesAsync(coreApi).handle((namespaces, t) -> {
+        K8s.getNamespacesAsync(apiProvider.getCoreV1Api()).handle((namespaces, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
                 return Collections.emptyList();
@@ -231,7 +228,7 @@ public class K8sService {
         throw new RuntimeException("Context not found: " + contextName);
     }
 
-    public ApiClientProvider getKubeClient(String contextName) throws IOException {
+    public ApiProvider getKubeClient(String contextName) throws IOException {
         if (contextName.equals(DEFAULT_CLUSTER_NAME)) {
             return new DefaultClientApiClientProvider();
         }

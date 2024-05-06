@@ -49,7 +49,7 @@ public class ServiceGrid extends AbstractGrid<ServiceGrid.Resource, Component> {
 
     @Override
     protected void init() {
-        eventRegistration = ServiceWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = ServiceWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1Service> event) {
@@ -71,16 +71,16 @@ public class ServiceGrid extends AbstractGrid<ServiceGrid.Resource, Component> {
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -203,8 +203,8 @@ public class ServiceGrid extends AbstractGrid<ServiceGrid.Resource, Component> {
 
     private V1ServiceList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return view.getApiProvider().getCoreV1Api().listServiceForAllNamespaces().execute();
-        return view.getApiProvider().getCoreV1Api().listNamespacedService(namespace).execute();
+            return cluster.getApiProvider().getCoreV1Api().listServiceForAllNamespaces().execute();
+        return cluster.getApiProvider().getCoreV1Api().listNamespacedService(namespace).execute();
     }
 
     @Data

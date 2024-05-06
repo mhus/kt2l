@@ -19,7 +19,6 @@
 package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.ShortcutEvent;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -33,11 +32,10 @@ import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.core.XTab;
-import de.mhus.kt2l.core.XTabListener;
-import de.mhus.kt2l.k8s.ApiClientProvider;
+import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.k8s.ApiProvider;
 import io.kubernetes.client.PodLogs;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.Getter;
 import lombok.Setter;
@@ -53,18 +51,18 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
-public class PodLogsPanel extends VerticalLayout implements XTabListener {
+public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
 
     private static final String CONFIG_VIEW_LOG = "log";
     @Autowired
     private ViewsConfiguration viewsConfiguration;
 
     private static int maxCachedCharacters = 300000;
-    private final Cluster clusterConfig;
-    private final ApiClientProvider apiProvider;
+    private final Cluster cluster;
+    private final ApiProvider apiProvider;
     private final Core core;
     private final List<ContainerResource> containers;
-    private XTab tab;
+    private DeskTab tab;
     private TextArea logs;
     private LinkedList<LogEntry> logsBuffer = new LinkedList<>();
     // private boolean showAllMode;
@@ -82,15 +80,15 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     private TextField filterText;
     private String filter = null;
 
-    public PodLogsPanel(Cluster clusterConfig, ApiClientProvider apiProvider, Core core, List<ContainerResource> containers) {
-        this.clusterConfig = clusterConfig;
-        this.apiProvider = apiProvider;
+    public PodLogsPanel(Cluster cluster, Core core, List<ContainerResource> containers) {
+        this.cluster = cluster;
+        this.apiProvider = cluster.getApiProvider();
         this.core = core;
         this.containers = containers;
     }
 
     @Override
-    public void tabInit(XTab xTab) {
+    public void tabInit(DeskTab xTab) {
         this.tab = xTab;
 
         maxCachedEntries = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("maxCachedEntries", 1000);

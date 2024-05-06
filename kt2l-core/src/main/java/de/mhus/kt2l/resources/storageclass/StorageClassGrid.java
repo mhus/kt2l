@@ -48,12 +48,10 @@ public class StorageClassGrid extends AbstractGrid<StorageClassGrid.Resource, Co
 
 
     private IRegistration eventRegistration;
-    private StorageV1Api storageApi;
 
     @Override
     protected void init() {
-        storageApi = new StorageV1Api(view.getApiProvider().getClient());
-        eventRegistration = StorageClassWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = StorageClassWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1StorageClass> event) {
@@ -79,16 +77,16 @@ public class StorageClassGrid extends AbstractGrid<StorageClassGrid.Resource, Co
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -215,6 +213,7 @@ public class StorageClassGrid extends AbstractGrid<StorageClassGrid.Resource, Co
     }
 
     private V1StorageClassList createRawResourceList() throws ApiException {
+        var storageApi = new StorageV1Api(cluster.getApiProvider().getClient());
         return storageApi.listStorageClass().execute();
     }
 

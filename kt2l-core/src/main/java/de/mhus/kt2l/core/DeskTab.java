@@ -28,7 +28,7 @@ import lombok.Getter;
 
 import java.util.Arrays;
 
-public class XTab extends HorizontalLayout {
+public class DeskTab extends HorizontalLayout {
 
     private final Icon icon;
     @Getter
@@ -44,16 +44,16 @@ public class XTab extends HorizontalLayout {
     @Getter
     private Component panel;
     @Getter
-    private XTabBar viewer;
+    private DeskTabBar viewer;
     @Getter
-    private XTab parentTab;
+    private DeskTab parentTab;
     @Getter
     private String helpContext;
 
 //    @Getter
 //    private Map<String, Object> parameters = new HashMap<>();
 
-    public XTab(String tabId, String title, boolean closeable, Icon icon, Component panel) {
+    public DeskTab(String tabId, String title, boolean closeable, Icon icon, Component panel) {
         if (icon == null)
             icon = VaadinIcon.FILE.create();
         this.icon = icon;
@@ -88,22 +88,22 @@ public class XTab extends HorizontalLayout {
         panel = null;
     }
 
-    public void setXTabViewer(XTabBar tabViewer) {
+    public void setXTabViewer(DeskTabBar tabViewer) {
         this.viewer = tabViewer;
         viewer.getCore().getBeanFactory().autowireBean(panel);
     }
 
-    public XTab setParentTab(XTab parent) {
+    public DeskTab setParentTab(DeskTab parent) {
         this.parentTab = parent;
         return this;
     }
 
-    public XTab setHelpContext(String helpContext) {
+    public DeskTab setHelpContext(String helpContext) {
         this.helpContext = helpContext;
         return this;
     }
 
-    public XTab select() {
+    public DeskTab select() {
         viewer.setSelected(this);
         return this;
     }
@@ -116,12 +116,12 @@ public class XTab extends HorizontalLayout {
         }
     }
 
-    public XTab setWindowTitle(String title) {
+    public DeskTab setWindowTitle(String title) {
         this.windowTitle = title;
         return this;
     }
 
-    public XTab setColor(UiUtil.COLOR color) {
+    public DeskTab setColor(UiUtil.COLOR color) {
         this.color = color;
         if (icon != null) {
             Arrays.stream(UiUtil.COLOR.values()).forEach(c -> removeClassName("color-" + c.name().toLowerCase()));

@@ -29,15 +29,15 @@ public interface HandlerK8s {
 
     K8s.RESOURCE getManagedResource();
 
-    default String getPreview(KubernetesObject res) {
+    default String getPreview(ApiProvider apiProvider, KubernetesObject res) {
         var sb = new StringBuilder();
         sb.append(K8s.toYaml(res));
         return sb.toString();
     }
 
-    void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException;
+    void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException;
 
-    V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException;
+    V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException;
 
     default void checkDeleteAccess(SecurityService securityService, K8s.RESOURCE resource) throws ApiException {
         var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE_DELETE);

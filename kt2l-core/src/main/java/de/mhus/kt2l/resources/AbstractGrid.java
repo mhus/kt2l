@@ -23,7 +23,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.MenuItemBase;
 import com.vaadin.flow.component.grid.Grid;
@@ -46,10 +45,10 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.atmosphere.config.service.Get;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -68,7 +67,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     protected List<T> filteredList = null;
     private String filterText = "";
     protected String namespace;
-    protected Cluster clusterConfig;
+    protected Cluster cluster;
     @Getter // for testing
     protected Grid<T> resourcesGrid;
     private MenuBar menuBar;
@@ -77,7 +76,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     @Autowired
     private ActionService actionService;
     @Getter
-    protected ResourcesGridPanel view;
+    protected ResourcesGridPanel panel;
     private Optional<T> selectedResource;
     protected S detailsComponent;
     private ResourcesFilter resourcesFilter;
@@ -92,13 +91,13 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         if (counter % 10 != 0) return;
         filterList();
         resourcesGrid.getDataProvider().refreshAll();
-        view.getCore().ui().push();
+        panel.getCore().ui().push();
     }
 
     @Override
-    public void init(Cluster clusterConfig, ResourcesGridPanel view) {
-        this.view = view;
-        this.clusterConfig = clusterConfig;
+    public void init(Cluster cluster, ResourcesGridPanel panel) {
+        this.panel = panel;
+        this.cluster = cluster;
 
         createActions();
         createGrid();
@@ -333,8 +332,8 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 action.setContextMenuItem(item);
             });
 
-            getView().getCore().ui().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
-            getView().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
+            getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
+            getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
         } catch (Exception e) {
             LOGGER.error("Error creating grid", e);
         }
@@ -406,7 +405,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     public void setSelected() {
 
         resourcesGrid.getElement().getNode()
-                .runWhenAttached(ui -> getView().getCore().ui().getPage().executeJs(
+                .runWhenAttached(ui -> getPanel().getCore().ui().getPage().executeJs(
                         "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", resourcesGrid.getElement()));
 
     }
@@ -511,12 +510,11 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                         .resourceType(getManagedResourceType())
                         .selected(selected)
                         .namespace(namespace)
-                        .apiProvider(view.getApiProvider())
-                        .clusterConfiguration(clusterConfig)
-                        .ui(getView().getCore().ui())
+                        .cluster(cluster)
+                        .ui(getPanel().getCore().ui())
                         .grid(AbstractGrid.this)
-                        .core(view.getCore())
-                        .selectedTab(view.getXTab())
+                        .core(panel.getCore())
+                        .selectedTab(panel.getXTab())
                         .build();
 //            }
             execute (context);

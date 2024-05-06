@@ -75,12 +75,12 @@ public class ActionTerminal implements ResourceAction {
             containerImage = containerResource.getPod().getStatus().getContainerStatuses().stream().filter(c -> c.getName().equals(finalContainer)).findFirst().get().getImage();
         }
 
-        final var shell =  shellConfiguration.getShellFor(context.getClusterConfiguration(), pod, containerImage);
+        final var shell =  shellConfiguration.getShellFor(context.getCluster(), pod, containerImage);
         final var vars = new MProperties();
         vars.setString("pod", pod.getMetadata().getName());
         vars.setString("container", container);
         vars.setString("namespace", pod.getMetadata().getNamespace());
-        vars.setString("context", context.getClusterConfiguration().getName());
+        vars.setString("context", context.getCluster().getName());
         vars.setString("cmd", shell);
 
         cmdConfiguration.execute("exec", vars);

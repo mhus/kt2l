@@ -20,7 +20,6 @@ package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.ShortcutEvent;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -31,24 +30,24 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
-import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterConfiguration;
+import de.mhus.kt2l.cluster.ClusterService;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
-import de.mhus.kt2l.core.XTab;
-import de.mhus.kt2l.core.XTabListener;
-import de.mhus.kt2l.k8s.ApiClientProvider;
+import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.generic.GenericGrid;
 import de.mhus.kt2l.resources.generic.GenericGridFactory;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.vavr.control.Try;
 import lombok.Getter;
@@ -62,7 +61,7 @@ import java.util.List;
 import static de.mhus.commons.tools.MString.isEmpty;
 
 @Slf4j
-public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
+public class ResourcesGridPanel extends VerticalLayout implements DeskTabListener {
 
     private static final ResourceGridFactory GENERIC_GRID_FACTORY = new GenericGridFactory();
     @Getter
@@ -74,7 +73,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
     @Autowired
     @Getter
-    private ClusterConfiguration clusterConfiguration;
+    private ClusterService clusterService;
 
     @Autowired
     private List<ResourceGridFactory> resourceGridFactories;
@@ -96,12 +95,10 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     @Getter
     private K8s.RESOURCE currentResourceType;
     @Getter
-    private XTab xTab;
+    private DeskTab xTab;
     private ResourcesFilter resourcesFilter;
     private Button resourceFilterButton;
     private IRegistration namespaceEventRegistration;
-    @Getter
-    private ApiClientProvider apiProvider;
 
     public ResourcesGridPanel(String clusterId, Core core) {
         this.clusterId = clusterId;
@@ -161,7 +158,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
 
         final Principal principal = securityService.getPrincipal();
 
-        k8s.getResourceTypesAsync(apiProvider.getCoreV1Api()).handle((types, t) -> {
+        k8s.getResourceTypesAsync(cluster.getApiProvider()).handle((types, t) -> {
             if (t != null) {
                 LOGGER.error("Can't fetch resource types",t);
                 return Collections.emptyList();
@@ -174,7 +171,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
                     MThread.sleep(200);
                     core.ui().access(() -> {
                         resourceSelector.setValue(
-                                k8s.findResource(currentResourceType, apiProvider.getCoreV1Api(), principal));
+                                k8s.findResource(currentResourceType, cluster.getApiProvider(), principal));
                     });
                 });
             });
@@ -197,14 +194,14 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     }
 
     private void updateNamespaceSelector(boolean selectDefault) {
-        k8s.getNamespacesAsync(true, apiProvider.getCoreV1Api()).handle((namespaces, t) -> {
+        k8s.getNamespacesAsync(true, cluster.getApiProvider()).handle((namespaces, t) -> {
             if (t != null) {
                 LOGGER.error("Can't fetch namespaces",t);
                 return Collections.emptyList();
             }
             LOGGER.debug("Namespaces: {}",namespaces);
             if (MCollection.equalsAnyOrder(namespaces, cluster.getCurrentNamespaces()))  {
-                if (selectDefault && !MSystem.equals(namespaceSelector.getValue(), cluster.getDefaultNamespace())) {
+                if (selectDefault && !MObject.equals(namespaceSelector.getValue(), cluster.getDefaultNamespace())) {
                     core.ui().access(() -> namespaceSelector.setValue(cluster.getDefaultNamespace()));
                 }
                 return namespaces;
@@ -213,7 +210,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
             core.ui().access(() -> {
                 namespaceSelector.setItems(namespaces);
                 core.ui().push();
-                if (selectDefault && !MSystem.equals(namespaceSelector.getValue(), cluster.getDefaultNamespace())) {
+                if (selectDefault && !MObject.equals(namespaceSelector.getValue(), cluster.getDefaultNamespace())) {
                     Thread.startVirtualThread(() -> {
                         MThread.sleep(200);
                         core.ui().access(() -> {
@@ -260,11 +257,10 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     }
 
     @Override
-    public void tabInit(XTab xTab) {
+    public void tabInit(DeskTab xTab) {
         this.xTab = xTab;
-        apiProvider = Try.of(() -> k8s.getKubeClient(clusterId)).onFailure(e -> LOGGER.error("Error ",e) ).get();
         LOGGER.info("ClusterId: {}",clusterId);
-        cluster = clusterConfiguration.getClusterOrDefault(clusterId);
+        cluster = clusterService.getCluster(clusterId);
         currentResourceType = cluster.getDefaultResourceType();
 
         createUI();
@@ -340,7 +336,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
         if (filter != null)
             setResourcesFilter(filter);
         if (resourceType != null) {
-            resourceSelector.setValue(k8s.findResource(resourceType, apiProvider.getCoreV1Api()));
+            resourceSelector.setValue(k8s.findResource(resourceType, cluster.getApiProvider()));
             resourceTypeChanged();
         }
     }

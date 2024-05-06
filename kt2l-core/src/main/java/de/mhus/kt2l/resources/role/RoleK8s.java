@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.role;
 
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.openapi.ApiException;
@@ -43,9 +44,9 @@ public class RoleK8s implements HandlerK8s {
     }
 
     @Override
-    public void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException {
+    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         var body = Yaml.loadAs(yaml, V1Role.class);
-        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(api.getApiClient());
+        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(apiProvider.getClient());
         authenticationV1Api.replaceNamespacedRole(
                 name, namespace,
                 body
@@ -53,9 +54,9 @@ public class RoleK8s implements HandlerK8s {
     }
 
     @Override
-    public V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException {
+    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
         checkDeleteAccess(securityService, K8s.RESOURCE.ROLE);
-        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(api.getApiClient());
+        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(apiProvider.getClient());
         return authenticationV1Api.deleteNamespacedRole(name, namespace).execute();
     }
 

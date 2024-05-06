@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.resources.pod;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.notification.Notification;
@@ -113,12 +112,11 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                                 .resourceType(K8s.RESOURCE.CONTAINER)
                                 .selected(selected)
                                 .namespace(namespace)
-                                .apiProvider(view.getApiProvider())
-                                .clusterConfiguration(clusterConfig)
-                                .ui(getView().getCore().ui())
+                                .cluster(cluster)
+                                .ui(getPanel().getCore().ui())
                                 .grid(PodGrid.this)
-                                .core(view.getCore())
-                                .selectedTab(view.getXTab())
+                                .core(panel.getCore())
+                                .selectedTab(panel.getXTab())
                                 .build();
 
                         action.execute(context);
@@ -147,7 +145,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             detailsComponent.getDataProvider().refreshAll();
             if (focus)
                 detailsComponent.getElement().getNode()
-                        .runWhenAttached(ui -> getView().getCore().ui().getPage().executeJs(
+                        .runWhenAttached(ui -> getPanel().getCore().ui().getPage().executeJs(
                                 "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", detailsComponent.getElement()));
         }
 
@@ -228,12 +226,12 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         }
 
         if (changed.get()) {
-            getView().getCore().ui().push();
+            getPanel().getCore().ui().push();
         }
     }
 
     private List<PodMetrics> getNamespaceMetrics(String ns) {
-        Metrics metrics = new Metrics(view.getApiProvider().getClient());
+        Metrics metrics = new Metrics(panel.getCluster().getApiProvider().getClient());
         try {
             var list = metrics.getPodMetrics(ns);
             return list.getItems();
@@ -292,16 +290,16 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             foundPod.setPod(event.object);
             filterList();
             if (added.get())
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundPod));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundPod));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(pod -> {
                 if (pod.equals(event.object)) {
                     resourcesList.remove(pod);
                     filterList();
-                    getView().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -310,7 +308,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
     @Override
     protected void init() {
-        podEventRegistration = PodWatch.instance(view.getCore(), clusterConfig).getEventHandler().registerWeak(this::podEvent);
+        podEventRegistration = PodWatch.instance(panel.getCore(), cluster).getEventHandler().registerWeak(this::podEvent);
     }
 
     @Override
@@ -476,8 +474,8 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
     private V1PodList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return view.getApiProvider().getCoreV1Api().listPodForAllNamespaces().execute();
-        return view.getApiProvider().getCoreV1Api().listNamespacedPod(namespace).execute();
+            return panel.getCluster().getApiProvider().getCoreV1Api().listPodForAllNamespaces().execute();
+        return panel.getCluster().getApiProvider().getCoreV1Api().listNamespacedPod(namespace).execute();
     }
 
     @Data

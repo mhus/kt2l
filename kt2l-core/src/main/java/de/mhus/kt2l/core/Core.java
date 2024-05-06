@@ -45,10 +45,10 @@ import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MSystem;
-import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
+import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.help.HelpAction;
 import de.mhus.kt2l.help.HelpConfiguration;
@@ -69,7 +69,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -111,7 +110,7 @@ public class Core extends AppLayout {
     private ViewsConfiguration viewsConfiguration;
 
     private final transient AuthenticationContext authContext;
-    private XTabBar tabBar;
+    private DeskTabBar tabBar;
     private ScheduledFuture<?> closeScheduler;
     private Span tabTitle;
     private Registration heartbeatRegistration;
@@ -229,7 +228,7 @@ public class Core extends AppLayout {
         if (session == null) return;
         LOGGER.debug("Close Session");
         closeScheduler.cancel(false);
-        detached(tabBar.getTabs()).forEach(XTab::closeTab);
+        detached(tabBar.getTabs()).forEach(DeskTab::closeTab);
         clusteredJobsCleanup();
         if (heartbeatRegistration != null)
             heartbeatRegistration.remove();
@@ -357,10 +356,10 @@ public class Core extends AppLayout {
 
     private void createDrawer() {
 
-        tabBar = new XTabBar(this);
+        tabBar = new DeskTabBar(this);
         addToDrawer(tabBar);
 
-        tabBar.addTab(new XTab("main", "Main", false, VaadinIcon.HOME_O.create(), new ClusterOverviewPanel(this))).select();
+        tabBar.addTab(new DeskTab("main", "Main", false, VaadinIcon.HOME_O.create(), new ClusterOverviewPanel(this))).select();
     }
 
     private void fireRefresh() {
@@ -379,9 +378,9 @@ public class Core extends AppLayout {
             final var selected = tabBar.getSelectedTab();
             if (selected != null) {
                 final var panel = selected.getPanel();
-                if (panel != null && panel instanceof XTabListener) {
+                if (panel != null && panel instanceof DeskTabListener) {
                     LOGGER.trace("Refresh selected panel {}", panel.getClass());
-                    ((XTabListener) panel).tabRefresh(refreshCounter);
+                    ((DeskTabListener) panel).tabRefresh(refreshCounter);
                 }
             }
         } catch (Exception e) {
@@ -411,7 +410,7 @@ public class Core extends AppLayout {
             tabTitle.addClassNames("bgcolor-" + color.name().toLowerCase());
     }
 
-    public XTabBar getTabBar() {
+    public DeskTabBar getTabBar() {
         return tabBar;
     }
 
@@ -420,9 +419,9 @@ public class Core extends AppLayout {
         final var selected = tabBar.getSelectedTab();
         if (selected != null) {
             final var panel = selected.getPanel();
-            if (panel != null && panel instanceof XTabListener) {
+            if (panel != null && panel instanceof DeskTabListener) {
                 LOGGER.debug("Shortcut to panel {}", panel.getClass());
-                ((XTabListener) panel).tabShortcut(shortcutEvent);
+                ((DeskTabListener) panel).tabShortcut(shortcutEvent);
             }
         }
     }

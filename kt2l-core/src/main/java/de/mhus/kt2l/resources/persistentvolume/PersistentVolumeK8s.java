@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.persistentvolume;
 
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import io.kubernetes.client.openapi.ApiException;
@@ -41,19 +42,19 @@ public class PersistentVolumeK8s implements HandlerK8s {
     }
 
     @Override
-    public void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException {
+    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         var body = Yaml.loadAs(yaml, V1PersistentVolume.class);
-        api.replacePersistentVolume(
+        apiProvider.getCoreV1Api().replacePersistentVolume(
                 name,
                 body
         ).execute();
     }
 
     @Override
-    public V1Status delete(CoreV1Api api, String name, String namespace) throws ApiException {
+    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
         // this is dangerous ... deny!
         checkDeleteAccess(securityService, K8s.RESOURCE.NODE);
-        api.deletePersistentVolume(name).execute();
+        apiProvider.getCoreV1Api().deletePersistentVolume(name).execute();
         return new V1Status(); //XXX
     }
 }

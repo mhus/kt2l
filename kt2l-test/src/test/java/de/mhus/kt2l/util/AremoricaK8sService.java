@@ -19,6 +19,7 @@ package de.mhus.kt2l.util;
 
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MThread;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
@@ -127,9 +128,14 @@ public class AremoricaK8sService extends K8sService {
         return Set.of("aremorica");
     }
 
-    public ApiClient getKubeClient(String contextName) throws IOException {
+    public ApiProvider getKubeClient(String contextName) throws IOException {
         if ("aremorica".equals(contextName)) {
-            return Config.fromConfig(new StringReader(k3s.getKubeConfigYaml()));
+            return new ApiProvider() {
+                @Override
+                protected ApiClient createClient() throws IOException {
+                    return Config.fromConfig(new StringReader(k3s.getKubeConfigYaml()));
+                }
+            };
         }
         throw new IOException("Context not found");
     }

@@ -57,8 +57,8 @@ public class PreviewAction implements ResourceAction {
         StringBuilder sb = new StringBuilder();
         context.getSelected().forEach(
                 res -> {
-                    final var handler = k8sService.getResourceHandler(K8s.toResource(res, context.getClusterConfiguration()));
-                    final var previewText = handler.getPreview(res);
+                    final var handler = k8sService.getResourceHandler(K8s.toResource(res, context.getCluster()));
+                    final var previewText = handler.getPreview(context.getCluster().getApiProvider(), res);
                     sb.append(">>> ")
                             .append(res.getKind() == null ? context.getResourceType() : res.getKind())
                             .append(" ").append(res.getMetadata().getName()).append('\n');

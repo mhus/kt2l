@@ -18,7 +18,7 @@
 
 package de.mhus.kt2l.kscript;
 
-import de.mhus.commons.tools.MSystem;
+import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tree.IProperties;
 import lombok.extern.slf4j.Slf4j;
 
@@ -87,7 +87,7 @@ public class RunCompiler {
             if (cmdClass == null) {
                 throw new RuntimeException("Command not found in line "+lineCnt+": " + parts[0]);
             }
-            var cmd = MSystem.newInstance(cmdClass);
+            var cmd = MObject.newInstance(cmdClass);
             cmd.addToParent(block);
             var args = IProperties.toProperties(cmdArgs);
             block = cmd.init(block, lineCnt, cmdScope, args);
