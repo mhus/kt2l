@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.resources.generic.GenericObject;
+import de.mhus.kt2l.resources.pod.ContainerResource;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiException;
@@ -60,43 +61,47 @@ public class K8s {
         if (cluster.getResourceTypes() == null)
             throw new IllegalArgumentException("ResourceTypes not found in cluster configuration");
         var kind = o.getKind();
-        var resourceType = cluster.getResourceTypes().stream().filter(r -> r.getKind().equalsIgnoreCase(kind)).findFirst().orElse(null);
-        if (resourceType == null)
-            throw new IllegalArgumentException("Kind not found in cluster: " + kind);
-        return resourceType;
+        if (kind != null) {
+            var resourceType = cluster.getResourceTypes().stream().filter(r -> r.getKind().equalsIgnoreCase(kind)).findFirst().orElse(null);
+            if (resourceType != null) return resourceType;
+        }
+        var resource = Arrays.stream(RESOURCE.values()).filter(r -> r.clazz().equals(o.getClass())).findFirst().orElse(null);
+        if (resource != null) return toResource(resource);
+
+        throw new IllegalArgumentException("Kind not found in cluster: " + kind);
     }
 
     public enum RESOURCE {
 
-        POD("pods","Pod",null,"v1","pod","po","", true),
-        NODE("nodes","Node",null,"v1","node","no","", false),
-        NAMESPACE("namespaces","Namespace",null,"v1","namespace","ns","", false),
-        CONTAINER("containers","Container",null,"v1","container","co","", true),
-        CONFIG_MAP("configmaps","ConfigMap",null,"v1","configmap","cm","", true),
-        DEPLOYMENT("deployments","Deployment","apps","v1","deployment","deploy","", true),
-        STATEFUL_SET("statefulsets","StatefulSet","apps","v1","statefulset","sts","", true),
-        DAEMON_SET("daemonsets","DaemonSet","apps","v1","daemonset","ds","", true),
-        REPLICA_SET("replicasets","ReplicaSet","apps","v1","replicaset","rs","", true),
-        JOB("jobs","Job","batch","v1","job","job","", true),
-        CRON_JOB("cronjobs","CronJob","batch","v1","cronjob","cj","", true),
-        SECRET("secrets","Secret",null,"v1","secret","se","", true),
-        SERVICE("services","Service",null,"v1","service","svc","", true),
-        INGRESS("ingresses","Ingress","networking.k8s.io","v1","ingress","ing","", true),
-        NETWORK_POLICY("networkpolicies","NetworkPolicy","networking.k8s.io","v1","networkpolicy","np","", true),
-        PERSISTENT_VOLUME("persistentvolumes","PersistentVolume",null,"v1","persistentvolume","pv","", false),
-        PERSISTENT_VOLUME_CLAIM("persistentvolumeclaims","PersistentVolumeClaim",null,"v1","persistentvolumeclaim","pvc","", true),
-        STORAGE_CLASS("storageclasses","StorageClass","storage.k8s.io","v1","storageclass","sc","", false),
-        SERVICE_ACCOUNT("serviceaccounts","ServiceAccount",null,"v1","serviceaccount","sa","", true),
-        ROLE("roles","Role","rbac.authorization.k8s.io","v1","role","ro","", true),
-        ROLE_BINDING("rolebindings","RoleBinding","rbac.authorization.k8s.io","v1","rolebinding","rb","", true),
-        CLUSTER_ROLE("clusterroles","ClusterRole","rbac.authorization.k8s.io","v1","clusterrole","cr","", false),
-        CLUSTER_ROLE_BINDING("clusterrolebindings","ClusterRoleBinding","rbac.authorization.k8s.io","v1","clusterrolebinding","crb","", false),
-        CUSTOM_RESOURCE_DEFINITION("customresourcedefinitions","CustomResourceDefinition","apiextensions.k8s.io","","v1","crd", "", false),
-        HPA("horizontalpodautoscalers","HorizontalPodAutoscaler","autoscaling","","v1","hpa", "", true),
-        LIMIT_RANGE("limitranges","LimitRange",null,"v1","limitrange","lr","", true),
-        ENDPOINTS("endpoints","Endpoints",null,"v1","endpoints","ep","", true),
-        GENERIC("","","","","","", "", false),
-        CUSTOM("","","","","","", "", false);
+        POD("pods","Pod",null,"v1","pod","po","", true, V1Pod.class),
+        NODE("nodes","Node",null,"v1","node","no","", false, V1Node.class),
+        NAMESPACE("namespaces","Namespace",null,"v1","namespace","ns","", false, V1Namespace.class),
+        CONTAINER("containers","Container",null,"v1","container","co","", true, ContainerResource.class),
+        CONFIG_MAP("configmaps","ConfigMap",null,"v1","configmap","cm","", true, V1ConfigMap.class),
+        DEPLOYMENT("deployments","Deployment","apps","v1","deployment","deploy","", true, V1Deployment.class),
+        STATEFUL_SET("statefulsets","StatefulSet","apps","v1","statefulset","sts","", true, V1StatefulSet.class),
+        DAEMON_SET("daemonsets","DaemonSet","apps","v1","daemonset","ds","", true, V1DaemonSet.class),
+        REPLICA_SET("replicasets","ReplicaSet","apps","v1","replicaset","rs","", true, V1ReplicaSet.class),
+        JOB("jobs","Job","batch","v1","job","job","", true, V1Job.class),
+        CRON_JOB("cronjobs","CronJob","batch","v1","cronjob","cj","", true, V1CronJob.class),
+        SECRET("secrets","Secret",null,"v1","secret","se","", true, V1Secret.class),
+        SERVICE("services","Service",null,"v1","service","svc","", true, V1Service.class),
+        INGRESS("ingresses","Ingress","networking.k8s.io","v1","ingress","ing","", true, V1Ingress.class),
+        NETWORK_POLICY("networkpolicies","NetworkPolicy","networking.k8s.io","v1","networkpolicy","np","", true, V1NetworkPolicy.class),
+        PERSISTENT_VOLUME("persistentvolumes","PersistentVolume",null,"v1","persistentvolume","pv","", false, V1PersistentVolume.class),
+        PERSISTENT_VOLUME_CLAIM("persistentvolumeclaims","PersistentVolumeClaim",null,"v1","persistentvolumeclaim","pvc","", true, V1PersistentVolumeClaim.class),
+        STORAGE_CLASS("storageclasses","StorageClass","storage.k8s.io","v1","storageclass","sc","", false, V1StorageClass.class),
+        SERVICE_ACCOUNT("serviceaccounts","ServiceAccount",null,"v1","serviceaccount","sa","", true, V1ServiceAccount.class),
+        ROLE("roles","Role","rbac.authorization.k8s.io","v1","role","ro","", true, V1Role.class),
+        ROLE_BINDING("rolebindings","RoleBinding","rbac.authorization.k8s.io","v1","rolebinding","rb","", true, V1RoleBinding.class),
+        CLUSTER_ROLE("clusterroles","ClusterRole","rbac.authorization.k8s.io","v1","clusterrole","cr","", false, V1ClusterRole.class),
+        CLUSTER_ROLE_BINDING("clusterrolebindings","ClusterRoleBinding","rbac.authorization.k8s.io","v1","clusterrolebinding","crb","", false, V1ClusterRoleBinding.class),
+        CUSTOM_RESOURCE_DEFINITION("customresourcedefinitions","CustomResourceDefinition","apiextensions.k8s.io","","v1","crd", "", false, V1CustomResourceDefinition.class),
+        HPA("horizontalpodautoscalers","HorizontalPodAutoscaler","autoscaling","","v1","hpa", "", true, V1HorizontalPodAutoscaler.class),
+        LIMIT_RANGE("limitranges","LimitRange",null,"v1","limitrange","lr","", true, V1LimitRange.class),
+        ENDPOINTS("endpoints","Endpoints",null,"v1","endpoints","ep","", true, V1Endpoints.class),
+        GENERIC("","","","","","", "", false, GenericObject.class),
+        CUSTOM("","","","","","", "", false, KubernetesObject.class);
 
         private final String resourceType;
         private final String kind;
@@ -106,6 +111,7 @@ public class K8s {
         private final String shortNames;
         private final String categories;
         private final boolean namespaced;
+        private final Class<? extends KubernetesObject> clazz;
 
         public boolean isNamespaced() {
             return namespaced;
@@ -139,9 +145,13 @@ public class K8s {
             return categories;
         }
 
+        public Class<? extends KubernetesObject> clazz() {
+            return clazz;
+        }
 
 
-        private RESOURCE(String resourceType, String  kind, String  group, String  version, String  singular, String  shortNames, String  categories, boolean namespaced) {
+
+        private RESOURCE(String resourceType, String  kind, String  group, String  version, String  singular, String  shortNames, String  categories, boolean namespaced, Class<? extends KubernetesObject> clazz) {
             this.resourceType = resourceType;
             this.kind = kind;
             this.group = group;
@@ -150,6 +160,7 @@ public class K8s {
             this.shortNames = shortNames;
             this.categories = categories;
             this.namespaced = namespaced;
+            this.clazz = clazz;
         }
     }
 
