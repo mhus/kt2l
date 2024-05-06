@@ -47,8 +47,7 @@ public class ClusterRoleBindingWatch extends ClusterBackgroundJob {
     @Getter
     private MEventHandler<Watch.Response<V1ClusterRoleBinding>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
-    private ApiClient client;
-    private CoreV1Api api;
+    private String clusterId;
 
     public static ClusterRoleBindingWatch instance(Core core, Cluster clusterConfig) {
         return core.getBackgroundJob(clusterConfig.getName(), ClusterRoleBindingWatch.class, () -> new ClusterRoleBindingWatch());
@@ -67,10 +66,7 @@ public class ClusterRoleBindingWatch extends ClusterBackgroundJob {
 
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
-
-        client = k8s.getKubeClient(clusterId);
-        api = new CoreV1Api(client);
-
+        this.clusterId = clusterId;
         watchThread = Thread.startVirtualThread(this::watch);
         
     }
@@ -79,6 +75,9 @@ public class ClusterRoleBindingWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
+                var client = k8s.getKubeClient(clusterId);
+                var api = new CoreV1Api(client);
+
                 RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(client);
                 var call = authenticationV1Api.listClusterRoleBinding().watch(true).buildCall(new CallBackAdapter<V1ClusterRoleBinding>(LOGGER));
                 Watch<V1ClusterRoleBinding> watch = Watch.createWatch(

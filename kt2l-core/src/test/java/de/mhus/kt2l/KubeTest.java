@@ -331,7 +331,7 @@ public class KubeTest {
         final var service = new K8sService();
         ApiClient client = service.getKubeClient(CLUSTER_NAME);
         LOGGER.info("Client: {}", client);
-        CoreV1Api api = service.getCoreV1Api(CLUSTER_NAME);
+        var api = new CoreV1Api(service.getKubeClient(CLUSTER_NAME));
         LOGGER.info("Api: {}", api);
     }
 
@@ -349,7 +349,7 @@ public class KubeTest {
         final var service = new K8sService();
         ApiClient client = service.getKubeClient("*");
         LOGGER.info("Client: {}", client);
-        CoreV1Api api = service.getCoreV1Api("*");
+        var api = new CoreV1Api(service.getKubeClient("*"));
         LOGGER.info("Api: {}", api);
     }
 
@@ -360,7 +360,7 @@ public class KubeTest {
             return;
         }
         final var service = new K8sService();
-        CoreV1Api api = service.getCoreV1Api(CLUSTER_NAME);
+        var api = new CoreV1Api(service.getKubeClient(CLUSTER_NAME));
         LOGGER.info("Api: {}", api);
         V1PodList list =
                 api.listPodForAllNamespaces().execute();

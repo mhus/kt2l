@@ -46,8 +46,7 @@ public class DaemonSetWatch extends ClusterBackgroundJob {
     @Getter
     private MEventHandler<Watch.Response<V1DaemonSet>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
-    private ApiClient client;
-    private AppsV1Api api;
+    private String clusterId;
 
     public static DaemonSetWatch instance(Core core, Cluster clusterConfig) {
         return core.getBackgroundJob(clusterConfig.getName(), DaemonSetWatch.class, () -> new DaemonSetWatch());
@@ -66,10 +65,7 @@ public class DaemonSetWatch extends ClusterBackgroundJob {
 
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
-
-        client = k8s.getKubeClient(clusterId);
-        api = new AppsV1Api(client);
-
+        this.clusterId = clusterId;
         watchThread = Thread.startVirtualThread(this::watch);
         
     }
@@ -78,6 +74,9 @@ public class DaemonSetWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
+                var client = k8s.getKubeClient(clusterId);
+                var api = new AppsV1Api(client);
+
                 var call = api.listDaemonSetForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1DaemonSet>(LOGGER));
                 Watch<V1DaemonSet> watch = Watch.createWatch(
                         client,

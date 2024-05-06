@@ -46,8 +46,7 @@ public class PodWatch extends ClusterBackgroundJob {
     @Getter
     private MEventHandler<Watch.Response<V1Pod>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
-    private ApiClient client;
-    private CoreV1Api api;
+    private String clusterId;
 
     public static PodWatch instance(Core core, Cluster clusterConfig) {
         return  core.getBackgroundJob(clusterConfig.getName(), PodWatch.class, () -> new PodWatch());
@@ -66,10 +65,7 @@ public class PodWatch extends ClusterBackgroundJob {
 
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
-
-        client = k8s.getKubeClient(clusterId);
-        api = new CoreV1Api(client);
-
+        this.clusterId = clusterId;
         watchThread = Thread.startVirtualThread(this::watch);
         
     }
@@ -78,6 +74,9 @@ public class PodWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
+                var client = k8s.getKubeClient(clusterId);
+                var api = new CoreV1Api(client);
+
                 var call = api.listPodForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Pod>(LOGGER));
                 Watch<V1Pod> watch = Watch.createWatch(
                         client,

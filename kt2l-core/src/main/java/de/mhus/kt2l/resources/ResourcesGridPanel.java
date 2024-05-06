@@ -263,7 +263,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
     @Override
     public void tabInit(XTab xTab) {
         this.xTab = xTab;
-        coreApi = Try.of(() -> k8s.getCoreV1Api(clusterId)).onFailure(e -> LOGGER.error("Error ",e) ).get();
+        coreApi = Try.of(() -> new CoreV1Api(k8s.getKubeClient(clusterId))).onFailure(e -> LOGGER.error("Error ",e) ).get();
         LOGGER.info("ClusterId: {}",clusterId);
         cluster = clusterConfiguration.getClusterOrDefault(clusterId);
         currentResourceType = cluster.getDefaultResourceType();

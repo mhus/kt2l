@@ -32,6 +32,7 @@ import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,7 +126,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
     private boolean validateCluster(ClusterItem cluster) {
         var clusterId = cluster.config().getName();
         try {
-            var coreApi = k8s.getCoreV1Api(clusterId);
+            var coreApi = new CoreV1Api(k8s.getKubeClient(clusterId));
             coreApi.listNamespace().execute();
             return true;
         } catch (Exception e) {

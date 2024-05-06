@@ -67,14 +67,14 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
 
             foundRes.setResource(event.object);
             filterList();
-            getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+            ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }

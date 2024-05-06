@@ -46,8 +46,7 @@ public class CronJobWatch extends ClusterBackgroundJob {
     @Getter
     private MEventHandler<Watch.Response<V1CronJob>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
-    private ApiClient client;
-    private BatchV1Api api;
+    private String clusterId;
 
     public static CronJobWatch instance(Core core, Cluster clusterConfig) {
         return core.getBackgroundJob(clusterConfig.getName(), CronJobWatch.class, () -> new CronJobWatch());
@@ -66,10 +65,7 @@ public class CronJobWatch extends ClusterBackgroundJob {
 
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
-
-        client = k8s.getKubeClient(clusterId);
-        api = new BatchV1Api(client);
-
+        this.clusterId = clusterId;
         watchThread = Thread.startVirtualThread(this::watch);
         
     }
@@ -78,6 +74,9 @@ public class CronJobWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
+                var client = k8s.getKubeClient(clusterId);
+                var api = new BatchV1Api(client);
+
                 var call = api.listJobForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1CronJob>(LOGGER));
                 Watch<V1CronJob> watch = Watch.createWatch(
                         client,

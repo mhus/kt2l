@@ -71,16 +71,16 @@ public class ServiceGrid extends AbstractGrid<ServiceGrid.Resource, Component> {
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getUI().get().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                ui.get().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }

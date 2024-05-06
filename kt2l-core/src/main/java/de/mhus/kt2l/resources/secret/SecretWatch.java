@@ -46,8 +46,7 @@ public class SecretWatch extends ClusterBackgroundJob {
     @Getter
     private MEventHandler<Watch.Response<V1Secret>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
-    private ApiClient client;
-    private CoreV1Api api;
+    private String clusterId;
 
     public static SecretWatch instance(Core core, Cluster clusterConfig) {
         return core.getBackgroundJob(clusterConfig.getName(), SecretWatch.class, () -> new SecretWatch());
@@ -66,10 +65,7 @@ public class SecretWatch extends ClusterBackgroundJob {
 
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
-
-        client = k8s.getKubeClient(clusterId);
-        api = new CoreV1Api(client);
-
+        this.clusterId = clusterId;
         watchThread = Thread.startVirtualThread(this::watch);
         
     }
@@ -77,6 +73,9 @@ public class SecretWatch extends ClusterBackgroundJob {
     private void watch() {
         while (true) {
             try {
+                var client = k8s.getKubeClient(clusterId);
+                var api = new CoreV1Api(client);
+
                 var call = api.listSecretForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Secret>(LOGGER));
                 Watch<V1Secret> watch = Watch.createWatch(
                         client,

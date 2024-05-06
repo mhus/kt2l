@@ -292,16 +292,16 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
             foundPod.setPod(event.object);
             filterList();
             if (added.get())
-                getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getUI().get().access(() -> resourcesGrid.getDataProvider().refreshItem(foundPod));
+                ui.get().access(() -> resourcesGrid.getDataProvider().refreshItem(foundPod));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(pod -> {
                 if (pod.equals(event.object)) {
                     resourcesList.remove(pod);
                     filterList();
-                    getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }
@@ -575,6 +575,11 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                 return MLang.tryThis(() -> other.getMetadata().getName().equals(name) && other.getMetadata().getNamespace().equals(namespace)).or(false);
             }
             return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, namespace);
         }
 
     }

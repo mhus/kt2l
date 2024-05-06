@@ -47,8 +47,7 @@ public class HorizontalPodAutoscalerWatch extends ClusterBackgroundJob {
     @Getter
     private MEventHandler<Watch.Response<V1HorizontalPodAutoscaler>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
-    private ApiClient client;
-    private CoreV1Api api;
+    private String clusterId;
 
     public static HorizontalPodAutoscalerWatch instance(Core core, Cluster clusterConfig) {
         return core.getBackgroundJob(clusterConfig.getName(), HorizontalPodAutoscalerWatch.class, () -> new HorizontalPodAutoscalerWatch());
@@ -67,10 +66,7 @@ public class HorizontalPodAutoscalerWatch extends ClusterBackgroundJob {
 
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
-
-        client = k8s.getKubeClient(clusterId);
-        api = new CoreV1Api(client);
-
+        this.clusterId = clusterId;
         watchThread = Thread.startVirtualThread(this::watch);
         
     }
@@ -79,6 +75,8 @@ public class HorizontalPodAutoscalerWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
+                var client = k8s.getKubeClient(clusterId);
+                var api = new CoreV1Api(client);
                 var autoscalingApi = new AutoscalingV1Api(client);
                 var call = autoscalingApi.listHorizontalPodAutoscalerForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1HorizontalPodAutoscaler>(LOGGER));
                 Watch<V1HorizontalPodAutoscaler> watch = Watch.createWatch(

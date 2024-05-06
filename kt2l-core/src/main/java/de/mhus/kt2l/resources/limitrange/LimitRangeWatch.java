@@ -46,8 +46,7 @@ public class LimitRangeWatch extends ClusterBackgroundJob {
     @Getter
     private MEventHandler<Watch.Response<V1LimitRange>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
-    private ApiClient client;
-    private CoreV1Api api;
+    private String clusterId;
 
     public static LimitRangeWatch instance(Core core, Cluster clusterConfig) {
         return core.getBackgroundJob(clusterConfig.getName(), LimitRangeWatch.class, () -> new LimitRangeWatch());
@@ -66,10 +65,7 @@ public class LimitRangeWatch extends ClusterBackgroundJob {
 
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
-
-        client = k8s.getKubeClient(clusterId);
-        api = new CoreV1Api(client);
-
+        this.clusterId = clusterId;
         watchThread = Thread.startVirtualThread(this::watch);
         
     }
@@ -78,6 +74,9 @@ public class LimitRangeWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
+                var client = k8s.getKubeClient(clusterId);
+                var api = new CoreV1Api(client);
+
                 var call = api.listLimitRangeForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1LimitRange>(LOGGER));
                 Watch<V1LimitRange> watch = Watch.createWatch(
                         client,

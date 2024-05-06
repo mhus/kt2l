@@ -246,12 +246,6 @@ public class K8sService {
         return Config.fromConfig(kubeConfig);
     }
 
-    public CoreV1Api getCoreV1Api(String contextName) throws IOException {
-        final var kubeClient = getKubeClient(contextName);
-        CoreV1Api api = new CoreV1Api(kubeClient);
-        return api;
-    }
-
     public HandlerK8s getResourceHandler(V1APIResource resource) {
         return resourceHandlers.stream().filter(h -> h.getManagedResource().kind().equals(resource.getKind())).findFirst().orElseGet(() -> new GenericK8s(resource));
     }

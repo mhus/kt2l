@@ -46,8 +46,7 @@ public class IngressWatch extends ClusterBackgroundJob {
     @Getter
     private MEventHandler<Watch.Response<V1Ingress>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
-    private ApiClient client;
-    private NetworkingV1Api api;
+    private String clusterId;
 
     public static IngressWatch instance(Core core, Cluster clusterConfig) {
         return core.getBackgroundJob(clusterConfig.getName(), IngressWatch.class, () -> new IngressWatch());
@@ -66,10 +65,7 @@ public class IngressWatch extends ClusterBackgroundJob {
 
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
-
-        client = k8s.getKubeClient(clusterId);
-        api = new NetworkingV1Api(client);
-
+        this.clusterId = clusterId;
         watchThread = Thread.startVirtualThread(this::watch);
         
     }
@@ -78,6 +74,9 @@ public class IngressWatch extends ClusterBackgroundJob {
 
         while (true) {
             try {
+                var client = k8s.getKubeClient(clusterId);
+                var api = new NetworkingV1Api(client);
+
                 var call = api.listIngressForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Ingress>(LOGGER));
                 Watch<V1Ingress> watch = Watch.createWatch(
                         client,
