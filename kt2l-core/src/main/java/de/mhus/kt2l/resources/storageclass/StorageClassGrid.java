@@ -53,7 +53,7 @@ public class StorageClassGrid extends AbstractGrid<StorageClassGrid.Resource, Co
     @Override
     protected void init() {
         storageApi = new StorageV1Api(coreApi.getApiClient());
-        eventRegistration = StorageClassWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = StorageClassWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1StorageClass> event) {

@@ -26,7 +26,7 @@ import io.kubernetes.client.openapi.models.V1Status;
 
 public interface HandlerK8s {
 
-    K8s.RESOURCE getManagedKind();
+    K8s.RESOURCE getManagedResource();
 
     void replace(CoreV1Api api, String name, String namespace, String yaml) throws ApiException;
 

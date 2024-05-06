@@ -64,7 +64,7 @@ public class ActionShell implements ResourceAction {
 
         panelService.addPanel(
                 context.getSelectedTab(),
-                context.getClusterConfiguration().name() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":shell",
+                context.getClusterConfiguration().getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":shell",
                 selected.getMetadata().getName(),
                 true,
                 VaadinIcon.TERMINAL.create(),

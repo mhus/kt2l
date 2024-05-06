@@ -49,7 +49,7 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Resource, Componen
 
     @Override
     protected void init() {
-        eventRegistration = ConfigMapWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = ConfigMapWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1ConfigMap> event) {
@@ -71,16 +71,16 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Resource, Componen
             foundRes.setResource(event.object);
             filterList();
             if (added.get())
-                getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getUI().get().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                ui.get().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             resourcesList.forEach(res -> {
                 if (res.getName().equals(event.object.getMetadata().getName())) {
                     resourcesList.remove(res);
                     filterList();
-                    getUI().get().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    ui.get().access(() -> resourcesGrid.getDataProvider().refreshAll());
                 }
             });
         }

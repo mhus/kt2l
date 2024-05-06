@@ -50,7 +50,7 @@ public class PersistentVolumeGrid extends AbstractGrid<PersistentVolumeGrid.Reso
 
     @Override
     protected void init() {
-        eventRegistration = PersistentVolumeWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = PersistentVolumeWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1PersistentVolume> event) {

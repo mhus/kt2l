@@ -27,7 +27,6 @@ import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.StorageV1Api;
 import io.kubernetes.client.openapi.models.V1StorageClass;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -51,7 +50,7 @@ public class StorageClassWatch extends ClusterBackgroundJob {
     private StorageV1Api api;
 
     public static StorageClassWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), StorageClassWatch.class, () -> new StorageClassWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), StorageClassWatch.class, () -> new StorageClassWatch());
     }
 
     private StorageClassWatch() {

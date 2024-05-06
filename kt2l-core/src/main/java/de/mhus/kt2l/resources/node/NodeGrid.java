@@ -50,7 +50,7 @@ public class NodeGrid extends AbstractGrid<NodeGrid.Resource, Component> {
 
     @Override
     protected void init() {
-        eventRegistration = NodeWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = NodeWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1Node> event) {

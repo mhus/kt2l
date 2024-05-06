@@ -19,9 +19,11 @@
 package de.mhus.kt2l.k8s;
 
 import de.mhus.commons.errors.NotFoundRuntimeException;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.resources.generic.GenericK8s;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
@@ -250,8 +252,8 @@ public class K8sService {
         return api;
     }
 
-    public HandlerK8s getResourceHandler(String kind) {
-        return resourceHandlers.stream().filter(h -> h.getManagedKind().equals(kind)).findFirst().orElse(null);
+    public HandlerK8s getResourceHandler(V1APIResource resource) {
+        return resourceHandlers.stream().filter(h -> h.getManagedResource().kind().equals(resource.getKind())).findFirst().orElseGet(() -> new GenericK8s(resource));
     }
 
     public K8s.RESOURCE findResource(V1APIResource value) {

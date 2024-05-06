@@ -26,9 +26,7 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
-import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -38,8 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class PodWatch extends ClusterBackgroundJob {
@@ -54,7 +50,7 @@ public class PodWatch extends ClusterBackgroundJob {
     private CoreV1Api api;
 
     public static PodWatch instance(Core core, Cluster clusterConfig) {
-        return  core.getBackgroundJob(clusterConfig.name(), PodWatch.class, () -> new PodWatch());
+        return  core.getBackgroundJob(clusterConfig.getName(), PodWatch.class, () -> new PodWatch());
     }
 
     private PodWatch() {

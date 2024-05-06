@@ -48,7 +48,7 @@ public class PanelService {
 
     public XTab addDetailsPanel(XTab parentTab, Cluster cluster, CoreV1Api api, K8s.RESOURCE resourceType, KubernetesObject resource) {
         return parentTab.getViewer().addTab(
-                cluster.name() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
+                cluster.getName() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),
                 true,
                 true,
@@ -72,7 +72,7 @@ public class PanelService {
                         false,
                         VaadinIcon.OPEN_BOOK.create(),
                         () -> new ResourcesGridPanel(cluster.name(), core))
-                .setColor(cluster.config().color()).setHelpContext("resources");
+                .setColor(cluster.config().getColor()).setHelpContext("resources");
 
     }
 }

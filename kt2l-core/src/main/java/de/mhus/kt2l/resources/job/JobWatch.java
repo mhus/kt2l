@@ -27,7 +27,6 @@ import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.BatchV1Api;
 import io.kubernetes.client.openapi.models.V1Job;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -51,7 +50,7 @@ public class JobWatch extends ClusterBackgroundJob {
     private BatchV1Api api;
 
     public static JobWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), JobWatch.class, () -> new JobWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), JobWatch.class, () -> new JobWatch());
     }
 
     private JobWatch() {

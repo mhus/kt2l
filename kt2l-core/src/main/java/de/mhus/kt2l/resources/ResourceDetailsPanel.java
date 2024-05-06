@@ -225,7 +225,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
 
         yaml = "apiVersion: " + toApiVersion(resType) + "\nkind: " + resType.getKind() + "\n" + yaml;
 
-        var handler = k8s.getResourceHandler(resType.getKind());
+        var handler = k8s.getResourceHandler(resType);
 
         if (handler == null) {
 //            var yamlObj = Yaml.loadAs(yaml, V1Pod.class);

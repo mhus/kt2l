@@ -27,7 +27,6 @@ import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -51,7 +50,7 @@ public class IngressWatch extends ClusterBackgroundJob {
     private NetworkingV1Api api;
 
     public static IngressWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), IngressWatch.class, () -> new IngressWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), IngressWatch.class, () -> new IngressWatch());
     }
 
     private IngressWatch() {

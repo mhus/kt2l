@@ -49,7 +49,7 @@ public class ServiceAccountGrid extends AbstractGrid<ServiceAccountGrid.Resource
 
     @Override
     protected void init() {
-        eventRegistration = ServiceAccountWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = ServiceAccountWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1ServiceAccount> event) {

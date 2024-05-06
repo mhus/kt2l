@@ -81,6 +81,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     private Optional<T> selectedResource;
     protected S detailsComponent;
     private ResourcesFilter resourcesFilter;
+    protected Optional<UI> ui = Optional.empty();
 
     @Override
     public Component getComponent() {
@@ -92,13 +93,14 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         if (counter % 10 != 0) return;
         filterList();
         resourcesGrid.getDataProvider().refreshAll();
-        UI.getCurrent().push();
+        ui.get().push();
     }
 
     @Override
     public void init(CoreV1Api coreApi, Cluster clusterConfig, ResourcesGridPanel view) {
         this.coreApi = coreApi;
         this.view = view;
+        this.ui = Optional.of(view.getUi());
         this.clusterConfig = clusterConfig;
 
         createActions();

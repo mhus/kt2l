@@ -27,7 +27,6 @@ import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.apis.AuthenticationV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1RoleBinding;
@@ -52,7 +51,7 @@ public class RoleBindingWatch extends ClusterBackgroundJob {
     private CoreV1Api api;
 
     public static RoleBindingWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), RoleBindingWatch.class, () -> new RoleBindingWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), RoleBindingWatch.class, () -> new RoleBindingWatch());
     }
 
     private RoleBindingWatch() {

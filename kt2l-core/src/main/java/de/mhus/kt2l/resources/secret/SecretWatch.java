@@ -28,7 +28,6 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.util.Watch;
@@ -51,7 +50,7 @@ public class SecretWatch extends ClusterBackgroundJob {
     private CoreV1Api api;
 
     public static SecretWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), SecretWatch.class, () -> new SecretWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), SecretWatch.class, () -> new SecretWatch());
     }
 
     private SecretWatch() {

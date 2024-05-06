@@ -37,7 +37,7 @@ public class StatefulSetK8s implements HandlerK8s {
     private SecurityService securityService;
 
     @Override
-    public K8s.RESOURCE getManagedKind() {
+    public K8s.RESOURCE getManagedResource() {
         return K8s.RESOURCE.STATEFUL_SET;
     }
 

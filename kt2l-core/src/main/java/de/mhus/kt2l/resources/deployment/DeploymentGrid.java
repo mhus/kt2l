@@ -52,7 +52,7 @@ public class DeploymentGrid extends AbstractGrid<DeploymentGrid.Resource, Compon
     @Override
     protected void init() {
         appsV1Api = new AppsV1Api( coreApi.getApiClient() );
-        eventRegistration = DeploymentWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = DeploymentWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1Deployment> event) {

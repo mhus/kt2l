@@ -51,7 +51,7 @@ public class RoleGrid extends AbstractGrid<RoleGrid.Resource, Component> {
 
     @Override
     protected void init() {
-        eventRegistration = RoleWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = RoleWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
         authenticationV1Api = new RbacAuthorizationV1Api(coreApi.getApiClient());
     }
 

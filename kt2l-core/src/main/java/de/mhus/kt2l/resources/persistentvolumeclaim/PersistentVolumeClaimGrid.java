@@ -49,7 +49,7 @@ public class PersistentVolumeClaimGrid extends AbstractGrid<PersistentVolumeClai
 
     @Override
     protected void init() {
-        eventRegistration = PersistentVolumeClaimWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = PersistentVolumeClaimWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1PersistentVolumeClaim> event) {

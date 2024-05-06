@@ -50,7 +50,7 @@ public class PersistentVolumeClaimWatch extends ClusterBackgroundJob {
     private CoreV1Api api;
 
     public static PersistentVolumeClaimWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), PersistentVolumeClaimWatch.class, () -> new PersistentVolumeClaimWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), PersistentVolumeClaimWatch.class, () -> new PersistentVolumeClaimWatch());
     }
 
     private PersistentVolumeClaimWatch() {

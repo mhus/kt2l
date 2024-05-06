@@ -49,7 +49,7 @@ public class SecretGrid extends AbstractGrid<SecretGrid.Resource, Component> {
 
     @Override
     protected void init() {
-        eventRegistration = SecretWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = SecretWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1Secret> event) {

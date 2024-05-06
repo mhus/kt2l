@@ -21,6 +21,7 @@ package de.mhus.kt2l.k8s;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import de.mhus.commons.errors.NotFoundRuntimeException;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.resources.generic.GenericObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
@@ -53,6 +54,16 @@ public class K8s {
             throw new NullPointerException("Resource type is empty");
         return Arrays.stream(RESOURCE.values()).filter(r -> r.resourceType().equals(resourceType)).findFirst()
                 .orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resourceType));
+    }
+
+    public static V1APIResource toResource(KubernetesObject o, Cluster cluster) {
+        if (cluster.getResourceTypes() == null)
+            throw new IllegalArgumentException("ResourceTypes not found in cluster configuration");
+        var kind = o.getKind();
+        var resourceType = cluster.getResourceTypes().stream().filter(r -> r.getKind().equalsIgnoreCase(kind)).findFirst().orElse(null);
+        if (resourceType == null)
+            throw new IllegalArgumentException("Kind not found in cluster: " + kind);
+        return resourceType;
     }
 
     public enum RESOURCE {

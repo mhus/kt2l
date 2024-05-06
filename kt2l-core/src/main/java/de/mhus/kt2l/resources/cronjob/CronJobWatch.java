@@ -50,7 +50,7 @@ public class CronJobWatch extends ClusterBackgroundJob {
     private BatchV1Api api;
 
     public static CronJobWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), CronJobWatch.class, () -> new CronJobWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), CronJobWatch.class, () -> new CronJobWatch());
     }
 
     private CronJobWatch() {

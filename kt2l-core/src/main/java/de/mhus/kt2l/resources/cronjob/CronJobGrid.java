@@ -52,7 +52,7 @@ public class CronJobGrid extends AbstractGrid<CronJobGrid.Resource, Component> {
     @Override
     protected void init() {
         batchV1Api = new BatchV1Api( coreApi.getApiClient() );
-        eventRegistration = CronJobWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = CronJobWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1CronJob> event) {

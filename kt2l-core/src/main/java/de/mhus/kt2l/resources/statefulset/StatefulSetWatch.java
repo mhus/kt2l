@@ -50,7 +50,7 @@ public class StatefulSetWatch extends ClusterBackgroundJob {
     private AppsV1Api api;
 
     public static StatefulSetWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), StatefulSetWatch.class, () -> new StatefulSetWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), StatefulSetWatch.class, () -> new StatefulSetWatch());
     }
 
     private StatefulSetWatch() {

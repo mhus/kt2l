@@ -50,7 +50,7 @@ public class ReplicaSetWatch extends ClusterBackgroundJob {
     private AppsV1Api api;
 
     public static ReplicaSetWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), ReplicaSetWatch.class, () -> new ReplicaSetWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), ReplicaSetWatch.class, () -> new ReplicaSetWatch());
     }
 
     private ReplicaSetWatch() {

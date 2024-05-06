@@ -80,7 +80,7 @@ public class ActionTerminal implements ResourceAction {
         vars.setString("pod", pod.getMetadata().getName());
         vars.setString("container", container);
         vars.setString("namespace", pod.getMetadata().getNamespace());
-        vars.setString("context", context.getClusterConfiguration().name());
+        vars.setString("context", context.getClusterConfiguration().getName());
         vars.setString("cmd", shell);
 
         cmdConfiguration.execute("exec", vars);

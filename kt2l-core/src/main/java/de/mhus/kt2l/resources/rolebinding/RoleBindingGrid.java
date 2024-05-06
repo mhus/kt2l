@@ -51,7 +51,7 @@ public class RoleBindingGrid extends AbstractGrid<RoleBindingGrid.Resource, Comp
 
     @Override
     protected void init() {
-        eventRegistration = RoleBindingWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = RoleBindingWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
         authenticationV1Api = new RbacAuthorizationV1Api(coreApi.getApiClient());
     }
 

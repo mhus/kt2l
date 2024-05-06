@@ -72,9 +72,9 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
         clusterList = k8s.getAvailableContexts().stream()
                 .map(name -> {
                     final var clusterConfig = clustersConfig.getClusterOrDefault(name);
-                    return new ClusterItem(name, clusterConfig.title(), clusterConfig);
+                    return new ClusterItem(name, clusterConfig.getTitle(), clusterConfig);
                 })
-                .filter(cluster -> cluster.config().enabled())
+                .filter(cluster -> cluster.config().isEnabled())
                 .toList();
 
         clusterBox.setItems(clusterList);
@@ -123,7 +123,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements XTabListener
     }
 
     private boolean validateCluster(ClusterItem cluster) {
-        var clusterId = cluster.config().name();
+        var clusterId = cluster.config().getName();
         try {
             var coreApi = k8s.getCoreV1Api(clusterId);
             coreApi.listNamespace().execute();

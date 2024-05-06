@@ -50,7 +50,7 @@ public class NetworkPolicyWatch extends ClusterBackgroundJob {
     private NetworkingV1Api api;
 
     public static NetworkPolicyWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), NetworkPolicyWatch.class, () -> new NetworkPolicyWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), NetworkPolicyWatch.class, () -> new NetworkPolicyWatch());
     }
 
     private NetworkPolicyWatch() {

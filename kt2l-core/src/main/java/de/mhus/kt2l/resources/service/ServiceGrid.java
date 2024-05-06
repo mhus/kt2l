@@ -49,7 +49,7 @@ public class ServiceGrid extends AbstractGrid<ServiceGrid.Resource, Component> {
 
     @Override
     protected void init() {
-        eventRegistration = ServiceWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = ServiceWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1Service> event) {

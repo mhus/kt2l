@@ -50,7 +50,7 @@ public class NamespaceWatch extends ClusterBackgroundJob {
     private CoreV1Api api;
 
     public static NamespaceWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), NamespaceWatch.class, () -> new NamespaceWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), NamespaceWatch.class, () -> new NamespaceWatch());
     }
 
     private NamespaceWatch() {

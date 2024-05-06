@@ -52,7 +52,7 @@ public class DaemonSetGrid extends AbstractGrid<DaemonSetGrid.Resource, Componen
     @Override
     protected void init() {
         appsV1Api = new AppsV1Api( coreApi.getApiClient() );
-        eventRegistration = DaemonSetWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = DaemonSetWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1DaemonSet> event) {

@@ -50,7 +50,7 @@ public class ConfigMapWatch extends ClusterBackgroundJob {
     private CoreV1Api api;
 
     public static ConfigMapWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), ConfigMapWatch.class, () -> new ConfigMapWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), ConfigMapWatch.class, () -> new ConfigMapWatch());
     }
 
     private ConfigMapWatch() {

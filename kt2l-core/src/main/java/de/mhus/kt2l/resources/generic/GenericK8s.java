@@ -1,6 +1,7 @@
 package de.mhus.kt2l.resources.generic;
 
 import de.mhus.commons.yaml.MYaml;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.openapi.ApiException;
@@ -18,7 +19,7 @@ public class GenericK8s implements HandlerK8s {
         this.resourceType = resourceType;
     }
     @Override
-    public K8s.RESOURCE getManagedKind() {
+    public K8s.RESOURCE getManagedResource() {
         return K8s.RESOURCE.GENERIC;
     }
 

@@ -50,7 +50,7 @@ public class ServiceWatch extends ClusterBackgroundJob {
     private CoreV1Api api;
 
     public static ServiceWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), ServiceWatch.class, () -> new ServiceWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), ServiceWatch.class, () -> new ServiceWatch());
     }
 
     private ServiceWatch() {

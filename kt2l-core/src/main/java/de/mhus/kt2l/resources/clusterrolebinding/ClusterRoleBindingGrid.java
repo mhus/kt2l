@@ -52,7 +52,7 @@ public class ClusterRoleBindingGrid extends AbstractGrid<ClusterRoleBindingGrid.
 
     @Override
     protected void init() {
-        eventRegistration = ClusterRoleBindingWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = ClusterRoleBindingWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
         authenticationV1Api = new RbacAuthorizationV1Api(coreApi.getApiClient());
 
     }

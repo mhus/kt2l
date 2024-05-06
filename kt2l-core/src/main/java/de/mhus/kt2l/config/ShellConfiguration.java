@@ -37,7 +37,7 @@ public class ShellConfiguration extends  AbstractUserRelatedConfig {
         var config = config();
 
         if (clusterConfig != null) {
-            var clusterShellConfig = clusterConfig.node().getObject("shell");
+            var clusterShellConfig = clusterConfig.getNode().getObject("shell");
             if (clusterShellConfig.isPresent()) {
                 {
                     var entry = clusterShellConfig.get().getString(pod.getMetadata().getNamespace() + "." + pod.getMetadata().getName());

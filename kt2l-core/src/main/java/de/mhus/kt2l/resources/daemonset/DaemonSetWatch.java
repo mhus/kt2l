@@ -50,7 +50,7 @@ public class DaemonSetWatch extends ClusterBackgroundJob {
     private AppsV1Api api;
 
     public static DaemonSetWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.name(), DaemonSetWatch.class, () -> new DaemonSetWatch());
+        return core.getBackgroundJob(clusterConfig.getName(), DaemonSetWatch.class, () -> new DaemonSetWatch());
     }
 
     private DaemonSetWatch() {

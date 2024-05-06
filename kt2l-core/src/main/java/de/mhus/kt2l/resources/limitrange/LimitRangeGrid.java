@@ -49,7 +49,7 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
 
     @Override
     protected void init() {
-        eventRegistration = LimitRangeWatch.instance(view.getCore(), view.getClusterConfig()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = LimitRangeWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     private void changeEvent(Watch.Response<V1LimitRange> event) {

@@ -25,11 +25,17 @@ import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.WeakHashMap;
 
 @Component
 public class ClusterConfiguration extends AbstractUserRelatedConfig {
+
+    private final Map<String, Cluster> defaultClusters = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, Cluster> clusters;
 
     public ClusterConfiguration() {
 
@@ -48,8 +54,11 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
         return config().getString("defaultNamespace", K8s.NAMESPACE_ALL);
     }
 
-    public Map<String, Cluster> getClusters() {
-        final var clusters = new TreeMap<String, Cluster>();
+    public synchronized Map<String, Cluster> getClusters() {
+
+        if (clusters != null) return clusters; //XXX refresh if cluster config changes
+
+        clusters = Collections.synchronizedMap(new TreeMap<>());
         final var clusterConfig = config().getArray("clusters");
         if (clusterConfig.isPresent())
             clusterConfig.get().forEach(cluster -> {
@@ -73,9 +82,13 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     public Cluster getClusterOrDefault(String name) {
         final var cluster = getClusters().get(name);
         if (cluster == null) {
-            return new Cluster(name, name, true, defaultNamespace(), K8s.toResourceType(defaultResourceType()), UiUtil.COLOR.NONE, MTree.EMPTY_MAP);
+            return getDefault(name);
         }
         return cluster;
+    }
+
+    private synchronized Cluster getDefault(String name) {
+        return defaultClusters.computeIfAbsent(name,(n) -> new Cluster(n, n, true, defaultNamespace(), K8s.toResourceType(defaultResourceType()), UiUtil.COLOR.NONE, MTree.EMPTY_MAP));
     }
 
 }
