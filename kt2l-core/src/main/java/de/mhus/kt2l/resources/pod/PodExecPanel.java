@@ -187,7 +187,7 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
     }
 
     private void runCommandInContainer(ContainerResource container, Block compiledBlock, TextArea text, RunContext context) {
-        try {
+        try (var sce = context.getSecurityContext().enter()) {
             context.getProperties().setString(RunCompiler.PROP_SHELL, shellConfiguration.getShellFor(clusterConfig, container.getPod()));
             context.getProperties().setString(RunCompiler.PROP_CONTAINER, container.getContainerName());
             context.setTextChangedObserver(s -> {

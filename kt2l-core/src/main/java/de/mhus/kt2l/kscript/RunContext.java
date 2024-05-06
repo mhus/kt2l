@@ -22,6 +22,7 @@ import de.mhus.commons.lang.ICloseable;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tree.IProperties;
 import de.mhus.commons.tree.MProperties;
+import de.mhus.kt2l.core.SecurityContext;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.Getter;
@@ -50,6 +51,8 @@ public class RunContext implements ICloseable {
     @Getter
     private List<Error> errors = new ArrayList<>();
     private StringBuffer content = new StringBuffer();
+    @Getter
+    private SecurityContext securityContext = SecurityContext.create();
 
     public void setScope(String scope, Scope object) {
         var current = properties.get(RunCompiler.PROP_SCOPE + scope);
