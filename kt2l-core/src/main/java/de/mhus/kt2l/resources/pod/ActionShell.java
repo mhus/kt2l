@@ -70,7 +70,7 @@ public class ActionShell implements ResourceAction {
                 VaadinIcon.TERMINAL.create(),
                 () -> new ContainerShellPanel(
                         context.getClusterConfiguration(),
-                        context.getApi(),
+                        context.getApiProvider(),
                         context.getCore(),
                         selected
                         )).setHelpContext("shell").select();

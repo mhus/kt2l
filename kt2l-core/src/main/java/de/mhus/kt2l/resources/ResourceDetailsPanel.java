@@ -41,6 +41,7 @@ import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
 import de.mhus.kt2l.help.HelpResourceConnector;
+import de.mhus.kt2l.k8s.ApiClientProvider;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
@@ -58,9 +59,9 @@ import java.util.Map;
 @Slf4j
 public class ResourceDetailsPanel extends VerticalLayout implements XTabListener, HelpResourceConnector {
 
+    private final ApiClientProvider apiProvider;
     private final K8s.RESOURCE resourceType;
     private final KubernetesObject resource;
-    private final CoreV1Api api;
     private final Core core;
     private AceEditor resYamlEditor;
     private String resContent;
@@ -81,10 +82,10 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
     @Autowired
     private SecurityService securityService;
 
-    public ResourceDetailsPanel(Cluster clusterConfiguration, CoreV1Api api, Core core, K8s.RESOURCE resourceType, KubernetesObject resource) {
+    public ResourceDetailsPanel(Cluster clusterConfiguration, ApiClientProvider apiProvider, Core core, K8s.RESOURCE resourceType, KubernetesObject resource) {
+        this.apiProvider = apiProvider;
         this.resourceType = resourceType;
         this.resource = resource;
-        this.api = api;
         this.core = core;
     }
 
@@ -93,7 +94,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
     public void tabInit(XTab xTab) {
         this.tab = xTab;
 
-        resType = k8s.findResource(resourceType, api);
+        resType = k8s.findResource(resourceType, apiProvider.getCoreV1Api());
         if (resType == null) {
             UiUtil.showErrorNotification("Unknown resource type");
             return;
@@ -243,7 +244,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements XTabListener
 //            );
 //XXX
         } else {
-            handler.replace(api, resource.getMetadata().getName(), resource.getMetadata().getNamespace(), yaml);
+            handler.replace(apiProvider.getCoreV1Api(), resource.getMetadata().getName(), resource.getMetadata().getNamespace(), yaml);
         }
 
     }

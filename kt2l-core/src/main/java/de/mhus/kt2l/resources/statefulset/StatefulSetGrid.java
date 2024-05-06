@@ -51,7 +51,7 @@ public class StatefulSetGrid extends AbstractGrid<StatefulSetGrid.Resource, Comp
 
     @Override
     protected void init() {
-        appsV1Api = new AppsV1Api( coreApi.getApiClient() );
+        appsV1Api = new AppsV1Api( view.getApiProvider().getCoreV1Api().getApiClient() );
         eventRegistration = StatefulSetWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 

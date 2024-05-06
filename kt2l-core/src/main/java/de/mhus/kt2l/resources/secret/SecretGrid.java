@@ -203,8 +203,8 @@ public class SecretGrid extends AbstractGrid<SecretGrid.Resource, Component> {
 
     private V1SecretList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return coreApi.listSecretForAllNamespaces().execute();
-        return coreApi.listNamespacedSecret(namespace).execute();
+            return view.getApiProvider().getCoreV1Api().listSecretForAllNamespaces().execute();
+        return view.getApiProvider().getCoreV1Api().listNamespacedSecret(namespace).execute();
     }
 
     @Data

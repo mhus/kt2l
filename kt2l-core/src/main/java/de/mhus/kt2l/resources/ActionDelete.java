@@ -91,7 +91,7 @@ public class ActionDelete implements ResourceAction {
         context.getSelected().forEach(o -> {
             try {
                 var handler = k8s.getResourceHandler(K8s.toResource(o, context.getClusterConfiguration() ));
-                handler.delete(context.getApi(), o.getMetadata().getName(), o.getMetadata().getNamespace());
+                handler.delete(context.getApiProvider().getCoreV1Api(), o.getMetadata().getName(), o.getMetadata().getNamespace());
             } catch (Exception e) {
                 LOGGER.error("delete resource {}", o, e);
                 context.getErrors().add(e);

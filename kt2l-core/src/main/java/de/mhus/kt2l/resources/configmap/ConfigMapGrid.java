@@ -203,8 +203,8 @@ public class ConfigMapGrid extends AbstractGrid<ConfigMapGrid.Resource, Componen
 
     private V1ConfigMapList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return coreApi.listConfigMapForAllNamespaces().execute();
-        return coreApi.listNamespacedConfigMap(namespace).execute();
+            return view.getApiProvider().getCoreV1Api().listConfigMapForAllNamespaces().execute();
+        return view.getApiProvider().getCoreV1Api().listNamespacedConfigMap(namespace).execute();
     }
 
     @Data

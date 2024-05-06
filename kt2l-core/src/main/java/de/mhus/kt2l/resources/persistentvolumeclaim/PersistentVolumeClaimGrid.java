@@ -203,8 +203,8 @@ public class PersistentVolumeClaimGrid extends AbstractGrid<PersistentVolumeClai
 
     private V1PersistentVolumeClaimList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return coreApi.listPersistentVolumeClaimForAllNamespaces().execute();
-        return coreApi.listNamespacedPersistentVolumeClaim(namespace).execute();
+            return view.getApiProvider().getCoreV1Api().listPersistentVolumeClaimForAllNamespaces().execute();
+        return view.getApiProvider().getCoreV1Api().listNamespacedPersistentVolumeClaim(namespace).execute();
     }
 
     @Data

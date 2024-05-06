@@ -29,7 +29,7 @@ public class CmdAttach extends Cmd {
         var useStdin = args.getBoolean("stdin", true);
         var useTty = args.getBoolean("tty", true);
 
-        Attach attach = new Attach(context.getApi().getApiClient());
+        Attach attach = new Attach(context.getApiProvider().getClient());
         var result = attach.attach(
                 context.getPod(),
                 context.getProperties().getString(RunCompiler.PROP_CONTAINER).orElse(""),

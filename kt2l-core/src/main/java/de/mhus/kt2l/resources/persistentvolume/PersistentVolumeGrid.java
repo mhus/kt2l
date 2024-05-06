@@ -213,7 +213,7 @@ public class PersistentVolumeGrid extends AbstractGrid<PersistentVolumeGrid.Reso
     }
 
     private V1PersistentVolumeList createRawResourceList() throws ApiException {
-        return coreApi.listPersistentVolume().execute();
+        return view.getApiProvider().getCoreV1Api().listPersistentVolume().execute();
     }
 
     @Data

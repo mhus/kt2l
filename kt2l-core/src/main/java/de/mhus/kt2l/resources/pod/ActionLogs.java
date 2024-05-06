@@ -90,12 +90,12 @@ public class ActionLogs implements ResourceAction {
                 context.getSelectedTab(),
                 context.getClusterConfiguration().getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":logs",
                 selected.getMetadata().getName(),
-                true,
+                false,
                 VaadinIcon.MODAL_LIST.create(),
                 () ->
                 new PodLogsPanel(
                         context.getClusterConfiguration(),
-                        context.getApi(),
+                        context.getApiProvider(),
                         context.getCore(),
                         containers
                         )).setHelpContext("logs").select();

@@ -203,8 +203,8 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
 
     private V1LimitRangeList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return coreApi.listLimitRangeForAllNamespaces().execute();
-        return coreApi.listNamespacedLimitRange(namespace).execute();
+            return view.getApiProvider().getCoreV1Api().listLimitRangeForAllNamespaces().execute();
+        return view.getApiProvider().getCoreV1Api().listNamespacedLimitRange(namespace).execute();
     }
 
     @Data

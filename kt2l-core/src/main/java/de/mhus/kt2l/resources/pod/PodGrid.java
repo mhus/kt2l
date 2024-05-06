@@ -113,7 +113,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                                 .resourceType(K8s.RESOURCE.CONTAINER)
                                 .selected(selected)
                                 .namespace(namespace)
-                                .api(coreApi)
+                                .apiProvider(view.getApiProvider())
                                 .clusterConfiguration(clusterConfig)
                                 .ui(getView().getCore().ui())
                                 .grid(PodGrid.this)
@@ -233,7 +233,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
     }
 
     private List<PodMetrics> getNamespaceMetrics(String ns) {
-        Metrics metrics = new Metrics(coreApi.getApiClient());
+        Metrics metrics = new Metrics(view.getApiProvider().getClient());
         try {
             var list = metrics.getPodMetrics(ns);
             return list.getItems();
@@ -476,8 +476,8 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
     private V1PodList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return coreApi.listPodForAllNamespaces().execute();
-        return coreApi.listNamespacedPod(namespace).execute();
+            return view.getApiProvider().getCoreV1Api().listPodForAllNamespaces().execute();
+        return view.getApiProvider().getCoreV1Api().listNamespacedPod(namespace).execute();
     }
 
     @Data

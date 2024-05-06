@@ -297,7 +297,7 @@ public class ResourcesGridPanel extends VerticalLayout implements XTabListener {
                 genericGrid.setResourceType(resourceSelector.getValue());
             else
                 grid.setResourceType(k8s.findResource(resourceSelector.getValue()));
-            grid.init(apiProvider.getCoreV1Api(), cluster, this);
+            grid.init(cluster, this);
             gridContainer.add(grid.getComponent());
         }
     }

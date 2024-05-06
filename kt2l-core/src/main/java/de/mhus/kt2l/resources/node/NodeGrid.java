@@ -213,7 +213,7 @@ public class NodeGrid extends AbstractGrid<NodeGrid.Resource, Component> {
     }
 
     private V1NodeList createRawResourceList() throws ApiException {
-        return coreApi.listNode().execute();
+        return view.getApiProvider().getCoreV1Api().listNode().execute();
     }
 
     @Data

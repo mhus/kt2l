@@ -51,7 +51,7 @@ public class DeploymentGrid extends AbstractGrid<DeploymentGrid.Resource, Compon
 
     @Override
     protected void init() {
-        appsV1Api = new AppsV1Api( coreApi.getApiClient() );
+        appsV1Api = new AppsV1Api( view.getApiProvider().getClient() );
         eventRegistration = DeploymentWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 

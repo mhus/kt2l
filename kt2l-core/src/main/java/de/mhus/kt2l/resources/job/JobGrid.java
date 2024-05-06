@@ -51,7 +51,7 @@ public class JobGrid extends AbstractGrid<JobGrid.Resource, Component> {
 
     @Override
     protected void init() {
-        batchV1Api = new BatchV1Api( coreApi.getApiClient() );
+        batchV1Api = new BatchV1Api( view.getApiProvider().getClient() );
         eventRegistration = JobWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 

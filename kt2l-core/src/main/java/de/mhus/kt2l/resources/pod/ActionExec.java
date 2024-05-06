@@ -87,14 +87,14 @@ public class ActionExec implements ResourceAction {
         final var selected = (V1Pod)context.getSelected().iterator().next();
         panelService.addPanel(
                 context.getSelectedTab(),
-                context.getClusterConfiguration().getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":logs",
+                context.getClusterConfiguration().getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":exec",
                 selected.getMetadata().getName(),
-                true,
+                false,
                 VaadinIcon.FORWARD.create(),
                 () ->
                         new PodExecPanel(
                                 context.getClusterConfiguration(),
-                                context.getApi(),
+                                context.getApiProvider(),
                                 context.getCore(),
                                 containers
                         )).setHelpContext("exec").select();

@@ -203,8 +203,8 @@ public class ServiceAccountGrid extends AbstractGrid<ServiceAccountGrid.Resource
 
     private V1ServiceAccountList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return coreApi.listServiceAccountForAllNamespaces().execute();
-        return coreApi.listNamespacedServiceAccount(namespace).execute();
+            return view.getApiProvider().getCoreV1Api().listServiceAccountForAllNamespaces().execute();
+        return view.getApiProvider().getCoreV1Api().listNamespacedServiceAccount(namespace).execute();
     }
 
     @Data

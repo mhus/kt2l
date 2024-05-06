@@ -197,7 +197,7 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            Try.of(() -> coreApi.listNamespace().execute() )
+                            Try.of(() -> view.getApiProvider().getCoreV1Api().listNamespace().execute() )
                                     .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
                                     .onSuccess(list -> {
                                         list.getItems().forEach(res -> {

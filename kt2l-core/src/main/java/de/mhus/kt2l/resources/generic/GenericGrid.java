@@ -161,7 +161,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
                             final var namespaceName = namespace ==  null || namespace.equals("all") ? null : (String) namespace;
-                            final var genericApi = new GenericObjectsApi(coreApi.getApiClient(), resourceType);
+                            final var genericApi = new GenericObjectsApi(view.getApiProvider().getClient(), resourceType);
 
                             try {
 

@@ -51,7 +51,7 @@ public class ReplicaSetGrid extends AbstractGrid<ReplicaSetGrid.Resource, Compon
 
     @Override
     protected void init() {
-        appsV1Api = new AppsV1Api( coreApi.getApiClient() );
+        appsV1Api = new AppsV1Api( view.getApiProvider().getClient() );
         eventRegistration = ReplicaSetWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 

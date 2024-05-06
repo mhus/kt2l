@@ -24,6 +24,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
+import de.mhus.kt2l.k8s.ApiClientProvider;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -41,7 +42,7 @@ public class ExecutionContext {
     private UI ui;
     private K8s.RESOURCE resourceType;
     private Set<? extends KubernetesObject> selected;
-    private CoreV1Api api;
+    private ApiClientProvider apiProvider;
     private String namespace;
     private Cluster clusterConfiguration;
     @Setter

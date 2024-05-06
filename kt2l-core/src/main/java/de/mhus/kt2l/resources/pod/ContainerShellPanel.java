@@ -36,6 +36,7 @@ import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
+import de.mhus.kt2l.k8s.ApiClientProvider;
 import io.kubernetes.client.Exec;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -55,7 +56,7 @@ public class ContainerShellPanel extends VerticalLayout implements XTabListener 
 
     private static final int MAX = 300000;
     private final Cluster clusterConfig;
-    private final CoreV1Api api;
+    private final ApiClientProvider apiProvider;
     private final Core core;
     private final V1Pod pod;
     private XTab tab;
@@ -65,9 +66,9 @@ public class ContainerShellPanel extends VerticalLayout implements XTabListener 
     private Thread threadError;
     private MenuItem menuItemEsc;
 
-    public ContainerShellPanel(Cluster clusterConfig, CoreV1Api api, Core core, V1Pod pod) {
+    public ContainerShellPanel(Cluster clusterConfig, ApiClientProvider apiProvider, Core core, V1Pod pod) {
         this.clusterConfig = clusterConfig;
-        this.api = api;
+        this.apiProvider = apiProvider;
         this.core = core;
         this.pod = pod;
     }
@@ -221,7 +222,7 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
         setSizeFull();
 
         try {
-            Exec exec = new Exec(api.getApiClient());
+            Exec exec = new Exec(apiProvider.getClient());
             proc = exec.exec(pod, new String[]{shellConfiguration.getShellFor(clusterConfig, pod )}, true, true);
 
             threadInput = Thread.startVirtualThread(this::loopInput);

@@ -52,7 +52,7 @@ public class HorizontalPodAutoscalerGrid extends AbstractGrid<HorizontalPodAutos
     @Override
     protected void init() {
         eventRegistration = HorizontalPodAutoscalerWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
-        autoscalingApi = new AutoscalingV1Api(coreApi.getApiClient());
+        autoscalingApi = new AutoscalingV1Api(view.getApiProvider().getClient());
     }
 
     private void changeEvent(Watch.Response<V1HorizontalPodAutoscaler> event) {

@@ -32,7 +32,7 @@ public class CmdExec extends Cmd {
         var cmdStr = args.getString("cmd").orElse(null);
         var shell = args.getString("shell").orElse("/bin/bash");
         var cmdArray = execStr != null ? execStr.split(",") : cmdStr == null ? new String[] {shell} : new String[] {shell, "-c", cmdStr};
-        Exec exec = new Exec(context.getApi().getApiClient());
+        Exec exec = new Exec(context.getApiProvider().getClient());
         var proc = exec.exec(
                 context.getPod(),
                 cmdArray,

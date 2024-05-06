@@ -53,7 +53,7 @@ public class ClusterRoleGrid extends AbstractGrid<ClusterRoleGrid.Resource, Comp
     @Override
     protected void init() {
         eventRegistration = ClusterRoleWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
-        authenticationV1Api = new RbacAuthorizationV1Api(coreApi.getApiClient());
+        authenticationV1Api = new RbacAuthorizationV1Api(view.getApiProvider().getClient());
 
     }
 

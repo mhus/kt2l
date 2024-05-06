@@ -203,8 +203,8 @@ public class ServiceGrid extends AbstractGrid<ServiceGrid.Resource, Component> {
 
     private V1ServiceList createRawResourceList() throws ApiException {
         if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return coreApi.listServiceForAllNamespaces().execute();
-        return coreApi.listNamespacedService(namespace).execute();
+            return view.getApiProvider().getCoreV1Api().listServiceForAllNamespaces().execute();
+        return view.getApiProvider().getCoreV1Api().listNamespacedService(namespace).execute();
     }
 
     @Data

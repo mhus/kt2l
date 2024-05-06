@@ -35,6 +35,7 @@ import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
+import de.mhus.kt2l.k8s.ApiClientProvider;
 import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -60,7 +61,7 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
 
     private static int maxCachedCharacters = 300000;
     private final Cluster clusterConfig;
-    private final CoreV1Api api;
+    private final ApiClientProvider apiProvider;
     private final Core core;
     private final List<ContainerResource> containers;
     private XTab tab;
@@ -81,9 +82,9 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
     private TextField filterText;
     private String filter = null;
 
-    public PodLogsPanel(Cluster clusterConfig, CoreV1Api api, Core core, List<ContainerResource> containers) {
+    public PodLogsPanel(Cluster clusterConfig, ApiClientProvider apiProvider, Core core, List<ContainerResource> containers) {
         this.clusterConfig = clusterConfig;
-        this.api = api;
+        this.apiProvider = apiProvider;
         this.core = core;
         this.containers = containers;
     }
@@ -289,7 +290,7 @@ public class PodLogsPanel extends VerticalLayout implements XTabListener {
             V1Pod pod = container.getPod();
             String source = pod.getMetadata().getName();
 
-            PodLogs podLogs = new PodLogs(api.getApiClient());
+            PodLogs podLogs = new PodLogs(apiProvider.getClient());
             logStream = podLogs.streamNamespacedPodLog(
                     pod.getMetadata().getNamespace(),
                     pod.getMetadata().getName(),

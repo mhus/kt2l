@@ -68,7 +68,6 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     protected List<T> filteredList = null;
     private String filterText = "";
     protected String namespace;
-    protected CoreV1Api coreApi;
     protected Cluster clusterConfig;
     @Getter // for testing
     protected Grid<T> resourcesGrid;
@@ -97,8 +96,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     }
 
     @Override
-    public void init(CoreV1Api coreApi, Cluster clusterConfig, ResourcesGridPanel view) {
-        this.coreApi = coreApi;
+    public void init(Cluster clusterConfig, ResourcesGridPanel view) {
         this.view = view;
         this.clusterConfig = clusterConfig;
 
@@ -513,7 +511,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                         .resourceType(getManagedResourceType())
                         .selected(selected)
                         .namespace(namespace)
-                        .api(coreApi)
+                        .apiProvider(view.getApiProvider())
                         .clusterConfiguration(clusterConfig)
                         .ui(getView().getCore().ui())
                         .grid(AbstractGrid.this)

@@ -55,7 +55,7 @@ public class ActionDetails implements ResourceAction {
         var namespace = metadata.getNamespace();
         var name = metadata.getName();
 
-        panelService.addDetailsPanel(context.getSelectedTab(), context.getClusterConfiguration(), context.getApi(), context.getResourceType(), selected).select();
+        panelService.addDetailsPanel(context.getSelectedTab(), context.getClusterConfiguration(), context.getApiProvider(), context.getResourceType(), selected).select();
 
     }
 

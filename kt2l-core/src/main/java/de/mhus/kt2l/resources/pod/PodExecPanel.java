@@ -34,6 +34,7 @@ import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.XTab;
 import de.mhus.kt2l.core.XTabListener;
+import de.mhus.kt2l.k8s.ApiClientProvider;
 import de.mhus.kt2l.kscript.Block;
 import de.mhus.kt2l.kscript.RunCompiler;
 import de.mhus.kt2l.kscript.RunContext;
@@ -52,9 +53,9 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
     @Autowired
     private ShellConfiguration shellConfiguration;
 
+    private final ApiClientProvider apiProvider;
     private final ResourceManager<ContainerResource> resourceManager;
     private final Cluster clusterConfig;
-    private final CoreV1Api api;
     private final Core core;
     private XTab tab;
     private AceEditor editor;
@@ -64,10 +65,10 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
     private MenuItem menuItemClear;
     private MenuItem menuItemStop;
 
-    public PodExecPanel(Cluster clusterConfig, CoreV1Api api, Core core, List<ContainerResource> containers) {
+    public PodExecPanel(Cluster clusterConfig, ApiClientProvider apiProvider, Core core, List<ContainerResource> containers) {
+        this.apiProvider = apiProvider;
         this.resourceManager = new ResourceManager(containers, true);
         this.clusterConfig = clusterConfig;
-        this.api = api;
         this.core = core;
     }
 
@@ -195,7 +196,7 @@ public class PodExecPanel extends VerticalLayout implements XTabListener  {
                     text.setValue(s);
                 });
             });
-            context.setApi(api);
+            context.setApiProvider(apiProvider);
             context.setPod(container.getPod());
 
             compiledBlock.run(context, null);

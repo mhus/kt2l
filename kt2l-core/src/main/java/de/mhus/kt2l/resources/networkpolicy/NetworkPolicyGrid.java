@@ -51,7 +51,7 @@ public class NetworkPolicyGrid extends AbstractGrid<NetworkPolicyGrid.Resource, 
 
     @Override
     protected void init() {
-        networkingV1Api = new NetworkingV1Api(coreApi.getApiClient());
+        networkingV1Api = new NetworkingV1Api(view.getApiProvider().getClient());
         eventRegistration = NetworkPolicyWatch.instance(view.getCore(), view.getCluster()).getEventHandler().registerWeak(this::changeEvent);
     }
 
