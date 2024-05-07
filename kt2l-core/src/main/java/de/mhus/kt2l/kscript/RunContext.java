@@ -52,7 +52,7 @@ public class RunContext implements ICloseable {
     private List<Error> errors = new ArrayList<>();
     private StringBuffer content = new StringBuffer();
     @Getter
-    private SecurityContext securityContext = SecurityContext.create();
+    private SecurityContext securityContext = MLang.tryThis(() -> SecurityContext.create()).or(null);
 
     public void setScope(String scope, Scope object) {
         var current = properties.get(RunCompiler.PROP_SCOPE + scope);

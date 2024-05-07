@@ -249,6 +249,7 @@ jobs:
       group: deploy_page
       cancel-in-progress: false
     steps:
+      - uses: actions/checkout@v4
 
 #      - name: Set up JDK 21
 #        uses: actions/setup-java@v3
