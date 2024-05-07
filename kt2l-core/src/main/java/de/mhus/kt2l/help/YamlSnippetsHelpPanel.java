@@ -1,16 +1,13 @@
-package de.mhus.kt2l.resources;
+package de.mhus.kt2l.help;
 
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.help.AbstractGitSnippetsHelpPanel;
-import de.mhus.kt2l.help.HelpConfiguration;
-import de.mhus.kt2l.help.HelpUtil;
 
 import static de.mhus.commons.tools.MString.isSetTrim;
 
-public class ResourceCreateHelpPanel extends AbstractGitSnippetsHelpPanel {
+public class YamlSnippetsHelpPanel extends AbstractGitSnippetsHelpPanel {
 
-    public ResourceCreateHelpPanel(Core core, HelpConfiguration.HelpLink link) {
+    public YamlSnippetsHelpPanel(Core core, HelpConfiguration.HelpLink link) {
         super("yaml", core, link);
     }
 

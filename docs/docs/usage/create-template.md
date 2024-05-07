@@ -24,7 +24,7 @@ Types are
 
 Options and descriptions are optional. The value is the default value for the placeholder and is also optional.
 
-The placeholder `namespace` is always available and is the namespace of the create dialog.
+The placeholder `namespace` is always available and is the namespace of the resources creation panel.
 
 Example:
 

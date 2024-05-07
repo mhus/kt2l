@@ -84,7 +84,7 @@ contexts:
       action: docs
       document: create
     - name: Snippets
-      action: create
+      action: yaml-snippets
       repo: https://github.com/mhus/kt2l-snippets.git
       path: create
     - name: Kubernetes
