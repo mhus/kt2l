@@ -16,16 +16,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-.xtabview .tabitem:hover {
+.desktabview .tabitem:hover {
     background-color: #f2f2f2;
 }
 
-.xtabview .tabtext {
+.desktabview .tabtext {
     overflow-x: hidden;
     width: 100%;
 }
 
-.xtabview .tabitem {
+.desktabview .tabitem {
     background-color: #fff;
     border: 1px solid #f2f2f2;
     padding: 4px;
@@ -33,7 +33,7 @@
     margin-bottom: 0px;
 }
 
-.xtabview .tabicon {
+.desktabview .tabicon {
     width: 24px;
     height: 24px;
     min-width: 24px;
@@ -42,7 +42,7 @@
     max-height: 24px;
 }
 
-.xtabview .tabclose {
+.desktabview .tabclose {
     width: 12px;
     height: 12px;
     min-width: 12px;
@@ -51,11 +51,11 @@
     max-height: 12px;
 }
 
-.xtabview .tabclose:hover {
+.desktabview .tabclose:hover {
     background-color: #aeaeae;
 }
 
-.xtabview .selected {
+.desktabview .selected {
     background-color: #f6f6f6;
 }
 

@@ -30,7 +30,7 @@ public interface ResourcesGrid {
 
     void refresh(long counter);
 
-    void init(Cluster clusterConfig, ResourcesGridPanel view);
+    void init(Cluster cluster, ResourcesGridPanel view);
 
     void setFilter(String value, ResourcesFilter resourcesFilter);
 

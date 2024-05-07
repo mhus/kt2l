@@ -88,8 +88,8 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     }
 
     @Override
-    public void tabInit(DeskTab xTab) {
-        this.tab = xTab;
+    public void tabInit(DeskTab deskTab) {
+        this.tab = deskTab;
 
         maxCachedEntries = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("maxCachedEntries", 1000);
         maxCachedCharacters = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("maxCachedCharacters", 300000);

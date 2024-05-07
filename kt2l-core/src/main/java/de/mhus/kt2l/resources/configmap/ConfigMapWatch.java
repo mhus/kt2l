@@ -48,8 +48,8 @@ public class ConfigMapWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static ConfigMapWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), ConfigMapWatch.class, () -> new ConfigMapWatch());
+    public static ConfigMapWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), ConfigMapWatch.class, () -> new ConfigMapWatch());
     }
 
     private ConfigMapWatch() {

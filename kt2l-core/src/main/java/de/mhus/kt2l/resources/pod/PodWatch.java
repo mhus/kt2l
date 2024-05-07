@@ -48,8 +48,8 @@ public class PodWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static PodWatch instance(Core core, Cluster clusterConfig) {
-        return  core.getBackgroundJob(clusterConfig.getName(), PodWatch.class, () -> new PodWatch());
+    public static PodWatch instance(Core core, Cluster cluster) {
+        return  core.getBackgroundJob(cluster.getName(), PodWatch.class, () -> new PodWatch());
     }
 
     private PodWatch() {

@@ -48,8 +48,8 @@ public class StatefulSetWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static StatefulSetWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), StatefulSetWatch.class, () -> new StatefulSetWatch());
+    public static StatefulSetWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), StatefulSetWatch.class, () -> new StatefulSetWatch());
     }
 
     private StatefulSetWatch() {

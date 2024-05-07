@@ -48,8 +48,8 @@ public class NetworkPolicyWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static NetworkPolicyWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), NetworkPolicyWatch.class, () -> new NetworkPolicyWatch());
+    public static NetworkPolicyWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), NetworkPolicyWatch.class, () -> new NetworkPolicyWatch());
     }
 
     private NetworkPolicyWatch() {

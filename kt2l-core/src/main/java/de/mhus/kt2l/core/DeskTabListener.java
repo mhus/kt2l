@@ -21,7 +21,7 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.component.ShortcutEvent;
 
 public interface DeskTabListener {
-    void tabInit(DeskTab xTab);
+    void tabInit(DeskTab deskTab);
     void tabSelected();
     void tabUnselected();
     void tabDestroyed();

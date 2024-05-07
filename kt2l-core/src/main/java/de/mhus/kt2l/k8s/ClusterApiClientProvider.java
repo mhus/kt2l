@@ -9,7 +9,8 @@ import java.io.IOException;
 public class ClusterApiClientProvider extends ApiProvider {
     private final KubeConfig kubeConfig;
 
-    public ClusterApiClientProvider(KubeConfig kubeConfig) {
+    public ClusterApiClientProvider(KubeConfig kubeConfig, long timeout) {
+        super(timeout);
         this.kubeConfig = kubeConfig;
     }
 

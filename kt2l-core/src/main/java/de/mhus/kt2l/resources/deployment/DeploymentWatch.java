@@ -48,8 +48,8 @@ public class DeploymentWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static DeploymentWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), DeploymentWatch.class, () -> new DeploymentWatch());
+    public static DeploymentWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), DeploymentWatch.class, () -> new DeploymentWatch());
     }
 
     private DeploymentWatch() {

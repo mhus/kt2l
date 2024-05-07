@@ -23,7 +23,8 @@ public class Cluster {
     private final String defaultNamespace;
     private final K8s.RESOURCE defaultResourceType;
     private final UiUtil.COLOR color;
-    private final ITreeNode node;
+    private final ITreeNode config;
+    private final long apiProviderTimeout;
     @Setter
     private List<String> currentNamespaces;
     @Setter
@@ -32,16 +33,16 @@ public class Cluster {
     private K8sService k8sService;
     private ApiProvider apiProvider;
 
-    Cluster(String user, String name, String title, boolean enabled, String defaultNamespace, K8s.RESOURCE defaultResourceType, UiUtil.COLOR color,
-            ITreeNode node) {
+    Cluster(ClusterConfiguration cc, String user, String name, ITreeNode config) {
         this.user = user;
         this.name = name;
-        this.title = title;
-        this.enabled = enabled;
-        this.defaultNamespace = defaultNamespace;
-        this.defaultResourceType = defaultResourceType;
-        this.color = color;
-        this.node = node;
+        this.title = config.getString("title", name);
+        this.enabled = config.getBoolean("enabled", true);
+        this.defaultNamespace = config.getString("defaultNamespace", cc.defaultNamespace());
+        this.defaultResourceType = K8s.toResourceType(config.getString("defaultResourceType", cc.defaultResourceType()));
+        this.color = UiUtil.toColor(config.getString("color", null));
+        this.config = config;
+        this.apiProviderTimeout = config.getLong("apiProviderTimeout", ApiProvider.DEFAULT_TIMEOUT);
     }
 
     void setK8sService(K8sService k8sService) {
@@ -50,7 +51,7 @@ public class Cluster {
 
     public ApiProvider getApiProvider() {
         if (apiProvider ==  null)
-            apiProvider =  tryThis(() -> k8sService.getKubeClient(name)).get();
+            apiProvider =  tryThis(() -> k8sService.getKubeClient(name, apiProviderTimeout)).get();
         return apiProvider;
     }
 

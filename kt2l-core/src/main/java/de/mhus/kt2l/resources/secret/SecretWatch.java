@@ -48,8 +48,8 @@ public class SecretWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static SecretWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), SecretWatch.class, () -> new SecretWatch());
+    public static SecretWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), SecretWatch.class, () -> new SecretWatch());
     }
 
     private SecretWatch() {

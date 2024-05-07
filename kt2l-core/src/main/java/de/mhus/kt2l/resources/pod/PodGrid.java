@@ -116,7 +116,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                                 .ui(getPanel().getCore().ui())
                                 .grid(PodGrid.this)
                                 .core(panel.getCore())
-                                .selectedTab(panel.getXTab())
+                                .selectedTab(panel.getTab())
                                 .build();
 
                         action.execute(context);

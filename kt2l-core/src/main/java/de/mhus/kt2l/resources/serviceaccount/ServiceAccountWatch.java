@@ -48,8 +48,8 @@ public class ServiceAccountWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static ServiceAccountWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), ServiceAccountWatch.class, () -> new ServiceAccountWatch());
+    public static ServiceAccountWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), ServiceAccountWatch.class, () -> new ServiceAccountWatch());
     }
 
     private ServiceAccountWatch() {

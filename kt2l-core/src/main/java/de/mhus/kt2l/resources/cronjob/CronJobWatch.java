@@ -48,8 +48,8 @@ public class CronJobWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static CronJobWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), CronJobWatch.class, () -> new CronJobWatch());
+    public static CronJobWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), CronJobWatch.class, () -> new CronJobWatch());
     }
 
     private CronJobWatch() {

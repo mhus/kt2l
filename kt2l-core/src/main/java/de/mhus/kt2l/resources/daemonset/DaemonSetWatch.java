@@ -48,8 +48,8 @@ public class DaemonSetWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static DaemonSetWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), DaemonSetWatch.class, () -> new DaemonSetWatch());
+    public static DaemonSetWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), DaemonSetWatch.class, () -> new DaemonSetWatch());
     }
 
     private DaemonSetWatch() {

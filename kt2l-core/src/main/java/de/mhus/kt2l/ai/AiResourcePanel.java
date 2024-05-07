@@ -51,7 +51,7 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener {
     }
 
     @Override
-    public void tabInit(DeskTab xTab) {
+    public void tabInit(DeskTab deskTab) {
 
         resources.forEach(resource -> {
 

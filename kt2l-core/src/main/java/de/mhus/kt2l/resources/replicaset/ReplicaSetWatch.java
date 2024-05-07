@@ -48,8 +48,8 @@ public class ReplicaSetWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static ReplicaSetWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), ReplicaSetWatch.class, () -> new ReplicaSetWatch());
+    public static ReplicaSetWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), ReplicaSetWatch.class, () -> new ReplicaSetWatch());
     }
 
     private ReplicaSetWatch() {

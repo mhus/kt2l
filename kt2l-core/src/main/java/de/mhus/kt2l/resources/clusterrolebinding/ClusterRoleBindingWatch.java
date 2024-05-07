@@ -49,8 +49,8 @@ public class ClusterRoleBindingWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static ClusterRoleBindingWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), ClusterRoleBindingWatch.class, () -> new ClusterRoleBindingWatch());
+    public static ClusterRoleBindingWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), ClusterRoleBindingWatch.class, () -> new ClusterRoleBindingWatch());
     }
 
     private ClusterRoleBindingWatch() {

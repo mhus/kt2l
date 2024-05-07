@@ -48,8 +48,8 @@ public class StorageClassWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static StorageClassWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), StorageClassWatch.class, () -> new StorageClassWatch());
+    public static StorageClassWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), StorageClassWatch.class, () -> new StorageClassWatch());
     }
 
     private StorageClassWatch() {

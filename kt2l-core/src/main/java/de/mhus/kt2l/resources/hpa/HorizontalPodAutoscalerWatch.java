@@ -49,8 +49,8 @@ public class HorizontalPodAutoscalerWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static HorizontalPodAutoscalerWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), HorizontalPodAutoscalerWatch.class, () -> new HorizontalPodAutoscalerWatch());
+    public static HorizontalPodAutoscalerWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), HorizontalPodAutoscalerWatch.class, () -> new HorizontalPodAutoscalerWatch());
     }
 
     private HorizontalPodAutoscalerWatch() {

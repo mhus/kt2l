@@ -48,8 +48,8 @@ public class LimitRangeWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static LimitRangeWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), LimitRangeWatch.class, () -> new LimitRangeWatch());
+    public static LimitRangeWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), LimitRangeWatch.class, () -> new LimitRangeWatch());
     }
 
     private LimitRangeWatch() {

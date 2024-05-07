@@ -48,8 +48,8 @@ public class IngressWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static IngressWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), IngressWatch.class, () -> new IngressWatch());
+    public static IngressWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), IngressWatch.class, () -> new IngressWatch());
     }
 
     private IngressWatch() {

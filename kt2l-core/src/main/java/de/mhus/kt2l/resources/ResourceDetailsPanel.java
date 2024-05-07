@@ -89,8 +89,8 @@ public class ResourceDetailsPanel extends VerticalLayout implements DeskTabListe
 
 
     @Override
-    public void tabInit(DeskTab xTab) {
-        this.tab = xTab;
+    public void tabInit(DeskTab deskTab) {
+        this.tab = deskTab;
 
         resType = k8s.findResource(resourceType, apiProvider);
         if (resType == null) {

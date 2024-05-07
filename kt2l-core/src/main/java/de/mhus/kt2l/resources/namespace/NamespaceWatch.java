@@ -48,8 +48,8 @@ public class NamespaceWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static NamespaceWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), NamespaceWatch.class, () -> new NamespaceWatch());
+    public static NamespaceWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), NamespaceWatch.class, () -> new NamespaceWatch());
     }
 
     private NamespaceWatch() {

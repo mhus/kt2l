@@ -48,8 +48,8 @@ public class PersistentVolumeWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static PersistentVolumeWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), PersistentVolumeWatch.class, () -> new PersistentVolumeWatch());
+    public static PersistentVolumeWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), PersistentVolumeWatch.class, () -> new PersistentVolumeWatch());
     }
 
     private PersistentVolumeWatch() {

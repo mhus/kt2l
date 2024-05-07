@@ -72,8 +72,8 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
     }
 
     @Override
-    public void tabInit(DeskTab xTab) {
-        this.tab = xTab;
+    public void tabInit(DeskTab deskTab) {
+        this.tab = deskTab;
 
         xterm = new XTerm();
         xterm.writeln("Start console\n\n");

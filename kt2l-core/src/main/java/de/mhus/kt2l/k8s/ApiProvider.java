@@ -10,10 +10,15 @@ import java.io.IOException;
 @Slf4j
 public abstract class ApiProvider {
 
+    public static final long DEFAULT_TIMEOUT = 1000 * 60 * 5;
     private long refreshAt = 0;
     private ApiClient client = null;
-    private long timeout = 1000 * 60 * 5; //TODO configurable
+    private final long timeout;
     private CoreV1Api coreV1Api;
+
+    protected ApiProvider(long timeout) {
+        this.timeout = timeout;
+    }
 
     public CoreV1Api getCoreV1Api() {
         if (coreV1Api == null)

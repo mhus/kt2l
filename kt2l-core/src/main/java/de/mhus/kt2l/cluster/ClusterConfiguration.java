@@ -35,8 +35,7 @@ import java.util.WeakHashMap;
 @Component
 public class ClusterConfiguration extends AbstractUserRelatedConfig {
 
-    private final Map<String, Cluster> defaultClusters = Collections.synchronizedMap(new HashMap<>());
-    private Map<String, Cluster> clusters;
+    private final Map<String, ClusterInfo> clusterInfos = Collections.synchronizedMap(new WeakHashMap<>());
 
     public ClusterConfiguration() {
 
@@ -57,24 +56,26 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
 
     private synchronized Map<String, Cluster> getClusters() {
 
-        if (clusters != null) return clusters; //XXX refresh if cluster config changes
+        final var clusterInfo = getClusterInfo();
 
-        clusters = Collections.synchronizedMap(new TreeMap<>());
+        if (clusterInfo.clusters != null) return clusterInfo.clusters; //XXX refresh if cluster config changes
+
+        clusterInfo.clusters = Collections.synchronizedMap(new TreeMap<>());
         final var clusterConfig = config().getArray("clusters");
         if (clusterConfig.isPresent())
             clusterConfig.get().forEach(cluster -> {
-                clusters.put(cluster.getString("name").get(), new Cluster(
+                clusterInfo.clusters.put(cluster.getString("name").get(), new Cluster(
+                        this,
                         SecurityContext.lookupUserName(),
                         cluster.getString("name").get(),
-                        cluster.getString("title").orElse(cluster.getString("name").get()),
-                        cluster.getBoolean("enabled").orElse(true),
-                        cluster.getString("defaultNamespace").orElse(defaultNamespace()),
-                        K8s.toResourceType(cluster.getString("defaultResourceType").orElse(defaultResourceType())),
-                        UiUtil.toColor(cluster.getString("color").orElse(null)),
                         cluster
                 ));
             });
-        return clusters;
+        return clusterInfo.clusters;
+    }
+
+    private ClusterInfo getClusterInfo() {
+        return clusterInfos.computeIfAbsent(SecurityContext.lookupUserName(), (n) -> new ClusterInfo(n));
     }
 
 //    Cluster getCluster(String name) {
@@ -90,7 +91,17 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     }
 
     private synchronized Cluster getDefault(String name) {
-        return defaultClusters.computeIfAbsent(name,(n) -> new Cluster(SecurityContext.lookupUserName(), n, n, true, defaultNamespace(), K8s.toResourceType(defaultResourceType()), UiUtil.COLOR.NONE, MTree.EMPTY_MAP));
+        var clusterInfo = getClusterInfo();
+        return clusterInfo.defaultClusters.computeIfAbsent(name,(n) -> new Cluster(this, SecurityContext.lookupUserName(), n, MTree.EMPTY_MAP));
     }
 
+    private class ClusterInfo {
+        private final String name;
+        private final Map<String, Cluster> defaultClusters = Collections.synchronizedMap(new HashMap<>());
+        private Map<String, Cluster> clusters;
+
+        public ClusterInfo(String name) {
+            this.name = name;
+        }
+    }
 }

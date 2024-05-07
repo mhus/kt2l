@@ -28,16 +28,16 @@ public class ShellConfiguration extends  AbstractUserRelatedConfig {
         super("shell");
     }
 
-    public String getShellFor(Cluster clusterConfig, V1Pod pod) {
+    public String getShellFor(Cluster cluster, V1Pod pod) {
         var image = pod.getStatus().getContainerStatuses().get(0).getImage();
-        return getShellFor(clusterConfig, pod, image);
+        return getShellFor(cluster, pod, image);
     }
 
-    public String getShellFor(Cluster clusterConfig, V1Pod pod, String containerImage) {
+    public String getShellFor(Cluster cluster, V1Pod pod, String containerImage) {
         var config = config();
 
-        if (clusterConfig != null) {
-            var clusterShellConfig = clusterConfig.getNode().getObject("shell");
+        if (cluster != null) {
+            var clusterShellConfig = cluster.getConfig().getObject("shell");
             if (clusterShellConfig.isPresent()) {
                 {
                     var entry = clusterShellConfig.get().getString(pod.getMetadata().getNamespace() + "." + pod.getMetadata().getName());

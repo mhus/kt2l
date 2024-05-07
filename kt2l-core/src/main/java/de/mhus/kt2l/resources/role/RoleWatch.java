@@ -49,8 +49,8 @@ public class RoleWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static RoleWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), RoleWatch.class, () -> new RoleWatch());
+    public static RoleWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), RoleWatch.class, () -> new RoleWatch());
     }
 
     private RoleWatch() {

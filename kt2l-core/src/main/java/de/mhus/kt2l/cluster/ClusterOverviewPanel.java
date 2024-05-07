@@ -140,9 +140,9 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     }
 
     @Override
-    public void tabInit(DeskTab xTab) {
+    public void tabInit(DeskTab deskTab) {
         LOGGER.debug("Main Init");
-        this.tab = xTab;
+        this.tab = deskTab;
         createUi();
     }
 

@@ -48,7 +48,6 @@ import io.kubernetes.client.common.KubernetesObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.atmosphere.config.service.Get;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -474,33 +473,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 menuItem.setEnabled(enabled);
             if (contextMenuItem != null)
                 contextMenuItem.setEnabled(enabled);
-//            if (containerContextMenuItem != null)
-//                containerContextMenuItem.setEnabled(enabled);
         }
         public void execute() {
             ExecutionContext context = null;
-//            if (containerGrid.isVisible() && containerGrid.getSelectedItems() != null && containerGrid.getSelectedItems().size() == 1) {
-//
-//                if (!action.canHandleResource(K8sUtil.RESOURCE_CONTAINER, containerGrid.getSelectedItems())) {
-//                    Notification notification = Notification
-//                            .show("Can't execute");
-//                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-//                    return;
-//                }
-//
-//                context = ExecutionContext.builder()
-//                        .resourceType(K8sUtil.RESOURCE_CONTAINER)
-//                        .selected(containerGrid.getSelectedItems())
-//                        .namespace(namespace)
-//                        .api(coreApi)
-//                        .clusterConfiguration(clusterConfig)
-//                        .ui(getView().getCore().ui())
-//                        .grid(PodGrid.this)
-//                        .core(view.getCore())
-//                        .selectedTab(view.getXTab())
-//                        .build();
-//
-//            } else {
+
                 final var selected = resourcesGrid.getSelectedItems().stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet());
                 if (!action.canHandleResource(getManagedResourceType(), selected )) {
                     UiUtil.showErrorNotification("Can't execute action");
@@ -514,7 +490,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                         .ui(getPanel().getCore().ui())
                         .grid(AbstractGrid.this)
                         .core(panel.getCore())
-                        .selectedTab(panel.getXTab())
+                        .selectedTab(panel.getTab())
                         .build();
 //            }
             execute (context);

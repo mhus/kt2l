@@ -48,8 +48,8 @@ public class JobWatch extends ClusterBackgroundJob {
     private Thread watchThread;
     private String clusterId;
 
-    public static JobWatch instance(Core core, Cluster clusterConfig) {
-        return core.getBackgroundJob(clusterConfig.getName(), JobWatch.class, () -> new JobWatch());
+    public static JobWatch instance(Core core, Cluster cluster) {
+        return core.getBackgroundJob(cluster.getName(), JobWatch.class, () -> new JobWatch());
     }
 
     private JobWatch() {

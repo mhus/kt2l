@@ -8,6 +8,10 @@ import java.io.IOException;
 public class DefaultClientApiClientProvider extends ApiProvider {
 
 
+    protected DefaultClientApiClientProvider(long timeout) {
+        super(timeout);
+    }
+
     @Override
     protected ApiClient createClient() throws IOException {
         return Config.defaultClient();

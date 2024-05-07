@@ -71,8 +71,8 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener {
     }
 
     @Override
-    public void tabInit(DeskTab xTab) {
-        this.tab = xTab;
+    public void tabInit(DeskTab deskTab) {
+        this.tab = deskTab;
 
         var menuBar = new MenuBar();
         resourceManager.injectMenu(menuBar);

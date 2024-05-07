@@ -130,7 +130,7 @@ public class AremoricaK8sService extends K8sService {
 
     public ApiProvider getKubeClient(String contextName) throws IOException {
         if ("aremorica".equals(contextName)) {
-            return new ApiProvider() {
+            return new ApiProvider(ApiProvider.DEFAULT_TIMEOUT) {
                 @Override
                 protected ApiClient createClient() throws IOException {
                     return Config.fromConfig(new StringReader(k3s.getKubeConfigYaml()));

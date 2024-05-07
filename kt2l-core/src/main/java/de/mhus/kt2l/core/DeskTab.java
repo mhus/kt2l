@@ -88,7 +88,7 @@ public class DeskTab extends HorizontalLayout {
         panel = null;
     }
 
-    public void setXTabViewer(DeskTabBar tabViewer) {
+    public void setTabViewer(DeskTabBar tabViewer) {
         this.viewer = tabViewer;
         viewer.getCore().getBeanFactory().autowireBean(panel);
     }

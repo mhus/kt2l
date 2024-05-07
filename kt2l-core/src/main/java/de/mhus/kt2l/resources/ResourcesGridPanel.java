@@ -34,7 +34,6 @@ import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.cluster.ClusterService;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.Core;
@@ -42,14 +41,12 @@ import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.generic.GenericGrid;
 import de.mhus.kt2l.resources.generic.GenericGridFactory;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
 import io.kubernetes.client.openapi.models.V1APIResource;
-import io.vavr.control.Try;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +92,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     @Getter
     private K8s.RESOURCE currentResourceType;
     @Getter
-    private DeskTab xTab;
+    private DeskTab tab;
     private ResourcesFilter resourcesFilter;
     private Button resourceFilterButton;
     private IRegistration namespaceEventRegistration;
@@ -257,8 +254,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     }
 
     @Override
-    public void tabInit(DeskTab xTab) {
-        this.xTab = xTab;
+    public void tabInit(DeskTab deskTab) {
+        this.tab = deskTab;
         LOGGER.info("ClusterId: {}",clusterId);
         cluster = clusterService.getCluster(clusterId);
         currentResourceType = cluster.getDefaultResourceType();

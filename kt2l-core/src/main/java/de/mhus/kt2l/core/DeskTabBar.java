@@ -41,7 +41,7 @@ public class DeskTabBar extends VerticalLayout {
     public DeskTabBar(Core core) {
         setWidthFull();
         this.core = core;
-        addClassName("xtabview");
+        addClassName("desktabview");
     }
 
     synchronized DeskTab addTab(String id, String title, boolean closeable, boolean unique, Icon icon, Supplier<Component> panelCreator) {
@@ -57,7 +57,7 @@ public class DeskTabBar extends VerticalLayout {
 
     public synchronized DeskTab addTab(DeskTab tab) {
         tabs.add(tab);
-        tab.setXTabViewer(this);
+        tab.setTabViewer(this);
         add(tab);
 
         if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener) {
