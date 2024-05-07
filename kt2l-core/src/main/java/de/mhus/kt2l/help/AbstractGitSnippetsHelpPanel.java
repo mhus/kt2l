@@ -119,7 +119,7 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
             return;
         }
 
-        var targetDir = new File(configuration.getTmpDirectoryFile(), "git_" + MFile.normalize(repo.get()));
+        var targetDir = new File(configuration.getTmpDirectoryFile(), "git_" + MFile.normalize(repo.get()) + "_" + MFile.normalize(branch) );
         if (!targetDir.exists()) {
             LOGGER.info("Clone {} to {}", repo, targetDir);
             try (Git result = Git.cloneRepository()

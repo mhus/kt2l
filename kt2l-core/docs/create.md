@@ -1,3 +1,5 @@
-# Details
+# Create
 
-<a href="https://kubernetes.io/docs/concepts/workloads/pods/" target="_blank">Pods</a>
+Create resources using yaml definitions.
+
+For details see the Kubernetes documentation or use the Snippets feature in the help menu.
