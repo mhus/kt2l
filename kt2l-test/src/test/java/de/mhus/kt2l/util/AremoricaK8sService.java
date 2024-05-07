@@ -104,6 +104,7 @@ public class AremoricaK8sService extends K8sService {
                     .addToLabels("app", name)
                 .endMetadata()
                 .withNewSpec()
+                    .withOverhead(null)
                     .addNewContainer()
                         .withName(name)
                         .withImage(image)
@@ -113,6 +114,7 @@ public class AremoricaK8sService extends K8sService {
                 .endSpec()
                 .build();
 
+        api.getApiClient().setDebugging(true);
         return api.createNamespacedPod(namespace, pod).execute();
     }
 

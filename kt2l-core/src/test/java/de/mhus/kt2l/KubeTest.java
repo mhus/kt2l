@@ -79,6 +79,35 @@ public class KubeTest {
     }
 
     @Test
+    public void createPod() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+
+        final var service = new K8sService();
+        ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
+        apiProvider.getClient().setDebugging(true);
+        apiProvider.getCoreV1Api().createNamespacedPod("default",
+                new V1PodBuilder()
+                .withNewMetadata()
+                .withName("test-pod-" + System.currentTimeMillis())
+                .endMetadata()
+                .withNewSpec()
+                .withOverhead(null)
+                .addNewContainer()
+                .withName("test-container")
+                .withImage("nginx")
+                .endContainer()
+                .endSpec()
+                .build()
+        ).execute();
+
+
+    }
+
+    @Test
     public void getNamespacesAsync() throws IOException, ApiException {
 
         if (CLUSTER_NAME == null) {
