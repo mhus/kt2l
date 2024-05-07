@@ -19,7 +19,20 @@
 package de.mhus.kt2l.help;
 
 public interface HelpResourceConnector {
+    /**
+     * Return the help content for the current editor.
+     * Use this method in Vaadin UI thread.
+     *
+     * @return help content or null if not available
+     */
     String getHelpContent();
-    boolean canSetHelpContent();
     void setHelpContent(String content);
+
+    /**
+     * Return the cursor position in the current editor to insert content or -1 if not available.
+     * Use this method in Vaadin UI thread.
+     *
+     * @return cursor position or -1
+     */
+    int getHelpCursorPos();
 }

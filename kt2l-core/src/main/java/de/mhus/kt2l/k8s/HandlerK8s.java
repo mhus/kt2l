@@ -22,7 +22,6 @@ import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Status;
 
 public interface HandlerK8s {
@@ -37,7 +36,7 @@ public interface HandlerK8s {
 
     void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException;
 
-    V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException;
+    Object delete(ApiProvider apiProvider, String name, String namespace) throws ApiException;
 
     default void checkDeleteAccess(SecurityService securityService, K8s.RESOURCE resource) throws ApiException {
         var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE_DELETE);
@@ -45,4 +44,5 @@ public interface HandlerK8s {
             throw new ApiException(403, "Access denied for non admin users");
     }
 
+    Object create(ApiProvider apiProvider, String yaml) throws ApiException;
 }

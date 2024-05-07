@@ -53,7 +53,7 @@ public class K8s {
     public static RESOURCE toResourceType(String resourceType) {
         if (isEmpty(resourceType))
             throw new NullPointerException("Resource type is empty");
-        return Arrays.stream(RESOURCE.values()).filter(r -> r.resourceType().equals(resourceType)).findFirst()
+        return Arrays.stream(RESOURCE.values()).filter(r -> r.resourceType().equals(resourceType) || r.kind().equals(resourceType)).findFirst()
                 .orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resourceType));
     }
 

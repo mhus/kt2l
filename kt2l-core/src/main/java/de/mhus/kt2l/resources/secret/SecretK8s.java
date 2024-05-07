@@ -56,4 +56,13 @@ public class SecretK8s implements HandlerK8s {
         return apiProvider.getCoreV1Api().deleteNamespacedSecret(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1Secret.class);
+        return apiProvider.getCoreV1Api().createNamespacedSecret(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

@@ -59,4 +59,14 @@ public class IngressK8s implements HandlerK8s {
         return networkingV1Api.deleteNamespacedIngress(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1Ingress.class);
+        NetworkingV1Api networkingV1Api = new NetworkingV1Api(apiProvider.getClient());
+        return networkingV1Api.createNamespacedIngress(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

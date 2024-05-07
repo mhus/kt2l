@@ -79,3 +79,14 @@ contexts:
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/
+  create:
+    - name: Create
+      action: docs
+      document: create
+    - name: Snippets
+      action: create
+      repo: https://github.com/mhus/kt2l-snippets.git
+      path: create
+    - name: Kubernetes
+      action: link
+      href: https://kubernetes.io/docs/home/

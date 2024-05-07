@@ -108,3 +108,13 @@ open http://localhost:27017
 
 ```
 
+# Create test data
+
+```bash
+# Create a lot of pods
+for i in {1..100}; do kubectl run test-$i --image mhus/example-dice:latest --env "INFINITE=true"; done
+
+# Create a lot of namespaces
+for i in {1..100}; do kubectl create namespace "test-$i"; done
+
+```

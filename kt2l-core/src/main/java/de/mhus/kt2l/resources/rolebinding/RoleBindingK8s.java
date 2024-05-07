@@ -59,4 +59,14 @@ public class RoleBindingK8s implements HandlerK8s {
         return authenticationV1Api.deleteNamespacedRoleBinding(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1RoleBinding.class);
+        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(apiProvider.getClient());
+        return authenticationV1Api.createNamespacedRoleBinding(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

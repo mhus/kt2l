@@ -40,10 +40,10 @@ public class HelpUtil {
     private volatile static boolean editMode;
     private static Button editButton;
 
-    public static Optional<HelpResourceConnector> getHelpResourceConnector(Core view) {
+    public static Optional<HelpResourceConnector> getHelpResourceConnector(Core core) {
         return Optional.ofNullable(
                 MLang.tryThis(() -> {
-                    var selectedPanel = view.getTabBar().getSelectedTab().getPanel();
+                    var selectedPanel = core.getTabBar().getSelectedTab().getPanel();
                     if (selectedPanel instanceof HelpResourceConnector connector) {
                         return connector;
                     }
@@ -54,16 +54,12 @@ public class HelpUtil {
         );
     }
 
-    public static boolean canSetHelpContent(Core view) {
-        return getHelpResourceConnector(view).map(HelpResourceConnector::canSetHelpContent).orElse(false);
-    }
-
-    public static void setResourceContent(Core view, String newContent) {
+    public static void setResourceContent(Core core, String newContent) {
         if (newContent == null) return;
-        getHelpResourceConnector(view).ifPresent(connector -> {
-            if (!connector.canSetHelpContent()) return;
+        getHelpResourceConnector(core).ifPresent(connector -> {
 
             var current = connector.getHelpContent();
+            if (current == null) return;
 
             var diff = calculateDiff(current, newContent);
 
@@ -99,13 +95,13 @@ public class HelpUtil {
 
             Button cancelButton = new Button("Cancel", e -> {
                 dialog.close();
-                view.getUI().get().remove(dialog);
+                core.getUI().get().remove(dialog);
             });
             dialog.getFooter().add(cancelButton);
 
             Button useButton = new Button("Use", e -> {
                 dialog.close();
-                view.getUI().get().remove(dialog);
+                core.getUI().get().remove(dialog);
                 if (editMode)
                     connector.setHelpContent(aceEdit.getValue());
                 else

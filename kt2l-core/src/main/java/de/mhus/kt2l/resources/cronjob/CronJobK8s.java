@@ -59,4 +59,14 @@ public class CronJobK8s implements HandlerK8s {
         return batchV1Api.deleteNamespacedCronJob(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1CronJob.class);
+        BatchV1Api batchV1Api = new BatchV1Api(apiProvider.getClient());
+        return batchV1Api.createNamespacedCronJob(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

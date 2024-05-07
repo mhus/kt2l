@@ -57,4 +57,12 @@ public class PersistentVolumeK8s implements HandlerK8s {
         apiProvider.getCoreV1Api().deletePersistentVolume(name).execute();
         return new V1Status(); //XXX
     }
+
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1PersistentVolume.class);
+        return apiProvider.getCoreV1Api().createPersistentVolume(
+                body
+        ).execute();
+    }
 }

@@ -55,4 +55,12 @@ public class NamespaceK8s implements HandlerK8s {
         checkDeleteAccess(securityService, K8s.RESOURCE.NAMESPACE);
         return apiProvider.getCoreV1Api().deleteNamespace(name).execute();
     }
+
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1Namespace.class);
+        return apiProvider.getCoreV1Api().createNamespace(
+                body
+        ).execute();
+    }
 }

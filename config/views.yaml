@@ -25,3 +25,5 @@ core:
     autoExtend: true
     autoExtendWaitSeconds: 5
     notifyBeforeSeconds: 90
+snippets:
+  maxVisibleResults: 30

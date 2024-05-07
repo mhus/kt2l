@@ -59,4 +59,14 @@ public class NetworkPolicyK8s implements HandlerK8s {
         return networkingV1Api.deleteNamespacedNetworkPolicy(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1NetworkPolicy.class);
+        NetworkingV1Api networkingV1Api = new NetworkingV1Api(apiProvider.getClient());
+        return networkingV1Api.createNamespacedNetworkPolicy(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

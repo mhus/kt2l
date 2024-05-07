@@ -291,16 +291,12 @@ public class ResourceDetailsPanel extends VerticalLayout implements DeskTabListe
 
     @Override
     public String getHelpContent() {
-
+        if (resYamlEditor.isReadOnly())
+            return null;
         return
             "kind: " + resType.getKind() + "\n" +
             "apiVersion: " + resType.getVersion() + "\n"
             + resYamlEditor.getValue();
-    }
-
-    @Override
-    public boolean canSetHelpContent() {
-        return !resYamlEditor.isReadOnly();
     }
 
     @Override
@@ -311,5 +307,10 @@ public class ResourceDetailsPanel extends VerticalLayout implements DeskTabListe
         getUI().get().access(() -> {
             resYamlEditor.setValue(contentFinal);
         });
+    }
+
+    @Override
+    public int getHelpCursorPos() {
+        return resYamlEditor.getCursorPosition().getIndex();
     }
 }

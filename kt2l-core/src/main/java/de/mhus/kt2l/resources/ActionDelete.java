@@ -18,12 +18,16 @@
 
 package de.mhus.kt2l.resources;
 
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.core.ProgressDialog;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
@@ -86,18 +90,31 @@ public class ActionDelete implements ResourceAction {
     }
 
     private void deleteItems(ExecutionContext context) {
-        context.setNeedGridRefresh(true);
-        LOGGER.info("Delete pod");
-        context.getSelected().forEach(o -> {
-            try {
-                var handler = k8s.getResourceHandler(K8s.toResource(o, context.getCluster() ));
-                handler.delete(context.getCluster().getApiProvider(), o.getMetadata().getName(), o.getMetadata().getNamespace());
-            } catch (Exception e) {
-                LOGGER.error("delete resource {}", o, e);
-                context.getErrors().add(e);
-            }
+        LOGGER.info("Delete resources");
+
+        ProgressDialog dialog = new ProgressDialog();
+        dialog.setHeaderTitle("Delete " + context.getSelected().size() + " " + (context.getSelected().size() > 1 ? "Items": "Item") + "?");
+        dialog.setMax(context.getSelected().size());
+        dialog.open();
+
+        Thread.startVirtualThread(() -> {
+            context.getSelected().forEach(o -> {
+                try (var sce = context.getSecurityContext().enter()) {
+                    context.getUi().access(() -> {
+                        dialog.setProgress(dialog.getProgress()+1, o.getMetadata().getNamespace() + "." + o.getMetadata().getName());
+                    });
+                    var handler = k8s.getResourceHandler(K8s.toResource(o, context.getCluster()));
+                    handler.delete(context.getCluster().getApiProvider(), o.getMetadata().getName(), o.getMetadata().getNamespace());
+                } catch (Exception e) {
+                    LOGGER.error("delete resource {}", o, e);
+                    context.getErrors().add(e);
+                }
+            });
+            context.getUi().access(() -> {
+                dialog.close();
+            });
+            context.finished();
         });
-        context.finished();
     }
 
     @Override

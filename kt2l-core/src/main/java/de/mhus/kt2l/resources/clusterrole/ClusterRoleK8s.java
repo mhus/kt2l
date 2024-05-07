@@ -53,10 +53,19 @@ public class ClusterRoleK8s implements HandlerK8s {
     }
 
     @Override
-    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
+    public Object delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
         // this is dangerous ... deny!
         checkDeleteAccess(securityService, K8s.RESOURCE.CLUSTER_ROLE);
         RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(apiProvider.getClient());
         return authenticationV1Api.deleteClusterRole(name).execute();
+    }
+
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1ClusterRole.class);
+        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(apiProvider.getClient());
+        return authenticationV1Api.createClusterRole(
+                body
+        ).execute();
     }
 }

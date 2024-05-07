@@ -59,4 +59,14 @@ public class DeploymentK8s implements HandlerK8s {
         return appsV1Api.deleteNamespacedDeployment(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1Deployment.class);
+        AppsV1Api appsV1Api = new AppsV1Api(apiProvider.getClient());
+        return appsV1Api.createNamespacedDeployment(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

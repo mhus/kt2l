@@ -59,4 +59,14 @@ public class JobK8s implements HandlerK8s {
         return batchV1Api.deleteNamespacedJob(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1Job.class);
+        BatchV1Api batchV1Api = new BatchV1Api(apiProvider.getClient());
+        return batchV1Api.createNamespacedJob(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

@@ -57,4 +57,13 @@ public class ServiceAccountK8s implements HandlerK8s {
         return new V1Status(); //XXX
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1ServiceAccount.class);
+        return apiProvider.getCoreV1Api().createNamespacedServiceAccount(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

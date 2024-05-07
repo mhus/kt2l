@@ -341,11 +341,11 @@ public class Core extends AppLayout {
         return helpActions.stream().filter(a -> a.canHandle(link)).findFirst().orElse(null);
     }
 
-    public void showHelp() {
+    public void showHelp(boolean setDefaultDocu) {
         if (!helpConfiguration.isEnabled()) return;
         if (helpContent.isVisible()) return;
         helpContent.setVisible(true);
-        updateHelpMenu(true);
+        updateHelpMenu(setDefaultDocu);
     }
 
     private Component createLogo() {
@@ -461,14 +461,15 @@ public class Core extends AppLayout {
         helpContent.removeAll();
         helpContent.add(helpBrowser);
         helpBrowser.setSrc(url);
-        showHelp();
+        showHelp(true);
         helpBrowser.reload();
     }
     public void setHelpPanel(Component helpComponent) {
         if (!helpConfiguration.isEnabled()) return;
+        beanFactory.autowireBean(helpComponent);
         helpContent.removeAll();
         helpContent.add(helpComponent);
-        showHelp();
+        showHelp(false);
     }
 
     public UI ui() {

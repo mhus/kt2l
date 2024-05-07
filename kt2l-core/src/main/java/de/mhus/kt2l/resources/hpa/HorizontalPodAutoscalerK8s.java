@@ -59,4 +59,14 @@ public class HorizontalPodAutoscalerK8s implements HandlerK8s {
         return autoscalingApi.deleteNamespacedHorizontalPodAutoscaler(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1HorizontalPodAutoscaler.class);
+        var autoscalingApi = new AutoscalingV1Api(apiProvider.getClient());
+        return autoscalingApi.createNamespacedHorizontalPodAutoscaler(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

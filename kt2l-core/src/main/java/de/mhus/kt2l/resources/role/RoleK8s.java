@@ -60,4 +60,14 @@ public class RoleK8s implements HandlerK8s {
         return authenticationV1Api.deleteNamespacedRole(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1Role.class);
+        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(apiProvider.getClient());
+        return authenticationV1Api.createNamespacedRole(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

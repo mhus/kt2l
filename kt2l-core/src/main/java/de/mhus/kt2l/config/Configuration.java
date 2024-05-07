@@ -21,11 +21,13 @@ package de.mhus.kt2l.config;
 import de.mhus.commons.io.Zip;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MFile;
+import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNode;
 import de.mhus.kt2l.generated.DeployInfo;
 import io.vavr.control.Try;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -38,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static de.mhus.commons.tools.MCollection.toSet;
+import static de.mhus.commons.tools.MString.isEmpty;
 import static de.mhus.commons.tools.MString.isSet;
 
 @Component
@@ -59,10 +62,15 @@ public class Configuration {
     @Value("${configuration.create:false}")
     private boolean createConfiguration;
 
+    @Value("${configuration.tmpDirectory:}")
+    private String tmpDirectory;
+
     private static final Set<String> protectedConfigs = Collections.synchronizedSet(toSet("users", "aaa", "login"));
 
     private Map<String, ITreeNode> sections = new HashMap<>();
     private File configurationDirectoryFile;
+    @Getter
+    private File tmpDirectoryFile;
 
     @PostConstruct
     public void init() {
@@ -74,6 +82,13 @@ public class Configuration {
         if (createConfiguration) {
             initHomeConfiguration();
         }
+
+        if (isEmpty(tmpDirectory)) {
+            tmpDirectoryFile = new File(MSystem.getTmpDirectory());
+        } else {
+            tmpDirectoryFile = new File(tmpDirectory);
+        }
+        LOGGER.info("Tmp directory is {}", tmpDirectoryFile.getAbsolutePath());
 
         configurationDirectoryFile = new File(configurationDirectory);
         LOGGER.info("Configuration initialized on {}", configurationDirectoryFile.getAbsolutePath());

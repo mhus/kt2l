@@ -56,4 +56,13 @@ public class LimitRangeK8s implements HandlerK8s {
         return apiProvider.getCoreV1Api().deleteNamespacedLimitRange(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1LimitRange.class);
+        return apiProvider.getCoreV1Api().createNamespacedLimitRange(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

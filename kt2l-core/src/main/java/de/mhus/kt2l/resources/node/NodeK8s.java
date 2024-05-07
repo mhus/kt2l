@@ -58,4 +58,12 @@ public class NodeK8s implements HandlerK8s {
         checkDeleteAccess(securityService, K8s.RESOURCE.NODE);
         return apiProvider.getCoreV1Api().deleteNode(name).execute();
     }
+
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        // this is dangerous ... deny! - or stupid?
+        checkDeleteAccess(securityService, K8s.RESOURCE.NODE);
+        var body = Yaml.loadAs(yaml, V1Node.class);
+        return apiProvider.getCoreV1Api().createNode(body).execute();
+    }
 }

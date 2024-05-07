@@ -246,4 +246,9 @@ public class GenericObjectsApi {
             throw new InternalRuntimeException(e);
         }
     }
+
+    public Object create(String yaml) {
+        //XXX
+        return null;
+    }
 }

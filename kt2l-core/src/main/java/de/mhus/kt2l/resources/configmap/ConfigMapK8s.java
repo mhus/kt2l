@@ -56,4 +56,13 @@ public class ConfigMapK8s implements HandlerK8s {
         return apiProvider.getCoreV1Api().deleteNamespacedConfigMap(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1ConfigMap.class);
+        return apiProvider.getCoreV1Api().createNamespacedConfigMap(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }

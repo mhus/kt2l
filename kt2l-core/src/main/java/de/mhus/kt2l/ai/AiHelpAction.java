@@ -46,7 +46,6 @@ public class AiHelpAction implements HelpAction {
         panel.setSizeFull();
         core.setHelpPanel(panel);
         panel.getPrompt().focus();
-
     }
 
     @Override

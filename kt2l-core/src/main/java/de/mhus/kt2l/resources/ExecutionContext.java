@@ -24,6 +24,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
@@ -43,28 +44,30 @@ public class ExecutionContext {
     private Set<? extends KubernetesObject> selected;
     private String namespace;
     private Cluster cluster;
-    @Setter
-    private boolean needGridRefresh;
-    private List<Exception> errors = new LinkedList<>();
+//    @Setter
+//    private boolean needGridRefresh;
+    private final List<Exception> errors = new LinkedList<>();
     private ResourcesGrid grid;
     private Core core;
     private DeskTab selectedTab;
+    private final SecurityContext securityContext = SecurityContext.create();
 
     public void finished() {
-        if (errors.size() > 1) {
-            Notification notification = Notification
-                    .show("Error\n"+errors); //XXX
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        } else {
-            Notification notification = Notification
-                    .show("Completed!");
-            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        getUi().access(() -> {
+            if (errors.size() > 0) {
+                Notification notification = Notification
+                        .show("Error\n"+errors); //XXX
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            } else {
+                Notification notification = Notification
+                        .show("Completed!");
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
-            if (isNeedGridRefresh()) {
-                grid.refresh(0);
+//                if (isNeedGridRefresh()) {
+//                    grid.refresh(0);
+//                }
             }
-
-        }
+        });
     }
 
 }

@@ -45,4 +45,10 @@ public class GenericK8s implements HandlerK8s {
         genericApi.delete(name, namespace);
         return new V1Status(); //XXX
     }
+
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
+        return genericApi.create(yaml);
+    }
 }

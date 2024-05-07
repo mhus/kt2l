@@ -61,4 +61,13 @@ public class StorageClassK8s implements HandlerK8s {
         storageApi.deleteStorageClass(name).execute();
         return new V1Status(); // XXX
     }
+
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1StorageClass.class);
+        var storageApi = new StorageV1Api(apiProvider.getClient());
+        return storageApi.createStorageClass(
+                body
+        ).execute();
+    }
 }

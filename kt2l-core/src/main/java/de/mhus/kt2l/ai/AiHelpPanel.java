@@ -116,7 +116,7 @@ public class AiHelpPanel extends VerticalLayout {
                 text.setValue(text.getValue() + "<<< " + answer + "\n");
                 prompt.setReadOnly(false);
                 prompt.clear();
-                menuItemUse.setEnabled(lastResult != null && HelpUtil.canSetHelpContent(view) );
+                menuItemUse.setEnabled(lastResult != null );
             });
         });
     }

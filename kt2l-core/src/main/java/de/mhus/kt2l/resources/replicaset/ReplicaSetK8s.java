@@ -59,4 +59,14 @@ public class ReplicaSetK8s implements HandlerK8s {
         return appsV1Api.deleteNamespacedReplicaSet(name, namespace).execute();
     }
 
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1ReplicaSet.class);
+        AppsV1Api appsV1Api = new AppsV1Api(apiProvider.getClient());
+        return appsV1Api.createNamespacedReplicaSet(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }
