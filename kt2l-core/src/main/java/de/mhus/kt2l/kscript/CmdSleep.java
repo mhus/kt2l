@@ -24,7 +24,7 @@ import de.mhus.commons.tree.IReadonly;
 public class CmdSleep extends Cmd {
     @Override
     void run(RunContext context, IReadonly args) throws Exception {
-        Thread.sleep(MPeriod.toTime(args.getString("time").orElse("0"), 0));
+        Thread.sleep(MPeriod.parseInterval(args.getString("time").orElse("0"), 0));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package de.mhus.kt2l.cluster;
 
+import de.mhus.commons.tools.MPeriod;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.ApiProvider;
@@ -42,7 +43,7 @@ public class Cluster {
         this.defaultResourceType = K8s.toResourceType(config.getString("defaultResourceType", cc.defaultResourceType()));
         this.color = UiUtil.toColor(config.getString("color", null));
         this.config = config;
-        this.apiProviderTimeout = config.getLong("apiProviderTimeout", ApiProvider.DEFAULT_TIMEOUT);
+        this.apiProviderTimeout = MPeriod.parseInterval(config.getString( "apiProviderTimeout"), ApiProvider.DEFAULT_TIMEOUT);
     }
 
     void setK8sService(K8sService k8sService) {

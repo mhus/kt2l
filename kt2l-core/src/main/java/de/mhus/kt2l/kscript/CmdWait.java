@@ -28,7 +28,7 @@ public class CmdWait extends Cmd {
 
     @Override
     public void run(RunContext context, IReadonly args) throws TimeoutException {
-        var timeout = MPeriod.toTime(args.getString("timeout").orElse("60000"), 60000);
+        var timeout = MPeriod.parseInterval(args.getString("timeout").orElse("60000"), 60000);
         var content = args.getString("content", null);
         var stdin = args.getString("stdin", null);
         var stderr = args.getString("stderr", null);
