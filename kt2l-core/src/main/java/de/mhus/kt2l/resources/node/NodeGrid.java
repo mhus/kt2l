@@ -24,6 +24,7 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
+import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
@@ -31,7 +32,6 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.openapi.models.V1NodeList;
 import io.kubernetes.client.util.Watch;
-import io.vavr.control.Try;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +41,8 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
+
+import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
 public class NodeGrid extends AbstractGrid<NodeGrid.Resource, Component> {
@@ -59,7 +61,7 @@ public class NodeGrid extends AbstractGrid<NodeGrid.Resource, Component> {
         if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
 
             AtomicBoolean added = new AtomicBoolean(false);
-            final var foundRes = resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
+            final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
                         final var res = new Resource(
                                 event.object.getMetadata().getName(),
@@ -71,7 +73,7 @@ public class NodeGrid extends AbstractGrid<NodeGrid.Resource, Component> {
                         added.set(true);
                         return res;
                     }
-            );
+            ));
 
             foundRes.setStatus(event.object.getStatus().getPhase());
             foundRes.setResource(event.object);
@@ -82,13 +84,15 @@ public class NodeGrid extends AbstractGrid<NodeGrid.Resource, Component> {
                 getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
-            resourcesList.forEach(res -> {
-                if (res.getName().equals(event.object.getMetadata().getName())) {
-                    resourcesList.remove(res);
-                    filterList();
-                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-                }
-            });
+            synchronized (resourcesList) {
+                resourcesList.forEach(res -> {
+                    if (res.getName().equals(event.object.getMetadata().getName())) {
+                        resourcesList.remove(res);
+                        filterList();
+                        getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                    }
+                });
+            }
         }
 
     }
@@ -191,18 +195,20 @@ public class NodeGrid extends AbstractGrid<NodeGrid.Resource, Component> {
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            Try.of(() -> createRawResourceList() )
-                                    .onFailure(e -> LOGGER.error("Can't fetch resources from cluster",e))
-                                    .onSuccess(list -> {
-                                        list.getItems().forEach(res -> {
-                                            NodeGrid.this.resourcesList.add(new Resource(
-                                                    res.getMetadata().getName(),
-                                                    res.getMetadata().getName(), //XXX
-                                                    res.getMetadata().getCreationTimestamp().toEpochSecond(),
-                                                    res
-                                            ));
+                            synchronized (resourcesList) {
+                                tryThis(() -> createRawResourceList())
+                                        .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
+                                        .onSuccess(list -> {
+                                            list.getItems().forEach(res -> {
+                                                NodeGrid.this.resourcesList.add(new Resource(
+                                                        res.getMetadata().getName(),
+                                                        res.getMetadata().getName(), //XXX
+                                                        res.getMetadata().getCreationTimestamp().toEpochSecond(),
+                                                        res
+                                                ));
+                                            });
                                         });
-                                    });
+                            }
                         }
                         filterList();
                         return filteredList.size();

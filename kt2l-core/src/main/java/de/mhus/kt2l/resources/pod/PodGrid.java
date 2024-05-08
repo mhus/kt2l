@@ -43,21 +43,27 @@ import io.kubernetes.client.openapi.models.V1ContainerStatus;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.Watch;
-import io.vavr.control.Try;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
+public class PodGrid extends AbstractGrid<PodGrid.Resource,Grid<PodGrid.Container>> {
 
     public enum CONTAINER_TYPE {DEFAULT, INIT, EPHEMERAL};
     private List<Container> containerList = null;
-    private Pod containerSelectedPod;
+    private Resource containerSelectedPod;
     private IRegistration podEventRegistration;
 
     protected void createDetailsComponent() {
@@ -80,7 +86,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         detailsComponent.setVisible(false);
         detailsComponent.addSelectionListener(event -> {
             if (detailsComponent.isVisible()) {
-                final var selected = detailsComponent.getSelectedItems().stream().map(s -> new PodGrid.Pod(s.getPod())).collect(Collectors.toSet());
+                final var selected = detailsComponent.getSelectedItems().stream().map(s -> new Resource(s.getPod())).collect(Collectors.toSet());
                 actions.forEach(a -> a.updateWithResources(selected));
             }
         });
@@ -127,16 +133,16 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
     }
 
     @Override
-    protected void onDetailsChanged(Pod item) {
+    protected void onDetailsChanged(Resource item) {
         setContainerPod(item);
     }
 
     @Override
-    protected void onShowDetails(Pod item, boolean flip) {
+    protected void onShowDetails(Resource item, boolean flip) {
         flipContainerVisibility(item, flip, !flip);
     }
 
-    private void flipContainerVisibility(Pod pod, boolean flip, boolean focus) {
+    private void flipContainerVisibility(Resource pod, boolean flip, boolean focus) {
         containerList = null;
         containerSelectedPod = null;
         detailsComponent.setVisible(!flip || !detailsComponent.isVisible());
@@ -159,11 +165,11 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
     }
 
     @Override
-    protected Class<Pod> getManagedClass() {
-        return Pod.class;
+    protected Class<Resource> getManagedClass() {
+        return Resource.class;
     }
 
-    protected void onGridCellFocusChanged(PodGrid.Pod item) {
+    protected void onGridCellFocusChanged(Resource item) {
         if (detailsComponent.isVisible()) {
             containerSelectedPod = item;
             containerList = null;
@@ -177,12 +183,12 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
     }
 
     @Override
-    protected boolean filterByRegex(Pod pod, String f) {
+    protected boolean filterByRegex(Resource pod, String f) {
         return pod.getName().matches(f);
     }
 
     @Override
-    protected KubernetesObject getSelectedKubernetesObject(Pod resource) {
+    protected KubernetesObject getSelectedKubernetesObject(Resource resource) {
         return resource.getPod();
     }
 
@@ -253,7 +259,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
     }
 
     @Override
-    protected void createGridColumns(Grid<Pod> podGrid) {
+    protected void createGridColumns(Grid<Resource> podGrid) {
         podGrid.addColumn(pod -> pod.getNamespace()).setHeader("Namespace").setSortProperty("namespace");
         podGrid.addColumn(pod -> pod.getName()).setHeader("Name").setSortProperty("name");
         podGrid.addColumn(pod -> pod.getReadyContainers()).setHeader("Ready").setSortProperty("ready");
@@ -265,7 +271,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
     }
 
     @Override
-    protected boolean filterByContent(Pod pod, String filter) {
+    protected boolean filterByContent(Resource pod, String filter) {
         return pod.getName().contains(filter);
     }
 
@@ -278,27 +284,27 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
             AtomicBoolean added = new AtomicBoolean(false);
 
-            final var foundPod = MLang.synchronize(() -> resourcesList.stream().filter(pod -> pod.equals(event.object)).findFirst().orElseGet(
+            final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(pod -> pod.equals(event.object)).findFirst().orElseGet(
                     () -> {
-                        final var pod = new Pod(event.object);
-                        resourcesList.add(pod);
+                        final var res = new Resource(event.object);
+                        resourcesList.add(res);
                         added.set(true);
-                        return pod;
+                        return res;
                     }), resourcesList);
 
-            foundPod.setStatus(event.object.getStatus().getPhase());
-            foundPod.setPod(event.object);
+            foundRes.setStatus(event.object.getStatus().getPhase());
+            foundRes.setPod(event.object);
             filterList();
             if (added.get())
                 getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             else
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundPod));
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
             AtomicBoolean removed = new AtomicBoolean(false);
             synchronized (resourcesList) {
-                resourcesList.removeIf(pod -> {
-                    if (pod.equals(event.object)) {
+                resourcesList.removeIf(res -> {
+                    if (res.equals(event.object)) {
                         removed.set(true);
                         return true;
                     }
@@ -412,7 +418,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         }
     }
 
-    private class PodProvider extends CallbackDataProvider<Pod, Void> {
+    private class PodProvider extends CallbackDataProvider<Resource, Void> {
 
         public PodProvider() {
             super(query -> {
@@ -467,7 +473,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                                         .onFailure(e -> LOGGER.error("Can't fetch pods from cluster", e))
                                         .onSuccess(podList -> {
                                             podList.getItems().forEach(pod ->
-                                                    PodGrid.this.resourcesList.add(new Pod(pod))
+                                                    PodGrid.this.resourcesList.add(new Resource(pod))
                                             );
                                         });
                             }
@@ -487,7 +493,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
     }
 
     @Data
-    public static class Pod {
+    public static class Resource {
         private String name;
         private String namespace;
         private String status;
@@ -505,17 +511,17 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         private V1Pod pod;
         private PodMetrics metric;
 
-        public Pod(V1Pod pod) {
-            this.pod = pod;
-            this.name = pod.getMetadata().getName();
-            this.namespace = pod.getMetadata().getNamespace();
-            this.created = pod.getMetadata().getCreationTimestamp().toEpochSecond();
-            this.status = pod.getStatus().getPhase();
+        public Resource(V1Pod res) {
+            this.pod = res;
+            this.name = res.getMetadata().getName();
+            this.namespace = res.getMetadata().getNamespace();
+            this.created = res.getMetadata().getCreationTimestamp().toEpochSecond();
+            this.status = res.getStatus().getPhase();
             this.restarts = 0;
             this.runningContainersCnt = 0;
             this.containerCnt = 0;
             {
-                var containers = pod.getStatus().getContainerStatuses();
+                var containers = res.getStatus().getContainerStatuses();
                 if (containers != null) {
                     this.containerCnt = containers.size();
                     this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
@@ -525,7 +531,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                 }
             }
             {
-                var containers = pod.getStatus().getEphemeralContainerStatuses();
+                var containers = res.getStatus().getEphemeralContainerStatuses();
                 if (containers != null) {
                     this.containerCnt = containers.size();
                     this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
@@ -535,7 +541,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                 }
             }
             {
-                var containers = pod.getStatus().getInitContainerStatuses();
+                var containers = res.getStatus().getInitContainerStatuses();
                 if (containers != null) {
                     this.containerCnt = containers.size();
                     this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
@@ -574,7 +580,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         }
 
         public boolean equals(Object obj) {
-            if (obj instanceof Pod other) {
+            if (obj instanceof Resource other) {
                 return MLang.tryThis(() -> other.getName().equals(name) && other.getNamespace().equals(namespace)).or(false);
             }
             if (obj instanceof V1Pod other) {
@@ -657,7 +663,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
         }
     }
 
-    private void setContainerPod(Pod item) {
+    private void setContainerPod(Resource item) {
         onGridCellFocusChanged(item);
     }
 

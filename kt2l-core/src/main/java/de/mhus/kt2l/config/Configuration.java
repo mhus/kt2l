@@ -26,7 +26,6 @@ import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNode;
 import de.mhus.kt2l.generated.DeployInfo;
-import io.vavr.control.Try;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static de.mhus.commons.tools.MCollection.toSet;
+import static de.mhus.commons.tools.MLang.tryThis;
 import static de.mhus.commons.tools.MString.isEmpty;
 import static de.mhus.commons.tools.MString.isSet;
 
@@ -161,9 +161,9 @@ public class Configuration {
         ITreeNode section = null;
         if (finalFile.exists()) {
             LOGGER.info("Load configuration {} from {}", sectionName, file.getAbsolutePath());
-            section = Try.of(() -> MTree.load(finalFile)).onFailure(
+            section = tryThis(() -> MTree.load(finalFile)).onFailure(
                     e -> LOGGER.error("Can't load configuration {} from {}", sectionName, finalFile.getAbsolutePath(), e)
-            ).getOrElse(new TreeNode());
+            ).or(new TreeNode());
         } else {
             LOGGER.info("Configuration {} not found", file.getAbsolutePath());
             section = new TreeNode();

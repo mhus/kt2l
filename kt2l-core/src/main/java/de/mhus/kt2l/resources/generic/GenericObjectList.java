@@ -1,6 +1,11 @@
 package de.mhus.kt2l.resources.generic;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -9,7 +14,12 @@ import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1ListMeta;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public class GenericObjectList implements io.kubernetes.client.common.KubernetesListObject {
 

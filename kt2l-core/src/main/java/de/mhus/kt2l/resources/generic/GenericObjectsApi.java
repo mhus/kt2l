@@ -1,7 +1,6 @@
 package de.mhus.kt2l.resources.generic;
 
 import de.mhus.commons.errors.InternalRuntimeException;
-import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiResponse;

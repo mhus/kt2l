@@ -32,7 +32,6 @@ import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1ClusterRole;
 import io.kubernetes.client.openapi.models.V1ClusterRoleList;
 import io.kubernetes.client.util.Watch;
-import io.vavr.control.Try;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +41,8 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
+
+import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
 public class ClusterRoleGrid extends AbstractGrid<ClusterRoleGrid.Resource, Component> {
@@ -191,7 +192,7 @@ public class ClusterRoleGrid extends AbstractGrid<ClusterRoleGrid.Resource, Comp
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            Try.of(() -> createRawResourceList() )
+                            tryThis(() -> createRawResourceList() )
                                     .onFailure(e -> LOGGER.error("Can't fetch resources from cluster",e))
                                     .onSuccess(list -> {
                                         list.getItems().forEach(res -> {

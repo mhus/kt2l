@@ -1,16 +1,12 @@
 package de.mhus.kt2l.resources.generic;
 
 import de.mhus.commons.yaml.MYaml;
-import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Status;
-
-import java.util.Arrays;
 
 public class GenericK8s implements HandlerK8s {
 

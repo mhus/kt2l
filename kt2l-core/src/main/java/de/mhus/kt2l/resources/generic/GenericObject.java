@@ -18,7 +18,11 @@
 
 package de.mhus.kt2l.resources.generic;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -26,16 +30,12 @@ import com.google.gson.stream.JsonWriter;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import lombok.Getter;
 
 import java.io.IOException;
-import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import static de.mhus.commons.tools.MLang.tryThis;
 
 public class GenericObject implements KubernetesObject {
     public static final String SERIALIZED_NAME_API_VERSION = "apiVersion";

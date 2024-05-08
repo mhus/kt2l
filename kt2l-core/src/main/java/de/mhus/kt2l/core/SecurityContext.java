@@ -4,11 +4,12 @@ import com.vaadin.flow.component.UI;
 import de.mhus.commons.errors.AuthorizationException;
 import de.mhus.commons.lang.ICloseable;
 import de.mhus.kt2l.Kt2lApplication;
-import io.vavr.control.Try;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.Principal;
+
+import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
 public class SecurityContext {
@@ -61,7 +62,7 @@ public class SecurityContext {
 
     public static String lookupUserName() {
         var context = threadLocalConfigurationContext.get();
-        final var userName = context != null ? context.getUserName() : Try.of(() -> (String) UI.getCurrent().getSession().getAttribute(Kt2lApplication.UI_USERNAME)).getOrElseThrow(() -> {
+        final var userName = context != null ? context.getUserName() : tryThis(() -> (String) UI.getCurrent().getSession().getAttribute(Kt2lApplication.UI_USERNAME)).getOrThrow(() -> {
             LOGGER.error("Calling config() without user in UI context", new Exception());
             return new AuthorizationException("No user in UI context");
         });
@@ -70,7 +71,7 @@ public class SecurityContext {
 
     public static Principal lookupPrincipal() {
         var context = threadLocalConfigurationContext.get();
-        final var principal = context != null ? context.getPrincipal() : Try.of(() -> (Principal) SecurityUtils.getPrincipal()).getOrElseThrow(() -> {
+        final var principal = context != null ? context.getPrincipal() : tryThis(() -> (Principal) SecurityUtils.getPrincipal()).getOrThrow(() -> {
             LOGGER.error("Calling config() without user in UI context", new Exception());
             return new AuthorizationException("No user in UI context");
         });

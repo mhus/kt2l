@@ -19,14 +19,14 @@
 package de.mhus.kt2l.resources.namespace;
 
 import com.google.gson.reflect.TypeToken;
+import de.mhus.commons.tools.MThread;
 import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.CallBackAdapter;
-import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
-import io.kubernetes.client.openapi.ApiClient;
+import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.net.ConnectException;
 
 @Slf4j
 public class NamespaceWatch extends ClusterBackgroundJob {
@@ -104,6 +105,7 @@ public class NamespaceWatch extends ClusterBackgroundJob {
                     return;
                 }
                 LOGGER.error("Exception", e);
+                onError(e);
             }
         }
     }

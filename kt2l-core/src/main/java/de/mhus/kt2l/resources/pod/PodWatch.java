@@ -24,9 +24,8 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.CallBackAdapter;
-import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8s;
-import io.kubernetes.client.openapi.ApiClient;
+import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -104,6 +103,7 @@ public class PodWatch extends ClusterBackgroundJob {
                     return;
                 }
                 LOGGER.error("ApiException", e);
+                onError(e);
             }
         }
     }

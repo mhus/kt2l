@@ -19,17 +19,17 @@
 package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.tools.MCollection;
-import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
 public class DeskTabBar extends VerticalLayout {
@@ -61,7 +61,7 @@ public class DeskTabBar extends VerticalLayout {
         add(tab);
 
         if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener) {
-            Try.run(() -> ((DeskTabListener) tab.getPanel()).tabInit(tab)).onFailure(e -> LOGGER.warn("TabListener:tabInit failed", e));
+            tryThis(() -> ((DeskTabListener) tab.getPanel()).tabInit(tab)).onFailure(e -> LOGGER.warn("TabListener:tabInit failed", e));
         }
 
         return tab;
@@ -77,7 +77,7 @@ public class DeskTabBar extends VerticalLayout {
         }
 
         if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener)
-            Try.run(() -> ((DeskTabListener) tab.getPanel()).tabDestroyed()).onFailure(e -> LOGGER.warn("TabListener:tabDestroyed failed", e));
+            tryThis(() -> ((DeskTabListener) tab.getPanel()).tabDestroyed()).onFailure(e -> LOGGER.warn("TabListener:tabDestroyed failed", e));
 
         tabs.remove(tab);
         remove(tab);
@@ -91,7 +91,7 @@ public class DeskTabBar extends VerticalLayout {
         // deselect
         if (selectedTab != null) {
             if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof DeskTabListener) {
-                Try.run(() -> ((DeskTabListener) selectedTab.getPanel()).tabUnselected()).onFailure(e -> LOGGER.warn("TabListener:tabDeselected failed", e));
+                tryThis(() -> ((DeskTabListener) selectedTab.getPanel()).tabUnselected()).onFailure(e -> LOGGER.warn("TabListener:tabDeselected failed", e));
             }
         }
         // select fallback
@@ -107,7 +107,7 @@ public class DeskTabBar extends VerticalLayout {
             core.setContent(selectedTab.getPanel());
             core.setWindowTitle(selectedTab.getWindowTitle(), selectedTab.getColor());
             if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof DeskTabListener) {
-                Try.run(() -> ((DeskTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));
+                tryThis(() -> ((DeskTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));
             }
             core.updateHelpMenu(true);
             // do not set title UI.getCurrent().getPage().setTitle("KT2L " + selectedTab.getWindowTitle());

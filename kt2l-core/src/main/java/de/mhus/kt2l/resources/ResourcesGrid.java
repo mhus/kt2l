@@ -22,7 +22,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ShortcutEvent;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.k8s.K8s;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 public interface ResourcesGrid {
 

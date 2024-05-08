@@ -24,12 +24,12 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
+import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.util.Watch;
-import io.vavr.control.Try;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
+
+import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
 public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Component> {
@@ -54,7 +57,7 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
 
         if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
 
-            final var foundRes = resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
+            final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
                         final var pod = new NamespacesGrid.Namespace(
                                 event.object.getMetadata().getName(),
@@ -63,20 +66,27 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
                         resourcesList.add(pod);
                         return pod;
                     }
-            );
+            ), resourcesList);
 
             foundRes.setResource(event.object);
             filterList();
             getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
-            resourcesList.forEach(res -> {
-                if (res.getName().equals(event.object.getMetadata().getName())) {
-                    resourcesList.remove(res);
-                    filterList();
-                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-                }
-            });
+            AtomicBoolean removed = new AtomicBoolean(false);
+            synchronized (resourcesList) {
+                resourcesList.removeIf(res -> {
+                    if (res.equals(event.object)) {
+                        removed.set(true);
+                        return true;
+                    }
+                    return false;
+                });
+            }
+            if (removed.get()) {
+                filterList();
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+            }
         }
     }
 
@@ -197,16 +207,18 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            Try.of(() -> cluster.getApiProvider().getCoreV1Api().listNamespace().execute() )
-                                    .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
-                                    .onSuccess(list -> {
-                                        list.getItems().forEach(res -> {
-                                            NamespacesGrid.this.resourcesList.add(new NamespacesGrid.Namespace(
-                                                    res.getMetadata().getName(),
-                                                    res
-                                            ));
+                            synchronized (resourcesList) {
+                                tryThis(() -> cluster.getApiProvider().getCoreV1Api().listNamespace().execute())
+                                        .onFailure(e -> LOGGER.error("Can't fetch pods from cluster", e))
+                                        .onSuccess(list -> {
+                                            list.getItems().forEach(res -> {
+                                                NamespacesGrid.this.resourcesList.add(new NamespacesGrid.Namespace(
+                                                        res.getMetadata().getName(),
+                                                        res
+                                                ));
+                                            });
                                         });
-                                    });
+                            }
                         }
                         filterList();
                         return filteredList.size();

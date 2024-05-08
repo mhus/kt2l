@@ -20,10 +20,9 @@ package de.mhus.kt2l.resources.namespace;
 
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.ApiProvider;
-import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.HandlerK8s;
+import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.Yaml;

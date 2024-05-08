@@ -294,7 +294,7 @@ public class LocalServerTest {
         var core = coreHelper.getLastCore();
         ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("test/aremorica").get().getPanel();
 
-        Value<Set<PodGrid.Pod>> selected = new Value<>();
+        Value<Set<PodGrid.Resource>> selected = new Value<>();
         core.getUI().get().access(() -> {
             selected.value = ((PodGrid)grid.getGrid()).getResourcesGrid().getSelectedItems();
             LOGGER.debug("Selected: {}", selected.value);

@@ -7,8 +7,6 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.security.PermitAll;
-
 @AnonymousAllowed
 @Route(value = "/reset")
 @Slf4j

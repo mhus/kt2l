@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.cluster;
 
+import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.core.Core;
 
 import java.io.IOException;
@@ -27,5 +28,9 @@ public abstract class ClusterBackgroundJob {
     public abstract void close();
 
     public abstract void init(Core core, String clusterId, String jobId) throws IOException;
+
+    protected void onError(Exception e) {
+        MThread.sleep(1000); //XXX
+    }
 
 }
