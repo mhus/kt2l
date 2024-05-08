@@ -22,8 +22,10 @@ import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.ThemableLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -123,6 +125,12 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
         gridContainer = new VerticalLayout();
         gridContainer.setSizeFull();
+        gridContainer.setPadding(false);
+        gridContainer.setSpacing(false);
+        gridContainer.setMargin(false);
+
+        setPadding(false);
+        setMargin(false);
 
         add(getToolbar(), gridContainer);
 
@@ -187,6 +195,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         // toolbar
         var toolbar = new HorizontalLayout(resourceFilterButton, filterText, namespaceSelector,resourceSelector);
         toolbar.addClassName("toolbar");
+        toolbar.setPadding(false);
+        toolbar.setSpacing(true);
+        toolbar.setMargin(false);
         return toolbar;
     }
 
@@ -291,7 +302,12 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             else
                 grid.setResourceType(k8s.findResource(resourceSelector.getValue()));
             grid.init(cluster, this);
-            gridContainer.add(grid.getComponent());
+            var gc = grid.getComponent();
+            if (gc instanceof ThemableLayout tl) {
+                tl.setMargin(false);
+                tl.setPadding(false);
+            }
+            gridContainer.add(gc);
         }
     }
 

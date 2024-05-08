@@ -84,14 +84,19 @@ public class NodeGrid extends AbstractGrid<NodeGrid.Resource, Component> {
                 getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
+            AtomicBoolean removed = new AtomicBoolean(false);
             synchronized (resourcesList) {
-                resourcesList.forEach(res -> {
-                    if (res.getName().equals(event.object.getMetadata().getName())) {
-                        resourcesList.remove(res);
-                        filterList();
-                        getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                resourcesList.removeIf(res -> {
+                    if (res.equals(event.object)) {
+                        removed.set(true);
+                        return true;
                     }
+                    return false;
                 });
+            }
+            if (removed.get()) {
+                filterList();
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
             }
         }
 

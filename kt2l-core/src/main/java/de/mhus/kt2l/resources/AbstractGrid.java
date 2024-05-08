@@ -36,6 +36,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.DataProvider;
 import de.mhus.commons.tools.MCollection;
@@ -80,6 +81,9 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     protected S detailsComponent;
     private ResourcesFilter resourcesFilter;
 
+    protected Div resAmount;
+    protected Div selectedAmount;
+
     @Override
     public Component getComponent() {
         return this;
@@ -108,7 +112,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         }
         createMenuBar();
 
-        add(MCollection.notNull(menuBar, resourcesGrid, detailsComponent));
+        add(MCollection.notNull(menuBar, resourcesGrid, detailsComponent, getFooter()));
         setSizeFull();
 
         actions.forEach(a -> a.updateWithResources(Collections.emptySet()));
@@ -120,6 +124,25 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         }
 
     }
+
+    private HorizontalLayout getFooter() {
+
+        resAmount = new Div();
+        resAmount.addClassName("res-amount");
+        resAmount.setText("-");
+
+        selectedAmount = new Div();
+        selectedAmount.addClassName("sel-amount");
+        selectedAmount.setText("");
+
+        HorizontalLayout footer = new HorizontalLayout(resAmount, selectedAmount);
+        footer.addClassName("footer");
+        footer.setPadding(false);
+        footer.setMargin(false);
+        return footer;
+
+    }
+
 
     public void destroy() {
     }
@@ -282,6 +305,8 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             });
 
             resourcesGrid.addSelectionListener(event -> {
+                var size = resourcesGrid.getSelectedItems().size();
+                selectedAmount.setText(size == 0 ?  "" : String.valueOf(size));
                 onGridSelectionChanged();
                 actions.forEach(a -> a.updateWithResources(event.getAllSelectedItems()));
             });
@@ -322,7 +347,6 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                     }
                 }
             });
-
 
             GridContextMenu<T> menu = resourcesGrid.addContextMenu();
             actions.stream().sorted(Comparator.comparingInt((MenuAction a) -> a.getAction().getMenuOrder())).forEach(action -> {
@@ -433,6 +457,18 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 filteredList = list.stream().filter(res -> filterByContent(res, filter)).collect(Collectors.toList());
             }
         }
+
+        if (filteredList != null) {
+            if (filteredList.size() == resourcesList.size())
+                resAmount.setText(String.valueOf(filteredList.size()));
+            else
+                resAmount.setText(filteredList.size() + " / " + resourcesList.size());
+        } else
+        if (resourcesList != null)
+            resAmount.setText(resourcesList.size() + "");
+        else
+            resAmount.setText("-");
+
     }
 
     protected abstract boolean filterByContent(T resource, String filter);
