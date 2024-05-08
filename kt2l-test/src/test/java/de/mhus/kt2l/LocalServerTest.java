@@ -84,7 +84,7 @@ public class LocalServerTest {
         WebDriverManager.chromedriver().setup();
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("--no-sandbox");
-        if (!DebugTestUtil.TEST_DEBUG)
+        if (!DebugTestUtil.TEST_HEADLESS)
             chromeOptions.addArguments("--headless");
         chromeOptions.addArguments("disable-gpu");
         driver = new ChromeDriver(chromeOptions);
@@ -98,12 +98,25 @@ public class LocalServerTest {
     public static void afterAll() {
         System.out.println("After All");
 
-        MLang.tryThis(() -> driver.quit()).onError(e -> LOGGER.error("Error on quit", e));
+        MLang.tryThis(() -> driver.quit()).onFailure(e -> LOGGER.error("Error on quit", e));
         AremoricaK8sService.stop();
     }
 
     public void resetUi() {
         LOGGER.info("Reset test on port {}", webServerApplicationContext.getWebServer().getPort());
+
+        for (int i = 0; i < 4; i++) {
+            driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort() + "/reset");
+            try {
+                new WebDriverWait(driver, ofSeconds(4), ofSeconds(1))
+                        .until(visibilityOfElementLocated(By.xpath("//vaadin-button[contains(.,\"KT2L\")]")));
+                break;
+            } catch (Exception e) {
+                LOGGER.error("Reset reset failed", e);
+                throw new RuntimeException("Reset reset failed");
+            }
+        }
+
         for (int i = 0; i < 4; i++) {
             driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort());
             try {
@@ -111,18 +124,16 @@ public class LocalServerTest {
                         .until(visibilityOfElementLocated(By.xpath("//span[contains(.,\"[KT2L]\")]")));
                 return;
             } catch (Exception e) {
-                LOGGER.error("Reset failed", e);
+                LOGGER.error("Reset home failed", e);
             }
         }
-        throw new RuntimeException("Reset failed");
+        throw new RuntimeException("Reset home failed");
     }
 
     @Test
     @Order(2)
     public void testClusterSelect() {
         resetUi();
-        DebugTestUtil.doScreenshot(driver, "cluster_select");
-        DebugTestUtil.debugBreakpoint("Cluster Select");
 
         // Cluster Name
         var clusterSelector = driver.findElement(By.id("input-vaadin-combo-box-4"));
@@ -132,6 +143,9 @@ public class LocalServerTest {
                 .until(titleIs("KT2L"));
 
         assertThat(driver.findElement(By.xpath("//vaadin-menu-bar-item[contains(.,\"Resources\")]"))).isNotNull();
+
+        DebugTestUtil.doScreenshot(driver, "cluster_select");
+        DebugTestUtil.debugBreakpoint("Cluster Select");
 
     }
 

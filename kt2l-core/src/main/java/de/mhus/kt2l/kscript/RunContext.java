@@ -57,7 +57,7 @@ public class RunContext implements ICloseable {
     public void setScope(String scope, Scope object) {
         var current = properties.get(RunCompiler.PROP_SCOPE + scope);
         if (current != null) {
-            MLang.tryThis(() -> ((Closeable) current).close()).onError(e -> LOGGER.error("Close Scope", e));
+            MLang.tryThis(() -> ((Closeable) current).close()).onFailure(e -> LOGGER.error("Close Scope", e));
         }
         properties.put(RunCompiler.PROP_SCOPE + scope, object);
     }
@@ -74,7 +74,7 @@ public class RunContext implements ICloseable {
     public void close() {
         for (var entry : properties.entrySet()) {
             if (entry.getKey().startsWith(RunCompiler.PROP_SCOPE)) {
-                MLang.tryThis(() -> ((Closeable) entry.getValue()).close()).onError(e -> LOGGER.error("Close Scope", e));
+                MLang.tryThis(() -> ((Closeable) entry.getValue()).close()).onFailure(e -> LOGGER.error("Close Scope", e));
             }
         }
     }

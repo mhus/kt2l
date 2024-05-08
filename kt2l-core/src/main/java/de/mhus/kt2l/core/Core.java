@@ -45,6 +45,7 @@ import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MSystem;
+import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
@@ -145,6 +146,7 @@ public class Core extends AppLayout {
 
         if (coreListeners != null)
             coreListeners.forEach(l -> l.onCoreCreated(this));
+
     }
 
     private void createContent() {
@@ -217,11 +219,18 @@ public class Core extends AppLayout {
             ui.add(idleNotification);
         }
 
-        ui.getPage().setTitle("KT2L");
         session = ui.getSession();
-        heartbeatRegistration = getUI().get().addHeartbeatListener(event -> {
-            LOGGER.debug("Heartbeat");
+        heartbeatRegistration = ui.addHeartbeatListener(event -> {
+            LOGGER.debug("♥ UI Heartbeat");
         });
+
+        Thread.startVirtualThread(() -> {
+            MThread.sleep(300);
+            ui.access(() -> {
+                ui.getPage().setTitle("KT2L");
+            });
+        });
+
     }
 
     protected synchronized void closeSession() {

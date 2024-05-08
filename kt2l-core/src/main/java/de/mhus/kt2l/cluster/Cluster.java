@@ -9,12 +9,14 @@ import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
 
+@Slf4j
 @Getter
 public class Cluster {
     private final String user;
@@ -52,7 +54,9 @@ public class Cluster {
 
     public ApiProvider getApiProvider() {
         if (apiProvider ==  null)
-            apiProvider =  tryThis(() -> k8sService.getKubeClient(name, apiProviderTimeout)).get();
+            apiProvider =  tryThis(() -> k8sService.getKubeClient(name, apiProviderTimeout)).onFailure(
+                    e -> LOGGER.warn("Can't get apiProvider for cluster " + name, e)
+            ).get();
         return apiProvider;
     }
 

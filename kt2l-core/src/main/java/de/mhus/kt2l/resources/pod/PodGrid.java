@@ -277,14 +277,14 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
 
         if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
             AtomicBoolean added = new AtomicBoolean(false);
-            final var foundPod = resourcesList.stream().filter(pod -> pod.equals(event.object)).findFirst().orElseGet(
+
+            final var foundPod = MLang.synchronize(() -> resourcesList.stream().filter(pod -> pod.equals(event.object)).findFirst().orElseGet(
                     () -> {
                         final var pod = new Pod(event.object);
                         resourcesList.add(pod);
                         added.set(true);
                         return pod;
-                    }
-            );
+                    }), resourcesList);
 
             foundPod.setStatus(event.object.getStatus().getPhase());
             foundPod.setPod(event.object);
@@ -295,15 +295,21 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                 getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundPod));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
-            resourcesList.forEach(pod -> {
-                if (pod.equals(event.object)) {
-                    resourcesList.remove(pod);
-                    filterList();
-                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-                }
-            });
+            AtomicBoolean removed = new AtomicBoolean(false);
+            synchronized (resourcesList) {
+                resourcesList.removeIf(pod -> {
+                    if (pod.equals(event.object)) {
+                        removed.set(true);
+                        return true;
+                    }
+                    return false;
+                });
+            }
+            if (removed.get()) {
+                filterList();
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+            }
         }
-
     }
 
     @Override
@@ -455,14 +461,16 @@ public class PodGrid extends AbstractGrid<PodGrid.Pod,Grid<PodGrid.Container>> {
                     }, query -> {
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
-                            resourcesList = new ArrayList<>();
-                            Try.of(() -> createRawResourceList() )
-                                    .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
-                                    .onSuccess(podList -> {
-                                        podList.getItems().forEach(pod ->
-                                            PodGrid.this.resourcesList.add(new Pod(pod))
-                                        );
-                                    });
+                            resourcesList = Collections.synchronizedList(new ArrayList<>());
+                            synchronized (resourcesList) {
+                                MLang.tryThis(() -> createRawResourceList())
+                                        .onFailure(e -> LOGGER.error("Can't fetch pods from cluster", e))
+                                        .onSuccess(podList -> {
+                                            podList.getItems().forEach(pod ->
+                                                    PodGrid.this.resourcesList.add(new Pod(pod))
+                                            );
+                                        });
+                            }
                         }
                         filterList();
                         return filteredList.size();

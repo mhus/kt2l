@@ -28,6 +28,7 @@ import java.io.File;
 public class DebugTestUtil {
 
     public static final boolean TEST_DEBUG = MCast.toboolean(System.getenv("TEST_DEBUG"), true);
+    public static final boolean TEST_HEADLESS = MCast.toboolean(System.getenv("TEST_HEADLESS"), TEST_DEBUG);
     public static final boolean TEST_SCREENSHOTS = MCast.toboolean(System.getenv("TEST_SCREENSHOTS"), false);
     private static JFrame frame;
 

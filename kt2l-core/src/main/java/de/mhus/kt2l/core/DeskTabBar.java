@@ -110,7 +110,7 @@ public class DeskTabBar extends VerticalLayout {
                 Try.run(() -> ((DeskTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));
             }
             core.updateHelpMenu(true);
-            UI.getCurrent().getPage().setTitle("KT2L " + selectedTab.getWindowTitle());
+            // do not set title UI.getCurrent().getPage().setTitle("KT2L " + selectedTab.getWindowTitle());
         }
     }
 

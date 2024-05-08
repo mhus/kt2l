@@ -73,7 +73,7 @@ public class AremoricaK8sService extends K8sService {
                 }
                 MThread.sleep(1000);
             }
-        }).onError(e -> LOGGER.error("Error on wait", e));
+        }).onFailure(e -> LOGGER.error("Error on wait", e));
 
     }
 
@@ -119,20 +119,22 @@ public class AremoricaK8sService extends K8sService {
     }
 
     public static void stop() {
-        MLang.tryThis(() -> k3s.stop()).onError(e -> LOGGER.error("Error on quit", e));
+        MLang.tryThis(() -> k3s.stop()).onFailure(e -> LOGGER.error("Error on quit", e));
     }
 
     public static V1Pod deletePod(String name, String namespace) throws ApiException {
         return api.deleteNamespacedPod(name, namespace).execute();
     }
 
+    @Override
     public Set<String> getAvailableContexts() {
         return Set.of("aremorica");
     }
 
-    public ApiProvider getKubeClient(String contextName) throws IOException {
+    @Override
+    public ApiProvider getKubeClient(String contextName, long timeout) throws IOException {
         if ("aremorica".equals(contextName)) {
-            return new ApiProvider(ApiProvider.DEFAULT_TIMEOUT) {
+            return new ApiProvider(timeout) {
                 @Override
                 protected ApiClient createClient() throws IOException {
                     return Config.fromConfig(new StringReader(k3s.getKubeConfigYaml()));
@@ -141,5 +143,7 @@ public class AremoricaK8sService extends K8sService {
         }
         throw new IOException("Context not found");
     }
+
+
 
 }

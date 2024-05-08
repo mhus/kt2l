@@ -1,6 +1,7 @@
 package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
@@ -15,7 +16,11 @@ public class UiReset extends VerticalLayout {
 
     public UiReset() {
         LOGGER.info("UiReset");
-        add(new Button("Go back", e -> getUI().ifPresent(ui -> ui.navigate("/"))));
+        var backButton = new Button("KT2L", e -> getUI().ifPresent(ui -> ui.navigate("/")));
+        backButton.setIcon(VaadinIcon.BACKSPACE_A.create());
+        backButton.setAutofocus(true);
+        backButton.setWidthFull();
+        add(backButton);
     }
 
 }

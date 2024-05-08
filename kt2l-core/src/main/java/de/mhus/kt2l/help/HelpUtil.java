@@ -49,7 +49,7 @@ public class HelpUtil {
                     }
                     return null;
                 })
-                .onError(e -> LOGGER.debug("Failed to get HelpResourceConnector from selected panel", e))
+                .onFailure(e -> LOGGER.debug("Failed to get HelpResourceConnector from selected panel", e))
                 .or(null)
         );
     }

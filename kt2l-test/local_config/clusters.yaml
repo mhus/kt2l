@@ -18,10 +18,10 @@
 
 defaultCluster: aremorica
 defaultResourceType: "pods"
-defaultNamespace: indomitable-village
+defaultNamespace: none
 clusters:
   - name: aremorica
     title: "Aremorica"
     enabled: true
     color: blue
-    defaultNamespace: aremorica
+    defaultNamespace: indomitable-village

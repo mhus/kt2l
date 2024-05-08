@@ -197,7 +197,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                 return Collections.emptyList();
             }
             LOGGER.debug("Namespaces: {}",namespaces);
-            if (MCollection.equalsAnyOrder(namespaces, cluster.getCurrentNamespaces()))  {
+            if (!namespaceSelector.isEmpty() && MCollection.equalsAnyOrder(namespaces, cluster.getCurrentNamespaces()))  {
                 if (selectDefault && !MObject.equals(namespaceSelector.getValue(), cluster.getDefaultNamespace())) {
                     core.ui().access(() -> namespaceSelector.setValue(cluster.getDefaultNamespace()));
                 }
