@@ -81,7 +81,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     protected S detailsComponent;
     private ResourcesFilter resourcesFilter;
 
-    protected Div resAmount;
+    protected Div resourceAmount;
     protected Div selectedAmount;
 
     @Override
@@ -127,15 +127,15 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     private HorizontalLayout getFooter() {
 
-        resAmount = new Div();
-        resAmount.addClassName("res-amount");
-        resAmount.setText("-");
+        resourceAmount = new Div();
+        resourceAmount.addClassName("res-amount");
+        resourceAmount.setText("-");
 
         selectedAmount = new Div();
         selectedAmount.addClassName("sel-amount");
         selectedAmount.setText("");
 
-        HorizontalLayout footer = new HorizontalLayout(resAmount, selectedAmount);
+        HorizontalLayout footer = new HorizontalLayout(resourceAmount, selectedAmount);
         footer.addClassName("footer");
         footer.setPadding(false);
         footer.setMargin(false);
@@ -306,7 +306,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
             resourcesGrid.addSelectionListener(event -> {
                 var size = resourcesGrid.getSelectedItems().size();
-                selectedAmount.setText(size == 0 ?  "" : String.valueOf(size));
+                selectedAmount.setText(size == 0 ?  "" : "SEL: " + String.valueOf(size));
                 onGridSelectionChanged();
                 actions.forEach(a -> a.updateWithResources(event.getAllSelectedItems()));
             });
@@ -357,6 +357,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
             getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
             getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
+
+            getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid);
+            getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.SEMICOLON).listenOn(resourcesGrid);
+
         } catch (Exception e) {
             LOGGER.error("Error creating grid", e);
         }
@@ -460,14 +464,14 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
         if (filteredList != null) {
             if (filteredList.size() == resourcesList.size())
-                resAmount.setText(String.valueOf(filteredList.size()));
+                resourceAmount.setText("RES: " + filteredList.size());
             else
-                resAmount.setText(filteredList.size() + " / " + resourcesList.size());
+                resourceAmount.setText("RES: " + filteredList.size() + " / " + resourcesList.size());
         } else
         if (resourcesList != null)
-            resAmount.setText(resourcesList.size() + "");
+            resourceAmount.setText("RES: " + resourcesList.size());
         else
-            resAmount.setText("-");
+            resourceAmount.setText("RES: -");
 
     }
 

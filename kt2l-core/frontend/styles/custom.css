@@ -59,6 +59,11 @@
     background-color: #f6f6f6;
 }
 
+vaadin-horizontal-layout.footer {
+    color: grey;
+    font-size: small;
+}
+
 .color-red {
     color: #ff0000;
 }

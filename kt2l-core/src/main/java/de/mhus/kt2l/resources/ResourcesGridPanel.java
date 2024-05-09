@@ -369,4 +369,12 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     public List<String> getNamespaces() {
         return Collections.unmodifiableList(cluster.getCurrentNamespaces());
     }
+
+    public void focusFilter() {
+        filterText.focus();
+    }
+
+    public void focusResources() {
+        resourceSelector.focus();
+    }
 }
