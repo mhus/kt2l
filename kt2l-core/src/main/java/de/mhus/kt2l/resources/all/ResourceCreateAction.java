@@ -15,23 +15,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-package de.mhus.kt2l.resources;
+package de.mhus.kt2l.resources.all;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
-@WithRole(ROLE.READ)
-public class ActionDetails implements ResourceAction {
+@WithRole(UsersConfiguration.ROLE.WRITE)
+@Slf4j
+public class ResourceCreateAction implements ResourceAction {
 
     @Autowired
     private PanelService panelService;
@@ -43,44 +46,48 @@ public class ActionDetails implements ResourceAction {
 
     @Override
     public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
-        return selected.size() == 1;
+        return true;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-
-        var selected = context.getSelected().iterator().next();
-
-        var metadata = ((KubernetesObject) selected).getMetadata();
-        var namespace = metadata.getNamespace();
-        var name = metadata.getName();
-
-        panelService.addDetailsPanel(context.getSelectedTab(), context.getCluster(), context.getResourceType(), selected).select();
+        panelService.addPanel(
+                context.getSelectedTab(),
+                context.getCluster().getName() + ":" + context.getNamespace() + ":create",
+                context.getNamespace(),
+                false,
+                VaadinIcon.FILE_ADD.create(),
+                () ->
+                        new ResourceCreatePanel(
+                                context.getCluster(),
+                                context.getCore(),
+                                context.getNamespace()
+                        )).setHelpContext("create").select();
 
     }
 
     @Override
     public String getTitle() {
-        return "Details;icon=" + VaadinIcon.FILE_TEXT_O;
+        return "Create;icon=" + VaadinIcon.FILE_ADD;
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.VIEW_PATH;
+        return ResourceAction.ACTIONS_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.VIEW_ORDER+1;
+        return ResourceAction.ACTIONS_ORDER + 90;
     }
 
     @Override
     public String getShortcutKey() {
-        return "d";
+        return "CONTROL+C";
     }
 
     @Override
     public String getDescription() {
-        return "Resource Details";
+        return "Create new resources";
     }
 }

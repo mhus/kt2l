@@ -1,36 +1,18 @@
-/*
- * kt2l-core - kt2l core implementation
- * Copyright © 2024 Mike Hummel (mh@mhus.de)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
-package de.mhus.kt2l.resources.limitrange;
+package de.mhus.kt2l.resources.util;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
+import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.util.AbstractGrid;
+import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.models.V1LimitRange;
-import io.kubernetes.client.openapi.models.V1LimitRangeList;
 import io.kubernetes.client.util.Watch;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -44,32 +26,37 @@ import java.util.stream.Stream;
 import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
-public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Component> {
+public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamespace.ResourceItem<V>, S extends Component,V extends KubernetesObject, L extends KubernetesListObject> extends AbstractGrid<T, S>{
 
     private IRegistration eventRegistration;
 
     @Override
     protected void init() {
-        eventRegistration = LimitRangeWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
+        eventRegistration = ClusterBackgroundJob.instance(
+                panel.getCore(),
+                panel.getCluster(),
+                getManagedWatchClass()
+        ).getEventHandler().registerWeak(this::changeEvent);
     }
 
-    private void changeEvent(Watch.Response<V1LimitRange> event) {
+    protected abstract Class<? extends ClusterBackgroundJob> getManagedWatchClass();
+
+    private void changeEvent(Watch.Response<KubernetesObject> event) {
         if (resourcesList == null) return;
-        if (namespace != null && !namespace.equals(K8s.NAMESPACE_ALL) && !namespace.equals(event.object.getMetadata().getNamespace())) return;
 
         if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
 
             AtomicBoolean added = new AtomicBoolean(false);
-            final var foundRes = resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
+            final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
-                        final var res = new Resource(event.object);
-                        resourcesList.add(res);
+                        final var res = createResourceItem((V)event.object);
+                        resourcesList.add((T)res);
                         added.set(true);
-                        return res;
+                        return (T)res;
                     }
-            );
+            ));
 
-            foundRes.setResource(event.object);
+            foundRes.setResource((V)event.object);
             filterList();
             if (added.get())
                 getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
@@ -77,21 +64,28 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
                 getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
         if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
-            resourcesList.forEach(res -> {
-                if (res.getName().equals(event.object.getMetadata().getName())) {
-                    resourcesList.remove(res);
-                    filterList();
-                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-                }
-            });
+            AtomicBoolean removed = new AtomicBoolean(false);
+            synchronized (resourcesList) {
+                resourcesList.removeIf(res -> {
+                    if (res.equals(event.object)) {
+                        removed.set(true);
+                        return true;
+                    }
+                    return false;
+                });
+            }
+            if (removed.get()) {
+                filterList();
+                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+            }
         }
 
     }
 
+    protected abstract T createResourceItem(V object);
+
     @Override
-    public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.LIMIT_RANGE;
-    }
+    public abstract K8s.RESOURCE getManagedResourceType();
 
     @Override
     protected void createDetailsComponent() {
@@ -99,12 +93,12 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
     }
 
     @Override
-    protected void onDetailsChanged(Resource item) {
+    protected void onDetailsChanged(T item) {
 
     }
 
     @Override
-    protected void onShowDetails(Resource item, boolean flip) {
+    protected void onShowDetails(T item, boolean flip) {
 
     }
 
@@ -114,39 +108,39 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
     }
 
     @Override
-    protected Class<Resource> getManagedResourceItemClass() {
-        return Resource.class;
+    protected abstract Class<T> getManagedResourceItemClass();
+
+    @Override
+    protected void onGridCellFocusChanged(T resource) {
+
     }
 
     @Override
-    protected void onGridCellFocusChanged(Resource resources) {
-
+    protected DataProvider<T, ?> createDataProvider() {
+        return (DataProvider<T, ?>) new ResourceDataProvider();
     }
 
     @Override
-    protected DataProvider<Resource, ?> createDataProvider() {
-        return new ResourceDataProvider();
-    }
-
-    @Override
-    protected void createGridColumns(Grid<Resource> resourcesGrid) {
+    protected void createGridColumns(Grid<T> resourcesGrid) {
         resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
-        resourcesGrid.addColumn(res -> res.getNamespace()).setHeader("Namespace").setSortProperty("namespace");
+        createGridColumnsAfterName(resourcesGrid);
         resourcesGrid.addColumn(res -> res.getAge()).setHeader("Age").setSortProperty("age");
     }
 
+    protected abstract void createGridColumnsAfterName(Grid<T> resourcesGrid);
+
     @Override
-    protected boolean filterByContent(Resource resource, String filter) {
+    protected boolean filterByContent(T resource, String filter) {
         return resource.getName().contains(filter);
     }
 
     @Override
-    protected boolean filterByRegex(Resource resource, String filter) {
+    protected boolean filterByRegex(T resource, String filter) {
         return resource.getName().matches(filter);
     }
 
     @Override
-    protected KubernetesObject getSelectedKubernetesObject(Resource resource) {
+    protected KubernetesObject getSelectedKubernetesObject(T resource) {
         return resource.getResource();
     }
 
@@ -157,7 +151,7 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
         super.destroy();
     }
 
-    public class ResourceDataProvider extends CallbackDataProvider<Resource, Void> {
+    public class ResourceDataProvider extends CallbackDataProvider<ResourceItem<V>, Void> {
         public ResourceDataProvider() {
             super(query -> {
                         LOGGER.debug("Do the query {}",query);
@@ -177,22 +171,24 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
                                     case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
                                     case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
                                 };
-                                default -> 0;
+                                default -> sortColumn(queryOrder.getSorted(), queryOrder.getDirection(), a, b);
                             });
 
                         }
-                        return filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
+                        return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
                         LOGGER.debug("Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            tryThis(() -> createRawResourceList() )
-                                    .onFailure(e -> LOGGER.error("Can't fetch pods from cluster",e))
-                                    .onSuccess(list -> {
-                                        list.getItems().forEach(res -> {
-                                            LimitRangeGrid.this.resourcesList.add(new Resource(res));
+                            synchronized (resourcesList) {
+                                tryThis(() -> namespace == null || namespace.equals(K8s.NAMESPACE_ALL) ? createRawResourceListForAllNamespaces() : createRawResourceListForNamespace(namespace) )
+                                        .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
+                                        .onSuccess(list -> {
+                                            list.getItems().forEach(res -> {
+                                                resourcesList.add(createResourceItem((V) res));
+                                            });
                                         });
-                                    });
+                            }
                         }
                         filterList();
                         return filteredList.size();
@@ -202,24 +198,24 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
 
     }
 
-    private V1LimitRangeList createRawResourceList() throws ApiException {
-        if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return cluster.getApiProvider().getCoreV1Api().listLimitRangeForAllNamespaces().execute();
-        return cluster.getApiProvider().getCoreV1Api().listNamespacedLimitRange(namespace).execute();
-    }
+    protected abstract L createRawResourceListForNamespace(String namespace) throws ApiException;
+
+    protected abstract L createRawResourceListForAllNamespaces() throws ApiException;
+
+    protected abstract int sortColumn(String sorted, SortDirection direction, T a, T b);
 
     @Data
-    public static class Resource {
-        String name;
-        String namespace;
-        long created;
-        V1LimitRange resource;
+    public static class ResourceItem<V extends KubernetesObject> {
+        protected String name;
+        protected String namespace;
+        protected long created;
+        protected V resource;
 
-        public Resource(V1LimitRange resource) {
+        public ResourceItem(V resource) {
             this.name = resource.getMetadata().getName();
             this.namespace = resource.getMetadata().getNamespace();
-            this.created = MLang.tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
             this.resource = resource;
+            this.created = tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
         }
 
         public String getAge() {
@@ -230,16 +226,17 @@ public class LimitRangeGrid extends AbstractGrid<LimitRangeGrid.Resource, Compon
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null) return false;
-            if (o instanceof Resource res)
+            if (o instanceof ResourceItem res)
                 return Objects.equals(name, res.name) && Objects.equals(namespace, res.namespace);
-            if (o instanceof V1LimitRange res)
+            if (o instanceof KubernetesObject res)
                 return Objects.equals(name, res.getMetadata().getName()) && Objects.equals(namespace, res.getMetadata().getNamespace());
             return false;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(name, namespace);
+            return Objects.hash(name,namespace);
         }
     }
+
 }

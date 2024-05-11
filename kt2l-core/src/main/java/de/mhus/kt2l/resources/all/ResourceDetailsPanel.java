@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources;
+package de.mhus.kt2l.resources.all;
 
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;

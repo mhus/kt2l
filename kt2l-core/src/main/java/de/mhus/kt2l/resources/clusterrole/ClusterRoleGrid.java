@@ -23,9 +23,12 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.lang.IRegistration;
+import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.AbstractGrid;
+import de.mhus.kt2l.resources.util.AbstractGrid;
+import de.mhus.kt2l.resources.util.AbstractGridWithoutNamespace;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
@@ -33,7 +36,9 @@ import io.kubernetes.client.openapi.models.V1ClusterRole;
 import io.kubernetes.client.openapi.models.V1ClusterRoleList;
 import io.kubernetes.client.util.Watch;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -45,53 +50,31 @@ import java.util.stream.Stream;
 import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
-public class ClusterRoleGrid extends AbstractGrid<ClusterRoleGrid.Resource, Component> {
-
-
-    private IRegistration eventRegistration;
+public class ClusterRoleGrid extends AbstractGridWithoutNamespace<ClusterRoleGrid.Resource, Component, V1ClusterRole, V1ClusterRoleList> {
 
     @Override
-    protected void init() {
-        eventRegistration = ClusterRoleWatch.instance(panel.getCore(), panel.getCluster()).getEventHandler().registerWeak(this::changeEvent);
+    protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
+        return ClusterRoleWatch.class;
     }
 
-    private void changeEvent(Watch.Response<V1ClusterRole> event) {
-        if (resourcesList == null) return;
+    protected void createGridColumnsAfterName(Grid<ClusterRoleGrid.Resource> resourcesGrid) {
+        resourcesGrid.addColumn(Resource::getStatus).setHeader("Status").setSortable(true);
+    }
 
-        if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
-
-            AtomicBoolean added = new AtomicBoolean(false);
-            final var foundRes = resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
-                    () -> {
-                        final var res = new Resource(
-                                event.object.getMetadata().getName(),
-                                "", //XXX
-                                event.object.getMetadata().getCreationTimestamp().toEpochSecond(),
-                                event.object
-                        );
-                        resourcesList.add(res);
-                        added.set(true);
-                        return res;
-                    }
-            );
-
-            foundRes.setResource(event.object);
-            filterList();
-            if (added.get())
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-            else
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
-        } else
-        if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
-            resourcesList.forEach(res -> {
-                if (res.getName().equals(event.object.getMetadata().getName())) {
-                    resourcesList.remove(res);
-                    filterList();
-                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-                }
-            });
+    @Override
+    protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
+        if ("status".equals(sorted)) {
+            switch (direction) {
+                case ASCENDING: return a.getStatus().compareTo(b.getStatus());
+                case DESCENDING: return b.getStatus().compareTo(a.getStatus());
+            }
         }
+        return 0;
+    }
 
+    @Override
+    protected Resource createResourceItem(V1ClusterRole object) {
+        return new Resource(object);
     }
 
     @Override
@@ -100,150 +83,23 @@ public class ClusterRoleGrid extends AbstractGrid<ClusterRoleGrid.Resource, Comp
     }
 
     @Override
-    protected void createDetailsComponent() {
-
-    }
-
-    @Override
-    protected void onDetailsChanged(Resource item) {
-
-    }
-
-    @Override
-    protected void onShowDetails(Resource item, boolean flip) {
-
-    }
-
-    @Override
-    protected void onGridSelectionChanged() {
-
-    }
-
-    @Override
-    protected Class<Resource> getManagedClass() {
+    protected Class<Resource> getManagedResourceItemClass() {
         return Resource.class;
     }
 
     @Override
-    protected void onGridCellFocusChanged(Resource resource) {
-
-    }
-
-    @Override
-    protected DataProvider<Resource, ?> createDataProvider() {
-        return new ResourceDataProvider();
-    }
-
-    @Override
-    protected void createGridColumns(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
-        resourcesGrid.addColumn(res -> res.getStatus()).setHeader("Status").setSortProperty("status");
-        resourcesGrid.addColumn(res -> res.getAge()).setHeader("Age").setSortProperty("age");
-    }
-
-    @Override
-    protected boolean filterByContent(Resource resource, String filter) {
-        return resource.getName().contains(filter);
-    }
-
-    @Override
-    protected boolean filterByRegex(Resource resource, String filter) {
-        return resource.getName().matches(filter);
-    }
-
-    @Override
-    protected KubernetesObject getSelectedKubernetesObject(Resource resource) {
-        return resource.getResource();
-    }
-
-    @Override
-    public void destroy() {
-        if (eventRegistration != null)
-            eventRegistration.unregister();
-        super.destroy();
-    }
-
-    public class ResourceDataProvider extends CallbackDataProvider<Resource, Void> {
-        public ResourceDataProvider() {
-            super(query -> {
-                        LOGGER.debug("Do the query {}",query);
-                        if (filteredList == null) return Stream.empty();
-                        for(QuerySortOrder queryOrder :
-                                query.getSortOrders()) {
-                            Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
-                                case "name" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getName().compareTo(b.getName());
-                                    case DESCENDING -> b.getName().compareTo(a.getName());
-                                };
-                                case "status" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getStatus().compareTo(b.getStatus());
-                                    case DESCENDING -> b.getStatus().compareTo(a.getStatus());
-                                };
-                                case "age" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
-                                    case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
-                                };
-                                default -> 0;
-                            });
-
-                        }
-                        return filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
-                    }, query -> {
-                        LOGGER.debug("Do the size query {}",query);
-                        if (resourcesList == null) {
-                            resourcesList = new ArrayList<>();
-                            tryThis(() -> createRawResourceList() )
-                                    .onFailure(e -> LOGGER.error("Can't fetch resources from cluster",e))
-                                    .onSuccess(list -> {
-                                        list.getItems().forEach(res -> {
-                                            ClusterRoleGrid.this.resourcesList.add(new Resource(
-                                                    res.getMetadata().getName(),
-                                                    res.getMetadata().getName(), //XXX
-                                                    res.getMetadata().getCreationTimestamp().toEpochSecond(),
-                                                    res
-                                            ));
-                                        });
-                                    });
-                        }
-                        filterList();
-                        return filteredList.size();
-                    }
-            );
-        }
-
-    }
-
-    private V1ClusterRoleList createRawResourceList() throws ApiException {
-        var authenticationV1Api = new RbacAuthorizationV1Api(cluster.getApiProvider().getClient());
+    protected V1ClusterRoleList createRawResourceList() throws ApiException {
+        RbacAuthorizationV1Api authenticationV1Api = new RbacAuthorizationV1Api(cluster.getApiProvider().getClient());
         return authenticationV1Api.listClusterRole().execute();
     }
 
-    @Data
-    @AllArgsConstructor
-    public static class Resource {
-        String name;
+    @Getter
+    public static class Resource extends AbstractGridWithoutNamespace.ResourceItem<V1ClusterRole> {
         String status;
-        long created;
-        V1ClusterRole resource;
 
-        public String getAge() {
-            return K8s.getAge(resource.getMetadata().getCreationTimestamp());
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null) return false;
-            if (o instanceof Resource res)
-                return Objects.equals(name, res.name);
-            if (o instanceof V1ClusterRole res)
-                return Objects.equals(name, res.getMetadata().getName());
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name);
+        public Resource(V1ClusterRole resource) {
+            super(resource);
+            this.status = resource.getMetadata().getDeletionTimestamp() == null ? "Active" : "Deleted";
         }
     }
 }

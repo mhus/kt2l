@@ -37,7 +37,7 @@ import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.kscript.Block;
 import de.mhus.kt2l.kscript.RunCompiler;
 import de.mhus.kt2l.kscript.RunContext;
-import de.mhus.kt2l.resources.ResourceManager;
+import de.mhus.kt2l.resources.util.ResourceManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 

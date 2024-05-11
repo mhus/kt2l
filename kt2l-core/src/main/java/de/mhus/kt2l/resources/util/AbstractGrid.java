@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources;
+package de.mhus.kt2l.resources.util;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
@@ -45,6 +45,7 @@ import de.mhus.commons.tree.IProperties;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.resources.*;
 import io.kubernetes.client.common.KubernetesObject;
 import lombok.Getter;
 import lombok.Setter;
@@ -285,7 +286,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     private void createGrid() {
 
-        resourcesGrid = new Grid<>(getManagedClass(), false);
+        resourcesGrid = new Grid<>(getManagedResourceItemClass(), false);
         addClassNames("contact-grid");
         resourcesGrid.setSizeFull();
         resourcesGrid.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -372,7 +373,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     protected abstract void onGridSelectionChanged();
 
-    protected abstract Class<T> getManagedClass();
+    protected abstract Class<T> getManagedResourceItemClass();
 
     protected abstract void onGridCellFocusChanged(T t);
 

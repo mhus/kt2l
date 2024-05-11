@@ -62,10 +62,7 @@ import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -268,12 +265,16 @@ public class K8s {
                     LinkedList<V1APIResource> types = new LinkedList<>();
                     types.addAll(result.getResources().stream().collect(Collectors.toList()));
                     // add static resources
-                    types.add(toResource(RESOURCE.DEPLOYMENT));
-                    types.add(toResource(RESOURCE.STATEFUL_SET));
-                    types.add(toResource(RESOURCE.DAEMON_SET));
-                    types.add(toResource(RESOURCE.REPLICA_SET));
-                    types.add(toResource(RESOURCE.JOB));
-                    types.add(toResource(RESOURCE.CRON_JOB));
+                    for (RESOURCE r : RESOURCE.values()) {
+                        try {
+                            types.stream().filter(t -> Objects.equals(t.getKind(), r.kind())).findFirst().or(() -> {
+                                types.add(toResource(r));
+                                return null;
+                            });
+                        } catch (Exception e) {
+                            LOGGER.error("Error adding resource type", e);
+                        }
+                    }
 
                     future.complete(types);
                 }

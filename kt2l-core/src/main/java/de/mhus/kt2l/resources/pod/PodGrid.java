@@ -32,7 +32,7 @@ import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.AbstractGrid;
+import de.mhus.kt2l.resources.util.AbstractGrid;
 import de.mhus.kt2l.resources.ExecutionContext;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.common.KubernetesObject;
@@ -165,7 +165,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Resource,Grid<PodGrid.Containe
     }
 
     @Override
-    protected Class<Resource> getManagedClass() {
+    protected Class<Resource> getManagedResourceItemClass() {
         return Resource.class;
     }
 
@@ -320,7 +320,7 @@ public class PodGrid extends AbstractGrid<PodGrid.Resource,Grid<PodGrid.Containe
 
     @Override
     protected void init() {
-        podEventRegistration = PodWatch.instance(panel.getCore(), cluster).getEventHandler().registerWeak(this::podEvent);
+        podEventRegistration = PodWatch.instance(panel.getCore(), cluster, PodWatch.class).getEventHandler().registerWeak(this::podEvent);
     }
 
     @Override

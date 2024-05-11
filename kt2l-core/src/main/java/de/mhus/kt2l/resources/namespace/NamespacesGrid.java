@@ -26,7 +26,7 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.AbstractGrid;
+import de.mhus.kt2l.resources.util.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.util.Watch;
@@ -49,7 +49,7 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
 
     @Override
     protected void init() {
-        namespaceEventRegistration = NamespaceWatch.instance(panel.getCore(), cluster).getEventHandler().registerWeak(this::namespaceEvent);
+        namespaceEventRegistration = NamespaceWatch.instance(panel.getCore(), cluster, NamespaceWatch.class).getEventHandler().registerWeak(this::namespaceEvent);
     }
 
     private void namespaceEvent(Watch.Response<V1Namespace> event) {
@@ -106,7 +106,7 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
     }
 
     @Override
-    protected Class<Namespace> getManagedClass() {
+    protected Class<Namespace> getManagedResourceItemClass() {
         return Namespace.class;
     }
 

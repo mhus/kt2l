@@ -25,7 +25,7 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.AbstractGrid;
+import de.mhus.kt2l.resources.util.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.StorageV1Api;
@@ -120,7 +120,7 @@ public class StorageClassGrid extends AbstractGrid<StorageClassGrid.Resource, Co
     }
 
     @Override
-    protected Class<Resource> getManagedClass() {
+    protected Class<Resource> getManagedResourceItemClass() {
         return Resource.class;
     }
 

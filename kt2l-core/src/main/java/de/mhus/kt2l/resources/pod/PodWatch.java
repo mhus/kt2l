@@ -23,89 +23,28 @@ import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.resources.util.AbstractClusterWatch;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Watch;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Call;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 
 @Slf4j
-public class PodWatch extends ClusterBackgroundJob {
-
-    @Autowired
-    K8sService k8s;
-
-    @Getter
-    private MEventHandler<Watch.Response<V1Pod>> eventHandler = new MEventHandler<>();
-    private Thread watchThread;
-    private String clusterId;
-
-    public static PodWatch instance(Core core, Cluster cluster) {
-        return  core.getBackgroundJob(cluster.getName(), PodWatch.class, () -> new PodWatch());
-    }
-
-    private PodWatch() {
-    }
+public class PodWatch extends AbstractClusterWatch<V1Pod> {
 
     @Override
-    public void close() {
-        if (watchThread != null) {
-            watchThread.interrupt();
-            watchThread = null;
-        }
+    protected Call createResourceCall(ApiProvider apiProvider) throws ApiException {
+        return apiProvider.getCoreV1Api().listPodForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Pod>(LOGGER));
     }
-
-    @Override
-    public void init(Core core, String clusterId, String jobId) throws IOException {
-        this.clusterId = clusterId;
-        watchThread = Thread.startVirtualThread(this::watch);
-        
-    }
-
-    private void watch() {
-
-        while (true) {
-            try {
-                var apiProvider = k8s.getKubeClient(clusterId);
-                var api = new CoreV1Api(apiProvider.getClient());
-
-                var call = api.listPodForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Pod>(LOGGER));
-                Watch<V1Pod> watch = Watch.createWatch(
-                        apiProvider.getClient(),
-                        call,
-                        new TypeToken<Watch.Response<V1Pod>>() {
-                        }.getType());
-
-                for (Watch.Response<V1Pod> event : watch) {
-                    V1Pod res = event.object;
-                    V1ObjectMeta meta = res.getMetadata();
-                    switch (event.type) {
-                        case K8s.WATCH_EVENT_ADDED:
-                        case K8s.WATCH_EVENT_MODIFIED:
-                        case K8s.WATCH_EVENT_DELETED:
-                            LOGGER.debug(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp() + " " + res.getStatus().getPhase() + " " + res.getStatus().getReason() + " " + res.getStatus().getMessage() + " " + res.getStatus().getStartTime() + " " + res.getStatus().getContainerStatuses());
-                            break;
-                        default:
-                            LOGGER.warn("Unknown event type: " + event.type);
-                    }
-                    eventHandler.fire(event);
-                }
-            } catch (Exception e) {
-                if (Thread.interrupted()) {
-                    LOGGER.debug("Interrupted");
-                    return;
-                }
-                LOGGER.error("ApiException", e);
-                onError(e);
-            }
-        }
-    }
-
 }

@@ -26,7 +26,7 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.AbstractGrid;
+import de.mhus.kt2l.resources.util.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
@@ -114,7 +114,7 @@ public class ServiceAccountGrid extends AbstractGrid<ServiceAccountGrid.Resource
     }
 
     @Override
-    protected Class<Resource> getManagedClass() {
+    protected Class<Resource> getManagedResourceItemClass() {
         return Resource.class;
     }
 

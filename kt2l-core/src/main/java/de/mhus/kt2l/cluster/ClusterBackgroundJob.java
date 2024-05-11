@@ -18,19 +18,29 @@
 
 package de.mhus.kt2l.cluster;
 
+import de.mhus.commons.lang.IRegistry;
+import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.resources.clusterrole.ClusterRoleWatch;
+import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.util.Watch;
 
 import java.io.IOException;
 
 public abstract class ClusterBackgroundJob {
 
+    public static synchronized <W extends ClusterBackgroundJob> W instance(Core core, Cluster cluster, Class<W> clazz) {
+        return (W)core.getBackgroundJob(cluster.getName(), clazz, () -> MObject.newInstance(clazz));
+    }
+
+    protected ClusterBackgroundJob() {
+    }
+
     public abstract void close();
 
     public abstract void init(Core core, String clusterId, String jobId) throws IOException;
 
-    protected void onError(Exception e) {
-        MThread.sleep(1000); //XXX
-    }
+    public abstract <V extends KubernetesObject> IRegistry<Watch.Response<V>> getEventHandler();
 
 }

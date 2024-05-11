@@ -24,87 +24,27 @@ import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.resources.util.AbstractClusterWatch;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.Watch;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Call;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 
 @Slf4j
-public class NodeWatch extends ClusterBackgroundJob {
-
-    @Autowired
-    K8sService k8s;
-
-    @Getter
-    private MEventHandler<Watch.Response<V1Node>> eventHandler = new MEventHandler<>();
-    private Thread watchThread;
-    private String clusterId;
-
-    public static NodeWatch instance(Core core, Cluster cluster) {
-        return core.getBackgroundJob(cluster.getName(), NodeWatch.class, () -> new NodeWatch());
-    }
-
-    private NodeWatch() {
-    }
+public class NodeWatch extends AbstractClusterWatch<V1Node> {
 
     @Override
-    public void close() {
-        if (watchThread != null) {
-            watchThread.interrupt();
-            watchThread = null;
-        }
+    protected Call createResourceCall(ApiProvider apiProvider) throws ApiException {
+        return apiProvider.getCoreV1Api().listNode().watch(true).buildCall(new CallBackAdapter<V1Node>(LOGGER));
     }
-
-    @Override
-    public void init(Core core, String clusterId, String jobId) throws IOException {
-        this.clusterId = clusterId;
-        watchThread = Thread.startVirtualThread(this::watch);
-        
-    }
-
-    private void watch() {
-
-        while (true) {
-            try {
-                var apiProvider = k8s.getKubeClient(clusterId);
-
-                var call = apiProvider.getCoreV1Api().listNode().watch(true).buildCall(new CallBackAdapter<V1Node>(LOGGER));
-                Watch<V1Node> watch = Watch.createWatch(
-                        apiProvider.getClient(),
-                        call,
-                        new TypeToken<Watch.Response<V1Node>>() {
-                        }.getType());
-
-                for (Watch.Response<V1Node> event : watch) {
-                    V1Node res = event.object;
-                    V1ObjectMeta meta = res.getMetadata();
-                    switch (event.type) {
-                        case K8s.WATCH_EVENT_ADDED:
-                        case K8s.WATCH_EVENT_MODIFIED:
-                        case K8s.WATCH_EVENT_DELETED:
-                            LOGGER.debug(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp() + " " + res.getStatus().getPhase());
-                            break;
-                        default:
-                            LOGGER.warn("Unknown event type: " + event.type);
-                    }
-                    eventHandler.fire(event);
-                }
-            } catch (Exception e) {
-                if (Thread.interrupted()) {
-                    LOGGER.debug("Interrupted");
-                    return;
-                }
-                LOGGER.error("Exception", e);
-                onError(e);
-            }
-        }
-    }
-
 }
