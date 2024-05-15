@@ -1,8 +1,10 @@
 package de.mhus.kt2l.k8s;
 
+import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.kt2l.resources.generic.GenericObject;
 import de.mhus.kt2l.resources.pod.ContainerResource;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ClusterRole;
 import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -29,6 +31,10 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import io.kubernetes.client.openapi.models.V1StatefulSet;
 import io.kubernetes.client.openapi.models.V1StorageClass;
+
+import java.util.Arrays;
+
+import static de.mhus.commons.tools.MString.isEmpty;
 
 public class K8s {
 
@@ -59,8 +65,8 @@ public class K8s {
     public final static K8s HPA = new K8s("horizontalpodautoscalers", "HorizontalPodAutoscaler", "autoscaling", "", "v1", "hpa", "", true, V1HorizontalPodAutoscaler.class);
     public final static K8s LIMIT_RANGE = new K8s("limitranges", "LimitRange", null, "v1", "limitrange", "lr", "", true, V1LimitRange.class);
     public final static K8s ENDPOINTS = new K8s("endpoints", "Endpoints", null, "v1", "endpoints", "ep", "", true, V1Endpoints.class);
-    public final static K8s GENERIC = new K8s("", "", "", "", "", "", "", false, GenericObject.class);
-    public final static K8s CUSTOM = new K8s("", "", "", "", "", "", "", false, KubernetesObject.class);
+    public final static K8s GENERIC = new K8s("GENERIC", "GENERIC", "", "", "", "", "", false, GenericObject.class);
+    public final static K8s CUSTOM = new K8s("CUSTOM", "CUSTOM", "", "", "", "", "", false, KubernetesObject.class);
 
     public final static K8s[] values() {
         return new K8s[] {
@@ -105,6 +111,24 @@ public class K8s {
     private final String categories;
     private final boolean namespaced;
     private final Class<? extends KubernetesObject> clazz;
+
+    public static V1APIResource toResource(K8s resource) {
+        return new V1APIResource().kind(resource.kind()).name(resource.resourceType()).version(resource.version()).group(resource.group());
+    }
+
+    public static K8s toResourceType(V1APIResource resource) {
+        if (resource == null)
+            return null;
+        return Arrays.stream(values()).filter(r -> r.kind().equals(resource.getKind())).findFirst().orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resource.getKind()));
+    }
+
+    public static String toResourceType(String group, String apiVersion, String plural) {
+        if (isEmpty(group) && isEmpty(apiVersion))
+            return plural;
+        if (isEmpty(group))
+            return apiVersion + "/" + plural;
+        return group + "/" + apiVersion + "/" + plural;
+    }
 
     public boolean isNamespaced() {
         return namespaced;

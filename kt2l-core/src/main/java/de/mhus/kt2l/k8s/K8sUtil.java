@@ -67,7 +67,7 @@ public class K8sUtil {
             if (resourceType != null) return resourceType;
         }
         var resource = Arrays.stream(K8s.values()).filter(r -> r.clazz().equals(o.getClass())).findFirst().orElse(null);
-        if (resource != null) return toResource(resource);
+        if (resource != null) return K8s.toResource(resource);
 
         throw new IllegalArgumentException("Kind not found in cluster: " + kind);
     }
@@ -226,7 +226,7 @@ public class K8sUtil {
                     for (K8s r : K8s.values()) {
                         try {
                             types.stream().filter(t -> Objects.equals(t.getKind(), r.kind())).findFirst().or(() -> {
-                                types.add(toResource(r));
+                                types.add(K8s.toResource(r));
                                 return null;
                             });
                         } catch (Exception e) {
@@ -248,16 +248,6 @@ public class K8sUtil {
             LOGGER.error("Error getting resource types", e);
         }
         return future;
-    }
-
-    public static V1APIResource toResource(K8s resource) {
-        return new V1APIResource().kind(resource.kind()).name(resource.resourceType()).version(resource.version()).group(resource.group());
-    }
-
-    public static K8s toResourceType(V1APIResource resource) {
-        if (resource == null)
-            return null;
-        return Arrays.stream(K8s.values()).filter(r -> r.kind().equals(resource.getKind())).findFirst().orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resource.getKind()));
     }
 
     public static String toResourceTypeString(V1APIResource r) {
@@ -282,14 +272,6 @@ public class K8sUtil {
 
         var resContent = Yaml.dump(resource);
         return resContent;
-    }
-
-    public static String toResourceType(String group, String apiVersion, String plural) {
-        if (isEmpty(group) && isEmpty(apiVersion))
-            return plural;
-        if (isEmpty(group))
-            return apiVersion + "/" + plural;
-        return group + "/" + apiVersion + "/" + plural;
     }
 
     public static String getAge(OffsetDateTime creationTimestamp) {

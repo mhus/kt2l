@@ -233,7 +233,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
     private void resourceTypeChanged() {
         try {
-            var rt = K8sUtil.toResourceType(resourceSelector.getValue());
+            var rt = K8s.toResourceType(resourceSelector.getValue());
             if (rt == null || rt.equals(currentResourceType)) return;
             currentResourceType = rt;
             grid = createGrid(rt);

@@ -35,7 +35,7 @@ public class GenericK8s implements HandlerK8s {
     private final V1APIResource resourceType;
 
     public GenericK8s(K8s resourceType) {
-        this(K8sUtil.toResource(resourceType));
+        this(K8s.toResource(resourceType));
     }
 
     public GenericK8s(V1APIResource resourceType) {
