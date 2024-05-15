@@ -59,17 +59,17 @@ public class K8sService {
     @Autowired
     private List<HandlerK8s> resourceHandlers;
 
-    public V1APIResource findResource(K8s.RESOURCE resourceType, ApiProvider apiProvider) {
+    public V1APIResource findResource(K8s resourceType, ApiProvider apiProvider) {
         return findResource(resourceType, apiProvider, null);
     }
 
-    public V1APIResource findResource(K8s.RESOURCE resourceType, ApiProvider apiProvider, Principal principal) {
+    public V1APIResource findResource(K8s resourceType, ApiProvider apiProvider, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
-        var types = K8s.getResourceTypes(apiProvider.getCoreV1Api());
-        var resType = K8s.toResource(resourceType);
+        var types = K8sUtil.getResourceTypes(apiProvider.getCoreV1Api());
+        var resType = K8sUtil.toResource(resourceType);
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
         return securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, resType.getName(), defaultRole, principalFinal ) ? resType : null;
@@ -88,7 +88,7 @@ public class K8sService {
         SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
 
         CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
-        K8s.getResourceTypesAsync(apiProvider.getCoreV1Api()).handle((resources, t) -> {
+        K8sUtil.getResourceTypesAsync(apiProvider.getCoreV1Api()).handle((resources, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
                 return Collections.emptyList();
@@ -113,7 +113,7 @@ public class K8sService {
         final var principalFinal = principal;
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
-        return K8s.getResourceTypes(apiProvider.getCoreV1Api()).stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal )).toList();
+        return K8sUtil.getResourceTypes(apiProvider.getCoreV1Api()).stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal )).toList();
     }
 
     public List<String> getNamespaces(boolean includeAllOption, ApiProvider apiProvider) {
@@ -125,10 +125,10 @@ public class K8sService {
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
-        var namespaces = K8s.getNamespaces(apiProvider.getCoreV1Api());
+        var namespaces = K8sUtil.getNamespaces(apiProvider.getCoreV1Api());
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_NAMESPACE);
         if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, principalFinal))
-            namespaces.addFirst(K8s.NAMESPACE_ALL);
+            namespaces.addFirst(K8sUtil.NAMESPACE_ALL);
 
         return namespaces.stream().filter(ns -> securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, ns, defaultRole, principalFinal) ).toList();
     }
@@ -148,7 +148,7 @@ public class K8sService {
         SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
 
         CompletableFuture<List<String>> future = new CompletableFuture<>();
-        K8s.getNamespacesAsync(apiProvider.getCoreV1Api()).handle((namespaces, t) -> {
+        K8sUtil.getNamespacesAsync(apiProvider.getCoreV1Api()).handle((namespaces, t) -> {
             if (t != null) {
                 future.completeExceptionally(t);
                 return Collections.emptyList();
@@ -156,10 +156,10 @@ public class K8sService {
             try (SecurityContext.Environment cce = cc.enter()){
                 var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE);
                 if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, principalFinal))
-                    namespaces.addFirst(K8s.NAMESPACE_ALL);
+                    namespaces.addFirst(K8sUtil.NAMESPACE_ALL);
 
                 namespaces = namespaces.stream().filter(
-                        n -> n.equals(K8s.NAMESPACE_ALL) || securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, n, defaultRole, principalFinal)).toList();
+                        n -> n.equals(K8sUtil.NAMESPACE_ALL) || securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, n, defaultRole, principalFinal)).toList();
                 future.complete(namespaces);
                 return namespaces;
             }
@@ -255,18 +255,18 @@ public class K8sService {
         return resourceHandlers.stream().filter(h -> h.getManagedResource().kind().equals(resource.getKind())).findFirst().orElseGet(() -> new GenericK8s(resource));
     }
 
-    public HandlerK8s getResourceHandler(K8s.RESOURCE resource) {
+    public HandlerK8s getResourceHandler(K8s resource) {
         return resourceHandlers.stream().filter(h -> h.getManagedResource().equals(resource)).findFirst().orElseGet(() -> new GenericK8s(resource));
     }
 
-    public K8s.RESOURCE findResource(V1APIResource value) {
+    public K8s findResource(V1APIResource value) {
         if (value == null)
             return null;
         if (value.getKind() != null)
-            return Arrays.stream(K8s.RESOURCE.values()).filter(r -> r.kind().equalsIgnoreCase(value.getKind())).findFirst()
+            return Arrays.stream(K8s.values()).filter(r -> r.kind().equalsIgnoreCase(value.getKind())).findFirst()
                     .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
         if (value.getName() != null)
-            return Arrays.stream(K8s.RESOURCE.values()).filter(r -> r.resourceType().equalsIgnoreCase(value.getName())).findFirst()
+            return Arrays.stream(K8s.values()).filter(r -> r.resourceType().equalsIgnoreCase(value.getName())).findFirst()
                     .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
         throw new NotFoundRuntimeException("Resource not found: " + value.getName());
     }

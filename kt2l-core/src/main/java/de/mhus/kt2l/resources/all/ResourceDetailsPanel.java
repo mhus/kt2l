@@ -41,6 +41,7 @@ import de.mhus.kt2l.core.SecurityUtils;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.help.HelpResourceConnector;
 import de.mhus.kt2l.k8s.ApiProvider;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.common.KubernetesObject;
@@ -56,7 +57,7 @@ import java.util.Map;
 public class ResourceDetailsPanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
 
     private final ApiProvider apiProvider;
-    private final K8s.RESOURCE resourceType;
+    private final K8s resourceType;
     private final KubernetesObject resource;
     private final Core core;
     private final Cluster cluster;
@@ -79,7 +80,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements DeskTabListe
     @Autowired
     private SecurityService securityService;
 
-    public ResourceDetailsPanel(Cluster cluster, Core core, K8s.RESOURCE resourceType, KubernetesObject resource) {
+    public ResourceDetailsPanel(Cluster cluster, Core core, K8s resourceType, KubernetesObject resource) {
         this.apiProvider = cluster.getApiProvider();
         this.resourceType = resourceType;
         this.resource = resource;
@@ -98,7 +99,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements DeskTabListe
             return;
         }
 
-        resContent = K8s.toYaml(resource);
+        resContent = K8sUtil.toYaml(resource);
         YElement yDocument = MYaml.loadFromString(resContent);
 
         YMap yMetadata = yDocument.asMap().getMap("metadata");

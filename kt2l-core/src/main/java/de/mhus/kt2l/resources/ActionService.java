@@ -37,12 +37,12 @@ public class ActionService {
     private SecurityService securityService;
 
 
-    public Collection<ResourceAction> findActionsForResource(K8s.RESOURCE resourceType) {
+    public Collection<ResourceAction> findActionsForResource(K8s resourceType) {
         if (actions == null) return Collections.emptyList();
         return actions.stream().filter(a -> hasAccess(a) && canHandle(resourceType, a)).toList();
     }
 
-    private boolean canHandle(K8s.RESOURCE resourceType, ResourceAction a) {
+    private boolean canHandle(K8s resourceType, ResourceAction a) {
         return a.canHandleResourceType(resourceType);
     }
 

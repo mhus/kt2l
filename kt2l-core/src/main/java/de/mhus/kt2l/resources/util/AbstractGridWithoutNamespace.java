@@ -10,6 +10,7 @@ import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.HandlerK8s;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.common.KubernetesListObject;
@@ -51,7 +52,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
     private void changeEvent(Watch.Response<KubernetesObject> event) {
         if (resourcesList == null) return;
 
-        if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
+        if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
 
             AtomicBoolean added = new AtomicBoolean(false);
             final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
@@ -70,7 +71,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
             else
                 getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
         } else
-        if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
+        if (event.type.equals(K8sUtil.WATCH_EVENT_DELETED)) {
             AtomicBoolean removed = new AtomicBoolean(false);
             synchronized (resourcesList) {
                 resourcesList.removeIf(res -> {
@@ -92,7 +93,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
     protected abstract T createResourceItem(V object);
 
     @Override
-    public abstract K8s.RESOURCE getManagedResourceType();
+    public abstract K8s getManagedResourceType();
 
     @Override
     protected void createDetailsComponent() {
@@ -220,7 +221,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
         }
 
         public String getAge() {
-            return K8s.getAge(resource.getMetadata().getCreationTimestamp());
+            return K8sUtil.getAge(resource.getMetadata().getCreationTimestamp());
         }
 
         @Override

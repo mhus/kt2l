@@ -20,6 +20,7 @@ package de.mhus.kt2l.resources.generic;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
@@ -33,24 +34,24 @@ public class GenericK8s implements HandlerK8s {
 
     private final V1APIResource resourceType;
 
-    public GenericK8s(K8s.RESOURCE resourceType) {
-        this(K8s.toResource(resourceType));
+    public GenericK8s(K8s resourceType) {
+        this(K8sUtil.toResource(resourceType));
     }
 
     public GenericK8s(V1APIResource resourceType) {
         this.resourceType = resourceType;
     }
     @Override
-    public K8s.RESOURCE getManagedResource() {
-        return K8s.RESOURCE.GENERIC;
+    public K8s getManagedResource() {
+        return K8s.GENERIC;
     }
 
     @Override
     public String getPreview(ApiProvider apiProvider, KubernetesObject res) {
         var sb = new StringBuilder();
-        K8s.previewHeader(apiProvider, this, res, sb);
+        K8sUtil.previewHeader(apiProvider, this, res, sb);
 
-        K8s.previewFooter(apiProvider, this, res, sb);
+        K8sUtil.previewFooter(apiProvider, this, res, sb);
         return sb.toString();
     }
 

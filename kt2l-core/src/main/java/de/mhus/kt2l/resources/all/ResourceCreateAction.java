@@ -40,12 +40,12 @@ public class ResourceCreateAction implements ResourceAction {
     private PanelService panelService;
 
     @Override
-    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
+    public boolean canHandleResourceType(K8s resourceType) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
         return true;
     }
 

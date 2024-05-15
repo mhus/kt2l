@@ -22,6 +22,7 @@ import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.AbstractUserRelatedConfig;
 import de.mhus.kt2l.core.SecurityContext;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import org.springframework.stereotype.Component;
 
@@ -46,11 +47,11 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     }
 
     public String defaultResourceType() {
-        return config().getString("defaultResourceType", K8s.RESOURCE.POD.resourceType());
+        return config().getString("defaultResourceType", K8s.POD.resourceType());
     }
 
     public String defaultNamespace() {
-        return config().getString("defaultNamespace", K8s.NAMESPACE_ALL);
+        return config().getString("defaultNamespace", K8sUtil.NAMESPACE_ALL);
     }
 
     private synchronized Map<String, Cluster> getClusters() {

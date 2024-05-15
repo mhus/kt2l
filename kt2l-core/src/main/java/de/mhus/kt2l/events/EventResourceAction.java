@@ -28,12 +28,12 @@ import java.util.Set;
 @Component
 public class EventResourceAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
+    public boolean canHandleResourceType(K8s resourceType) {
         return false;
     }
 
     @Override
-    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
         return false;
     }
 

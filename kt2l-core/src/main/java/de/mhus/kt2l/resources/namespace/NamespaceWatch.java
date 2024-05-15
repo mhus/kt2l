@@ -18,35 +18,16 @@
 
 package de.mhus.kt2l.resources.namespace;
 
-import com.google.gson.reflect.TypeToken;
-import de.mhus.commons.tools.MThread;
-import de.mhus.commons.util.MEventHandler;
-import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.k8s.ApiProvider;
-import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Namespace;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.util.Watch;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.net.ConnectException;
 
 @Slf4j
 public class NamespaceWatch extends AbstractClusterWatch<V1Namespace> {
 
     @Override
-    public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.NAMESPACE;
+    public K8s getManagedResourceType() {
+        return K8s.NAMESPACE;
     }
 }

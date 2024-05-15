@@ -35,12 +35,12 @@ import java.util.Set;
 @WithRole(ROLE.READ)
 public class ShowPodsOfNodeAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
-        return K8s.RESOURCE.NODE.equals(resourceType);
+    public boolean canHandleResourceType(K8s resourceType) {
+        return K8s.NODE.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() == 1;
     }
 
@@ -48,7 +48,7 @@ public class ShowPodsOfNodeAction implements ResourceAction {
     public void execute(ExecutionContext context) {
 
         final String nodeName = context.getSelected().iterator().next().getMetadata().getName();
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.RESOURCE.POD, new ResourcesFilter() {
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.POD, new ResourcesFilter() {
             @Override
             public boolean filter(KubernetesObject res) {
                 if (res instanceof io.kubernetes.client.openapi.models.V1Pod pod) {

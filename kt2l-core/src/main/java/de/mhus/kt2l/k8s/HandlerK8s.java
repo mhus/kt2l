@@ -27,7 +27,7 @@ import okhttp3.Call;
 
 public interface HandlerK8s {
 
-    K8s.RESOURCE getManagedResource();
+    K8s getManagedResource();
 
     String getPreview(ApiProvider apiProvider, KubernetesObject res);
 
@@ -35,7 +35,7 @@ public interface HandlerK8s {
 
     Object delete(ApiProvider apiProvider, String name, String namespace) throws ApiException;
 
-    default void checkDeleteAccess(SecurityService securityService, K8s.RESOURCE resource) throws ApiException {
+    default void checkDeleteAccess(SecurityService securityService, K8s resource) throws ApiException {
         var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE_DELETE);
         if (!securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_DELETE, resource.resourceType(), defaultRole))
             throw new ApiException(403, "Access denied for non admin users");

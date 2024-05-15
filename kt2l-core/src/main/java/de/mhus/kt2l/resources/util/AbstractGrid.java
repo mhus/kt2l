@@ -150,7 +150,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     protected abstract void init();
 
-    public abstract K8s.RESOURCE getManagedResourceType();
+    public abstract K8s getManagedResourceType();
 
     private void createActions() {
         try {
@@ -405,7 +405,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     }
 
     @Override
-    public void setResourceType(K8s.RESOURCE resourceType) {
+    public void setResourceType(K8s resourceType) {
 
     }
 

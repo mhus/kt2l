@@ -34,12 +34,12 @@ import java.util.Set;
 @WithRole(UsersConfiguration.ROLE.READ)
 public class ShowPodsOfNamespaceAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
-        return K8s.RESOURCE.NAMESPACE.equals(resourceType);
+    public boolean canHandleResourceType(K8s resourceType) {
+        return K8s.NAMESPACE.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() == 1;
     }
 
@@ -47,7 +47,7 @@ public class ShowPodsOfNamespaceAction implements ResourceAction {
     public void execute(ExecutionContext context) {
         final String namespace = context.getSelected().iterator().next().getMetadata().getName();
         ((ResourcesGridPanel)context.getSelectedTab().getPanel()).setNamespace(namespace);
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.RESOURCE.NAMESPACE, null);
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.NAMESPACE, null);
 
     }
 

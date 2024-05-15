@@ -46,12 +46,12 @@ public class AiAction implements ResourceAction  {
     private AiConfiguration aiConfiguration;
 
     @Override
-    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
+    public boolean canHandleResourceType(K8s resourceType) {
         return aiConfiguration.isEnabled();
     }
 
     @Override
-    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 

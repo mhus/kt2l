@@ -24,6 +24,7 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.tools.MObject;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
@@ -45,8 +46,8 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
     }
 
     @Override
-    public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.GENERIC;
+    public K8s getManagedResourceType() {
+        return K8s.GENERIC;
     }
 
     @Override
@@ -125,11 +126,11 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         LOGGER.debug("Set resource type {}",resourceType);
         if (resourceType == null) return;
         this.resourceType = resourceType;
-        super.setResourceType(K8s.RESOURCE.CUSTOM);
+        super.setResourceType(K8s.CUSTOM);
     }
 
     @Override
-    public void setResourceType(K8s.RESOURCE resourceType) {
+    public void setResourceType(K8s resourceType) {
         // no
     }
 
@@ -209,7 +210,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         }
 
         public String getAge() {
-            return K8s.getAge(created);
+            return K8sUtil.getAge(created);
         }
     }
 

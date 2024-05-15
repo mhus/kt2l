@@ -24,7 +24,6 @@ import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithoutNamespace;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.openapi.models.V1NodeList;
 import lombok.*;
@@ -67,8 +66,8 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     }
 
     @Override
-    public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.NODE;
+    public K8s getManagedResourceType() {
+        return K8s.NODE;
     }
 
     @Getter

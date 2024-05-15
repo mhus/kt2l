@@ -18,34 +18,17 @@
 
 package de.mhus.kt2l.resources.node;
 
-import com.google.gson.reflect.TypeToken;
-import de.mhus.commons.tools.MThread;
-import de.mhus.commons.util.MEventHandler;
-import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.k8s.ApiProvider;
-import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Node;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.util.Watch;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
 
 @Slf4j
 public class NodeWatch extends AbstractClusterWatch<V1Node> {
 
     @Override
-    public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.NODE;
+    public K8s getManagedResourceType() {
+        return K8s.NODE;
     }
 
 }

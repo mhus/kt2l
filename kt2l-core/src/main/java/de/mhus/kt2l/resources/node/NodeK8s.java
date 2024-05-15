@@ -22,6 +22,7 @@ import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
@@ -44,23 +45,23 @@ public class NodeK8s implements HandlerK8s {
     private SecurityService securityService;
 
     @Override
-    public K8s.RESOURCE getManagedResource() {
-        return K8s.RESOURCE.NODE;
+    public K8s getManagedResource() {
+        return K8s.NODE;
     }
 
     @Override
     public String getPreview(ApiProvider apiProvider, KubernetesObject res) {
         var sb = new StringBuilder();
-        K8s.previewHeader(apiProvider, this, res, sb);
+        K8sUtil.previewHeader(apiProvider, this, res, sb);
 
-        K8s.previewFooter(apiProvider, this, res, sb);
+        K8sUtil.previewFooter(apiProvider, this, res, sb);
         return sb.toString();
     }
 
     @Override
     public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         // this is dangerous ... deny like delete!
-        checkDeleteAccess(securityService, K8s.RESOURCE.NODE);
+        checkDeleteAccess(securityService, K8s.NODE);
         var body = Yaml.loadAs(yaml, V1Node.class);
         apiProvider.getCoreV1Api().replaceNode(
                 name,
@@ -72,14 +73,14 @@ public class NodeK8s implements HandlerK8s {
     @Override
     public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
         // this is dangerous ... deny!
-        checkDeleteAccess(securityService, K8s.RESOURCE.NODE);
+        checkDeleteAccess(securityService, K8s.NODE);
         return apiProvider.getCoreV1Api().deleteNode(name, null, null, null, null, null, null );
     }
 
     @Override
     public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
         // this is dangerous ... deny! - or stupid?
-        checkDeleteAccess(securityService, K8s.RESOURCE.NODE);
+        checkDeleteAccess(securityService, K8s.NODE);
         var body = Yaml.loadAs(yaml, V1Node.class);
         return apiProvider.getCoreV1Api().createNode(body,null, null, null, null);
     }

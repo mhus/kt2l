@@ -47,13 +47,13 @@ public class ActionTerminal implements ResourceAction {
 
 
     @Override
-    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
+    public boolean canHandleResourceType(K8s resourceType) {
         return
-                K8s.RESOURCE.POD.equals(resourceType) || K8s.RESOURCE.CONTAINER.equals(resourceType);
+                K8s.POD.equals(resourceType) || K8s.CONTAINER.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() == 1;
     }
 
@@ -63,7 +63,7 @@ public class ActionTerminal implements ResourceAction {
         V1Pod pod = null;
         String container = null;
         String containerImage = null;
-        if (K8s.RESOURCE.POD.equals(context.getResourceType())) {
+        if (K8s.POD.equals(context.getResourceType())) {
             pod = (V1Pod) context.getSelected().iterator().next();
             container = pod.getStatus().getContainerStatuses().get(0).getName();
             containerImage = pod.getStatus().getContainerStatuses().get(0).getImage();

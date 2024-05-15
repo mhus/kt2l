@@ -23,29 +23,24 @@ import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
-import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
-import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.util.AbstractGrid;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
 import io.kubernetes.client.Metrics;
-import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ContainerStatus;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
-import io.kubernetes.client.util.Watch;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +55,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<PodGrid.Container>, V1Pod, V1PodList> {
@@ -120,7 +114,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             var item = createContextMenuItem(menu, action.getAction());
             item.addMenuItemClickListener(event -> {
                         var selected = detailsComponent.getSelectedItems().stream().map(c -> new ContainerResource(c)).collect(Collectors.toSet());
-                        if (!action.getAction().canHandleResource(K8s.RESOURCE.CONTAINER, selected)) {
+                        if (!action.getAction().canHandleResource(K8s.CONTAINER, selected)) {
                             Notification notification = Notification
                                     .show("Can't execute");
                             notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
@@ -128,7 +122,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                         }
 
                         var context = ExecutionContext.builder()
-                                .resourceType(K8s.RESOURCE.CONTAINER)
+                                .resourceType(K8s.CONTAINER)
                                 .selected(selected)
                                 .namespace(namespace)
                                 .cluster(cluster)
@@ -245,8 +239,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     }
 
     @Override
-    public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.POD;
+    public K8s getManagedResourceType() {
+        return K8s.POD;
     }
 
     @Override
@@ -437,7 +431,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
 
         public String getAge() {
-            return K8s.getAge(pod.getMetadata().getCreationTimestamp());
+            return K8sUtil.getAge(pod.getMetadata().getCreationTimestamp());
         }
 
         public String getReadyContainers() {
@@ -506,7 +500,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 this.status = "Terminated";
             } else if (cs.getState().getRunning() != null) {
                 this.status = "Running";
-                this.age = K8s.getAge(cs.getState().getRunning().getStartedAt());
+                this.age = K8sUtil.getAge(cs.getState().getRunning().getStartedAt());
                 this.created = cs.getState().getRunning().getStartedAt().toEpochSecond();
             } else if (cs.getState().getWaiting() != null) {
                 this.status = "Waiting";

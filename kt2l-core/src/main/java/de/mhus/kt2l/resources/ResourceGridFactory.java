@@ -24,11 +24,11 @@ public interface ResourceGridFactory {
 
     int DEFAULT_PRIORITY = 100;
 
-    boolean canHandleResourceType(K8s.RESOURCE resourceType);
+    boolean canHandleResourceType(K8s resourceType);
 
-    ResourcesGrid create(K8s.RESOURCE resourcesType);
+    ResourcesGrid create(K8s resourcesType);
 
-    default int getPriority(K8s.RESOURCE resourcesType) {
+    default int getPriority(K8s resourcesType) {
         return DEFAULT_PRIORITY;
     }
 }

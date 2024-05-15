@@ -24,9 +24,9 @@ import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.PodLogs;
-import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -48,14 +48,14 @@ public class PodK8s implements HandlerK8s {
     private SecurityService securityService;
 
     @Override
-    public K8s.RESOURCE getManagedResource() {
-        return K8s.RESOURCE.POD;
+    public K8s getManagedResource() {
+        return K8s.POD;
     }
 
     @Override
     public String getPreview(ApiProvider apiProvider, KubernetesObject object) {
         var sb = new StringBuilder();
-        K8s.previewHeader(apiProvider, this, object, sb);
+        K8sUtil.previewHeader(apiProvider, this, object, sb);
         if (object instanceof V1Pod res) {
 
             sb.append("Phase:         ").append(res.getStatus().getPhase()).append("\n");
@@ -103,7 +103,7 @@ public class PodK8s implements HandlerK8s {
             sb.append("Node Selector: ").append(res.getSpec().getNodeSelector()).append("\n");
 
         }
-        K8s.previewFooter(apiProvider, this, object, sb);
+        K8sUtil.previewFooter(apiProvider, this, object, sb);
 
         if (object instanceof V1Pod res) {
             sb.append("\nLogs:\n\n");
@@ -148,7 +148,7 @@ public class PodK8s implements HandlerK8s {
 
     @Override
     public KubernetesObject delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        checkDeleteAccess(securityService, K8s.RESOURCE.POD);
+        checkDeleteAccess(securityService, K8s.POD);
         return apiProvider.getCoreV1Api().deleteNamespacedPod(name, namespace, null, null, null, null, null, null);
     }
 

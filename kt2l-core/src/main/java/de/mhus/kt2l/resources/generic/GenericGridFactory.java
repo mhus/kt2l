@@ -24,19 +24,19 @@ import de.mhus.kt2l.resources.ResourcesGrid;
 
 public class GenericGridFactory implements ResourceGridFactory {
     @Override
-    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
+    public boolean canHandleResourceType(K8s resourceType) {
         return true;
     }
 
     @Override
-    public ResourcesGrid create(K8s.RESOURCE resourcesType) {
+    public ResourcesGrid create(K8s resourcesType) {
         var grid = new GenericGrid();
         grid.setResourceType(resourcesType);
         return grid;
     }
 
     @Override
-    public int getPriority(K8s.RESOURCE resourcesType) {
+    public int getPriority(K8s resourcesType) {
         return Integer.MAX_VALUE;
     }
 

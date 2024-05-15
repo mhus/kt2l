@@ -29,12 +29,12 @@ import org.springframework.stereotype.Component;
 @WithRole(UsersConfiguration.ROLE.READ)
 public class PodGridFactory implements ResourceGridFactory {
     @Override
-    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
-        return K8s.RESOURCE.POD.equals(resourceType);
+    public boolean canHandleResourceType(K8s resourceType) {
+        return K8s.POD.equals(resourceType);
     }
 
     @Override
-    public ResourcesGrid create(K8s.RESOURCE resourcesType) {
+    public ResourcesGrid create(K8s resourcesType) {
         return new PodGrid();
     }
 }

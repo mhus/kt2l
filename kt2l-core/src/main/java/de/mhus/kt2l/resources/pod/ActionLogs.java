@@ -42,12 +42,12 @@ public class ActionLogs implements ResourceAction {
     private PanelService panelService;
 
     @Override
-    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
-        return K8s.RESOURCE.POD.equals(resourceType) || K8s.RESOURCE.CONTAINER.equals(resourceType);
+    public boolean canHandleResourceType(K8s resourceType) {
+        return K8s.POD.equals(resourceType) || K8s.CONTAINER.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
         return canHandleResourceType(resourceType) && selected.size() > 0;
     }
 
@@ -56,10 +56,10 @@ public class ActionLogs implements ResourceAction {
 
         List<ContainerResource> containers = new ArrayList<>();
 
-        if (context.getResourceType().equals(K8s.RESOURCE.CONTAINER)) {
+        if (context.getResourceType().equals(K8s.CONTAINER)) {
             context.getSelected().forEach(c -> containers.add((ContainerResource)c));
         } else
-        if (context.getResourceType().equals(K8s.RESOURCE.POD)) {
+        if (context.getResourceType().equals(K8s.POD)) {
             context.getSelected().forEach(p -> {
                final var pod = (V1Pod)p;
                pod.getStatus().getContainerStatuses().forEach(cs -> {

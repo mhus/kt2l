@@ -7,6 +7,7 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.common.KubernetesObject;
@@ -46,7 +47,7 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
         resourceHandler = k8s.getResourceHandler(getManagedResourceType());
     }
 
-    public abstract K8s.RESOURCE getManagedResourceType();
+    public abstract K8s getManagedResourceType();
 
     private void watch() {
 
@@ -67,9 +68,9 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
                         V res = event.object;
                         V1ObjectMeta meta = res.getMetadata();
                         switch (event.type) {
-                            case K8s.WATCH_EVENT_ADDED:
-                            case K8s.WATCH_EVENT_MODIFIED:
-                            case K8s.WATCH_EVENT_DELETED:
+                            case K8sUtil.WATCH_EVENT_ADDED:
+                            case K8sUtil.WATCH_EVENT_MODIFIED:
+                            case K8sUtil.WATCH_EVENT_DELETED:
                                 LOGGER.debug(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp());
                                 break;
                             default:

@@ -46,7 +46,7 @@ public class PanelService {
         .setColor(parentTab.getColor()).setParentTab(parentTab);
     }
 
-    public DeskTab addDetailsPanel(DeskTab parentTab, Cluster cluster, K8s.RESOURCE resourceType, KubernetesObject resource) {
+    public DeskTab addDetailsPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {
         return parentTab.getViewer().addTab(
                 cluster.getName() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),

@@ -26,6 +26,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.ProgressDialog;
 import de.mhus.kt2l.core.WithRole;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.resources.ExecutionContext;
@@ -47,12 +48,12 @@ public class ActionDelete implements ResourceAction {
     private K8sService k8s;
 
     @Override
-    public boolean canHandleResourceType(K8s.RESOURCE resourceType) {
+    public boolean canHandleResourceType(K8s resourceType) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(K8s.RESOURCE resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 
@@ -102,7 +103,7 @@ public class ActionDelete implements ResourceAction {
                     context.getUi().access(() -> {
                         dialog.setProgress(dialog.getProgress()+1, o.getMetadata().getNamespace() + "." + o.getMetadata().getName());
                     });
-                    var handler = k8s.getResourceHandler(K8s.toResource(o, context.getCluster()));
+                    var handler = k8s.getResourceHandler(K8sUtil.toResource(o, context.getCluster()));
                     handler.delete(context.getCluster().getApiProvider(), o.getMetadata().getName(), o.getMetadata().getNamespace());
                 } catch (Exception e) {
                     LOGGER.error("delete resource {}", o, e);

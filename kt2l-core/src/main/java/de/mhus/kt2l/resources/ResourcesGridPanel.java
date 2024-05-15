@@ -22,7 +22,6 @@ import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.ThemableLayout;
@@ -43,6 +42,7 @@ import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.resources.generic.GenericGrid;
@@ -92,7 +92,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     private Cluster cluster;
     private VerticalLayout gridContainer;
     @Getter
-    private K8s.RESOURCE currentResourceType;
+    private K8s currentResourceType;
     @Getter
     private DeskTab tab;
     private ResourcesFilter resourcesFilter;
@@ -233,7 +233,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
     private void resourceTypeChanged() {
         try {
-            var rt = K8s.toResourceType(resourceSelector.getValue());
+            var rt = K8sUtil.toResourceType(resourceSelector.getValue());
             if (rt == null || rt.equals(currentResourceType)) return;
             currentResourceType = rt;
             grid = createGrid(rt);
@@ -248,7 +248,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         return new GenericGrid();
     }
 
-    private ResourcesGrid createGrid(K8s.RESOURCE resourceType) {
+    private ResourcesGrid createGrid(K8s resourceType) {
         ResourceGridFactory foundFactory = GENERIC_GRID_FACTORY;
         if (resourceType != null) {
             for (ResourceGridFactory factory : resourceGridFactories)
@@ -282,7 +282,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         namespaceEventRegistration = NamespaceWatch.instance(getCore(), cluster, NamespaceWatch.class).getEventHandler().register(
                 (event) -> {
                     try (var cce = cc.enter()) {
-                        if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_DELETED))
+                        if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_DELETED))
                             updateNamespaceSelector(false);
                     } catch (Exception e) {
                         LOGGER.error("Error in namespace event",e);
@@ -345,7 +345,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         grid.handleShortcut(event);
     }
 
-    public void showResources(K8s.RESOURCE resourceType, ResourcesFilter filter) {
+    public void showResources(K8s resourceType, ResourcesFilter filter) {
         if (filter != null)
             setResourcesFilter(filter);
         if (resourceType != null) {
