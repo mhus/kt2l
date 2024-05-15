@@ -118,7 +118,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
         filterText = new TextField();
         namespaceSelector = new ComboBox<>();
+        namespaceSelector.addFocusListener(e -> namespaceSelector.getElement().executeJs("this.querySelector(\"input\").select()") );
         resourceSelector = new ComboBox<>();
+        resourceSelector.addFocusListener(e -> resourceSelector.getElement().executeJs("this.querySelector(\"input\").select()") );
 
         addClassName("list-view");
         setSizeFull();

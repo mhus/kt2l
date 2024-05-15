@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.node;
 
+import de.mhus.commons.console.ConsoleTable;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
@@ -54,6 +55,36 @@ public class NodeK8s implements HandlerK8s {
         var sb = new StringBuilder();
         K8sUtil.previewHeader(apiProvider, this, res, sb);
 
+        if (res instanceof V1Node node) {
+            sb.append("Taints:        ").append(node.getSpec().getTaints()).append("\n");
+            sb.append("Unschedulable: ").append(node.getSpec().getUnschedulable()).append("\n");
+            sb.append("Pod CIDR:      ").append(node.getSpec().getPodCIDR()).append("\n");
+            sb.append("Provider ID:   ").append(node.getSpec().getProviderID()).append("\n");
+            sb.append("External ID:   ").append(node.getSpec().getExternalID()).append("\n");
+            sb.append("Internal IP:   ").append(node.getStatus().getAddresses()).append("\n");
+            sb.append("Conditions:    ").append(node.getStatus().getConditions()).append("\n");
+            sb.append("Addresses:     ").append(node.getStatus().getAddresses()).append("\n");
+            sb.append("Allocatable:   \n");
+            node.getStatus().getAllocatable().forEach((k, v) -> sb.append("  ").append(k).append(": ").append(v.getNumber()).append("\n"));
+            sb.append("Capacity:      \n");
+            node.getStatus().getCapacity().forEach((k, v) -> sb.append("  ").append(k).append(": ").append(v.getNumber()).append("\n"));
+            try {
+                final var pods = apiProvider.getCoreV1Api().listPodForAllNamespaces(null, null, "spec.nodeName=" + node.getMetadata().getName(), null, null, null, null, null, null, null, null);
+                if (pods.getItems().size() > 0) {
+                    sb.append("\nPods:\n");
+                    var table = new ConsoleTable();
+                    table.setHeaderValues("Name", "Namespace", "Status", "Age");
+                    for (var pod : pods.getItems()) {
+                        table.addRowValues(pod.getMetadata().getName(), pod.getMetadata().getNamespace(), pod.getStatus().getPhase(), K8sUtil.getAge(pod.getMetadata().getCreationTimestamp()));
+                    }
+                    sb.append(table).append("\n\n");
+                }
+            } catch (ApiException e) {
+                LOGGER.error("Error loading pods for node {}", node, e);
+            }
+            sb.append("Images:        ").append(node.getStatus().getImages()).append("\n");
+
+        }
         K8sUtil.previewFooter(apiProvider, this, res, sb);
         return sb.toString();
     }

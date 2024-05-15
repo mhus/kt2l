@@ -175,13 +175,13 @@ public class KubeTest {
         apiProvider.getCoreV1Api().listNamespaceAsync(null, null, null, null, null, null, null, null, null, null, null, new ApiCallback<V1NamespaceList>() {
             @Override
             public void onFailure(ApiException e, int i, Map map) {
-                LOGGER.error("Failed to get namespaces: {}", e.getMessage());
+                LOGGER.warn("Failed to get namespaces: {}", e.getMessage());
                 done.set(true);
             }
 
             @Override
             public void onSuccess(V1NamespaceList o, int i, Map map) {
-                LOGGER.info("Namespaces:");
+                LOGGER.debug("Namespaces:");
                 o.getItems().forEach(item -> {
                     final var metadata = item.getMetadata();
                     final var name = metadata.getName();
@@ -193,12 +193,12 @@ public class KubeTest {
 
             @Override
             public void onUploadProgress(long l, long l1, boolean b) {
-                LOGGER.info("Upload progress: {} {}", l, l1);
+                LOGGER.debug("Upload progress: {} {}", l, l1);
             }
 
             @Override
             public void onDownloadProgress(long l, long l1, boolean b) {
-                LOGGER.info("Download progress: {} {}", l, l1);
+                LOGGER.trace("Download progress: {} {}", l, l1);
             }
         });
 

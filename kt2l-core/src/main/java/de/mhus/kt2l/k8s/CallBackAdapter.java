@@ -34,21 +34,21 @@ public class CallBackAdapter<T> implements ApiCallback<T> {
 
     @Override
     public void onFailure(ApiException e, int i, Map<String, List<String>> map) {
-        logger.error("ApiException", e);
+        logger.warn("♪ ApiException", e);
     }
 
     @Override
     public void onSuccess(T t, int i, Map<String, List<String>> map) {
-        logger.debug("Success", t);
+        logger.debug("♪ Success", t);
     }
 
     @Override
     public void onUploadProgress(long l, long l1, boolean b) {
-        logger.debug("onUploadProgress");
+        logger.debug("♪ onUploadProgress");
     }
 
     @Override
     public void onDownloadProgress(long l, long l1, boolean b) {
-        logger.debug("onDownloadProgress {} {} {}", l, l1, b);
+        logger.trace("♪ onDownloadProgress {} {} {}", l, l1, b);
     }
 }

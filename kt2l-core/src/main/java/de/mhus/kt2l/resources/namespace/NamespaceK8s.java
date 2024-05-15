@@ -54,6 +54,35 @@ public class NamespaceK8s implements HandlerK8s {
         var sb = new StringBuilder();
         K8sUtil.previewHeader(apiProvider, this, res, sb);
 
+        if (res instanceof V1Namespace namespace) {
+            sb.append("Phase:         ").append(namespace.getStatus().getPhase()).append("\n\n");
+            try {
+                final var quotas = apiProvider.getCoreV1Api().listNamespacedResourceQuota(namespace.getMetadata().getName(), null, null, null, null, null, null, null, null, null, null, null);
+                quotas.getItems().forEach(q -> {
+                    sb.append("ResourceQuota: ").append(q.getMetadata().getName()).append("\n");
+                    sb.append("  Spec:        ").append(q.getSpec()).append("\n");
+                    sb.append("  Status:      ").append(q.getStatus()).append("\n");
+                });
+                if (quotas.getItems().size() == 0)
+                    sb.append("ResourceQuota: none\n");
+            } catch (ApiException e) {
+                LOGGER.error("Error loading ResourceQuota for {}", res, e);
+            }
+            sb.append("\n");
+            try {
+                final var limits = apiProvider.getCoreV1Api().listNamespacedLimitRange(namespace.getMetadata().getName(), null, null, null, null, null, null, null, null, null, null, null);
+                limits.getItems().forEach(q -> {
+                    sb.append("LimitRange:    ").append(q.getMetadata().getName()).append("\n");
+                    sb.append("  Spec:        ").append(q.getSpec()).append("\n");
+                });
+                if (limits.getItems().size() == 0)
+                    sb.append("LimitRange: none\n");
+            } catch (ApiException e) {
+                LOGGER.error("Error loading LimitRange for {}", res, e);
+            }
+        }
+
+
         K8sUtil.previewFooter(apiProvider, this, res, sb);
         return sb.toString();
     }

@@ -126,7 +126,7 @@ public class K8sUtil {
                     apiProvider.getCoreV1Api().listNamespacedEvent( namespace, null, null, null, fieldSelector, null, 10, null, null, null, 10, null);
 
             final var events = list.getItems();
-            if (events != null) {
+            if (events != null && events.size() > 0) {
                 sb.append("\nEvents:\n\n");
                 ConsoleTable table = new ConsoleTable();
                 table.setHeaderValues("Type", "Reason", "Age", "Count", "From", "Message");
@@ -227,7 +227,7 @@ public class K8sUtil {
                         try {
                             types.stream().filter(t -> Objects.equals(t.getKind(), r.kind())).findFirst().or(() -> {
                                 types.add(K8s.toResource(r));
-                                return null;
+                                return Optional.empty();
                             });
                         } catch (Exception e) {
                             LOGGER.error("Error adding resource type", e);
