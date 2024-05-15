@@ -96,6 +96,28 @@ public class K8s {
         throw new IllegalArgumentException("Kind not found in cluster: " + kind);
     }
 
+    public static void previewHeader(ApiProvider apiProvider, HandlerK8s handler, KubernetesObject res, StringBuilder sb) {
+        var kind = res.getKind();
+        if (kind != null) {
+            sb.append("Kind:      ").append(kind).append("\n");
+        }
+        var name = res.getMetadata().getName();
+            sb.append("Name:      ").append(name).append("\n");
+        var namespace = res.getMetadata().getNamespace();
+        if (namespace != null) {
+            sb.append("Namespace: ").append(namespace).append("\n");
+        }
+        var creationTimestamp = res.getMetadata().getCreationTimestamp();
+        if (creationTimestamp != null) {
+            sb.append("Created:   ").append(creationTimestamp).append("\n");
+        }
+    }
+
+    public static void previewFooter(ApiProvider apiProvider, HandlerK8s handler, KubernetesObject res, StringBuilder sb) {
+        
+
+    }
+
     public enum RESOURCE {
 
         POD("pods","Pod",null,"v1","pod","po","", true, V1Pod.class),
@@ -198,7 +220,7 @@ public class K8s {
     static List<String> getNamespaces(CoreV1Api coreApi) {
         LinkedList<String> namespaces = new LinkedList<>();
         try {
-            coreApi.listNamespace().execute()
+            coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null, null)
                     .getItems().forEach(ns -> namespaces.add(ns.getMetadata().getName()));
         } catch (ApiException e) {
             LOGGER.warn("Error getting namespaces", e);
@@ -212,7 +234,7 @@ public class K8s {
     static CompletableFuture<List<String>> getNamespacesAsync(CoreV1Api coreApi) {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
         try {
-            coreApi.listNamespace().executeAsync(new ApiCallback<V1NamespaceList>() {
+            coreApi.listNamespaceAsync(null, null, null, null, null, null, null, null, null, null, null, new ApiCallback<V1NamespaceList>() {
                 @Override
                 public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
                 }
@@ -242,7 +264,7 @@ public class K8s {
     static List<V1APIResource> getResourceTypes(CoreV1Api coreApi) {
         LinkedList<V1APIResource> types = new LinkedList<>();
         try {
-            coreApi.getAPIResources().execute().getResources().forEach(res -> types.add(res));
+            coreApi.getAPIResources().getResources().forEach(res -> types.add(res));
         } catch (ApiException e) {
             LOGGER.error("Error getting resource types", e);
         }
@@ -256,7 +278,7 @@ public class K8s {
 
         CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
         try {
-            coreApi.getAPIResources().executeAsync(new ApiCallback<V1APIResourceList>() {
+            coreApi.getAPIResourcesAsync(new ApiCallback<V1APIResourceList>() {
                 @Override
                 public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) { }
 

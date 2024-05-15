@@ -130,7 +130,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
         var clusterId = cluster.config().getName();
         try {
             var coreApi = k8s.getKubeClient(clusterId).getCoreV1Api();
-            coreApi.listNamespace().execute();
+            coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null, null);
             return true;
         } catch (Exception e) {
             LOGGER.error("Can't connect to cluster: " + clusterId, e);

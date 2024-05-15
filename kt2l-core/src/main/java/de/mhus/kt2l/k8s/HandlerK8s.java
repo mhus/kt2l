@@ -20,18 +20,16 @@ package de.mhus.kt2l.k8s;
 
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
+import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
+import okhttp3.Call;
 
 public interface HandlerK8s {
 
     K8s.RESOURCE getManagedResource();
 
-    default String getPreview(ApiProvider apiProvider, KubernetesObject res) {
-        var sb = new StringBuilder();
-        sb.append(K8s.toYaml(res));
-        return sb.toString();
-    }
+    String getPreview(ApiProvider apiProvider, KubernetesObject res);
 
     void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException;
 
@@ -44,4 +42,11 @@ public interface HandlerK8s {
     }
 
     Object create(ApiProvider apiProvider, String yaml) throws ApiException;
+
+    <L extends KubernetesListObject> L createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException;
+
+    <L extends KubernetesListObject> L createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException;
+
+    Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException;
+
 }

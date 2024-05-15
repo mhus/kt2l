@@ -44,7 +44,7 @@ import java.io.IOException;
 public class PodWatch extends AbstractClusterWatch<V1Pod> {
 
     @Override
-    protected Call createResourceCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listPodForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Pod>(LOGGER));
+    public K8s.RESOURCE getManagedResourceType() {
+        return K8s.RESOURCE.POD;
     }
 }

@@ -20,74 +20,28 @@ package de.mhus.kt2l.resources.namespace;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.data.provider.CallbackDataProvider;
-import com.vaadin.flow.data.provider.DataProvider;
-import com.vaadin.flow.data.provider.QuerySortOrder;
-import de.mhus.commons.lang.IRegistration;
-import de.mhus.commons.tools.MLang;
+import com.vaadin.flow.data.provider.SortDirection;
+import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.util.AbstractGrid;
-import io.kubernetes.client.common.KubernetesObject;
+import de.mhus.kt2l.resources.util.AbstractGridWithoutNamespace;
 import io.kubernetes.client.openapi.models.V1Namespace;
-import io.kubernetes.client.util.Watch;
+import io.kubernetes.client.openapi.models.V1NamespaceList;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Stream;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
-public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Component> {
-
-    private IRegistration namespaceEventRegistration;
+public class NamespacesGrid extends AbstractGridWithoutNamespace<NamespacesGrid.Resource, Component, V1Namespace, V1NamespaceList> {
 
     @Override
-    protected void init() {
-        namespaceEventRegistration = NamespaceWatch.instance(panel.getCore(), cluster, NamespaceWatch.class).getEventHandler().registerWeak(this::namespaceEvent);
+    protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
+        return NamespaceWatch.class;
     }
 
-    private void namespaceEvent(Watch.Response<V1Namespace> event) {
-        if (resourcesList == null) return;
-
-        if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
-
-            final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
-                    () -> {
-                        final var pod = new NamespacesGrid.Namespace(
-                                event.object.getMetadata().getName(),
-                                event.object
-                        );
-                        resourcesList.add(pod);
-                        return pod;
-                    }
-            ), resourcesList);
-
-            foundRes.setResource(event.object);
-            filterList();
-            getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-        } else
-        if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
-            AtomicBoolean removed = new AtomicBoolean(false);
-            synchronized (resourcesList) {
-                resourcesList.removeIf(res -> {
-                    if (res.equals(event.object)) {
-                        removed.set(true);
-                        return true;
-                    }
-                    return false;
-                });
-            }
-            if (removed.get()) {
-                filterList();
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-            }
-        }
+    @Override
+    protected Resource createResourceItem(V1Namespace object) {
+        return new Resource(object);
     }
 
     @Override
@@ -96,134 +50,26 @@ public class NamespacesGrid extends AbstractGrid<NamespacesGrid.Namespace, Compo
     }
 
     @Override
-    protected void createDetailsComponent() {
+    protected Class<Resource> getManagedResourceItemClass() {
+        return Resource.class;
+    }
+
+    @Override
+    protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
 
     }
 
     @Override
-    protected void onGridSelectionChanged() {
-
-    }
-
-    @Override
-    protected Class<Namespace> getManagedResourceItemClass() {
-        return Namespace.class;
-    }
-
-    @Override
-    protected void onGridCellFocusChanged(Namespace namespace) {
-
-    }
-
-    @Override
-    protected void onShowDetails(Namespace item, boolean flip) {
-
-    }
-
-    @Override
-    protected void onDetailsChanged(Namespace item) {
-
-    }
-
-    @Override
-    protected DataProvider<Namespace, ?> createDataProvider() {
-        return new NamespacesDataProvider();
-    }
-
-    @Override
-    protected KubernetesObject getSelectedKubernetesObject(Namespace resource) {
-        return resource.getResource();
-    }
-
-    @Override
-    protected boolean filterByRegex(Namespace resource, String filter) {
-        return resource.name.matches(filter);
-    }
-
-    @Override
-    protected boolean filterByContent(Namespace resource, String filter) {
-        return resource.getName().contains(filter);
-    }
-
-    @Override
-    protected void createGridColumns(Grid<Namespace> resourcesGrid) {
-        resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
-    }
-
-    @Override
-    public void destroy() {
-        if (namespaceEventRegistration != null)
-            namespaceEventRegistration.unregister();
-        super.destroy();
+    protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
+        return 0;
     }
 
     @Getter
-    public class Namespace {
+    public class Resource extends AbstractGridWithoutNamespace.ResourceItem<V1Namespace> {
 
-        private final String name;
-        @Setter
-        private V1Namespace resource;
-
-        Namespace(String name, V1Namespace resource) {
-            this.name = name;
-            this.resource = resource;
+        Resource(V1Namespace resource) {
+            super(resource);
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null) return false;
-            if (o instanceof NamespacesGrid.Namespace other)
-                return Objects.equals(name, other.name);
-            if (o instanceof V1Namespace other)
-                return Objects.equals(name, other.getMetadata().getName());
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name);
-        }
-    }
-
-    private class NamespacesDataProvider extends CallbackDataProvider<NamespacesGrid.Namespace, Void> {
-        public NamespacesDataProvider() {
-            super(query -> {
-                        LOGGER.debug("Do the query {}",query);
-                        if (filteredList == null) return Stream.empty();
-                        for(QuerySortOrder queryOrder :
-                                query.getSortOrders()) {
-                            Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
-                                case "name" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getName().compareTo(b.getName());
-                                    case DESCENDING -> b.getName().compareTo(a.getName());
-                                };
-                                default -> 0;
-                            });
-
-                        }
-                        return filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
-                    }, query -> {
-                        LOGGER.debug("Do the size query {}",query);
-                        if (resourcesList == null) {
-                            resourcesList = new ArrayList<>();
-                            synchronized (resourcesList) {
-                                tryThis(() -> cluster.getApiProvider().getCoreV1Api().listNamespace().execute())
-                                        .onFailure(e -> LOGGER.error("Can't fetch pods from cluster", e))
-                                        .onSuccess(list -> {
-                                            list.getItems().forEach(res -> {
-                                                NamespacesGrid.this.resourcesList.add(new NamespacesGrid.Namespace(
-                                                        res.getMetadata().getName(),
-                                                        res
-                                                ));
-                                            });
-                                        });
-                            }
-                        }
-                        filterList();
-                        return filteredList.size();
-                    }
-            );
-        }
     }
 }

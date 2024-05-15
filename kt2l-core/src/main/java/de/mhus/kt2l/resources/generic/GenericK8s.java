@@ -21,9 +21,13 @@ import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
+import io.kubernetes.client.common.KubernetesListObject;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Status;
+import okhttp3.Call;
+import org.apache.commons.lang3.NotImplementedException;
 
 public class GenericK8s implements HandlerK8s {
 
@@ -39,6 +43,15 @@ public class GenericK8s implements HandlerK8s {
     @Override
     public K8s.RESOURCE getManagedResource() {
         return K8s.RESOURCE.GENERIC;
+    }
+
+    @Override
+    public String getPreview(ApiProvider apiProvider, KubernetesObject res) {
+        var sb = new StringBuilder();
+        K8s.previewHeader(apiProvider, this, res, sb);
+
+        K8s.previewFooter(apiProvider, this, res, sb);
+        return sb.toString();
     }
 
     @Override
@@ -64,4 +77,20 @@ public class GenericK8s implements HandlerK8s {
         var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
         return genericApi.create(yaml);
     }
+
+    @Override
+    public <L extends KubernetesListObject> L createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public <L extends KubernetesListObject> L createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
+        throw new NotImplementedException();
+    }
+
 }

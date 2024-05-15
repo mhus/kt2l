@@ -6,6 +6,7 @@ import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.ApiProvider;
+import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.common.KubernetesObject;
@@ -28,6 +29,7 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
     private MEventHandler<Watch.Response<V>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
     private String clusterId;
+    private HandlerK8s resourceHandler;
 
     @Override
     public void close() {
@@ -41,7 +43,10 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
     public void init(Core core, String clusterId, String jobId) throws IOException {
         this.clusterId = clusterId;
         watchThread = Thread.startVirtualThread(this::watch);
+        resourceHandler = k8s.getResourceHandler(getManagedResourceType());
     }
+
+    public abstract K8s.RESOURCE getManagedResourceType();
 
     private void watch() {
 
@@ -83,7 +88,9 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
         }
     }
 
-    protected abstract Call createResourceCall(ApiProvider apiProvider) throws ApiException;
+    protected Call createResourceCall(ApiProvider apiProvider) throws ApiException {
+        return resourceHandler.createResourceWatchCall(apiProvider);
+    }
 
     protected void onError(Exception e) {
         MThread.sleep(1000); //XXX

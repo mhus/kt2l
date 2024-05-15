@@ -25,15 +25,18 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MString;
+import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGrid;
 import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.ContainerMetrics;
@@ -44,6 +47,7 @@ import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.Watch;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -59,12 +63,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public class PodGrid extends AbstractGrid<PodGrid.Resource,Grid<PodGrid.Container>> {
+public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<PodGrid.Container>, V1Pod, V1PodList> {
 
-    public enum CONTAINER_TYPE {DEFAULT, INIT, EPHEMERAL};
-    private List<Container> containerList = null;
-    private Resource containerSelectedPod;
-    private IRegistration podEventRegistration;
+      public enum CONTAINER_TYPE {DEFAULT, INIT, EPHEMERAL};
+      private List<Container> containerList = null;
+      private Resource containerSelectedPod;
+
+    @Override
+    protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
+        return PodWatch.class;
+    }
+
+    @Override
+    protected Resource createResourceItem(V1Pod object) {
+        return new Resource(object);
+    }
 
     protected void createDetailsComponent() {
         detailsComponent = new Grid<>(Container.class, false);
@@ -164,32 +177,12 @@ public class PodGrid extends AbstractGrid<PodGrid.Resource,Grid<PodGrid.Containe
             detailsComponent.deselectAll();
     }
 
-    @Override
-    protected Class<Resource> getManagedResourceItemClass() {
-        return Resource.class;
-    }
-
     protected void onGridCellFocusChanged(Resource item) {
         if (detailsComponent.isVisible()) {
             containerSelectedPod = item;
             containerList = null;
             detailsComponent.getDataProvider().refreshAll();
         }
-    }
-
-    @Override
-    protected DataProvider createDataProvider() {
-        return new PodProvider();
-    }
-
-    @Override
-    protected boolean filterByRegex(Resource pod, String f) {
-        return pod.getName().matches(f);
-    }
-
-    @Override
-    protected KubernetesObject getSelectedKubernetesObject(Resource resource) {
-        return resource.getPod();
     }
 
     public void refresh(long counter) {
@@ -252,80 +245,49 @@ public class PodGrid extends AbstractGrid<PodGrid.Resource,Grid<PodGrid.Containe
     }
 
     @Override
-    public void destroy() {
-        if (podEventRegistration != null)
-            podEventRegistration.unregister();
-        super.destroy();
+    public K8s.RESOURCE getManagedResourceType() {
+        return K8s.RESOURCE.POD;
     }
 
     @Override
-    protected void createGridColumns(Grid<Resource> podGrid) {
-        podGrid.addColumn(pod -> pod.getNamespace()).setHeader("Namespace").setSortProperty("namespace");
-        podGrid.addColumn(pod -> pod.getName()).setHeader("Name").setSortProperty("name");
+    protected Class<Resource> getManagedResourceItemClass() {
+        return Resource.class;
+    }
+
+    @Override
+    protected void createGridColumnsAfterName(Grid<Resource> podGrid) {
         podGrid.addColumn(pod -> pod.getReadyContainers()).setHeader("Ready").setSortProperty("ready");
         podGrid.addColumn(pod -> pod.getRestarts()).setHeader("Restarts").setSortProperty("restarts");
         podGrid.addColumn(pod -> pod.getStatus()).setHeader("Status").setSortProperty("status");
-        podGrid.addColumn(pod -> pod.getAge()).setHeader("Age").setSortProperty("age");
         podGrid.addColumn(pod -> pod.getMetricCpuString()).setHeader("CPU").setSortProperty("cpu");
         podGrid.addColumn(pod -> pod.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
     }
 
     @Override
-    protected boolean filterByContent(Resource pod, String filter) {
-        return pod.getName().contains(filter);
-    }
-
-    private void podEvent(Watch.Response<V1Pod> event) {
-        if (resourcesList == null) return;
-        if (    namespace != null &&
-                !namespace.equals(K8s.NAMESPACE_ALL) &&
-                !namespace.equals(event.object.getMetadata().getNamespace())) return;
-
-        if (event.type.equals(K8s.WATCH_EVENT_ADDED) || event.type.equals(K8s.WATCH_EVENT_MODIFIED)) {
-            AtomicBoolean added = new AtomicBoolean(false);
-
-            final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(pod -> pod.equals(event.object)).findFirst().orElseGet(
-                    () -> {
-                        final var res = new Resource(event.object);
-                        resourcesList.add(res);
-                        added.set(true);
-                        return res;
-                    }), resourcesList);
-
-            foundRes.setStatus(event.object.getStatus().getPhase());
-            foundRes.setPod(event.object);
-            filterList();
-            if (added.get())
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-            else
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
-        } else
-        if (event.type.equals(K8s.WATCH_EVENT_DELETED)) {
-            AtomicBoolean removed = new AtomicBoolean(false);
-            synchronized (resourcesList) {
-                resourcesList.removeIf(res -> {
-                    if (res.equals(event.object)) {
-                        removed.set(true);
-                        return true;
-                    }
-                    return false;
-                });
-            }
-            if (removed.get()) {
-                filterList();
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-            }
-        }
-    }
-
-    @Override
-    protected void init() {
-        podEventRegistration = PodWatch.instance(panel.getCore(), cluster, PodWatch.class).getEventHandler().registerWeak(this::podEvent);
-    }
-
-    @Override
-    public K8s.RESOURCE getManagedResourceType() {
-        return K8s.RESOURCE.POD;
+    protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
+        return switch (sorted) {
+            case "status" -> switch (direction) {
+                case ASCENDING -> a.getStatus().compareTo(b.getStatus());
+                case DESCENDING -> b.getStatus().compareTo(a.getStatus());
+            };
+            case "ready" -> switch (direction) {
+                case ASCENDING -> Long.compare(a.getRunningContainersCnt(), b.getRunningContainersCnt());
+                case DESCENDING -> Long.compare(b.getRunningContainersCnt(), a.getRunningContainersCnt());
+            };
+            case "restarts" -> switch (direction) {
+                case ASCENDING -> Long.compare(a.getRestarts(), b.getRestarts());
+                case DESCENDING -> Long.compare(b.getRestarts(), a.getRestarts());
+            };
+            case "cpu" -> switch (direction) {
+                case ASCENDING -> Double.compare(a.getMetricCpu(), b.getMetricCpu());
+                case DESCENDING -> Double.compare(b.getMetricCpu(), a.getMetricCpu());
+            };
+            case "memory" -> switch (direction) {
+                case ASCENDING -> Long.compare(a.getMetricMemory(), b.getMetricMemory());
+                case DESCENDING -> Long.compare(b.getMetricMemory(), a.getMetricMemory());
+            };
+            default -> 0;
+        };
     }
 
     private class ContainerProvider extends CallbackDataProvider<Container, Void> {
@@ -418,88 +380,12 @@ public class PodGrid extends AbstractGrid<PodGrid.Resource,Grid<PodGrid.Containe
         }
     }
 
-    private class PodProvider extends CallbackDataProvider<Resource, Void> {
+    @Getter
+    public static class Resource extends AbstractGridWithNamespace.ResourceItem<V1Pod> {
 
-        public PodProvider() {
-            super(query -> {
-                        LOGGER.debug("Do the pods query {}",query);
-                        if (filteredList == null) return Stream.empty();
-                        for(QuerySortOrder queryOrder :
-                                query.getSortOrders()) {
-                            Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
-                                case "name" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getName().compareTo(b.getName());
-                                    case DESCENDING -> b.getName().compareTo(a.getName());
-                                };
-                                case "status" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getStatus().compareTo(b.getStatus());
-                                    case DESCENDING -> b.getStatus().compareTo(a.getStatus());
-                                };
-                                case "age" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
-                                    case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
-                                };
-                                case "namespace" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getNamespace().compareTo(b.getNamespace());
-                                    case DESCENDING -> b.getNamespace().compareTo(a.getNamespace());
-                                };
-                                case "ready" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.getRunningContainersCnt(), b.getRunningContainersCnt());
-                                    case DESCENDING -> Long.compare(b.getRunningContainersCnt(), a.getRunningContainersCnt());
-                                };
-                                case "restarts" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.getRestarts(), b.getRestarts());
-                                    case DESCENDING -> Long.compare(b.getRestarts(), a.getRestarts());
-                                };
-                                case "cpu" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Double.compare(a.getMetricCpu(), b.getMetricCpu());
-                                    case DESCENDING -> Double.compare(b.getMetricCpu(), a.getMetricCpu());
-                                };
-                                case "memory" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.getMetricMemory(), b.getMetricMemory());
-                                    case DESCENDING -> Long.compare(b.getMetricMemory(), a.getMetricMemory());
-                                };
-                                default -> 0;
-                            });
-
-                        }
-                        return filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
-                    }, query -> {
-                        LOGGER.debug("Do the size query {}",query);
-                        if (resourcesList == null) {
-                            resourcesList = Collections.synchronizedList(new ArrayList<>());
-                            synchronized (resourcesList) {
-                                MLang.tryThis(() -> createRawResourceList())
-                                        .onFailure(e -> LOGGER.error("Can't fetch pods from cluster", e))
-                                        .onSuccess(podList -> {
-                                            podList.getItems().forEach(pod ->
-                                                    PodGrid.this.resourcesList.add(new Resource(pod))
-                                            );
-                                        });
-                            }
-                        }
-                        filterList();
-                        return filteredList.size();
-                    }
-            );
-        }
-
-    }
-
-    private V1PodList createRawResourceList() throws ApiException {
-        if (namespace == null || namespace.equals(K8s.NAMESPACE_ALL))
-            return panel.getCluster().getApiProvider().getCoreV1Api().listPodForAllNamespaces().execute();
-        return panel.getCluster().getApiProvider().getCoreV1Api().listNamespacedPod(namespace).execute();
-    }
-
-    @Data
-    public static class Resource {
-        private String name;
-        private String namespace;
         private String status;
         private long runningContainersCnt;
         private long containerCnt;
-        private long created;
         private long restarts;
 
         private double metricCpu = Double.MAX_VALUE;
@@ -512,10 +398,8 @@ public class PodGrid extends AbstractGrid<PodGrid.Resource,Grid<PodGrid.Containe
         private PodMetrics metric;
 
         public Resource(V1Pod res) {
+            super(res);
             this.pod = res;
-            this.name = res.getMetadata().getName();
-            this.namespace = res.getMetadata().getNamespace();
-            this.created = res.getMetadata().getCreationTimestamp().toEpochSecond();
             this.status = res.getStatus().getPhase();
             this.restarts = 0;
             this.runningContainersCnt = 0;

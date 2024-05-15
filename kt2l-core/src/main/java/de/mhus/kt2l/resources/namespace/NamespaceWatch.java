@@ -46,7 +46,7 @@ import java.net.ConnectException;
 public class NamespaceWatch extends AbstractClusterWatch<V1Namespace> {
 
     @Override
-    protected Call createResourceCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listNamespace().watch(true).buildCall(new CallBackAdapter<V1Namespace>(LOGGER));
+    public K8s.RESOURCE getManagedResourceType() {
+        return K8s.RESOURCE.NAMESPACE;
     }
 }

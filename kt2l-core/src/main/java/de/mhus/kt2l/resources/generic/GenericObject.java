@@ -201,7 +201,7 @@ public class GenericObject implements KubernetesObject {
         }
         // validate the optional field `metadata`
         if (jsonObj.get("metadata") != null && !jsonObj.get("metadata").isJsonNull()) {
-            V1ObjectMeta.validateJsonObject(jsonObj.getAsJsonObject("metadata"));
+//XXX            V1ObjectMeta.validateJsonObject(jsonObj.getAsJsonObject("metadata"));
         }
     }
 
@@ -242,7 +242,7 @@ public class GenericObject implements KubernetesObject {
      * @throws IOException if the JSON string is invalid with respect to GenericObject
      */
     public static GenericObject fromJson(String jsonString) throws IOException {
-        return JSON.getGson().fromJson(jsonString, GenericObject.class);
+        return new JSON().getGson().fromJson(jsonString, GenericObject.class);
     }
 
     /**
@@ -251,6 +251,6 @@ public class GenericObject implements KubernetesObject {
      * @return JSON string
      */
     public String toJson() {
-        return JSON.getGson().toJson(this);
+        return new JSON().getGson().toJson(this);
     }
 }

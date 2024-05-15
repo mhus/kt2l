@@ -96,7 +96,7 @@ public class GenericObjectsApi {
 
             LOGGER.debug("List custom objects: {}", localVarPath);
             var callback = new CallBackAdapter(LOGGER);
-            var call = localVarApiClient.buildCall(basePath, localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, callback);
+            var call = localVarApiClient.buildCall(basePath + localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, callback);
 
             ApiResponse<GenericObjectList> response = localVarApiClient.execute(call, GenericObjectList.class);
             return response.getData();
@@ -196,7 +196,7 @@ public class GenericObjectsApi {
 
             LOGGER.debug("List custom objects: {}", localVarPath);
             var callback = new CallBackAdapter(LOGGER);
-            var call = localVarApiClient.buildCall(basePath, localVarPath, "PUT", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, callback);
+            var call = localVarApiClient.buildCall(basePath + localVarPath, "PUT", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, callback);
 
             ApiResponse<GenericObject> response = localVarApiClient.execute(call, GenericObject.class);
             return response.getData();
@@ -253,7 +253,7 @@ public class GenericObjectsApi {
 
             LOGGER.debug("List custom objects: {}", localVarPath);
             var callback = new CallBackAdapter(LOGGER);
-            var call = localVarApiClient.buildCall(basePath, localVarPath, "DELETE", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, callback);
+            var call = localVarApiClient.buildCall(basePath + localVarPath, "DELETE", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, callback);
 
             ApiResponse<GenericObject> response = localVarApiClient.execute(call, GenericObject.class);
             return response.getData();

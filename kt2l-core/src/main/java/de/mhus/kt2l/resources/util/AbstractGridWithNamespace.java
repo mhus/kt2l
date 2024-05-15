@@ -9,13 +9,16 @@ import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
+import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.Watch;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +32,9 @@ import static de.mhus.commons.tools.MLang.tryThis;
 public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamespace.ResourceItem<V>, S extends Component,V extends KubernetesObject, L extends KubernetesListObject> extends AbstractGrid<T, S>{
 
     private IRegistration eventRegistration;
+    @Autowired
+    protected K8sService k8sService;
+    protected HandlerK8s resourceHandler;
 
     @Override
     protected void init() {
@@ -37,6 +43,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                 panel.getCluster(),
                 getManagedWatchClass()
         ).getEventHandler().registerWeak(this::changeEvent);
+        this.resourceHandler = k8sService.getResourceHandler(getManagedResourceType());
     }
 
     protected abstract Class<? extends ClusterBackgroundJob> getManagedWatchClass();
@@ -198,9 +205,13 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     }
 
-    protected abstract L createRawResourceListForNamespace(String namespace) throws ApiException;
+    protected L createRawResourceListForNamespace(String namespace) throws ApiException {
+        return resourceHandler.createResourceListWithNamespace(cluster.getApiProvider(), namespace);
+    }
 
-    protected abstract L createRawResourceListForAllNamespaces() throws ApiException;
+    protected L createRawResourceListForAllNamespaces() throws ApiException {
+        return resourceHandler.createResourceListWithoutNamespace(cluster.getApiProvider());
+    }
 
     protected abstract int sortColumn(String sorted, SortDirection direction, T a, T b);
 

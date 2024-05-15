@@ -44,7 +44,8 @@ import java.io.IOException;
 public class NodeWatch extends AbstractClusterWatch<V1Node> {
 
     @Override
-    protected Call createResourceCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listNode().watch(true).buildCall(new CallBackAdapter<V1Node>(LOGGER));
+    public K8s.RESOURCE getManagedResourceType() {
+        return K8s.RESOURCE.NODE;
     }
+
 }

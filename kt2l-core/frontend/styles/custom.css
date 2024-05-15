@@ -167,6 +167,12 @@ vaadin-text-area.log-view textarea {
     color: #f6f6f6;
 }
 
+vaadin-text-area.preview textarea {
+    font-family: monospace;
+    font-size: 14px;
+    color: #000;
+}
+
 vaadin-text-area.no-word-wrap textarea {
   white-space: pre;
   overflow-wrap: normal;

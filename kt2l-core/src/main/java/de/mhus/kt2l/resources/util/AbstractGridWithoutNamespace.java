@@ -9,16 +9,16 @@ import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
+import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.k8s.K8sService;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.Watch;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,14 +32,18 @@ import static de.mhus.commons.tools.MLang.tryThis;
 public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithoutNamespace.ResourceItem<V>, S extends Component,V extends KubernetesObject, L extends KubernetesListObject> extends AbstractGrid<T, S>{
 
     private IRegistration eventRegistration;
+    @Autowired
+    protected K8sService k8sService;
+    protected HandlerK8s resourceHandler;
 
     @Override
     protected void init() {
-        eventRegistration = ClusterBackgroundJob.instance(
+        this.eventRegistration = ClusterBackgroundJob.instance(
                 panel.getCore(),
                 panel.getCluster(),
                 getManagedWatchClass()
         ).getEventHandler().registerWeak(this::changeEvent);
+        this.resourceHandler = k8sService.getResourceHandler(getManagedResourceType());
     }
 
     protected abstract Class<? extends ClusterBackgroundJob> getManagedWatchClass();
@@ -180,7 +184,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
                             synchronized (resourcesList) {
-                                tryThis(() -> createRawResourceList())
+                                tryThis(() -> createResourceListWithoutNamespace())
                                         .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
                                         .onSuccess(list -> {
                                             list.getItems().forEach(res -> {
@@ -199,7 +203,9 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
 
     protected abstract int sortColumn(String sorted, SortDirection direction, T a, T b);
 
-    protected abstract L createRawResourceList() throws ApiException;
+    protected L createResourceListWithoutNamespace() throws ApiException {
+        return resourceHandler.createResourceListWithoutNamespace(cluster.getApiProvider());
+    }
 
     @Data
     public static class ResourceItem<V extends KubernetesObject> {

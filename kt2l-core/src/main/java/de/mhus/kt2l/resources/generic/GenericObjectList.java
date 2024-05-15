@@ -255,7 +255,7 @@ public class GenericObjectList implements io.kubernetes.client.common.Kubernetes
         }
         // validate the optional field `metadata`
         if (jsonObj.get("metadata") != null && !jsonObj.get("metadata").isJsonNull()) {
-            V1ListMeta.validateJsonObject(jsonObj.getAsJsonObject("metadata"));
+//XXX            V1ListMeta.validateJsonObject(jsonObj.getAsJsonObject("metadata"));
         }
     }
 
@@ -296,7 +296,7 @@ public class GenericObjectList implements io.kubernetes.client.common.Kubernetes
      * @throws IOException if the JSON string is invalid with respect to GenericObjectList
      */
     public static GenericObjectList fromJson(String jsonString) throws IOException {
-        return JSON.getGson().fromJson(jsonString, GenericObjectList.class);
+        return new JSON().getGson().fromJson(jsonString, GenericObjectList.class);
     }
 
     /**
@@ -305,6 +305,6 @@ public class GenericObjectList implements io.kubernetes.client.common.Kubernetes
      * @return JSON string
      */
     public String toJson() {
-        return JSON.getGson().toJson(this);
+        return new JSON().getGson().toJson(this);
     }
 }
