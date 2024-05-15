@@ -30,37 +30,71 @@ import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import io.kubernetes.client.openapi.models.V1StatefulSet;
 import io.kubernetes.client.openapi.models.V1StorageClass;
 
-public enum K8s {
+public class K8s {
 
-    POD("pods", "Pod", null, "v1", "pod", "po", "", true, V1Pod.class),
-    NODE("nodes", "Node", null, "v1", "node", "no", "", false, V1Node.class),
-    NAMESPACE("namespaces", "Namespace", null, "v1", "namespace", "ns", "", false, V1Namespace.class),
-    CONTAINER("containers", "Container", null, "v1", "container", "co", "", true, ContainerResource.class),
-    CONFIG_MAP("configmaps", "ConfigMap", null, "v1", "configmap", "cm", "", true, V1ConfigMap.class),
-    DEPLOYMENT("deployments", "Deployment", "apps", "v1", "deployment", "deploy", "", true, V1Deployment.class),
-    STATEFUL_SET("statefulsets", "StatefulSet", "apps", "v1", "statefulset", "sts", "", true, V1StatefulSet.class),
-    DAEMON_SET("daemonsets", "DaemonSet", "apps", "v1", "daemonset", "ds", "", true, V1DaemonSet.class),
-    REPLICA_SET("replicasets", "ReplicaSet", "apps", "v1", "replicaset", "rs", "", true, V1ReplicaSet.class),
-    JOB("jobs", "Job", "batch", "v1", "job", "job", "", true, V1Job.class),
-    CRON_JOB("cronjobs", "CronJob", "batch", "v1", "cronjob", "cj", "", true, V1CronJob.class),
-    SECRET("secrets", "Secret", null, "v1", "secret", "se", "", true, V1Secret.class),
-    SERVICE("services", "Service", null, "v1", "service", "svc", "", true, V1Service.class),
-    INGRESS("ingresses", "Ingress", "networking.k8s.io", "v1", "ingress", "ing", "", true, V1Ingress.class),
-    NETWORK_POLICY("networkpolicies", "NetworkPolicy", "networking.k8s.io", "v1", "networkpolicy", "np", "", true, V1NetworkPolicy.class),
-    PERSISTENT_VOLUME("persistentvolumes", "PersistentVolume", null, "v1", "persistentvolume", "pv", "", false, V1PersistentVolume.class),
-    PERSISTENT_VOLUME_CLAIM("persistentvolumeclaims", "PersistentVolumeClaim", null, "v1", "persistentvolumeclaim", "pvc", "", true, V1PersistentVolumeClaim.class),
-    STORAGE_CLASS("storageclasses", "StorageClass", "storage.k8s.io", "v1", "storageclass", "sc", "", false, V1StorageClass.class),
-    SERVICE_ACCOUNT("serviceaccounts", "ServiceAccount", null, "v1", "serviceaccount", "sa", "", true, V1ServiceAccount.class),
-    ROLE("roles", "Role", "rbac.authorization.k8s.io", "v1", "role", "ro", "", true, V1Role.class),
-    ROLE_BINDING("rolebindings", "RoleBinding", "rbac.authorization.k8s.io", "v1", "rolebinding", "rb", "", true, V1RoleBinding.class),
-    CLUSTER_ROLE("clusterroles", "ClusterRole", "rbac.authorization.k8s.io", "v1", "clusterrole", "cr", "", false, V1ClusterRole.class),
-    CLUSTER_ROLE_BINDING("clusterrolebindings", "ClusterRoleBinding", "rbac.authorization.k8s.io", "v1", "clusterrolebinding", "crb", "", false, V1ClusterRoleBinding.class),
-    CUSTOM_RESOURCE_DEFINITION("customresourcedefinitions", "CustomResourceDefinition", "apiextensions.k8s.io", "", "v1", "crd", "", false, V1CustomResourceDefinition.class),
-    HPA("horizontalpodautoscalers", "HorizontalPodAutoscaler", "autoscaling", "", "v1", "hpa", "", true, V1HorizontalPodAutoscaler.class),
-    LIMIT_RANGE("limitranges", "LimitRange", null, "v1", "limitrange", "lr", "", true, V1LimitRange.class),
-    ENDPOINTS("endpoints", "Endpoints", null, "v1", "endpoints", "ep", "", true, V1Endpoints.class),
-    GENERIC("", "", "", "", "", "", "", false, GenericObject.class),
-    CUSTOM("", "", "", "", "", "", "", false, KubernetesObject.class);
+    public final static K8s POD = new K8s("pods", "Pod", null, "v1", "pod", "po", "", true, V1Pod.class);
+    public final static K8s NODE = new K8s("nodes", "Node", null, "v1", "node", "no", "", false, V1Node.class);
+    public final static K8s NAMESPACE = new K8s("namespaces", "Namespace", null, "v1", "namespace", "ns", "", false, V1Namespace.class);
+    public final static K8s CONTAINER = new K8s("containers", "Container", null, "v1", "container", "co", "", true, ContainerResource.class);
+    public final static K8s CONFIG_MAP = new K8s("configmaps", "ConfigMap", null, "v1", "configmap", "cm", "", true, V1ConfigMap.class);
+    public final static K8s DEPLOYMENT = new K8s("deployments", "Deployment", "apps", "v1", "deployment", "deploy", "", true, V1Deployment.class);
+    public final static K8s STATEFUL_SET = new K8s("statefulsets", "StatefulSet", "apps", "v1", "statefulset", "sts", "", true, V1StatefulSet.class);
+    public final static K8s DAEMON_SET = new K8s("daemonsets", "DaemonSet", "apps", "v1", "daemonset", "ds", "", true, V1DaemonSet.class);
+    public final static K8s REPLICA_SET = new K8s("replicasets", "ReplicaSet", "apps", "v1", "replicaset", "rs", "", true, V1ReplicaSet.class);
+    public final static K8s JOB = new K8s("jobs", "Job", "batch", "v1", "job", "job", "", true, V1Job.class);
+    public final static K8s CRON_JOB = new K8s("cronjobs", "CronJob", "batch", "v1", "cronjob", "cj", "", true, V1CronJob.class);
+    public final static K8s SECRET = new K8s("secrets", "Secret", null, "v1", "secret", "se", "", true, V1Secret.class);
+    public final static K8s SERVICE = new K8s("services", "Service", null, "v1", "service", "svc", "", true, V1Service.class);
+    public final static K8s INGRESS = new K8s("ingresses", "Ingress", "networking.k8s.io", "v1", "ingress", "ing", "", true, V1Ingress.class);
+    public final static K8s NETWORK_POLICY = new K8s("networkpolicies", "NetworkPolicy", "networking.k8s.io", "v1", "networkpolicy", "np", "", true, V1NetworkPolicy.class);
+    public final static K8s PERSISTENT_VOLUME = new K8s("persistentvolumes", "PersistentVolume", null, "v1", "persistentvolume", "pv", "", false, V1PersistentVolume.class);
+    public final static K8s PERSISTENT_VOLUME_CLAIM = new K8s("persistentvolumeclaims", "PersistentVolumeClaim", null, "v1", "persistentvolumeclaim", "pvc", "", true, V1PersistentVolumeClaim.class);
+    public final static K8s STORAGE_CLASS = new K8s("storageclasses", "StorageClass", "storage.k8s.io", "v1", "storageclass", "sc", "", false, V1StorageClass.class);
+    public final static K8s SERVICE_ACCOUNT = new K8s("serviceaccounts", "ServiceAccount", null, "v1", "serviceaccount", "sa", "", true, V1ServiceAccount.class);
+    public final static K8s ROLE = new K8s("roles", "Role", "rbac.authorization.k8s.io", "v1", "role", "ro", "", true, V1Role.class);
+    public final static K8s ROLE_BINDING = new K8s("rolebindings", "RoleBinding", "rbac.authorization.k8s.io", "v1", "rolebinding", "rb", "", true, V1RoleBinding.class);
+    public final static K8s CLUSTER_ROLE = new K8s("clusterroles", "ClusterRole", "rbac.authorization.k8s.io", "v1", "clusterrole", "cr", "", false, V1ClusterRole.class);
+    public final static K8s CLUSTER_ROLE_BINDING = new K8s("clusterrolebindings", "ClusterRoleBinding", "rbac.authorization.k8s.io", "v1", "clusterrolebinding", "crb", "", false, V1ClusterRoleBinding.class);
+    public final static K8s CUSTOM_RESOURCE_DEFINITION = new K8s("customresourcedefinitions", "CustomResourceDefinition", "apiextensions.k8s.io", "", "v1", "crd", "", false, V1CustomResourceDefinition.class);
+    public final static K8s HPA = new K8s("horizontalpodautoscalers", "HorizontalPodAutoscaler", "autoscaling", "", "v1", "hpa", "", true, V1HorizontalPodAutoscaler.class);
+    public final static K8s LIMIT_RANGE = new K8s("limitranges", "LimitRange", null, "v1", "limitrange", "lr", "", true, V1LimitRange.class);
+    public final static K8s ENDPOINTS = new K8s("endpoints", "Endpoints", null, "v1", "endpoints", "ep", "", true, V1Endpoints.class);
+    public final static K8s GENERIC = new K8s("", "", "", "", "", "", "", false, GenericObject.class);
+    public final static K8s CUSTOM = new K8s("", "", "", "", "", "", "", false, KubernetesObject.class);
+
+    public final static K8s[] values() {
+        return new K8s[] {
+            POD,
+            NODE,
+            NAMESPACE,
+            CONTAINER,
+            CONFIG_MAP,
+            DEPLOYMENT,
+            STATEFUL_SET,
+            DAEMON_SET,
+            REPLICA_SET,
+            JOB,
+            CRON_JOB,
+            SECRET,
+            SERVICE,
+            INGRESS,
+            NETWORK_POLICY,
+            PERSISTENT_VOLUME,
+            PERSISTENT_VOLUME_CLAIM,
+            STORAGE_CLASS,
+            SERVICE_ACCOUNT,
+            ROLE,
+            ROLE_BINDING,
+            CLUSTER_ROLE,
+            CLUSTER_ROLE_BINDING,
+            CUSTOM_RESOURCE_DEFINITION,
+            HPA,
+            LIMIT_RANGE,
+            ENDPOINTS,
+            GENERIC,
+            CUSTOM
+        };
+    }
 
     private final String resourceType;
     private final String kind;
@@ -119,5 +153,23 @@ public enum K8s {
         this.categories = categories;
         this.namespaced = namespaced;
         this.clazz = clazz;
+    }
+
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof K8s)) {
+            return false;
+        }
+        K8s other = (K8s) obj;
+        return resourceType.equals(other.resourceType) &&
+                kind.equals(other.kind) &&
+                group.equals(other.group) &&
+                version.equals(other.version) &&
+                singular.equals(other.singular) &&
+                shortNames.equals(other.shortNames) &&
+                categories.equals(other.categories) &&
+                namespaced == other.namespaced;
     }
 }
