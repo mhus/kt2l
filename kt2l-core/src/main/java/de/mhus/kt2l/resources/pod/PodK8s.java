@@ -18,11 +18,14 @@
 
 package de.mhus.kt2l.resources.pod;
 
+import de.mhus.commons.tools.MFile;
+import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
+import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
@@ -33,6 +36,9 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 @Slf4j
 @Component
@@ -47,11 +53,85 @@ public class PodK8s implements HandlerK8s {
     }
 
     @Override
-    public String getPreview(ApiProvider apiProvider, KubernetesObject res) {
+    public String getPreview(ApiProvider apiProvider, KubernetesObject object) {
         var sb = new StringBuilder();
-        K8s.previewHeader(apiProvider, this, res, sb);
+        K8s.previewHeader(apiProvider, this, object, sb);
+        if (object instanceof V1Pod res) {
 
-        K8s.previewFooter(apiProvider, this, res, sb);
+            sb.append("Phase:         ").append(res.getStatus().getPhase()).append("\n");
+            sb.append("Node:          ").append(res.getSpec().getNodeName()).append("\n");
+            sb.append("Priority:      ").append(res.getSpec().getPriority()).append("\n");
+            sb.append("Restart:       ").append(res.getSpec().getRestartPolicy()).append("\n");
+            sb.append("Termination:   ").append(res.getSpec().getTerminationGracePeriodSeconds()).append("\n");
+            sb.append("IP:            ").append(res.getStatus().getPodIP()).append("\n");
+            sb.append("Host IP:       ").append(res.getStatus().getHostIP()).append("\n");
+            sb.append("IPs:           ").append(res.getStatus().getPodIPs()).append("\n");
+            if (res.getSpec().getDnsPolicy() != null)
+                sb.append("DNS Policy:    ").append(res.getSpec().getDnsPolicy()).append("\n");
+            if (res.getSpec().getHostNetwork() != null)
+                sb.append("Host Network:  ").append(res.getSpec().getHostNetwork()).append("\n");
+            if (res.getSpec().getHostPID() != null)
+                sb.append("Host PID:      ").append(res.getSpec().getHostPID()).append("\n");
+            if (res.getSpec().getHostIPC() != null)
+                sb.append("Host IPC:      ").append(res.getSpec().getHostIPC()).append("\n");
+            if (res.getSpec().getServiceAccountName()!=null)
+                sb.append("Service Acc:   ").append(res.getSpec().getServiceAccountName()).append("\n");
+            if (res.getSpec().getAutomountServiceAccountToken()!=null)
+                sb.append("Automount:     ").append(res.getSpec().getAutomountServiceAccountToken()).append("\n");
+            if (res.getSpec().getImagePullSecrets()!=null)
+                sb.append("Image Pull:    ").append(res.getSpec().getImagePullSecrets()).append("\n");
+            if (res.getSpec().getSecurityContext()!=null)
+                sb.append("Security Cont: ").append(res.getSpec().getSecurityContext()).append("\n");
+            if (res.getSpec().getSubdomain()!=null)
+                sb.append("Subdomain:     ").append(res.getSpec().getSubdomain()).append("\n");
+            if (res.getSpec().getAffinity()!=null)
+                sb.append("Affinity:      ").append(res.getSpec().getAffinity()).append("\n");
+            if (res.getSpec().getSchedulerName()!=null)
+                sb.append("Scheduler:     ").append(res.getSpec().getSchedulerName()).append("\n");
+            if (res.getSpec().getTolerations()!=null)
+                sb.append("Tolerations:   ").append(res.getSpec().getTolerations()).append("\n");
+            if (res.getSpec().getHostAliases()!=null)
+                sb.append("Host Aliases:  ").append(res.getSpec().getHostAliases()).append("\n");
+            if (res.getSpec().getTopologySpreadConstraints()!=null)
+                sb.append("Topology:      ").append(res.getSpec().getTopologySpreadConstraints()).append("\n");
+            if (res.getSpec().getOverhead()!=null)
+                sb.append("Overhead:      ").append(res.getSpec().getOverhead()).append("\n");
+            sb.append("Init Cont:     ").append(res.getSpec().getInitContainers()).append("\n");
+            sb.append("Cont:          ").append(res.getSpec().getContainers()).append("\n");
+            sb.append("Ephemeral:     ").append(res.getSpec().getEphemeralContainers()).append("\n");
+            sb.append("Volumes:       ").append(res.getSpec().getVolumes()).append("\n");
+            sb.append("Node Selector: ").append(res.getSpec().getNodeSelector()).append("\n");
+
+        }
+        K8s.previewFooter(apiProvider, this, object, sb);
+
+        if (object instanceof V1Pod res) {
+            sb.append("\nLogs:\n\n");
+            PodLogs podLogs = new PodLogs(apiProvider.getClient());
+            try (var logStream = podLogs.streamNamespacedPodLog(
+                    res.getMetadata().getNamespace(),
+                    res.getMetadata().getName(),
+                    null,
+                    null,
+                    10,
+                    true
+            )) {
+                Thread.startVirtualThread(() -> {
+                    try {
+                        MThread.sleep(500);
+                        logStream.close();
+                    } catch (Exception e) {
+                    }
+                });
+                BufferedReader reader = new BufferedReader(new InputStreamReader(logStream));
+                MFile.readLines(reader, (line) -> {
+                    sb.append(line).append("\n");
+                });
+            } catch (Exception e) {
+                if (e.getMessage()!= null && !e.getMessage().equals("stream closed"))
+                    LOGGER.warn("Error reading logs for {}", res.getMetadata().getName(), e);
+            }
+        }
         return sb.toString();
     }
 

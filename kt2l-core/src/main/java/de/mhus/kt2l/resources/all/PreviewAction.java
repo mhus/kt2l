@@ -78,7 +78,7 @@ public class PreviewAction implements ResourceAction {
         dialog.setHeaderTitle("Preview");
         var preview = new TextArea();
         preview.addClassName("preview");
-        //preview.addClassName("no-word-wrap");
+        preview.addClassName("no-word-wrap");
         preview.setReadOnly(true);
         preview.setSizeFull();
         preview.setValue(sb.toString());

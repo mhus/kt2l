@@ -76,8 +76,8 @@ public class KubeTest {
         final var uid = pod.getMetadata().getUid();
         final var fieldSelector = "involvedObject.uid=" + uid;
         // final var fieldSelector = "involvedObject.name=" + podName + ",involvedObject.namespace=" + namespace;
-//        final var list = apiProvider.getCoreV1Api().listNamespacedEvent(namespace, null, null, null, fieldSelector, null, 5, null, null, null, 10, null);
-        final var list = apiProvider.getCoreV1Api().listEventForAllNamespaces( null, null, null, fieldSelector, 10, null, null, null, null, 10, null);
+        final var list = apiProvider.getCoreV1Api().listNamespacedEvent(namespace, null, null, null, fieldSelector, null, 5, null, null, null, 10, null);
+//        final var list = apiProvider.getCoreV1Api().listEventForAllNamespaces( null, null, null, fieldSelector, 10, null, null, null, null, 10, null);
         list.getItems().forEach(item -> {
             final var metadata = item.getMetadata();
             final var name = metadata.getName();

@@ -20,6 +20,7 @@ package de.mhus.kt2l.k8s;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import de.mhus.commons.console.ConsoleTable;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.resources.generic.GenericObject;
@@ -151,10 +152,20 @@ public class K8s {
 
             final var events = list.getItems();
             if (events != null) {
-                sb.append("Events:\n");
+                sb.append("\nEvents:\n\n");
+                ConsoleTable table = new ConsoleTable();
+                table.setHeaderValues("Type", "Reason", "Age", "Count", "From", "Message");
                 events.forEach(event -> {
-                    sb.append("  ").append(event.getReason()).append(" ").append(event.getMessage()).append("\n");
+                    table.addRowValues(
+                            event.getType(),
+                            event.getReason(),
+                            getAge(event.getMetadata().getCreationTimestamp()),
+                            event.getCount(),
+                            event.getSource().getComponent(),
+                            event.getMessage()
+                    );
                 });
+                sb.append(table.toString()).append("\n");
             }
         } catch (ApiException e) {
             LOGGER.error("Error getting events for {}", res, e);
@@ -400,6 +411,7 @@ public class K8s {
     }
 
     public static String getAge(OffsetDateTime creationTimestamp) {
+        if (creationTimestamp == null) return "";
         final var age = System.currentTimeMillis()/1000 - creationTimestamp.toEpochSecond();
         if (age < 60) return age + "s";
         if (age < 3600) return age/60 + "m";
