@@ -99,23 +99,66 @@ public class K8s {
     public static void previewHeader(ApiProvider apiProvider, HandlerK8s handler, KubernetesObject res, StringBuilder sb) {
         var kind = res.getKind();
         if (kind != null) {
-            sb.append("Kind:      ").append(kind).append("\n");
+            sb.append("Kind:          ").append(kind).append("\n");
         }
         var name = res.getMetadata().getName();
-            sb.append("Name:      ").append(name).append("\n");
+            sb.append("Name:          ").append(name).append("\n");
         var namespace = res.getMetadata().getNamespace();
         if (namespace != null) {
-            sb.append("Namespace: ").append(namespace).append("\n");
+            sb.append("Namespace:     ").append(namespace).append("\n");
         }
         var creationTimestamp = res.getMetadata().getCreationTimestamp();
         if (creationTimestamp != null) {
-            sb.append("Created:   ").append(creationTimestamp).append("\n");
+            sb.append("Created:       ").append(creationTimestamp).append("\n");
         }
+
+        var labels = res.getMetadata().getLabels();
+        if (labels != null) {
+            sb.append("Labels:        ");
+            boolean first = true;
+            for (var e : labels.entrySet()) {
+                if (!first)
+                    sb.append("               ");
+                first = false;
+                sb.append(e.getKey()).append("=").append(e.getValue()).append("\n");
+            }
+        } else
+            sb.append("Labels:        <none>\n");
+        var annotations = res.getMetadata().getAnnotations();
+        if (annotations != null) {
+            sb.append("Annotations:   ");
+            boolean first = true;
+            for (var e : annotations.entrySet()) {
+                if (!first)
+                    sb.append("               ");
+                first = false;
+                sb.append(e.getKey()).append("=").append(e.getValue()).append("\n");
+            }
+        } else
+            sb.append("Annotations:   <none>\n");
     }
 
     public static void previewFooter(ApiProvider apiProvider, HandlerK8s handler, KubernetesObject res, StringBuilder sb) {
-        
 
+        try {
+            final var uid = res.getMetadata().getUid();
+            final var namespace = res.getMetadata().getNamespace();
+            final var fieldSelector = "involvedObject.uid=" + uid;
+            final var list = namespace == null ?
+                    apiProvider.getCoreV1Api().listEventForAllNamespaces( null, null, null, fieldSelector, 10, null, null, null, null, 10, null)
+                    :
+                    apiProvider.getCoreV1Api().listNamespacedEvent( namespace, null, null, null, fieldSelector, null, 10, null, null, null, 10, null);
+
+            final var events = list.getItems();
+            if (events != null) {
+                sb.append("Events:\n");
+                events.forEach(event -> {
+                    sb.append("  ").append(event.getReason()).append(" ").append(event.getMessage()).append("\n");
+                });
+            }
+        } catch (ApiException e) {
+            LOGGER.error("Error getting events for {}", res, e);
+        }
     }
 
     public enum RESOURCE {
@@ -297,6 +340,8 @@ public class K8s {
                             LOGGER.error("Error adding resource type", e);
                         }
                     }
+
+                    types.removeIf(t -> t.getKind().equals("Event")); // no usage for this
 
                     future.complete(types);
                 }

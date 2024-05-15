@@ -59,6 +59,68 @@ public class KubeTest {
     private static final String CLUSTER_NAME = LOCAL_PROPERTIES.getProperty("cluster.name", null);
 
     @Test
+    public void getEventsForPod() throws IOException, ApiException {
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+
+        final var service = new K8sService();
+        ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
+
+        final var podName = LOCAL_PROPERTIES.getProperty("pod.name");
+        final var namespace = LOCAL_PROPERTIES.getProperty("namespace");
+        final var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace, null);
+        System.out.println("Pod: " + pod.getMetadata().getName() + " " + pod.getMetadata().getCreationTimestamp() + " " + pod.getStatus().getPhase() + " " + pod.getStatus().getReason() + " " + pod.getStatus().getMessage() + " " + pod.getStatus().getStartTime());
+        System.out.println("---------------------------------");
+        final var uid = pod.getMetadata().getUid();
+        final var fieldSelector = "involvedObject.uid=" + uid;
+        // final var fieldSelector = "involvedObject.name=" + podName + ",involvedObject.namespace=" + namespace;
+//        final var list = apiProvider.getCoreV1Api().listNamespacedEvent(namespace, null, null, null, fieldSelector, null, 5, null, null, null, 10, null);
+        final var list = apiProvider.getCoreV1Api().listEventForAllNamespaces( null, null, null, fieldSelector, 10, null, null, null, null, 10, null);
+        list.getItems().forEach(item -> {
+            final var metadata = item.getMetadata();
+            final var name = metadata.getName();
+            final var creationTimestamp = metadata.getCreationTimestamp();
+            final var involvedObject = item.getInvolvedObject();
+            final var message = item.getMessage();
+            final var reason = item.getReason();
+            final var type = item.getType();
+            final var firstTimestamp = item.getFirstTimestamp();
+            final var lastTimestamp = item.getLastTimestamp();
+            final var count = item.getCount();
+            final var source = item.getSource();
+            final var reportingComponent = item.getReportingComponent();
+            final var reportingInstance = item.getReportingInstance();
+            System.out.println(name + " " + creationTimestamp + " " + involvedObject + " " + message + " " + reason + " " + type + " " + firstTimestamp + " " + lastTimestamp + " " + count + " " + source + " " + reportingComponent + " " + reportingInstance);
+        });
+        System.out.println("---------------------------------");
+
+    }
+
+    @Test
+    public void watchEvents() throws IOException, ApiException {
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        final var service = new K8sService();
+        ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
+
+        final var eventCall = apiProvider.getCoreV1Api().listEventForAllNamespacesCall( null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter<CoreV1Event>(LOGGER));
+        Watch<CoreV1Event> watch = Watch.createWatch(
+                apiProvider.getClient(),
+                eventCall,
+                new TypeToken<Watch.Response<CoreV1Event>>(){}.getType());
+
+        for (Watch.Response<CoreV1Event> event : watch) {
+            System.out.println(event.type + " '" + event.object.getInvolvedObject().getName() + "' " + event.object.getMessage());
+//            System.out.println(event.type + " " + event.object.toString().replace("\n", " "));
+        }
+    }
+
+
+    @Test
     public void getNamespaces() throws IOException, ApiException {
 
         if (CLUSTER_NAME == null) {

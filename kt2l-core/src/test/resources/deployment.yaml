@@ -1,0 +1,161 @@
+#
+# test-server - test as server
+# Copyright © 2024 Mike Hummel (mh@mhus.de)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  name: test
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: passwords
+  namespace: test
+data:
+  # 2UKowq7JszoxAzfSvcCKRTpD4Cb
+  admin_password: MlVLb3dxN0pzem94QXpmU3ZjQ0tSVHBENENiCg==
+  # ov7yV9EzZRMp65ZHaurPRYy2PwD
+  user_password: b3Y3eVY5RXpaUk1wNjVaSGF1clBSWXkyUHdECg==
+  # tvanR3WHokmAexboBeaqGm6LVub
+  viewer_password: dHZhblIzV0hva21BZXhib0JlYXFHbTZMVnViCg==
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-config
+  namespace: test
+data:
+  # test-users
+  login.yaml: |
+    autoLogin: false
+    autoLoginUser: nouser
+    protectedConfigurations:
+  users.yaml: |
+    users:
+      - name: "admin"
+        password: "{noop}admin"
+        roles:
+          - "READ"
+          - "WRITE"
+          - "LOCAL"
+          - "SETTINGS"
+          - "ADMIN"
+      - name: "user"
+        password: "{env}user_password"
+        roles:
+        - "READ"
+        - "WRITE"
+        - "SETTINGS"
+      - name: "viewer"
+        password: "{env}viewer_password"
+        roles:
+          - "READ"
+  clusters.yaml: |
+    defaultCluster: .local-cluster
+    defaultResourceType: "pods"
+    defaultNamespace: default
+    clusters:
+        - name: .local-cluster
+          title: "This"
+          enabled: true
+          color: blue
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  # "namespace" omitted since ClusterRoles are not namespaced
+  name: test-cluster-role
+rules:
+  - apiGroups: ["", "metrics.k8s.io","apps","batch","extensions","networking.k8s.io","storage.k8s.io","rbac.authorization.k8s.io","autoscaling","policy", "events.k8s.io"]
+    resources: ["*"]
+    verbs: ["*"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test-service-account
+  namespace: test
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: test-cluster-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: test-cluster-role
+subjects:
+  - kind: ServiceAccount
+    name: test-service-account
+    namespace: test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: test
+  name: test
+  namespace: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test
+  template:
+    metadata:
+      labels:
+        app: test
+    spec:
+      serviceAccountName: test-service-account
+      containers:
+        - image: mhus/example-dice:latest
+          imagePullPolicy: Always
+          name: test-server
+          env:
+            - name: INFINITE
+              value: 'true'
+          envFrom:
+            - secretRef:
+                name: passwords
+          volumeMounts:
+            - name: config
+              mountPath: /app/test-server/config/local
+      volumes:
+        # You set volumes at the Pod level, then mount them into containers inside that Pod
+        - name: config
+          configMap:
+            # Provide the name of the ConfigMap you want to mount.
+            name: local-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: test
+  name: test
+  namespace: test
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app: test
+  type: ClusterIP
