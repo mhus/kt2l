@@ -160,11 +160,20 @@ span.ktool-title {
     padding-left: 10px;
 }
 
-vaadin-text-area.log-view textarea {
-    font-family: monospace;
-    font-size: 14px;
+vaadin-scroller.log-view {
     background-color: #000;
     color: #f6f6f6;
+    white-space:pre;
+    padding: 5px;
+}
+
+vaadin-scroller.log-view div {
+    font-family: monospace;
+    font-size: 14px;
+}
+
+vaadin-scroller.log-view-nowrap {
+    white-space: nowrap;
 }
 
 vaadin-scroller.events-view {
@@ -173,6 +182,7 @@ vaadin-scroller.events-view {
     color: #f6f6f6;
     white-space:pre;
 }
+
 
 vaadin-scroller.events-view-nowrap {
     white-space: nowrap;

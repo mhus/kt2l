@@ -113,7 +113,7 @@ metadata:
   name: test
   namespace: test
 spec:
-  replicas: 1
+  replicas: 5
   selector:
     matchLabels:
       app: test
