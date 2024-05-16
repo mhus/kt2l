@@ -94,7 +94,7 @@ public class GenericObjectsApi {
 
             String[] localVarAuthNames = new String[] { "BearerToken" };
 
-            LOGGER.debug("List custom objects: {}", localVarPath);
+            LOGGER.debug("List custom objects: {} {}", basePath, localVarPath);
             var callback = new CallBackAdapter(LOGGER);
             var call = localVarApiClient.buildCall(basePath + localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, callback);
 
