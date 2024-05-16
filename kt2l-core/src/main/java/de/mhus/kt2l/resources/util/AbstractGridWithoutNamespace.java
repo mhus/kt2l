@@ -9,6 +9,7 @@ import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
+import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
@@ -208,6 +209,26 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
 
     }
 
+    protected String getGridRowClass(T res) {
+        return res.color != null ? res.color.name().toLowerCase() : null;
+    }
+
+    public void refresh(long counter) {
+        super.refresh(counter);
+        if (counter % 2 == 0) {
+            synchronized (resourcesList) {
+                resourcesList.forEach(res -> {
+                    if (res.color != null && res.colorTimeout != 0 && res.colorTimeout < System.currentTimeMillis()) {
+                        res.color = null;
+                        getPanel().getCore().ui().access(() -> {
+                            resourcesGrid.getDataProvider().refreshItem(res);
+                        });
+                    }
+                });
+            }
+        }
+    }
+
     protected abstract int sortColumn(String sorted, SortDirection direction, T a, T b);
 
     protected L createResourceListWithoutNamespace() throws ApiException {
@@ -216,6 +237,8 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
 
     @Getter
     public static class ResourceItem<V extends KubernetesObject> {
+        protected UiUtil.COLOR color;
+        protected long colorTimeout;
         protected String name;
         protected long created;
         protected V resource;
@@ -224,6 +247,8 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
             this.name = resource.getMetadata().getName();
             this.resource = resource;
             this.created = tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
+            color = UiUtil.COLOR.GREEN;
+            colorTimeout = System.currentTimeMillis() + 2000;
         }
 
         public void updateResource() {

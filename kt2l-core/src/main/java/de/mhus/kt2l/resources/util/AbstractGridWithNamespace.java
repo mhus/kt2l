@@ -9,6 +9,7 @@ import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
+import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
@@ -213,7 +214,28 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     }
 
-    protected L createRawResourceListForNamespace(String namespace) throws ApiException {
+    protected String getGridRowClass(T res) {
+        return res.color != null ? res.color.name().toLowerCase() : null;
+    }
+
+    public void refresh(long counter) {
+        super.refresh(counter);
+        if (counter % 2 == 0) {
+            synchronized (resourcesList) {
+                resourcesList.forEach(res -> {
+                    if (res.color != null && res.colorTimeout != 0 && res.colorTimeout < System.currentTimeMillis()) {
+                        res.color = null;
+                        getPanel().getCore().ui().access(() -> {
+                            resourcesGrid.getDataProvider().refreshItem(res);
+                        });
+                    }
+                });
+            }
+        }
+    }
+
+
+        protected L createRawResourceListForNamespace(String namespace) throws ApiException {
         return resourceHandler.createResourceListWithNamespace(cluster.getApiProvider(), namespace);
     }
 
@@ -225,6 +247,8 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     @Getter
     public static class ResourceItem<V extends KubernetesObject> {
+        protected UiUtil.COLOR color;
+        protected long colorTimeout;
         protected String name;
         protected String namespace;
         protected long created;
@@ -234,6 +258,8 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
             this.name = resource.getMetadata().getName();
             this.namespace = resource.getMetadata().getNamespace();
             this.resource = resource;
+            color = UiUtil.COLOR.GREEN;
+            colorTimeout = System.currentTimeMillis() + 2000;
         }
 
         public String getAge() {

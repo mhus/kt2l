@@ -61,7 +61,7 @@ public class GenericObjectsApi {
             } else if ( localBasePaths.length > 0 ) {
                 basePath = localBasePaths[localHostIndex];
             } else {
-                basePath = null;
+                basePath = "";
             }
 
             Object localVarPostBody = null;

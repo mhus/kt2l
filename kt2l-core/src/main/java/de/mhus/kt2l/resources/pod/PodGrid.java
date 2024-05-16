@@ -180,6 +180,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     }
 
     public void refresh(long counter) {
+        super.refresh(counter);
         if (counter % 10 != 0) return;
 
         if (filteredList == null) return;

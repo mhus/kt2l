@@ -85,6 +85,10 @@ import static de.mhus.commons.tools.MCollection.notNull;
 @Route(value = "/")
 @PreserveOnRefresh
 @CssImport("./styles/custom.css")
+@CssImport(
+        themeFor = "vaadin-grid",
+        value = "./styles/grid.css"
+)
 @Slf4j
 // add Used to include js files in the build, only once per vaadin component is needed
 @Uses(ContainerShellPanel.class)

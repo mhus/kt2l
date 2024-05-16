@@ -93,10 +93,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     @Override
     public void refresh(long counter) {
-        if (counter % 10 != 0) return;
-        filterList();
-        resourcesGrid.getDataProvider().refreshAll();
-        panel.getCore().ui().push();
+//        if (counter % 10 != 0) return;
+//        filterList();
+//        resourcesGrid.getDataProvider().refreshAll();
+//        panel.getCore().ui().push();
     }
 
     @Override
@@ -298,6 +298,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 col.setAutoWidth(true);
                 col.setResizable(true);
             });
+            resourcesGrid.setClassNameGenerator(this::getGridRowClass);
             resourcesGrid.setDataProvider(createDataProvider());
 
             resourcesGrid.addCellFocusListener(event -> {
@@ -371,6 +372,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         } catch (Exception e) {
             LOGGER.error("Error creating grid", e);
         }
+    }
+
+    protected String getGridRowClass(T res) {
+        return null;
     }
 
     protected abstract void onDetailsChanged(T item);
