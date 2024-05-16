@@ -1,45 +1,46 @@
 .red {
-    background-color: #ff0000;
+    color: #ff0000;
 }
 
 .green {
-    background-color: #00ff00;
+    color: #00ff00;
 }
 
 .blue {
-    background-color: #0000ff;
+    color: #0000ff;
 }
 
 .yellow {
-    background-color: #ffff00;
+    color: #ffff00;
 }
 
 .orange {
-    background-color: #ff8000;
+    color: #ff8000;
 }
 
 .purple {
-    background-color: #8000ff;
+    color: #8000ff;
 }
 
 .cyan {
-    background-color: #00ffff;
+    color: #00ffff;
 }
 
 .black {
-    background-color: #000000;
+    color: #000000;
 }
 
 .white {
-    background-color: #ffffff;
+    color: #ffffff;
+    background-color: #000000;
 }
 
 .pink {
-    background-color: #ff00ff;
+    color: #ff00ff;
 }
 .magenta {
-    background-color: #ff00ff;
+    color: #ff00ff;
 }
 .brown {
-    background-color: #a52a2a;
+    color: #a52a2a;
 }

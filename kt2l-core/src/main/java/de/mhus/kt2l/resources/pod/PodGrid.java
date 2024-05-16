@@ -402,6 +402,9 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
 
         public void updateResource() {
+            if (this.status != null && !Objects.equals(this.status, resource.getStatus().getPhase())) {
+                setFlashColor(UiUtil.COLOR.BLUE);
+            }
             this.status = resource.getStatus().getPhase();
             if ("Succeeded".equals(this.status)) {
                 // reset metrics if pod is done
@@ -443,6 +446,14 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                     }
                 }
             }
+
+            if ("Succeeded".equals(this.status)) {
+                setColor(UiUtil.COLOR.BROWN);
+            } else
+            if (runningContainersCnt != containerCnt) {
+                setColor(UiUtil.COLOR.RED);
+            } else
+                setColor(null);
         }
 
         public String getAge() {

@@ -60,7 +60,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
             final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
                         final var res = createResourceItem();
-                        res.initResource((V)event.object);
+                        res.initResource((V)event.object, true);
                         res.updateResource();
                         resourcesList.add((T)res);
                         added.set(true);
@@ -199,7 +199,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                                         .onSuccess(list -> {
                                             list.getItems().forEach(res -> {
                                                 var newRes = createResourceItem();
-                                                newRes.initResource((V) res);
+                                                newRes.initResource((V) res, false);
                                                 newRes.updateResource();
                                                 resourcesList.add(newRes);
                                             });
@@ -224,7 +224,8 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
             synchronized (resourcesList) {
                 resourcesList.forEach(res -> {
                     if (res.color != null && res.colorTimeout != 0 && res.colorTimeout < System.currentTimeMillis()) {
-                        res.color = null;
+                        res.color = res.altColor;
+                        res.colorTimeout = 0;
                         getPanel().getCore().ui().access(() -> {
                             resourcesGrid.getDataProvider().refreshItem(res);
                         });
@@ -247,6 +248,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     @Getter
     public static class ResourceItem<V extends KubernetesObject> {
+        protected UiUtil.COLOR altColor;
         protected UiUtil.COLOR color;
         protected long colorTimeout;
         protected String name;
@@ -254,12 +256,12 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         protected long created;
         protected V resource;
 
-        void initResource(V resource) {
+        void initResource(V resource, boolean newResource) {
             this.name = resource.getMetadata().getName();
             this.namespace = resource.getMetadata().getNamespace();
             this.resource = resource;
-            color = UiUtil.COLOR.GREEN;
-            colorTimeout = System.currentTimeMillis() + 2000;
+            if (newResource)
+                setFlashColor(UiUtil.COLOR.GREEN);
         }
 
         public String getAge() {
@@ -289,6 +291,20 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         void setResource(V object) {
             this.resource = object;
         }
+
+        public void setFlashColor(UiUtil.COLOR color) {
+            if (colorTimeout != 0) return;
+            this.color = color;
+            this.colorTimeout = System.currentTimeMillis() + 2000;
+        }
+
+        public void setColor(UiUtil.COLOR color) {
+            this.altColor = color;
+            if (colorTimeout == 0)
+                this.color = color;
+        }
+
+
     }
 
 }
