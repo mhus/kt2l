@@ -17,53 +17,70 @@
  */
 package de.mhus.kt2l.events;
 
+import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.ai.AiResourcePanel;
+import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
 public class EventResourceAction implements ResourceAction {
+
+    @Autowired
+    private PanelService panelService;
+
     @Override
     public boolean canHandleResourceType(K8s resourceType) {
-        return false;
+        return true;
     }
 
     @Override
     public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return false;
+        return true;
     }
 
     @Override
     public void execute(ExecutionContext context) {
 
+        var name = context.getSelected().iterator().next().getMetadata().getName();
+        panelService.addPanel(
+                context.getSelectedTab(),
+                context.getCluster().getName() + ":" + context.getResourceType() + ":" + name + ":events",
+                name,
+                false,
+                VaadinIcon.CALENDAR_CLOCK.create(),
+                () -> new EventPanel(context)
+        ).setHelpContext("events").setWindowTitle(context.getCluster().getName() + " - " + name + " - Events").select();
     }
 
     @Override
     public String getTitle() {
-        return "";
+        return "Events;icon=" + VaadinIcon.CALENDAR_CLOCK;
     }
 
     @Override
     public String getMenuPath() {
-        return "";
+        return VIEW_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return 0;
+        return 400;
     }
 
     @Override
     public String getShortcutKey() {
-        return "";
+        return "CTRL+E";
     }
 
     @Override
     public String getDescription() {
-        return "";
+        return "Show events of the selected resource";
     }
 }

@@ -125,6 +125,7 @@ public class Core extends AppLayout {
     private ContextMenu helpMenu;
     private UI ui;
     private VaadinSession session;
+    private DeskTab mainTab;
 
     public Core(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -368,7 +369,7 @@ public class Core extends AppLayout {
         tabBar = new DeskTabBar(this);
         addToDrawer(tabBar);
 
-        tabBar.addTab(new DeskTab("main", "Main", false, VaadinIcon.HOME_O.create(), new ClusterOverviewPanel(this))).select();
+        mainTab = tabBar.addTab(new DeskTab("main", "Main", false, VaadinIcon.HOME_O.create(), new ClusterOverviewPanel(this))).select();
     }
 
     private void fireRefresh() {
@@ -483,5 +484,9 @@ public class Core extends AppLayout {
 
     public UI ui() {
         return ui;
+    }
+
+    public DeskTab getMainTab() {
+        return mainTab;
     }
 }

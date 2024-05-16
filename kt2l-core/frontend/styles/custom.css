@@ -167,6 +167,22 @@ vaadin-text-area.log-view textarea {
     color: #f6f6f6;
 }
 
+vaadin-scroller.events-view {
+    padding: 5px;
+    background-color: #000;
+    color: #f6f6f6;
+    white-space:pre;
+}
+
+vaadin-scroller.events-view-nowrap {
+    white-space: nowrap;
+}
+
+vaadin-scroller.events-view div {
+    font-family: monospace;
+    font-size: 14px;
+}
+
 vaadin-text-area.preview textarea {
     font-family: monospace;
     font-size: 14px;

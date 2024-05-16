@@ -30,17 +30,28 @@ import io.kubernetes.client.common.KubernetesObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ResourceManager<T extends KubernetesObject> {
     private final List<T> resources;
+    private final Consumer<List<T>> onChange;
     private volatile List<T> selectedResources;
     private final boolean canChange;
     private MenuItem menuBarItem;
 
     public ResourceManager(List<T> resources, boolean canChange) {
+        this(resources, canChange, null);
+    }
+
+    public ResourceManager(List<T> resources, Consumer<List<T>> onChange) {
+        this(resources, true, onChange);
+    }
+
+    protected ResourceManager(List<T> resources, boolean canChange, Consumer<List<T>> onChange) {
         this.resources = resources;
         this.selectedResources = resources;
         this.canChange = canChange;
+        this.onChange = onChange;
     }
 
     public List<T> getResources() {
@@ -84,6 +95,8 @@ public class ResourceManager<T extends KubernetesObject> {
 
                 dialog.close();
                 component.getUI().get().remove(dialog);
+                if (onChange != null)
+                    onChange.accept(selectedResources);
             });
             dialog.getFooter().add(saveButton);
         }

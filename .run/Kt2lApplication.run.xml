@@ -2,7 +2,7 @@
   <configuration default="false" name="Kt2lApplication" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="de.mhus.kt2l.Kt2lApplication" />
     <module name="kt2l-core" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/kt2l" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/kt2l/kt2l-core" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="de.mhus.kt2l.*" />

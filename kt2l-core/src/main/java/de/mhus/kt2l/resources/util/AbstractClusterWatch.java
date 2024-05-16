@@ -71,7 +71,7 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
                             case K8sUtil.WATCH_EVENT_ADDED:
                             case K8sUtil.WATCH_EVENT_MODIFIED:
                             case K8sUtil.WATCH_EVENT_DELETED:
-                                LOGGER.debug(event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp());
+                                LOGGER.debug("➤ Event " + event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp());
                                 break;
                             default:
                                 LOGGER.warn("Unknown event type: " + event.type);
