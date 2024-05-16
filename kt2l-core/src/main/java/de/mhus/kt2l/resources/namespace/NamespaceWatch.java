@@ -18,10 +18,15 @@
 
 package de.mhus.kt2l.resources.namespace;
 
+import com.google.gson.reflect.TypeToken;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
 import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.openapi.models.V1Node;
+import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
+
+import java.lang.reflect.Type;
 
 @Slf4j
 public class NamespaceWatch extends AbstractClusterWatch<V1Namespace> {
@@ -30,4 +35,10 @@ public class NamespaceWatch extends AbstractClusterWatch<V1Namespace> {
     public K8s getManagedResourceType() {
         return K8s.NAMESPACE;
     }
+
+    @Override
+    protected Type createTypeToken() {
+        return new TypeToken<Watch.Response<V1Namespace>>() {}.getType();
+    }
+
 }

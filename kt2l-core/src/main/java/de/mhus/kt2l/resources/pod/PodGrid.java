@@ -69,8 +69,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     }
 
     @Override
-    protected Resource createResourceItem(V1Pod object) {
-        return new Resource(object);
+    protected Resource createResourceItem() {
+        return new Resource();
     }
 
     protected void createDetailsComponent() {
@@ -328,12 +328,12 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                             final var selectedPod = containerSelectedPod;
                             if (selectedPod == null) return 0;
                             try {
-                                selectedPod.getPod().getStatus().getContainerStatuses().forEach(
+                                selectedPod.getResource().getStatus().getContainerStatuses().forEach(
                                         cs -> {
                                             var container = new Container(
                                                     CONTAINER_TYPE.DEFAULT,
                                                     cs,
-                                                    selectedPod.getPod()
+                                                    selectedPod.getResource()
                                             );
                                             var metric = selectedPod.getMetric();
                                             if (metric != null) {
@@ -344,23 +344,23 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                                             containerList.add(container);
                                         }
                                 );
-                                if (selectedPod.getPod().getStatus().getEphemeralContainerStatuses() != null)
-                                    selectedPod.getPod().getStatus().getEphemeralContainerStatuses().forEach(
+                                if (selectedPod.getResource().getStatus().getEphemeralContainerStatuses() != null)
+                                    selectedPod.getResource().getStatus().getEphemeralContainerStatuses().forEach(
                                             cs -> {
                                                 containerList.add(new Container(
                                                         CONTAINER_TYPE.EPHEMERAL,
                                                         cs,
-                                                        selectedPod.getPod()
+                                                        selectedPod.getResource()
                                                 ));
                                             }
                                     );
-                                if (selectedPod.getPod().getStatus().getInitContainerStatuses() != null)
-                                    selectedPod.getPod().getStatus().getInitContainerStatuses().forEach(
+                                if (selectedPod.getResource().getStatus().getInitContainerStatuses() != null)
+                                    selectedPod.getResource().getStatus().getInitContainerStatuses().forEach(
                                             cs -> {
                                                 containerList.add(new Container(
                                                         CONTAINER_TYPE.INIT,
                                                         cs,
-                                                        selectedPod.getPod()
+                                                        selectedPod.getResource()
                                                 ));
                                             }
                                     );
@@ -388,18 +388,25 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         private String metricCpuString = "-";
         private String metricMemoryString = "-";
 
-        private V1Pod pod;
         private PodMetrics metric;
 
-        public Resource(V1Pod res) {
-            super(res);
-            this.pod = res;
-            this.status = res.getStatus().getPhase();
+
+        public Resource() {
+            super();
+        }
+
+        public Resource(V1Pod pod) {
+            resource = pod;
+            updateResource();
+        }
+
+        public void updateResource() {
+            this.status = resource.getStatus().getPhase();
             this.restarts = 0;
             this.runningContainersCnt = 0;
             this.containerCnt = 0;
             {
-                var containers = res.getStatus().getContainerStatuses();
+                var containers = resource.getStatus().getContainerStatuses();
                 if (containers != null) {
                     this.containerCnt = containers.size();
                     this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
@@ -409,7 +416,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 }
             }
             {
-                var containers = res.getStatus().getEphemeralContainerStatuses();
+                var containers = resource.getStatus().getEphemeralContainerStatuses();
                 if (containers != null) {
                     this.containerCnt = containers.size();
                     this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
@@ -419,7 +426,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 }
             }
             {
-                var containers = res.getStatus().getInitContainerStatuses();
+                var containers = resource.getStatus().getInitContainerStatuses();
                 if (containers != null) {
                     this.containerCnt = containers.size();
                     this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
@@ -431,7 +438,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
 
         public String getAge() {
-            return K8sUtil.getAge(pod.getMetadata().getCreationTimestamp());
+            return K8sUtil.getAge(resource.getMetadata().getCreationTimestamp());
         }
 
         public String getReadyContainers() {

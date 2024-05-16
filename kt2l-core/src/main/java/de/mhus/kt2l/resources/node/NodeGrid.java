@@ -61,8 +61,8 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     }
 
     @Override
-    protected Resource createResourceItem(V1Node object) {
-        return new Resource(object);
+    protected Resource createResourceItem() {
+        return new Resource();
     }
 
     @Override
@@ -74,9 +74,8 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     public static class Resource extends AbstractGridWithoutNamespace.ResourceItem<V1Node> {
         String status;
 
-        @Builder
-        Resource(V1Node resource) {
-            super(resource);
+        @Override
+        public void updateResource() {
             this.status = resource.getStatus().getPhase();
         }
     }

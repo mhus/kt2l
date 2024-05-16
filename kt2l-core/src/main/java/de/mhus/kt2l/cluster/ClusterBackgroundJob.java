@@ -28,10 +28,6 @@ import java.io.IOException;
 
 public abstract class ClusterBackgroundJob {
 
-    public static synchronized <W extends ClusterBackgroundJob> W instance(Core core, Cluster cluster, Class<W> clazz) {
-        return (W)core.getBackgroundJob(cluster.getName(), clazz, () -> MObject.newInstance(clazz));
-    }
-
     protected ClusterBackgroundJob() {
     }
 

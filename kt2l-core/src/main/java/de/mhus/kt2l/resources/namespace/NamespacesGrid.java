@@ -40,8 +40,8 @@ public class NamespacesGrid extends AbstractGridWithoutNamespace<NamespacesGrid.
     }
 
     @Override
-    protected Resource createResourceItem(V1Namespace object) {
-        return new Resource(object);
+    protected Resource createResourceItem() {
+        return new Resource();
     }
 
     @Override
@@ -66,10 +66,6 @@ public class NamespacesGrid extends AbstractGridWithoutNamespace<NamespacesGrid.
 
     @Getter
     public class Resource extends AbstractGridWithoutNamespace.ResourceItem<V1Namespace> {
-
-        Resource(V1Namespace resource) {
-            super(resource);
-        }
 
     }
 }

@@ -69,6 +69,10 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
         });
         menuItemWrapLines.setCheckable(true);
 
+        menuBar.addItem("Clear", e -> {
+            eventList.clear();
+        });
+
         add(menuBar);
 
         eventList = new Tail();
@@ -79,8 +83,7 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
 
         add(eventList);
 
-        this.eventRegistration = ClusterBackgroundJob.instance(
-                core,
+        this.eventRegistration = core.backgroundJobInstance(
                 cluster,
                 EventWatch.class
         ).getEventHandler().registerWeak(this::changeEvent);

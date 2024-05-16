@@ -18,6 +18,7 @@ import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.Watch;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,12 +40,9 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     @Override
     protected void init() {
-        eventRegistration = ClusterBackgroundJob.instance(
-                panel.getCore(),
-                panel.getCluster(),
-                getManagedWatchClass()
-        ).getEventHandler().registerWeak(this::changeEvent);
-        this.resourceHandler = k8sService.getResourceHandler(getManagedResourceType());
+        resourceHandler = k8sService.getResourceHandler(getManagedResourceType());
+        if (getManagedWatchClass() != null)
+            eventRegistration = panel.getCore().backgroundJobInstance(panel.getCluster(), getManagedWatchClass()).getEventHandler().registerWeak(this::changeEvent);
     }
 
     protected abstract Class<? extends ClusterBackgroundJob> getManagedWatchClass();
@@ -52,12 +50,17 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     private void changeEvent(Watch.Response<KubernetesObject> event) {
         if (resourcesList == null) return;
 
+        if (namespace != null && !namespace.equals(K8sUtil.NAMESPACE_ALL) && !namespace.equals(event.object.getMetadata().getNamespace()))
+            return;
+
         if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
 
             AtomicBoolean added = new AtomicBoolean(false);
             final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
-                        final var res = createResourceItem((V)event.object);
+                        final var res = createResourceItem();
+                        res.initResource((V)event.object);
+                        res.updateResource();
                         resourcesList.add((T)res);
                         added.set(true);
                         return (T)res;
@@ -65,6 +68,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
             ));
 
             foundRes.setResource((V)event.object);
+            foundRes.updateResource();
             filterList();
             if (added.get())
                 getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
@@ -90,7 +94,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     }
 
-    protected abstract T createResourceItem(V object);
+    protected abstract T createResourceItem();
 
     @Override
     public abstract K8s getManagedResourceType();
@@ -193,7 +197,10 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                                         .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
                                         .onSuccess(list -> {
                                             list.getItems().forEach(res -> {
-                                                resourcesList.add(createResourceItem((V) res));
+                                                var newRes = createResourceItem();
+                                                newRes.initResource((V) res);
+                                                newRes.updateResource();
+                                                resourcesList.add(newRes);
                                             });
                                         });
                             }
@@ -216,18 +223,17 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     protected abstract int sortColumn(String sorted, SortDirection direction, T a, T b);
 
-    @Data
+    @Getter
     public static class ResourceItem<V extends KubernetesObject> {
         protected String name;
         protected String namespace;
         protected long created;
         protected V resource;
 
-        public ResourceItem(V resource) {
+        void initResource(V resource) {
             this.name = resource.getMetadata().getName();
             this.namespace = resource.getMetadata().getNamespace();
             this.resource = resource;
-            this.created = tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
         }
 
         public String getAge() {
@@ -248,6 +254,14 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         @Override
         public int hashCode() {
             return Objects.hash(name,namespace);
+        }
+
+        public void updateResource() {
+            this.created = tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
+        }
+
+        void setResource(V object) {
+            this.resource = object;
         }
     }
 

@@ -44,10 +44,12 @@ import com.vaadin.flow.server.VaadinSessionState;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.Kt2lApplication;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.config.ViewsConfiguration;
@@ -70,6 +72,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -134,7 +137,7 @@ public class Core extends AppLayout {
     @PostConstruct
     public void createUi() {
         if (closeScheduler != null) {
-            LOGGER.debug("Session already created");
+            LOGGER.debug("㋡ Session already created");
             return;
         }
 
@@ -142,7 +145,7 @@ public class Core extends AppLayout {
         createHeader();
         createDrawer();
 
-        LOGGER.info("Start Refresh Scheduler");
+        LOGGER.debug("㋡ Start Refresh Scheduler");
         closeScheduler = scheduler.scheduleAtFixedRate(this::fireRefresh, 1, 1, java.util.concurrent.TimeUnit.SECONDS);
 
         if (coreListeners != null)
@@ -194,7 +197,7 @@ public class Core extends AppLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         ui = attachEvent.getUI();
-        LOGGER.debug("UI on attach {}", MSystem.getObjectId(ui));
+        LOGGER.debug("㋡ UI on attach {}", MSystem.getObjectId(ui));
 
         var idleConf = viewsConfiguration.getConfig("core").getObject("idle").orElse(MTree.EMPTY_MAP);
         if (idleConf.getBoolean("enabled", true)) {
@@ -209,7 +212,7 @@ public class Core extends AppLayout {
             idleNotification.addCloseButton();
             idleNotification.setExtendSessionOnOutsideClick(true);
             idleNotification.addOpenListener(event -> {
-                LOGGER.debug("Idle Notification Opened");
+                LOGGER.debug("㋡ Idle Notification Opened");
                 if (idleConf.getBoolean("autoExtend", true))
                     idleNotification.getElement().executeJs(
                             "var self=this;setTimeout(() => { try {self.click(); }" +
@@ -236,10 +239,10 @@ public class Core extends AppLayout {
 
     protected synchronized void closeSession() {
         if (session == null) return;
-        LOGGER.debug("Close Session");
+        LOGGER.debug("㋡ Close Session");
         closeScheduler.cancel(false);
         detached(tabBar.getTabs()).forEach(DeskTab::closeTab);
-        clusteredJobsCleanup();
+        clusteredJobsClose();
         if (heartbeatRegistration != null)
             heartbeatRegistration.remove();
         if (coreListeners != null)
@@ -247,15 +250,32 @@ public class Core extends AppLayout {
         session = null;
     }
     protected void onDetach(DetachEvent detachEvent) {
-        LOGGER.debug("UI on detach {} on session {}", MSystem.getObjectId(detachEvent.getUI()), session == null ? "?" : session.getState());
+        LOGGER.debug("㋡ UI on detach {} on session {}", MSystem.getObjectId(detachEvent.getUI()), session == null ? "?" : session.getState());
         checkSession();
         ui = null;
     }
 
-    private void clusteredJobsCleanup() {
+    private void clusteredJobsClose() {
         synchronized (backgroundJobs) {
             backgroundJobs.values().forEach(m -> m.values().forEach(ClusterBackgroundJob::close));
             backgroundJobs.clear();
+        }
+    }
+
+    private void clusteredJobsCleanup() {
+        if (backgroundJobs == null) return;
+        LOGGER.trace("㋡ Cleanup Clustered Jobs");
+        synchronized (backgroundJobs) {
+            backgroundJobs.values().forEach(map -> {
+                map.values().removeIf(job -> {
+                    if (job.getEventHandler().size() == 0) {
+                        LOGGER.debug("㋡ Close idle Job {}", job.getClass().getSimpleName());
+                        job.close();
+                        return true;
+                    }
+                    return false;
+                });
+            });
         }
     }
 
@@ -375,21 +395,18 @@ public class Core extends AppLayout {
     private void fireRefresh() {
         if (session == null) return;
         try {
-//            LOGGER.debug("Refresh for session {} and ui {}", session, ui == null ? "?" : Objects.toIdentityString(ui));
+            LOGGER.trace("㋡ Refresh for session {} and ui {}", session, ui == null ? "?" : Objects.toIdentityString(ui));
             refreshCounter++;
-
-
-//            if (ui != null) {
-//                ui.access(() -> {
-//                    checkSession();
-//                });
-//            }
-
+            // cleanup clustered jobs
+            if (refreshCounter % 10 == 0) {
+                clusteredJobsCleanup();
+            }
+            // refresh selected tab
             final var selected = tabBar.getSelectedTab();
             if (selected != null) {
                 final var panel = selected.getPanel();
                 if (panel != null && panel instanceof DeskTabListener) {
-                    LOGGER.trace("Refresh selected panel {}", panel.getClass());
+                    LOGGER.trace("㋡ Refresh selected panel {}", panel.getClass());
                     ((DeskTabListener) panel).tabRefresh(refreshCounter);
                 }
             }
@@ -430,23 +447,28 @@ public class Core extends AppLayout {
         if (selected != null) {
             final var panel = selected.getPanel();
             if (panel != null && panel instanceof DeskTabListener) {
-                LOGGER.debug("Shortcut to panel {}", panel.getClass());
+                LOGGER.debug("㋡ Shortcut to panel {}", panel.getClass());
                 ((DeskTabListener) panel).tabShortcut(shortcutEvent);
             }
         }
     }
 
-    public <T extends ClusterBackgroundJob> T getBackgroundJob(String clusterId, Class<? extends T> jobId, Supplier<T> create) {
+    public <T extends ClusterBackgroundJob> T backgroundJobInstance(Cluster cluster, Class<T> watchClass) {
+        return (T)getBackgroundJob(cluster.getName(), watchClass, () -> MObject.newInstance(watchClass));
+    }
+
+    <T extends ClusterBackgroundJob> T getBackgroundJob(String clusterId, Class<? extends T> jobId, Supplier<T> create) {
         return (T) getBackgroundJob(clusterId, jobId.getName(), () -> create.get());
     }
 
-    public <T extends ClusterBackgroundJob> Optional<T> getBackgroundJob(String clusterId, Class<? extends T> jobId) {
+    <T extends ClusterBackgroundJob> Optional<T> getBackgroundJob(String clusterId, Class<? extends T> jobId) {
         return (Optional<T>)getBackgroundJob(clusterId, jobId.getName());
     }
 
     public ClusterBackgroundJob getBackgroundJob(String clusterId, String jobId, Supplier<ClusterBackgroundJob> create) {
         synchronized (backgroundJobs) {
             return backgroundJobs.computeIfAbsent(clusterId, k -> new HashMap<>()).computeIfAbsent(jobId, k -> {
+                LOGGER.debug("㋡ Create Job {}/{} with class {}", clusterId, jobId, k);
                 try {
                     final var job = create.get();
                     beanFactory.autowireBean(job);
@@ -489,4 +511,5 @@ public class Core extends AppLayout {
     public DeskTab getMainTab() {
         return mainTab;
     }
+
 }

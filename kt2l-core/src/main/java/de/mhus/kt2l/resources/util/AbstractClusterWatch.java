@@ -20,6 +20,7 @@ import okhttp3.Call;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 @Slf4j
 public abstract class AbstractClusterWatch<V extends KubernetesObject> extends ClusterBackgroundJob {
@@ -60,8 +61,8 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
                 Watch<V> watch = Watch.createWatch(
                         apiProvider.getClient(),
                         call,
-                        new TypeToken<Watch.Response<V>>() {
-                        }.getType());
+                        createTypeToken()
+                        );
 
                 for (Watch.Response<V> event : watch) {
                     if (event.object instanceof KubernetesObject) {
@@ -71,12 +72,14 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
                             case K8sUtil.WATCH_EVENT_ADDED:
                             case K8sUtil.WATCH_EVENT_MODIFIED:
                             case K8sUtil.WATCH_EVENT_DELETED:
-                                LOGGER.debug("➤ Event " + event.type + " : " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp());
+                                LOGGER.debug("➤ Event " + getClass().getSimpleName() + ": " + event.type + " - " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp());
                                 break;
                             default:
                                 LOGGER.warn("Unknown event type: " + event.type);
                         }
                         eventHandler.fire(event);
+                    } else {
+                        LOGGER.info("➤ Unknown object type: " + event.object.getClass());
                     }
                 }
             } catch (Exception e) {
@@ -88,6 +91,8 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
             }
         }
     }
+
+    protected abstract Type createTypeToken();
 
     protected Call createResourceCall(ApiProvider apiProvider) throws ApiException {
         return resourceHandler.createResourceWatchCall(apiProvider);

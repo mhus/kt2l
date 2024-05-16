@@ -281,7 +281,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         initGrid();
 
         final var cc = SecurityContext.create();
-        namespaceEventRegistration = NamespaceWatch.instance(getCore(), cluster, NamespaceWatch.class).getEventHandler().register(
+        namespaceEventRegistration = getCore().backgroundJobInstance( cluster, NamespaceWatch.class).getEventHandler().register(
                 (event) -> {
                     try (var cce = cc.enter()) {
                         if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_DELETED))

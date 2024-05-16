@@ -22,6 +22,7 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.MenuItemBase;
@@ -361,6 +362,11 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
             getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid);
             getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.SEMICOLON).listenOn(resourcesGrid);
+            getPanel().getCore().ui().addShortcutListener((event) -> {
+                LOGGER.info("◌ Refresh Grid");
+                resourcesList = null;
+                resourcesGrid.getDataProvider().refreshAll();
+            } , Key.KEY_R, KeyModifier.META).listenOn(resourcesGrid);
 
         } catch (Exception e) {
             LOGGER.error("Error creating grid", e);
@@ -463,17 +469,17 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             }
         }
 
-        if (filteredList != null) {
-            if (filteredList.size() == resourcesList.size())
-                resourceAmount.setText("RES: " + filteredList.size());
+        getPanel().getCore().ui().access(() -> {
+            if (filteredList != null) {
+                if (filteredList.size() == resourcesList.size())
+                    resourceAmount.setText("RES: " + filteredList.size());
+                else
+                    resourceAmount.setText("RES: " + filteredList.size() + " / " + resourcesList.size());
+            } else if (resourcesList != null)
+                resourceAmount.setText("RES: " + resourcesList.size());
             else
-                resourceAmount.setText("RES: " + filteredList.size() + " / " + resourcesList.size());
-        } else
-        if (resourcesList != null)
-            resourceAmount.setText("RES: " + resourcesList.size());
-        else
-            resourceAmount.setText("RES: -");
-
+                resourceAmount.setText("RES: -");
+        });
     }
 
     protected abstract boolean filterByContent(T resource, String filter);

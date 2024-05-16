@@ -18,6 +18,7 @@ import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.Watch;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,8 +40,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
 
     @Override
     protected void init() {
-        this.eventRegistration = ClusterBackgroundJob.instance(
-                panel.getCore(),
+        this.eventRegistration = panel.getCore().backgroundJobInstance(
                 panel.getCluster(),
                 getManagedWatchClass()
         ).getEventHandler().registerWeak(this::changeEvent);
@@ -57,7 +57,9 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
             AtomicBoolean added = new AtomicBoolean(false);
             final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                     () -> {
-                        final var res = createResourceItem((V)event.object);
+                        final var res = createResourceItem();
+                        res.initResource((V)event.object);
+                        res.updateResource();
                         resourcesList.add((T)res);
                         added.set(true);
                         return (T)res;
@@ -65,6 +67,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
             ));
 
             foundRes.setResource((V)event.object);
+            foundRes.updateResource();
             filterList();
             if (added.get())
                 getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
@@ -90,7 +93,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
 
     }
 
-    protected abstract T createResourceItem(V object);
+    protected abstract T createResourceItem();
 
     @Override
     public abstract K8s getManagedResourceType();
@@ -189,7 +192,10 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
                                         .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
                                         .onSuccess(list -> {
                                             list.getItems().forEach(res -> {
-                                                resourcesList.add(createResourceItem((V) res));
+                                                var newRes = createResourceItem();
+                                                newRes.initResource((V)res);
+                                                newRes.updateResource();
+                                                resourcesList.add(newRes);
                                             });
                                         });
                             }
@@ -208,15 +214,19 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
         return resourceHandler.createResourceListWithoutNamespace(cluster.getApiProvider());
     }
 
-    @Data
+    @Getter
     public static class ResourceItem<V extends KubernetesObject> {
         protected String name;
         protected long created;
         protected V resource;
 
-        public ResourceItem(V resource) {
+        void initResource(V resource) {
             this.name = resource.getMetadata().getName();
             this.resource = resource;
+            this.created = tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
+        }
+
+        public void updateResource() {
             this.created = tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
         }
 
@@ -238,6 +248,10 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
         @Override
         public int hashCode() {
             return Objects.hash(name);
+        }
+
+        void setResource(V object) {
+            this.resource = object;
         }
     }
 
