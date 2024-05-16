@@ -29,6 +29,8 @@ import io.kubernetes.client.openapi.models.V1NodeList;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Objects;
+
 import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
@@ -47,6 +49,9 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
         resourcesGrid.addColumn(NodeGrid.Resource::getStatus).setHeader("Status").setSortable(true);
+        resourcesGrid.addColumn(NodeGrid.Resource::getTaintCnt).setHeader("Taints").setSortable(true);
+        resourcesGrid.addColumn(NodeGrid.Resource::getIp).setHeader("IP").setSortable(true);
+        resourcesGrid.addColumn(NodeGrid.Resource::getVersion).setHeader("Version").setSortable(true);
     }
 
     @Override
@@ -55,6 +60,28 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
             switch (direction) {
                 case ASCENDING: return a.getStatus().compareTo(b.getStatus());
                 case DESCENDING: return b.getStatus().compareTo(a.getStatus());
+            }
+        }
+        if ("taints".equals(sorted)) {
+            switch (direction) {
+                case ASCENDING: return Integer.compare(a.getTaintCnt(), b.getTaintCnt());
+                case DESCENDING: return Integer.compare(b.getTaintCnt(), a.getTaintCnt());
+            }
+        }
+        if ("ip".equals(sorted)) {
+            switch (direction) {
+                case ASCENDING:
+                    return Objects.compare(a.getIp(), b.getIp(), String::compareTo);
+                case DESCENDING:
+                    return Objects.compare(b.getIp(), a.getIp(), String::compareTo);
+            }
+        }
+        if ("version".equals(sorted)) {
+            switch (direction) {
+                case ASCENDING:
+                    return Objects.compare(a.getVersion(), b.getVersion(), String::compareTo);
+                case DESCENDING:
+                    return Objects.compare(b.getVersion(), a.getVersion(), String::compareTo);
             }
         }
         return 0;
@@ -73,10 +100,20 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     @Getter
     public static class Resource extends AbstractGridWithoutNamespace.ResourceItem<V1Node> {
         String status;
+        private int taintCnt;
+        private String ip;
+        private String version;
 
         @Override
         public void updateResource() {
             this.status = resource.getStatus().getPhase();
+            this.taintCnt = tryThis(() -> resource.getSpec().getTaints().size()).or(0);
+            this.ip = resource.getStatus().getAddresses().stream()
+                    .filter(a -> "InternalIP".equals(a.getType()))
+                    .findFirst()
+                    .map(a -> a.getAddress())
+                    .orElse(null);
+            this.version = tryThis(() -> resource.getStatus().getNodeInfo().getKubeletVersion()).or("");
         }
     }
 }

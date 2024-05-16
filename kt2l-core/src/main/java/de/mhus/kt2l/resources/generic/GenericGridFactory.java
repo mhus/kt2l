@@ -18,10 +18,15 @@
 
 package de.mhus.kt2l.resources.generic;
 
+import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourceGridFactory;
 import de.mhus.kt2l.resources.ResourcesGrid;
+import org.springframework.stereotype.Component;
 
+@Component
+@WithRole(UsersConfiguration.ROLE.READ)
 public class GenericGridFactory implements ResourceGridFactory {
     @Override
     public boolean canHandleResourceType(K8s resourceType) {

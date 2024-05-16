@@ -88,7 +88,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
     @Override
     protected void createGridColumns(Grid<Resource> podGrid) {
         resourcesGrid.addColumn(pod -> pod.getName()).setHeader("Name").setSortProperty("name");
-        resourcesGrid.addColumn(pod -> pod.getData()).setHeader("Data").setSortProperty("data");
+        resourcesGrid.addColumn(pod -> pod.getData()).setHeader("Data");
         resourcesGrid.addColumn(pod -> pod.getAge()).setHeader("Age").setSortProperty("age");
     }
 
@@ -131,7 +131,9 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 
     @Override
     public void setResourceType(K8s resourceType) {
-        // no
+        LOGGER.debug("Set resource type {}",resourceType);
+        this.resourceType = K8s.toResource(resourceType);
+        super.setResourceType(K8s.CUSTOM);
     }
 
     private class ResourcesProvider extends CallbackDataProvider<Resource, Void> {

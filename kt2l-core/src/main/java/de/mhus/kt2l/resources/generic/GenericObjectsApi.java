@@ -126,7 +126,7 @@ public class GenericObjectsApi {
             } else {
                 path.append("/v1");
             }
-            if (r.getNamespaced() && namespace != null) {
+            if (r.getNamespaced() != null && r.getNamespaced() && namespace != null) {
                 path.append("/namespaces/").append(namespace).append("/").append(r.getName());
             } else {
                 path.append("/").append(r.getName());
@@ -138,7 +138,7 @@ public class GenericObjectsApi {
             } else {
                 path.append("/v1");
             }
-            if (r.getNamespaced() && namespace != null) {
+            if (r.getNamespaced() != null && r.getNamespaced() && namespace != null) {
                 path.append("/namespaces/").append(namespace).append("/").append(r.getName());
             } else {
                 path.append("/").append(r.getName());

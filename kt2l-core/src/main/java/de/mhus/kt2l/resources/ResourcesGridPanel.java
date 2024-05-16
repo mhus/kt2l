@@ -62,7 +62,6 @@ import static de.mhus.commons.tools.MString.isEmpty;
 @Slf4j
 public class ResourcesGridPanel extends VerticalLayout implements DeskTabListener {
 
-    private static final ResourceGridFactory GENERIC_GRID_FACTORY = new GenericGridFactory();
     @Getter
     private final Core core;
 
@@ -251,12 +250,12 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     }
 
     private ResourcesGrid createGrid(K8s resourceType) {
-        ResourceGridFactory foundFactory = GENERIC_GRID_FACTORY;
+        ResourceGridFactory foundFactory = null;
         if (resourceType != null) {
             for (ResourceGridFactory factory : resourceGridFactories)
                 if (    factory.canHandleResourceType(resourceType) &&
                         securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_GRID, factory) &&
-                        foundFactory.getPriority(resourceType) > factory.getPriority(resourceType))
+                        (foundFactory == null || foundFactory.getPriority(resourceType) > factory.getPriority(resourceType)))
                             foundFactory = factory;
                     }
 
