@@ -402,6 +402,13 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
 
         public void updateResource() {
             this.status = resource.getStatus().getPhase();
+            if ("Succeeded".equals(this.status)) {
+                // reset metrics if pod is done
+                metricCpuString = "-";
+                metricMemoryString = "-";
+                metricCpu = Double.MAX_VALUE;
+                metricMemory = Long.MAX_VALUE;
+            }
             this.restarts = 0;
             this.runningContainersCnt = 0;
             this.containerCnt = 0;
