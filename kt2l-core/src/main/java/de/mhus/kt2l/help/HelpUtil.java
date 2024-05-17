@@ -21,6 +21,7 @@ package de.mhus.kt2l.help;
 import com.github.difflib.DiffUtils;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.Patch;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -108,6 +109,7 @@ public class HelpUtil {
                     connector.setHelpContent(newContent);
             });
             useButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
+            useButton.addClickShortcut(Key.ENTER);
             dialog.getFooter().add(useButton);
 
             dialog.open();

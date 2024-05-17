@@ -85,15 +85,17 @@ public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Res
 
         @Override
         public void updateResource() {
-            this.replicas = resource.getStatus().getReadyReplicas() + "/" + resource.getStatus().getReplicas();
-            if (resource.getStatus().getReplicas() == 0)
+            int ready = resource.getStatus().getReadyReplicas() == null ? 0 : resource.getStatus().getReadyReplicas();
+            int replicas = resource.getStatus().getReplicas() == null ? 0 : resource.getStatus().getReplicas();
+            this.replicas = ready + "/" + replicas;
+            if (replicas == 0)
                 status = "Empty";
             else
-            if (resource.getStatus().getReadyReplicas() == resource.getStatus().getReplicas())
+            if (ready == replicas)
                 status = "Ready";
             else
                 status = "Not Ready";
-            if (resource.getStatus().getReadyReplicas() != resource.getStatus().getReplicas())
+            if (ready != replicas)
                 setColor(UiUtil.COLOR.RED);
             else
                 setColor(null);
