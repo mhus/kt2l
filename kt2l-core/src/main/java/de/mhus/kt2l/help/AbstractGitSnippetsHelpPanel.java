@@ -43,12 +43,11 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
     protected final HelpConfiguration.HelpLink link;
 
     @Autowired
-    private Configuration configuration;
+    private SnippetsService snippetsService;
     @Autowired
     private ViewsConfiguration viewsConfiguration;
-    private File snippetPath;
 
-    protected final List<Snippet> snippets = new LinkedList<>();
+    protected final List<SnippetsService.Snippet> snippets = new LinkedList<>();
     protected TextField search;
     protected VerticalLayout content;
     private final String codeType;
@@ -62,68 +61,7 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
 
     public void init() {
         maxVisibleResults = viewsConfiguration.getConfig("snippets").getInt("maxVisibleResults", 30);
-        initGit();
-        loadSnippets();
 
-        initUi();
-        updateContent();
-
-    }
-
-    private void loadSnippets() {
-        if (snippetPath == null) return;
-        if (!snippetPath.exists()) {
-            LOGGER.warn("Snippet not found {}", snippetPath);
-            return;
-        }
-        LOGGER.debug("Load snippet {}", snippetPath);
-        try {
-            MFile.findAllFiles(snippetPath, (f) -> f.getName().endsWith(".md")).forEach(file -> {
-                LOGGER.debug("Load snippet {}", file);
-                var content = MFile.readFile(file);
-                var snippet = loadSnippet(codeType, content);
-                if (snippet != null) {
-                    snippets.add(snippet);
-                }
-            });
-        } catch (Exception e) {
-            LOGGER.error("Load snippet failed", e);
-        }
-    }
-
-    public static Snippet loadSnippet(String codeType, String content) {
-        Pattern pattern = Pattern.compile("# (.*?)\n");
-        Matcher matcher = pattern.matcher(content);
-        if (!matcher.find()) {
-            LOGGER.warn("Title not found in snippet");
-            return null;
-        }
-        var title = matcher.group(1).trim();
-
-        pattern = Pattern.compile("# (.*?)\n(.*?)```"+codeType, Pattern.DOTALL);
-        matcher = pattern.matcher(content);
-        if (!matcher.find()) {
-            LOGGER.warn("Snippet not found in snippet");
-            return null;
-        }
-        var description = matcher.group(2).trim();
-
-        pattern = Pattern.compile("```"+codeType+"(.*?)```", Pattern.DOTALL);
-        matcher = pattern.matcher(content);
-        if (!matcher.find()) {
-            LOGGER.warn("Snippet not found in snippet");
-            return null;
-        }
-        var snippet = matcher.group(1).trim();
-
-        pattern = Pattern.compile("```"+codeType+"(.*?)```(.*?)$", Pattern.DOTALL);
-        matcher = pattern.matcher(content);
-        var tags = matcher.find() ? matcher.group(2).trim() : "";
-
-        return new Snippet(title, description, snippet, tags);
-    }
-
-    private void initGit() {
         var repo = link.getNode().getString("repo");
         if (repo.isEmpty()) {
             LOGGER.warn("No repo defined for help link {}", link);
@@ -136,32 +74,14 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
             return;
         }
 
-        var targetDir = new File(configuration.getTmpDirectoryFile(), "git_" + MFile.normalize(repo.get()) + "_" + MFile.normalize(branch) );
-        if (!targetDir.exists()) {
-            LOGGER.info("Clone {} to {}", repo, targetDir);
-            try (Git result = Git.cloneRepository()
-                    .setURI(repo.get())
-                    .setBranch(branch)
-                    .setDirectory(targetDir)
-                    .setProgressMonitor(new GitProgressMonitor())
-                    .call()) {
-                // Note: the call() returns an opened repository already which needs to be closed to avoid file handle leaks!
-                LOGGER.info("Having repository: " + result.getRepository().getDirectory());
-            } catch (Exception e) {
-                LOGGER.error("Clone failed", e);
-            }
-        } else {
-            LOGGER.info("Pull {}", repo);
-            try (Git git = Git.open(targetDir)) {
-                git.pull().setProgressMonitor(new GitProgressMonitor()).call();
-            } catch (Exception e) {
-                LOGGER.error("Pull failed", e);
-            }
-        }
+        snippetsService.getSnippets(repo.get(), branch, path.get(), codeType).getSnippets().forEach(s -> {
+            snippets.add(s);
+        });
 
-        snippetPath = new File(targetDir, path.get());
+        initUi();
+        updateContent();
+
     }
-
 
     protected void initUi() {
         setPadding(false);
@@ -188,11 +108,11 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
                 });
     }
 
-    protected boolean filterSnippet(Snippet snippet, String text) {
+    protected boolean filterSnippet(SnippetsService.Snippet snippet, String text) {
         return  snippet.title().toLowerCase().contains(text) || snippet.description().toLowerCase().contains(text) || snippet.snippet().toLowerCase().contains(text) || snippet.tags().toLowerCase().contains(text);
     }
 
-    protected void addContentEntry(Snippet snippet) {
+    protected void addContentEntry(SnippetsService.Snippet snippet) {
         content.add(new Text(snippet.description()));
         var button = new Button(snippet.title());
         button.addClickListener(c -> {
@@ -202,8 +122,5 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
     }
 
     protected abstract void transferContent(String snippet);
-
-    public record Snippet(String title, String description, String snippet, String tags) {
-    }
 
 }

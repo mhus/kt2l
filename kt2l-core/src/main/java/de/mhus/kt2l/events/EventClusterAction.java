@@ -58,6 +58,6 @@ public class EventClusterAction implements ClusterAction {
 
     @Override
     public int getPriority() {
-        return 1000;
+        return 10000;
     }
 }

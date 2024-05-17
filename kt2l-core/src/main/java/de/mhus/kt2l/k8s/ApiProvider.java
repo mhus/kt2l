@@ -19,6 +19,7 @@ package de.mhus.kt2l.k8s;
 
 import de.mhus.commons.errors.InternalRuntimeException;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +33,7 @@ public abstract class ApiProvider {
     private ApiClient client = null;
     private final long timeout;
     private CoreV1Api coreV1Api;
+    private AppsV1Api appsV1Api;
 
     protected ApiProvider(long timeout) {
         this.timeout = timeout;
@@ -41,6 +43,12 @@ public abstract class ApiProvider {
         if (coreV1Api == null)
             coreV1Api = new CoreV1Api(getClient());
         return coreV1Api;
+    }
+
+    public AppsV1Api getAppsV1Api() {
+        if (appsV1Api == null)
+            appsV1Api = new AppsV1Api(getClient());
+        return appsV1Api;
     }
 
     public ApiClient getClient() {
@@ -54,6 +62,7 @@ public abstract class ApiProvider {
                 throw new InternalRuntimeException(e);
             }
             coreV1Api = null;
+            appsV1Api = null;
         }
         return client;
     }

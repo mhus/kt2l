@@ -90,3 +90,11 @@ contexts:
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/
+  events:
+    - name: Events
+      action: docs
+      document: events
+      default: true
+    - name: Kubernetes
+      action: link
+      href: https://kubernetes.io/docs/home/

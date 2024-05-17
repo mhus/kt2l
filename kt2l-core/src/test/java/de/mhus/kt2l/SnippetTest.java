@@ -18,6 +18,7 @@
 package de.mhus.kt2l;
 
 import de.mhus.kt2l.help.AbstractGitSnippetsHelpPanel;
+import de.mhus.kt2l.help.SnippetsService;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -26,7 +27,9 @@ public class SnippetTest {
 
     @Test
     public void testSnippetParsing() {
-        var result = AbstractGitSnippetsHelpPanel.loadSnippet( "yaml","""
+        var snippets = new SnippetsService.Snippets();
+        snippets.setCodeType("yaml");
+        var result = new SnippetsService.Snippets().loadSnippet( """
 # POD busybox
 
 Simple pod template.

@@ -132,13 +132,16 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
             try {
                 dialog.setProgress(dialog.getProgress() + 1, entry.kind);
                 entry.handler.create(cluster.getApiProvider(), entry.preparedContent);
+                UiUtil.showSuccessNotification("Resource created: " + entry.kind);
             } catch (Exception t) {
                 LOGGER.error("Error creating resource", t);
                 UiUtil.showErrorNotification("Error creating resource", t);
+                dialog.close();
                 return;
             }
         }
 
+        dialog.close();
     }
 
     private void fillTemplate() {
