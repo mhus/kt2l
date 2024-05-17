@@ -21,6 +21,7 @@ import de.mhus.commons.tools.MLang;
 import de.mhus.commons.util.Value;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.pod.PodGrid;
+import de.mhus.kt2l.util.App;
 import de.mhus.kt2l.util.AremoricaContextConfiguration;
 import de.mhus.kt2l.util.AremoricaK8sService;
 import de.mhus.kt2l.util.CoreHelper;
@@ -102,38 +103,10 @@ public class LocalServerTest {
         AremoricaK8sService.stop();
     }
 
-    public void resetUi() {
-        LOGGER.info("Reset test on port {}", webServerApplicationContext.getWebServer().getPort());
-
-        for (int i = 0; i < 4; i++) {
-            driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort() + "/reset");
-            try {
-                new WebDriverWait(driver, ofSeconds(4), ofSeconds(1))
-                        .until(visibilityOfElementLocated(By.xpath("//vaadin-button[contains(.,\"KT2L\")]")));
-                break;
-            } catch (Exception e) {
-                LOGGER.error("Reset reset failed", e);
-                throw new RuntimeException("Reset reset failed");
-            }
-        }
-
-        for (int i = 0; i < 4; i++) {
-            driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort());
-            try {
-                new WebDriverWait(driver, ofSeconds(4), ofSeconds(1))
-                        .until(visibilityOfElementLocated(By.xpath("//span[contains(.,\"[KT2L]\")]")));
-                return;
-            } catch (Exception e) {
-                LOGGER.error("Reset home failed", e);
-            }
-        }
-        throw new RuntimeException("Reset home failed");
-    }
-
     @Test
     @Order(2)
     public void testClusterSelect() {
-        resetUi();
+        App.resetUi(driver, webServerApplicationContext);
 
         // Cluster Name
         var clusterSelector = driver.findElement(By.id("input-vaadin-combo-box-4"));
@@ -152,29 +125,24 @@ public class LocalServerTest {
     @Test
     @Order(3)
     public void testNamespacePush() throws InterruptedException, ApiException {
-        resetUi();
+        App.resetUi(driver, webServerApplicationContext);
 
         // click on Resources on Main
-        driver.findElement(By.xpath("//vaadin-menu-bar-item[contains(.,\"Resources\")]")).click();
-        // wait for the view menu
-        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
-                .until(presenceOfElementLocated(By.xpath("//vaadin-menu-bar-item[contains(.,\"View\")]")));
+        App.clusterOpenResources(driver);
+
         // select namespace
-        {
-            var input = driver.findElement(By.xpath("//vaadin-combo-box[@placeholder=\"Resource\"]/input"));
-            input.clear();
-            input.sendKeys("namespace");
-            input.sendKeys(Keys.DOWN, Keys.RETURN);
-        }
+        App.resourcesSelectResource(driver, "namespace");
         // wait for the namespace grid
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                 .until(presenceOfElementLocated(By.xpath("//vaadin-grid-cell-content[contains(.,\"indomitable-village\")]")));
-        // validate little-bonum is not there
+
+       // validate little-bonum is not there
         var core = coreHelper.getLastCore();
         ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("test/aremorica").get().getPanel();
         assertThat(grid.getNamespaces().contains("little-bonum")).isFalse();
         assertThatThrownBy(() -> driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"little-bonum\")]")))
                 .isInstanceOf(NoSuchElementException.class);
+
         // create namespace little-bonum
         AremoricaK8sService.createNamespace("little-bonum");
         // wait for the namespace to appear
@@ -201,31 +169,19 @@ public class LocalServerTest {
     @Test
     @Order(4)
     public void testPodPush() throws InterruptedException, ApiException {
-        resetUi();
+        App.resetUi(driver, webServerApplicationContext);
 
         // click on Resources on Main
-        driver.findElement(By.xpath("//vaadin-menu-bar-item[contains(.,\"Resources\")]")).click();
-        // wait for the view menu
-        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
-                .until(presenceOfElementLocated(By.xpath("//vaadin-menu-bar-item[contains(.,\"View\")]")));
-        // select pods
-        {
-            var input = driver.findElement(By.xpath("//vaadin-combo-box[@placeholder=\"Resource\"]/input"));
-            input.clear();
-            input.sendKeys("pods");
-            input.sendKeys(Keys.DOWN, Keys.RETURN);
-        }
-        // select namespace
-        {
-            var input = driver.findElement(By.xpath("//vaadin-combo-box[@placeholder=\"Namespace\"]/input"));
-            input.clear();
-            input.sendKeys("indomitable-village");
-            input.sendKeys(Keys.DOWN, Keys.RETURN);
-        }
+        App.clusterOpenResources(driver);
 
+        // select pods
+        App.resourcesSelectResource(driver, "pods");
+        // select namespace
+        App.resourcesSelectNamespace(driver, "indomitable-village");
         // wait for the namespace grid
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                 .until(presenceOfElementLocated(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]")));
+
         // validate idefix is not there
         var core = coreHelper.getLastCore();
         ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("test/aremorica").get().getPanel();
@@ -260,13 +216,10 @@ public class LocalServerTest {
     @Test
     @Order(5)
     public void testPodDetails() throws InterruptedException {
-        resetUi();
+        App.resetUi(driver, webServerApplicationContext);
 
         // click on Resources on Main
-        driver.findElement(By.xpath("//vaadin-menu-bar-item[contains(.,\"Resources\")]")).click();
-        // wait for the view menu
-        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
-                .until(presenceOfElementLocated(By.xpath("//vaadin-menu-bar-item[contains(.,\"View\")]")));
+        App.clusterOpenResources(driver);
 
         // click on pod asterix
         driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]")).click();

@@ -135,6 +135,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     @Override
     protected void createGridColumns(Grid<T> resourcesGrid) {
+        resourcesGrid.addColumn(res -> res.getNamespace()).setHeader("Namespace").setSortProperty("namespace");
         resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
         createGridColumnsAfterName(resourcesGrid);
         resourcesGrid.addColumn(res -> res.getAge()).setHeader("Age").setSortProperty("age");
