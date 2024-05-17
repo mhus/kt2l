@@ -21,30 +21,18 @@ provide a creator lambda. The creator lambda will be called if the background ta
 core.getBackgroundJob(clusterConfig.name(), ClusterNodeWatch.class, () -> new ClusterNodeWatch())
 ```
 
-Best practice is to provide a static instance() method to get the instance of the background task.
+Best practice is to use `backgroundJobInstance()` method to get the instance of the background task.
 
 ```java
-public static ClusterNodeWatch instance(Core core, Cluster clusterConfig) {
-    return core.getBackgroundJob(clusterConfig.name(), ClusterNodeWatch.class, () -> new ClusterNodeWatch());
-}
+var job = core.backgroundJobInstance(cluster, ClusterNodeWatch.class);
 ```
 
-and deny the creation of the class with a private constructor.
+The Background Task class must extend from abstract `ClusterBackgroundJob` but in the most cases from 
+`AbstractClusterWatch` is a better choice. The `AbstractClusterWatch` class simplifies the implementation 
+of a background task.
 
 ```java
-private ClusterNodeWatch() {
+public abstract class AbstractClusterWatch<V1Namespace> {
+
 }
 ```
-
-The Background Task class must extend from abstract `ClusterBackgroundJob` class. 
-
-```java
-public abstract class ClusterBackgroundJob {
-    public abstract void close();
-    public abstract void init(Core core, String clusterId, String jobId) throws IOException;
-}
-```
-
-
-
-

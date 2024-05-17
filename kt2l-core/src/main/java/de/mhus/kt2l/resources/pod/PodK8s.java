@@ -148,7 +148,7 @@ public class PodK8s implements HandlerK8s {
 
     @Override
     public KubernetesObject delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        checkDeleteAccess(securityService, K8s.POD);
+        K8sUtil.checkDeleteAccess(securityService, K8s.POD);
         return apiProvider.getCoreV1Api().deleteNamespacedPod(name, namespace, null, null, null, null, null, null);
     }
 

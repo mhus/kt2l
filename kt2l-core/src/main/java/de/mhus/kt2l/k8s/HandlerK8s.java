@@ -35,12 +35,6 @@ public interface HandlerK8s {
 
     Object delete(ApiProvider apiProvider, String name, String namespace) throws ApiException;
 
-    default void checkDeleteAccess(SecurityService securityService, K8s resource) throws ApiException {
-        var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE_DELETE);
-        if (!securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_DELETE, resource.resourceType(), defaultRole))
-            throw new ApiException(403, "Access denied for non admin users");
-    }
-
     Object create(ApiProvider apiProvider, String yaml) throws ApiException;
 
     <L extends KubernetesListObject> L createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException;

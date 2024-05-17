@@ -23,6 +23,8 @@ import com.google.gson.JsonElement;
 import de.mhus.commons.console.ConsoleTable;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.resources.generic.GenericObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
@@ -291,4 +293,11 @@ public class K8sUtil {
     public static String getDns(V1Service service) {
         return service.getMetadata().getName() + "." + service.getMetadata().getNamespace() + ".svc.cluster.local";
     }
+
+    public static void checkDeleteAccess(SecurityService securityService, K8s resource) throws ApiException {
+        var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE_DELETE);
+        if (!securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_DELETE, resource.resourceType(), defaultRole))
+            throw new ApiException(403, "Access denied for non admin users");
+    }
+
 }

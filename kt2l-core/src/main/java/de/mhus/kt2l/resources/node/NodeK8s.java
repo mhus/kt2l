@@ -92,7 +92,7 @@ public class NodeK8s implements HandlerK8s {
     @Override
     public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         // this is dangerous ... deny like delete!
-        checkDeleteAccess(securityService, K8s.NODE);
+        K8sUtil.checkDeleteAccess(securityService, K8s.NODE);
         var body = Yaml.loadAs(yaml, V1Node.class);
         apiProvider.getCoreV1Api().replaceNode(
                 name,
@@ -104,14 +104,14 @@ public class NodeK8s implements HandlerK8s {
     @Override
     public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
         // this is dangerous ... deny!
-        checkDeleteAccess(securityService, K8s.NODE);
+        K8sUtil.checkDeleteAccess(securityService, K8s.NODE);
         return apiProvider.getCoreV1Api().deleteNode(name, null, null, null, null, null, null );
     }
 
     @Override
     public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
         // this is dangerous ... deny! - or stupid?
-        checkDeleteAccess(securityService, K8s.NODE);
+        K8sUtil.checkDeleteAccess(securityService, K8s.NODE);
         var body = Yaml.loadAs(yaml, V1Node.class);
         return apiProvider.getCoreV1Api().createNode(body,null, null, null, null);
     }

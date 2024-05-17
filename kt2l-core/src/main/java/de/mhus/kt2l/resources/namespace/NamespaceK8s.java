@@ -98,7 +98,7 @@ public class NamespaceK8s implements HandlerK8s {
 
     @Override
     public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        checkDeleteAccess(securityService, K8s.NAMESPACE);
+        K8sUtil.checkDeleteAccess(securityService, K8s.NAMESPACE);
         return apiProvider.getCoreV1Api().deleteNamespace(name, null, null, null, null, null, null);
     }
 
