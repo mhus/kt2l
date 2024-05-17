@@ -32,6 +32,7 @@ import org.eclipse.jgit.api.Git;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -47,7 +48,7 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
     @Autowired
     private ViewsConfiguration viewsConfiguration;
 
-    protected final List<SnippetsService.Snippet> snippets = new LinkedList<>();
+    protected List<SnippetsService.Snippet> snippets = null;
     protected TextField search;
     protected VerticalLayout content;
     private final String codeType;
@@ -74,13 +75,13 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
             return;
         }
 
-        snippetsService.getSnippets(repo.get(), branch, path.get(), codeType).getSnippets().forEach(s -> {
-            snippets.add(s);
-        });
-
         initUi();
-        updateContent();
-
+        Thread.startVirtualThread(() -> {
+            snippets = snippetsService.getSnippets(repo.get(), branch, path.get(), codeType).getSnippets();
+            core.ui().access(() -> {
+                updateContent();
+            });
+        });
     }
 
     protected void initUi() {
@@ -95,9 +96,11 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
         content = new VerticalLayout();
         content.setSizeFull();
         add(content);
+        content.add(new Text("Loading..."));
     }
 
     private void updateContent() {
+        if (snippets == null) return;
         content.removeAll();
         var text = search.getValue().toLowerCase();
         snippets.stream()
