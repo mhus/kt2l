@@ -293,8 +293,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
 
     private void streamLoop(ContainerResource container) {
         int index = nextIndex();
-        var color = UiUtil.COLOR.values()[(int) (index % UiUtil.COLOR.values().length)];
-        if (color == UiUtil.COLOR.BLACK) color = UiUtil.COLOR.BLUE  ;
+        var color = UiUtil.LIGHT_COLORS.get(index % UiUtil.LIGHT_COLORS.size());
 
         InputStream logStream = null;
         try {

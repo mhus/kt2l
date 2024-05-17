@@ -109,6 +109,9 @@ vaadin-horizontal-layout.footer {
 .color-brown {
     color: #a52a2a;
 }
+.color-grey {
+    color: #808080;
+}
 
 .bgcolor-red {
     background-color: #ff0000;
@@ -155,6 +158,10 @@ vaadin-horizontal-layout.footer {
 .bgcolor-brown {
     background-color: #a52a2a;
 }
+.bgcolor-grey {
+    background-color: #808080;
+}
+
 
 span.ktool-title {
     padding-left: 10px;

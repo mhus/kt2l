@@ -32,6 +32,8 @@ import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MSystem;
 import lombok.Getter;
 
+import java.util.List;
+
 import static de.mhus.commons.tools.MCollection.cropArray;
 import static de.mhus.commons.tools.MString.isEmptyTrim;
 
@@ -137,6 +139,8 @@ public class UiUtil {
     }
 
     public enum COLOR {
-        NONE, RED, GREEN, BLUE, YELLOW, ORANGE, PURPLE, CYAN, BLACK, WHITE, PINK, MAGENTA, BROWN
+        NONE, RED, GREEN, BLUE, YELLOW, ORANGE, PURPLE, CYAN, BLACK, WHITE, PINK, MAGENTA, BROWN, GREY
     }
+
+    public static List<COLOR> LIGHT_COLORS = List.of(COLOR.WHITE, COLOR.RED, COLOR.GREEN, COLOR.BLUE, COLOR.YELLOW, COLOR.ORANGE, COLOR.PURPLE, COLOR.PINK, COLOR.MAGENTA);
 }

@@ -32,6 +32,7 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
     private Thread watchThread;
     private String clusterId;
     private HandlerK8s resourceHandler;
+    private long lastErrorTime;
 
     @Override
     public void close() {
@@ -87,7 +88,7 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
                     LOGGER.debug("Interrupted");
                     return;
                 }
-                LOGGER.error("Exception", e);
+                onError(e);
             }
         }
     }
@@ -99,7 +100,12 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
     }
 
     protected void onError(Exception e) {
-        MThread.sleep(1000); //XXX
+        LOGGER.warn("Exception", e);
+        if (lastErrorTime != 0 && System.currentTimeMillis() - lastErrorTime < 10000) {
+            LOGGER.info("Too many errors, wait 10 second");
+            MThread.sleep(10000);
+        }
+        lastErrorTime = System.currentTimeMillis();
     }
 
 }
