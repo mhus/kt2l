@@ -57,12 +57,12 @@ public class UiUtil {
             shortcut = shortcut.replace("CONTROL", "\u2303");
             shortcut = shortcut.replace("SHIFT", "\u21E7");
             shortcut = shortcut.replace("+", "");
-            shortcut = shortcut.replace("DELETE", "\u232B");
+            shortcut = shortcut.replace("BACKSPACE", "\u232B");
             return shortcut;
         } else {
             shortcut = shortcut.replace("CONTROL", "CTRL");
             shortcut = shortcut.replace("META", "WIN");
-            shortcut = shortcut.replace("DELETE", "\u232B");
+            shortcut = shortcut.replace("BACKSPACE", "\u232B");
         }
         return "[" + shortcut.toUpperCase() + "]";
     }
@@ -135,7 +135,61 @@ public class UiUtil {
             this.modifier = new KeyModifier[modifierStrings.length];
             for (int i = 0; i < modifierStrings.length; i++)
                 modifier[i] = KeyModifier.valueOf(modifierStrings[i].toUpperCase());
-            this.key = Key.of(k1[k1.length-1].toLowerCase());
+            if (k1[k1.length-1].equals("DELETE"))
+                this.key = Key.DELETE;
+            else
+            if (k1[k1.length-1].equals("ENTER"))
+                this.key = Key.ENTER;
+            else
+            if (k1[k1.length-1].equals("SPACE"))
+                this.key = Key.SPACE;
+            else
+            if (k1[k1.length-1].equals("TAB"))
+                this.key = Key.TAB;
+            else
+            if (k1[k1.length-1].equals("ESCAPE"))
+                this.key = Key.ESCAPE;
+            else
+            if (k1[k1.length-1].equals("BACKSPACE"))
+                this.key = Key.BACKSPACE;
+            else
+            if (k1[k1.length-1].equals("F1"))
+                this.key = Key.F1;
+            else
+            if (k1[k1.length-1].equals("F2"))
+                this.key = Key.F2;
+            else
+            if (k1[k1.length-1].equals("F3"))
+                this.key = Key.F3;
+            else
+            if (k1[k1.length-1].equals("F4"))
+                this.key = Key.F4;
+            else
+            if (k1[k1.length-1].equals("F5"))
+                this.key = Key.F5;
+            else
+            if (k1[k1.length-1].equals("F6"))
+                this.key = Key.F6;
+            else
+            if (k1[k1.length-1].equals("F7"))
+                this.key = Key.F7;
+            else
+            if (k1[k1.length-1].equals("F8"))
+                this.key = Key.F8;
+            else
+            if (k1[k1.length-1].equals("F9"))
+                this.key = Key.F9;
+            else
+            if (k1[k1.length-1].equals("F10"))
+                this.key = Key.F10;
+            else
+            if (k1[k1.length-1].equals("F11"))
+                this.key = Key.F11;
+            else
+            if (k1[k1.length-1].equals("F12"))
+                this.key = Key.F12;
+            else
+                this.key = Key.of(k1[k1.length-1].toLowerCase());
         }
 
         public void addShortcutListener(Component target, Command command) {

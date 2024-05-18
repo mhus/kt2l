@@ -134,7 +134,7 @@ public class ActionDelete implements ResourceAction {
 
     @Override
     public String getShortcutKey() {
-        return "CONTROL+DELETE";
+        return "CONTROL+BACKSPACE";
     }
 
     @Override
