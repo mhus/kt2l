@@ -24,7 +24,7 @@ on:
       execute:
         description: 'Execute :documentation:server-zip:container:macosx-aarch64:windows-amd64:deb-amd64:all-others:integration-tests:website:sonarcloud:'
         required: true
-        default: ':documentation:server-zip:container:macosx-aarch64:windows-amd64:deb-amd64:all-others:integration-tests:website:sonarcloud:'
+        default: ':documentation:server-zip:container:macosx-aarch64:deb-amd64:all-others:integration-tests:website:sonarcloud:'
         type: string
 #      create_release:
 #        description: 'Create new release version (TBD)'

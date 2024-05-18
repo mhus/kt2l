@@ -29,7 +29,7 @@ public class SnippetTest {
     public void testSnippetParsing() {
         var snippets = new SnippetsService.Snippets();
         snippets.setCodeType("yaml");
-        var result = new SnippetsService.Snippets().loadSnippet( """
+        var result = snippets.loadSnippet( """
 # POD busybox
 
 Simple pod template.

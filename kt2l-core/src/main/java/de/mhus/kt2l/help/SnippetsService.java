@@ -102,6 +102,8 @@ public class SnippetsService {
                     var snippet = loadSnippet(content);
                     if (snippet != null) {
                         snippets.add(snippet);
+                    } else {
+                        LOGGER.warn("Snippet not loaded from file {}", file);
                     }
                 });
             } catch (Exception e) {
@@ -124,6 +126,8 @@ public class SnippetsService {
                     var snippet = loadSnippet(content);
                     if (snippet != null) {
                         snippets.add(snippet);
+                    } else {
+                        LOGGER.warn("Snippet not loaded from file {}", file);
                     }
                 });
             } catch (Exception e) {
@@ -143,7 +147,7 @@ public class SnippetsService {
             pattern = Pattern.compile("# (.*?)\n(.*?)```"+codeType, Pattern.DOTALL);
             matcher = pattern.matcher(content);
             if (!matcher.find()) {
-                LOGGER.warn("Snippet not found in snippet");
+                LOGGER.warn("Snippet not found in snippet for code type {}", codeType);
                 return null;
             }
             var description = matcher.group(2).trim();
