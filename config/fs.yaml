@@ -1,0 +1,10 @@
+
+context:
+  - name: common
+    users:
+      - autoload
+    type: directory
+    root: ${home}/fs/common
+  - name: default
+    type: directory
+    root: ${home}/fs/users/${username}
