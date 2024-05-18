@@ -79,6 +79,7 @@ public class Configuration {
         if (configurationDirectory.startsWith("~")) {
             configurationDirectory = System.getProperty("user.home") + configurationDirectory.substring(1);
         }
+        LOGGER.info("Configuration directory is {}, recreate: {}", configurationDirectory, createConfiguration);
         if (createConfiguration) {
             initHomeConfiguration();
         }
