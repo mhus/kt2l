@@ -21,3 +21,8 @@ a long time. Always get the client new from a `ClientApiProvider`.
 
 It's important to close resources when they're no longer needed to free up memory and prevent resource leaks. Resources
 must be closed if a tab or a cluster is closed by the user or if the Vaadin UI session is closed.
+
+## Using Keyboard Shortcuts
+
+If you introduce a new keyboard shortcut, make sure to document it in the [Keyboard Shortcuts](/docs/usage/shortcuts) 
+section. Check if a shortcut is already in use and avoid using the same shortcut for different actions.
