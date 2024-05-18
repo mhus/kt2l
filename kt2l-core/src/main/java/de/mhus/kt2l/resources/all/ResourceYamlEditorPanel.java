@@ -54,7 +54,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
-public class ResourceDetailsPanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
+public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
 
     private final ApiProvider apiProvider;
     private final K8s resourceType;
@@ -80,7 +80,7 @@ public class ResourceDetailsPanel extends VerticalLayout implements DeskTabListe
     @Autowired
     private SecurityService securityService;
 
-    public ResourceDetailsPanel(Cluster cluster, Core core, K8s resourceType, KubernetesObject resource) {
+    public ResourceYamlEditorPanel(Cluster cluster, Core core, K8s resourceType, KubernetesObject resource) {
         this.apiProvider = cluster.getApiProvider();
         this.resourceType = resourceType;
         this.resource = resource;

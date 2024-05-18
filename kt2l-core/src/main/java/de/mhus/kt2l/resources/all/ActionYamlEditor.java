@@ -33,7 +33,7 @@ import java.util.Set;
 
 @Component
 @WithRole(ROLE.READ)
-public class ActionDetails implements ResourceAction {
+public class ActionYamlEditor implements ResourceAction {
 
     @Autowired
     private PanelService panelService;
@@ -63,7 +63,7 @@ public class ActionDetails implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Details;icon=" + VaadinIcon.FILE_TEXT_O;
+        return "Yaml Editor;icon=" + VaadinIcon.FILE_TEXT_O;
     }
 
     @Override
@@ -78,7 +78,7 @@ public class ActionDetails implements ResourceAction {
 
     @Override
     public String getShortcutKey() {
-        return "d";
+        return "Y";
     }
 
     @Override

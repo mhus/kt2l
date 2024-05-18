@@ -51,9 +51,9 @@ public class NodeK8s implements HandlerK8s {
     }
 
     @Override
-    public String getPreview(ApiProvider apiProvider, KubernetesObject res) {
+    public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
         var sb = new StringBuilder();
-        K8sUtil.previewHeader(apiProvider, this, res, sb);
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
 
         if (res instanceof V1Node node) {
             sb.append("Taints:        ").append(node.getSpec().getTaints()).append("\n");
@@ -85,7 +85,7 @@ public class NodeK8s implements HandlerK8s {
             sb.append("Images:        ").append(node.getStatus().getImages()).append("\n");
 
         }
-        K8sUtil.previewFooter(apiProvider, this, res, sb);
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
     }
 

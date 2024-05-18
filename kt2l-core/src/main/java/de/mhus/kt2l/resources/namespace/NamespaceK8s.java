@@ -50,9 +50,9 @@ public class NamespaceK8s implements HandlerK8s {
     }
 
     @Override
-    public String getPreview(ApiProvider apiProvider, KubernetesObject res) {
+    public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
         var sb = new StringBuilder();
-        K8sUtil.previewHeader(apiProvider, this, res, sb);
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
 
         if (res instanceof V1Namespace namespace) {
             sb.append("Phase:         ").append(namespace.getStatus().getPhase()).append("\n\n");
@@ -83,7 +83,7 @@ public class NamespaceK8s implements HandlerK8s {
         }
 
 
-        K8sUtil.previewFooter(apiProvider, this, res, sb);
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
     }
 

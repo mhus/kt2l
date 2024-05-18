@@ -74,7 +74,7 @@ public class K8sUtil {
         throw new IllegalArgumentException("Kind not found in cluster: " + kind);
     }
 
-    public static void previewHeader(ApiProvider apiProvider, HandlerK8s handler, KubernetesObject res, StringBuilder sb) {
+    public static void describeHeader(ApiProvider apiProvider, HandlerK8s handler, KubernetesObject res, StringBuilder sb) {
         var kind = res.getKind();
         if (kind != null) {
             sb.append("Kind:          ").append(kind).append("\n");
@@ -116,7 +116,7 @@ public class K8sUtil {
             sb.append("Annotations:   <none>\n");
     }
 
-    public static void previewFooter(ApiProvider apiProvider, HandlerK8s handler, KubernetesObject res, StringBuilder sb) {
+    public static void describeFooter(ApiProvider apiProvider, HandlerK8s handler, KubernetesObject res, StringBuilder sb) {
 
         try {
             final var uid = res.getMetadata().getUid();

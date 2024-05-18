@@ -18,8 +18,6 @@
 
 package de.mhus.kt2l.k8s;
 
-import de.mhus.kt2l.config.AaaConfiguration;
-import de.mhus.kt2l.core.SecurityService;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
@@ -29,7 +27,7 @@ public interface HandlerK8s {
 
     K8s getManagedResource();
 
-    String getPreview(ApiProvider apiProvider, KubernetesObject res);
+    String getDescribe(ApiProvider apiProvider, KubernetesObject res);
 
     void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException;
 

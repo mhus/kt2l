@@ -53,9 +53,9 @@ public class PodK8s implements HandlerK8s {
     }
 
     @Override
-    public String getPreview(ApiProvider apiProvider, KubernetesObject object) {
+    public String getDescribe(ApiProvider apiProvider, KubernetesObject object) {
         var sb = new StringBuilder();
-        K8sUtil.previewHeader(apiProvider, this, object, sb);
+        K8sUtil.describeHeader(apiProvider, this, object, sb);
         if (object instanceof V1Pod res) {
 
             sb.append("Phase:         ").append(res.getStatus().getPhase()).append("\n");
@@ -103,7 +103,7 @@ public class PodK8s implements HandlerK8s {
             sb.append("Node Selector: ").append(res.getSpec().getNodeSelector()).append("\n");
 
         }
-        K8sUtil.previewFooter(apiProvider, this, object, sb);
+        K8sUtil.describeFooter(apiProvider, this, object, sb);
 
         if (object instanceof V1Pod res) {
             sb.append("\nLogs:\n\n");

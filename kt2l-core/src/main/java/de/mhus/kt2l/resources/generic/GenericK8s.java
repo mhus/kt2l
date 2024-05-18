@@ -47,11 +47,11 @@ public class GenericK8s implements HandlerK8s {
     }
 
     @Override
-    public String getPreview(ApiProvider apiProvider, KubernetesObject res) {
+    public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
         var sb = new StringBuilder();
-        K8sUtil.previewHeader(apiProvider, this, res, sb);
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
 
-        K8sUtil.previewFooter(apiProvider, this, res, sb);
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
     }
 

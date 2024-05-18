@@ -367,7 +367,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 LOGGER.info("◌ Refresh Grid");
                 resourcesList = null;
                 resourcesGrid.getDataProvider().refreshAll();
-            } , Key.KEY_R, KeyModifier.META).listenOn(resourcesGrid);
+            } , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid);
 
         } catch (Exception e) {
             LOGGER.error("Error creating grid", e);

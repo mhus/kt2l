@@ -39,7 +39,7 @@ import java.util.Set;
 @Component
 @Slf4j
 @WithRole(UsersConfiguration.ROLE.READ)
-public class PreviewAction implements ResourceAction {
+public class DescribeAction implements ResourceAction {
     @Override
     public boolean canHandleResourceType(K8s resourceType) {
         return true;
@@ -61,22 +61,17 @@ public class PreviewAction implements ResourceAction {
         context.getSelected().forEach(
                 res -> {
                     final var handler = k8sService.getResourceHandler(K8sUtil.toResource(res, context.getCluster()));
-                    final var previewText = handler.getPreview(context.getCluster().getApiProvider(), res);
+                    final var previewText = handler.getDescribe(context.getCluster().getApiProvider(), res);
                     sb.append(">>> ")
                             .append(res.getKind() == null ? context.getResourceType() : res.getKind())
                             .append(" ").append(res.getMetadata().getName()).append('\n');
                     sb.append(previewText).append('\n');
-//
-//
-//                    var kind = res.getKind() == null ? context.getResourceType() : res.getKind();
-//                    sb.append(">>> ").append(kind).append(" ").append(res.getMetadata().getName()).append('\n');
-//                    sb.append(K8s.toYaml(res)).append('\n');
                 }
         );
 
         Dialog dialog = new Dialog();
         dialog.getHeader().add(VaadinIcon.FILE_PRESENTATION.create());
-        dialog.setHeaderTitle("Preview");
+        dialog.setHeaderTitle("Describe Resource");
         var preview = new TextArea();
         preview.addClassName("preview");
         preview.addClassName("no-word-wrap");
@@ -97,7 +92,7 @@ public class PreviewAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Preview;icon=" + VaadinIcon.FILE_PRESENTATION;
+        return "Describe;icon=" + VaadinIcon.FILE_PRESENTATION;
     }
 
     @Override
@@ -112,11 +107,11 @@ public class PreviewAction implements ResourceAction {
 
     @Override
     public String getShortcutKey() {
-        return "CONTROL+P";
+        return "D";
     }
 
     @Override
     public String getDescription() {
-        return "Preview Description";
+        return "Describe Resource";
     }
 }

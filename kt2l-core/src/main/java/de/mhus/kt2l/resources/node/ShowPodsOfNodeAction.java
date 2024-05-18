@@ -81,7 +81,7 @@ public class ShowPodsOfNodeAction implements ResourceAction {
 
     @Override
     public String getShortcutKey() {
-        return "P";
+        return "CTRL+P";
     }
 
     @Override

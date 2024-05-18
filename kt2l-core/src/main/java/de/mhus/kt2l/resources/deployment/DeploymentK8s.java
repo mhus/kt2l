@@ -50,7 +50,7 @@ public class DeploymentK8s implements HandlerK8s {
     }
 
     @Override
-    public String getPreview(ApiProvider apiProvider, KubernetesObject res) {
+    public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
         return "";
     }
 

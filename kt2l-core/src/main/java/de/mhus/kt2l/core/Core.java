@@ -56,7 +56,7 @@ import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.help.HelpAction;
 import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.help.LinkHelpAction;
-import de.mhus.kt2l.resources.all.ResourceDetailsPanel;
+import de.mhus.kt2l.resources.all.ResourceYamlEditorPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.pod.ContainerShellPanel;
 import de.mhus.kt2l.resources.pod.PodLogsPanel;
@@ -93,7 +93,7 @@ import static de.mhus.commons.tools.MCollection.notNull;
 // add Used to include js files in the build, only once per vaadin component is needed
 @Uses(ContainerShellPanel.class)
 @Uses(ResourcesGridPanel.class)
-@Uses(ResourceDetailsPanel.class)
+@Uses(ResourceYamlEditorPanel.class)
 @Uses(PodLogsPanel.class)
 
 public class Core extends AppLayout {

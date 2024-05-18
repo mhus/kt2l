@@ -50,7 +50,7 @@ public class UiUtil {
 
     public static String toShortcutString(String shortcut) {
         if (shortcut == null) return "";
-        shortcut = shortcut.toUpperCase();
+        shortcut = normalizeShortcutString(shortcut);
         if (MSystem.isMac()) {
             shortcut = shortcut.replace("META", "\u2318");
             shortcut = shortcut.replace("ALT", "\u2325");
@@ -108,6 +108,14 @@ public class UiUtil {
         return in.replaceAll("[^A-Za-z0-9\\-]", "");
     }
 
+    public static KeyModifier getOSMetaModifier() {
+        return MSystem.isMac() ? KeyModifier.META : KeyModifier.CONTROL;
+    }
+
+    public static String getOSMetaModifierString() {
+        return MSystem.isMac() ? "META" : "CONTROL";
+    }
+
     @Getter
     public static class Shortcut {
 
@@ -121,6 +129,7 @@ public class UiUtil {
         }
 
         public Shortcut(String shortcutKey) {
+            shortcutKey=UiUtil.normalizeShortcutString(shortcutKey);
             final var k1 = shortcutKey.split("\\+");
             final var modifierStrings = cropArray(k1, 0, k1.length-1);
             this.modifier = new KeyModifier[modifierStrings.length];
@@ -136,6 +145,16 @@ public class UiUtil {
             else
                 registration = UI.getCurrent().addShortcutListener(command, key).withModifiers(modifier).listenOn(target);
         }
+    }
+
+    private static String normalizeShortcutString(String shortcutKey) {
+        shortcutKey = shortcutKey.toUpperCase();
+        if (MSystem.isMac())
+            shortcutKey = shortcutKey.replace("OS", "META");
+        else {
+            shortcutKey = shortcutKey.replace("OS", "CONTROL");
+        }
+        return shortcutKey.toUpperCase().replace("CTRL", "CONTROL").replace("WIN", "META");
     }
 
     public enum COLOR {
