@@ -36,7 +36,7 @@ public class StorageConfiguration extends AbstractSingleConfig {
             bucket.name = node.getString("name").get();
             bucket.users = Arrays.stream(ITreeNode.toStringArray(node.getArray("users").orElse(MTree.EMPTY_LIST), ITreeNode.NAMELESS_VALUE)).map(String::trim).collect(Collectors.toSet());
             bucket.type = node.getString("type").orElse(DirectoryDriver.NAME);
-            bucket.root = node.getString("path").orElse("");
+            bucket.root = node.getString("root").orElse("");
             bucket.node = node;
             bucketList.add(bucket);
         });

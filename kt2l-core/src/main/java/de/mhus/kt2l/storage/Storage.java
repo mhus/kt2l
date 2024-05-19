@@ -1,6 +1,7 @@
 package de.mhus.kt2l.storage;
 
 import de.mhus.commons.tools.MFile;
+import de.mhus.commons.tools.MString;
 import io.azam.ulidj.ULID;
 
 import java.io.IOException;
@@ -14,6 +15,12 @@ import java.util.List;
 public abstract class Storage {
 
     private static DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd/");
+
+    public OutputFile createFileStream(StorageFile path, String name) throws IOException {
+        // TODO validate is a storage place
+        name = MFile.normalize(name);
+        return new OutputFile(this, path.getPath() + "/" + name, name, false, 0, createFileStream(path.getPath() + "/" + name));
+    }
 
     public OutputFile createFileStream(String context, String name) throws IOException {
         final var path = createFilePath(context);
@@ -69,4 +76,8 @@ public abstract class Storage {
      */
     public abstract String getLocalPath(StorageFile path) throws IOException;
 
+    public StorageFile createDirectory(String context) throws IOException {
+        final var path = createFilePath(context);
+        return new StorageFile(this, path, MString.afterLastIndex(path, '/'), true, 0);
+    }
 }

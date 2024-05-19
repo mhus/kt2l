@@ -65,4 +65,8 @@ public class ProgressDialog extends Dialog {
     public double getProgress() {
         return progress.getValue();
     }
+
+    public void next() {
+        progress.setValue(progress.getValue() + 1);
+    }
 }

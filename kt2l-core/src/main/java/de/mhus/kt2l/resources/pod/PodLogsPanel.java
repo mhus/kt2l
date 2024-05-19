@@ -33,10 +33,12 @@ import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.ProgressDialog;
 import de.mhus.kt2l.core.Tail;
 import de.mhus.kt2l.core.TailRow;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.ApiProvider;
+import de.mhus.kt2l.storage.StorageService;
 import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.Getter;
@@ -48,6 +50,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,6 +61,8 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     private static final String CONFIG_VIEW_LOG = "log";
     @Autowired
     private ViewsConfiguration viewsConfiguration;
+    @Autowired
+    private StorageService storageService;
 
     private final Cluster cluster;
     private final ApiProvider apiProvider;
@@ -150,19 +155,10 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         menuItemShowColors.setCheckable(true);
         menuItemShowColors.setChecked(true);
 
-
-//        menuItemAll = viewMenu.addItem("All", e -> {
-//            if (showAllMode)
-//                tailMode();
-//            else
-//                showAllMode();
-//            menuItemAll.setChecked(showAllMode);
-//        });
-//        menuItemAll.setCheckable(true);
-//        menuBar.addItem("Download", e -> {
-//            System.out.println("..");
-//        });
-
+        if (storageService.isEnabled())
+            menuBar.addItem("Store", e -> {
+                storeLogs();
+            });
 
         filterText = new TextField();
         filterText.setPlaceholder("Filter ...");
@@ -267,29 +263,67 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
 //
 //    }
 
-//    public static void copy(InputStream in, OutputStream out) throws IOException {
-//        byte[] buffer = new byte[1024 * 10];
-//        int bytesRead;
-//        long total = 0;
-//        long lastTime = System.currentTimeMillis();
-//        while ((bytesRead = in.read(buffer)) != -1) {
-//            out.write(buffer, 0, bytesRead);
-//            long thisTime = System.currentTimeMillis();
-//            if (thisTime - lastTime > 2000) {
-//                LOGGER.debug("Read timeout {}", (thisTime - lastTime));
-//                break;
-//            }
-//            System.out.println("Read: " + bytesRead);
-//            total += bytesRead;
-//            if (total % 1000000 == 0)
-//                LOGGER.debug("Read: {}", total);
-//            if (total > 1024 * 1024 * 20) {
-//                LOGGER.debug("Too much - Break");
-//                break;
-//            }
-//        }
-//        out.flush();
-//    }
+    private void storeLogs() {
+        ProgressDialog progress = new ProgressDialog();
+        progress.setMax(containers.size());
+        progress.open();
+        Thread.startVirtualThread(() -> {
+            try {
+                var directory = storageService.getStorage().createDirectory("logs");
+                containers.forEach(c -> {
+                    core.ui().access(() -> progress.next());
+                    LOGGER.info("Store logs for {}/{}/{}", c.getPod().getMetadata().getNamespace(), c.getPod().getMetadata().getName(), c.getContainerName());
+                    try {
+                        var file = storageService.getStorage().createFileStream(directory, c.getPod().getMetadata().getNamespace() + "-" + c.getPod().getMetadata().getName() + "-" + c.getContainerName() + ".log");
+                        try (OutputStream out = file.getStream()) {
+                            PodLogs podLogs = new PodLogs(apiProvider.getClient());
+                            var logStream = podLogs.streamNamespacedPodLog(
+                                    c.getPod().getMetadata().getNamespace(),
+                                    c.getPod().getMetadata().getName(),
+                                    c.getContainerName(),
+                                    null,
+                                    10,
+                                    true
+                            );
+                            copy(logStream, out);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("Error storing logs", e);
+                        UiUtil.showErrorNotification("Error storing logs", e);
+                    }
+                });
+            } catch (Exception e) {
+                LOGGER.error("Error storing logs", e);
+                UiUtil.showErrorNotification("Error storing logs", e);
+            } finally {
+                progress.close();
+            }
+        });
+    }
+
+    public static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024 * 10];
+        int bytesRead;
+        long total = 0;
+        long lastTime = System.currentTimeMillis();
+        while ((bytesRead = in.read(buffer)) != -1) {
+            out.write(buffer, 0, bytesRead);
+            long thisTime = System.currentTimeMillis();
+            if (thisTime - lastTime > 500) {
+                LOGGER.debug("Read timeout {}", (thisTime - lastTime));
+                break;
+            }
+            System.out.println("Read: " + bytesRead);
+            total += bytesRead;
+            if (total % 1000000 == 0)
+                LOGGER.debug("Read: {}", total);
+            if (total > 1024 * 1024 * 20) {
+                LOGGER.debug("Too much - Break");
+                break;
+            }
+        }
+        out.flush();
+    }
 
     private void streamLoop(ContainerResource container) {
         int index = nextIndex();
