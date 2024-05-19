@@ -34,6 +34,7 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.ProgressDialog;
+import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.Tail;
 import de.mhus.kt2l.core.TailRow;
 import de.mhus.kt2l.core.UiUtil;
@@ -51,9 +52,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
@@ -225,104 +233,105 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         }
     }
 
-//    private void tailMode() {
-//        showAllMode = false;
-//        registerLog();
-//        if (streamLoopThread != null) streamLoopThread.interrupt();
-//        streamLoopThread = Thread.startVirtualThread(() -> streamLoop());
-//    }
-//
-//    private void showAllMode() {
-//        showAllMode = true;
-//        // stop log stream
-//        streamLoopThread.interrupt();
-//        try {
-//            logStream.close();
-//            logStream = null;
-//        } catch (IOException e) {
-//        }
-//        logsBuffer.setLength(0);
-//
-//        logs.setValue("Loading ...");
-//        ui.push();
-//        try {
-//            InputStream is = podLogs.streamNamespacedPodLog(pod.getPod());
-//            ByteArrayOutputStream os = new ByteArrayOutputStream();
-//            copy(is, os);
-//            String content = new String(os.toByteArray());
-//            LOGGER.debug("Content length: {}", content.length());
-//            if (menuItemJson.isChecked()) {
-//                content = processJson(content);
-//            }
-//            logs.setMaxLength(content.length() + 1000);
-//            logs.setValue(content);
-//        } catch (ApiException | IOException e) {
-//            LOGGER.error("Error reading log stream", e);
-//            logs.setValue("Error: " + e.getMessage());
-//        }
-//
-//    }
-
     private void storeLogs() {
         ProgressDialog progress = new ProgressDialog();
         progress.setMax(containers.size());
         progress.open();
-        Thread.startVirtualThread(() -> {
-            try {
+        try {
                 var directory = storageService.getStorage().createDirectory("logs");
-                containers.forEach(c -> {
-                    core.ui().access(() -> progress.next());
-                    LOGGER.info("Store logs for {}/{}/{}", c.getPod().getMetadata().getNamespace(), c.getPod().getMetadata().getName(), c.getContainerName());
-                    try {
-                        var file = storageService.getStorage().createFileStream(directory, c.getPod().getMetadata().getNamespace() + "-" + c.getPod().getMetadata().getName() + "-" + c.getContainerName() + ".log");
-                        try (OutputStream out = file.getStream()) {
-                            PodLogs podLogs = new PodLogs(apiProvider.getClient());
-                            var logStream = podLogs.streamNamespacedPodLog(
-                                    c.getPod().getMetadata().getNamespace(),
-                                    c.getPod().getMetadata().getName(),
-                                    c.getContainerName(),
-                                    null,
-                                    10,
-                                    true
-                            );
-                            copy(logStream, out);
-                        }
+                var sc = SecurityContext.create();
+                Thread.startVirtualThread(() -> {
+                    try (var sce = sc.enter()){
+                        containers.forEach(c -> {
+                            core.ui().access(() -> progress.next(c.getPod().getMetadata().getNamespace() + "/" + c.getPod().getMetadata().getName()));
+                            LOGGER.info("Store logs for {}/{}/{}", c.getPod().getMetadata().getNamespace(), c.getPod().getMetadata().getName(), c.getContainerName());
+                            try {
+                                var file = storageService.getStorage().createFileStream(directory, c.getPod().getMetadata().getNamespace() + "-" + c.getPod().getMetadata().getName() + "-" + c.getContainerName() + ".log");
+                                try (OutputStream out = file.getStream()) {
+                                    PodLogs podLogs = new PodLogs(apiProvider.getClient());
+                                    var logStream = podLogs.streamNamespacedPodLog(
+                                            c.getPod().getMetadata().getNamespace(),
+                                            c.getPod().getMetadata().getName(),
+                                            c.getContainerName(),
+                                            null,
+                                            null,
+                                            true
+                                    );
+                                    copy(logStream, out, progress);
+                                }
+                            } catch (Exception e) {
+                                LOGGER.error("Error storing logs", e);
+                                UiUtil.showErrorNotification("Error storing logs", e);
+                            }
+                        });
                     } catch (Exception e) {
                         LOGGER.error("Error storing logs", e);
                         UiUtil.showErrorNotification("Error storing logs", e);
+                    } finally {
+                        core.ui().access(() -> progress.close());
                     }
                 });
-            } catch (Exception e) {
-                LOGGER.error("Error storing logs", e);
-                UiUtil.showErrorNotification("Error storing logs", e);
-            } finally {
-                progress.close();
-            }
-        });
+        } catch (Exception e) {
+            LOGGER.error("Error storing logs", e);
+            UiUtil.showErrorNotification("Error storing logs", e);
+        }
     }
 
-    public static void copy(InputStream in, OutputStream out) throws IOException {
-        byte[] buffer = new byte[1024 * 10];
-        int bytesRead;
-        long total = 0;
-        long lastTime = System.currentTimeMillis();
-        while ((bytesRead = in.read(buffer)) != -1) {
-            out.write(buffer, 0, bytesRead);
-            long thisTime = System.currentTimeMillis();
-            if (thisTime - lastTime > 500) {
-                LOGGER.debug("Read timeout {}", (thisTime - lastTime));
+    public void copy(InputStream in, OutputStream out, ProgressDialog progress) throws IOException {
+
+        DateFormat dateFormater = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        dateFormater.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+
+        final var now = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"));
+        LOGGER.info("Copy stream until {}", now);
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        PrintStream ps = new PrintStream(out);
+
+        String line = null;
+        long cnt = 0;
+        long cntLines = 0;
+        AtomicLong lastLine = new AtomicLong(System.currentTimeMillis());
+        Thread.startVirtualThread(() -> {
+            try {
+                while (lastLine.get() > 0){
+                    if (System.currentTimeMillis() - lastLine.get() > 1000) {
+                        LOGGER.debug("Timeout in copy stream");
+                        in.close();
+                        break;
+                    }
+                    MThread.sleep(1000);
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error in timeout", e);
+            }
+        });
+        while ((line = reader.readLine()) != null) {
+            ps.println(line);
+            cnt+=line.length();
+            cntLines++;
+            lastLine.set(System.currentTimeMillis());
+            var lineTimeStr = MString.beforeIndex(line, '.');
+            try {
+                var lineTime = dateFormater.parse(lineTimeStr);
+                if (lineTime.after(now.getTime())) {
+                    LOGGER.info("End of stream reached after {} characters", cnt);
+                    break;
+                }
+            } catch (ParseException pe) {
+                LOGGER.error("Error parsing line time", pe);
                 break;
             }
-            System.out.println("Read: " + bytesRead);
-            total += bytesRead;
-            if (total % 1000000 == 0)
-                LOGGER.debug("Read: {}", total);
-            if (total > 1024 * 1024 * 20) {
-                LOGGER.debug("Too much - Break");
-                break;
+            if (cntLines % 10000 == 0) {
+                var timestamp = MString.beforeIndex(line, ' ');
+                final var finalCntLines = cntLines;
+                if (progress != null)
+                    core.ui().access(() -> progress.setProgressDetails("Lines " + finalCntLines + " " + timestamp) );
+                LOGGER.debug("Copy {} lines with {} characters and timestamp {}", cntLines, cnt, timestamp);
             }
         }
-        out.flush();
+        lastLine.set(-1);
+        ps.flush();
     }
 
     private void streamLoop(ContainerResource container) {

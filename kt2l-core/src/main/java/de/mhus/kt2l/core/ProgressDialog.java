@@ -25,6 +25,7 @@ public class ProgressDialog extends Dialog {
 
     private final ProgressBar progress;
     private final Div current;
+    private final Div details;
 
     public ProgressDialog() {
         progress = new ProgressBar();
@@ -36,6 +37,9 @@ public class ProgressDialog extends Dialog {
         current = new Div("");
         current.setWidthFull();
         add(current);
+        details = new Div("");
+        details.setWidthFull();
+        add(details);
         setWidth("500px");
         setHeight("200px");
         setCloseOnEsc(false);
@@ -60,13 +64,20 @@ public class ProgressDialog extends Dialog {
 
     public void setProgressItem(String item) {
         current.setText(item);
+        details.setText("");
     }
 
     public double getProgress() {
         return progress.getValue();
     }
 
-    public void next() {
+    public void next(String item) {
         progress.setValue(progress.getValue() + 1);
+        current.setText(item);
+        details.setText("");
+    }
+
+    public void setProgressDetails(String details) {
+        this.details.setText(details);
     }
 }
