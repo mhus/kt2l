@@ -22,6 +22,8 @@ default:
   namespace: READ
   cluster: READ
   cluster_action: READ
+  core: READ
+  core_action: READ
 resource_action:
 resource:
 resource_delete:
@@ -29,3 +31,4 @@ resource_delete:
 resource_grid:
 namespace:
 cluster:
+core:

@@ -29,6 +29,7 @@ import com.vaadin.flow.server.StreamResource;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.core.CoreAction;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.SecurityService;
@@ -49,11 +50,14 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     @Autowired
     private K8sService k8s;
 
-    @Autowired
+    @Autowired(required = false)
     private ClusterService clusterService;
 
-    @Autowired
+    @Autowired(required = false)
     private List<ClusterAction> clusterActions;
+
+    @Autowired
+    private List<CoreAction> coreActions;
 
     @Autowired
     private SecurityService securityService;
@@ -89,27 +93,55 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
         });
         add(clusterBox);
 
-        var menuBar = new MenuBar();
-        add(menuBar);
+        if (clusterActions != null) {
+            var clusterMenuBar = new MenuBar();
+            add(clusterMenuBar);
+            final var clusterDefaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_CLUSTER_ACTION);
+            clusterActions.stream()
+                    .filter(action -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER_ACTION, SecurityUtils.getResourceId(action), clusterDefaultRole) && action.canHandle(core))
+                    .sorted(Comparator.comparingInt(a -> a.getPriority()))
+                    .forEach(action -> {
 
-        final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_CLUSTER_ACTION);
-        clusterActions.stream()
-                .filter(action -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER_ACTION, SecurityUtils.getResourceId(action), defaultRole ))
-                .sorted(Comparator.comparingInt(a -> a.getPriority()))
-                .forEach(action -> {
+                        var item = clusterMenuBar.addItem(action.getTitle(), click -> {
+                            if (clusterBox.getValue() != null) {
+                                if (!validateCluster(clusterBox.getValue())) {
+                                    return;
+                                }
+                                if (!action.canHandle(core, clusterBox.getValue())) {
+                                    UiUtil.showErrorNotification("Can't handle this cluster");
+                                    return;
+                                }
+                                action.execute(core, clusterBox.getValue());
+                            }
+                        });
+                        var icon = action.getIcon();
+                        if (icon != null)
+                            item.addComponentAsFirst(action.getIcon());
+                    });
+        }
 
-            var item = menuBar.addItem(action.getTitle(), click -> {
-                if (clusterBox.getValue() != null) {
-                    if (!validateCluster(clusterBox.getValue())) {
-                        return;
-                    }
-                    action.execute(core, clusterBox.getValue());
-                }
-            });
-            var icon = action.getIcon();
-            if (icon != null)
-                item.addComponentAsFirst(action.getIcon());
-        });
+        if (coreActions != null) {
+            var coreMenuBar = new MenuBar();
+            add(coreMenuBar);
+            final var coreDefaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_CORE_ACTION);
+            coreActions.stream()
+                    .filter(action -> securityService.hasRole(AaaConfiguration.SCOPE_CORE_ACTION, SecurityUtils.getResourceId(action), coreDefaultRole) && action.canHandle(core))
+                    .sorted(Comparator.comparingInt(a -> a.getPriority()))
+                    .forEach(action -> {
+
+                        var item = coreMenuBar.addItem(action.getTitle(), click -> {
+                            if (clusterBox.getValue() != null) {
+                                if (!validateCluster(clusterBox.getValue())) {
+                                    return;
+                                }
+                                action.execute(core);
+                            }
+                        });
+                        var icon = action.getIcon();
+                        if (icon != null)
+                            item.addComponentAsFirst(action.getIcon());
+                    });
+        }
 
         StreamResource imageResource = new StreamResource("kt2l-logo.svg",
                 () -> getClass().getResourceAsStream("/images/kt2l-logo.svg"));

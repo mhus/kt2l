@@ -56,7 +56,7 @@ public class PanelService {
                         unique,
                         icon,
                         panelCreator)
-                .setColor(cluster.config().getColor());
+                .setColor(cluster == null ? UiUtil.COLOR.NONE : cluster.config().getColor());
     }
 
     public DeskTab addDetailsPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {

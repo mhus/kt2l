@@ -47,6 +47,10 @@ public class SecurityService {
         return configuration.getRoles(resourceScope, resourceName);
     }
 
+    public boolean hasRole(String role) {
+        return SecurityUtils.hasPrincipalRoles(Set.of(role));
+    }
+
     public boolean hasRole(String resourceScope, String resourceName, String ... defaultRole) {
         return hasRole(resourceScope, resourceName, Set.of(defaultRole));
     }

@@ -23,6 +23,10 @@ import de.mhus.kt2l.core.Core;
 
 public interface ClusterAction {
 
+    boolean canHandle(Core core);
+
+    boolean canHandle(Core core, ClusterOverviewPanel.ClusterItem cluster);
+
     String getTitle();
 
     void execute(Core core, ClusterOverviewPanel.ClusterItem cluster);

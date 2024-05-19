@@ -33,6 +33,16 @@ public class EventClusterAction implements ClusterAction {
     private PanelService panelService;
 
     @Override
+    public boolean canHandle(Core core) {
+        return true;
+    }
+
+    @Override
+    public boolean canHandle(Core core, ClusterOverviewPanel.ClusterItem cluster) {
+        return true;
+    }
+
+    @Override
     public String getTitle() {
         return "Events";
     }
