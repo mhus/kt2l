@@ -19,17 +19,17 @@ public abstract class Storage {
     public OutputFile createFileStream(StorageFile path, String name) throws IOException {
         // TODO validate is a storage place
         name = MFile.normalize(name);
-        return new OutputFile(this, path.getPath() + "/" + name, name, false, 0, createFileStream(path.getPath() + "/" + name));
+        return new OutputFile(this, path.getPath() + "/" + name, name, false, 0, System.currentTimeMillis(), createFileStream(path.getPath() + "/" + name));
     }
 
     public OutputFile createFileStream(String context, String name) throws IOException {
         final var path = createFilePath(context);
         name = MFile.normalize(name);
-        return new OutputFile(this, path + "/" + name, name, false, 0, createFileStream(path));
+        return new OutputFile(this, path + "/" + name, name, false, 0, System.currentTimeMillis(), createFileStream(path));
     }
 
     public InputFile openFile(String path) throws IOException {
-        return new InputFile(this, path, path, false, 0, openFileStream(path));
+        return new InputFile(this, path, path, false, 0, 0, openFileStream(path));
     }
 
     /**
@@ -59,7 +59,7 @@ public abstract class Storage {
     public abstract List<StorageFile> listFiles(String path) throws IOException;
 
     public List<StorageFile> listFiles(StorageFile path) throws IOException {
-        return listFiles(path.getPath());
+        return listFiles(path.getPath() == null ? "" : path.getPath());
     }
 
     /**
@@ -78,6 +78,6 @@ public abstract class Storage {
 
     public StorageFile createDirectory(String context) throws IOException {
         final var path = createFilePath(context);
-        return new StorageFile(this, path, MString.afterLastIndex(path, '/'), true, 0);
+        return new StorageFile(this, path, MString.afterLastIndex(path, '/'), true, 0, System.currentTimeMillis());
     }
 }

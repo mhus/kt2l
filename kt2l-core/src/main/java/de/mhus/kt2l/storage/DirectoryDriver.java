@@ -60,14 +60,16 @@ public class DirectoryDriver implements BucketDriver {
 
         @Override
         public List<StorageFile> listFiles(String path) throws IOException {
-            return Arrays.stream(new File(root, MFile.normalizePath(path)).listFiles())
+            var list = new File(root, MFile.normalizePath(path)).listFiles();
+            return Arrays.stream(list == null ? new File[0] : list)
                     .filter(f -> !f.getName().startsWith("."))
                     .map(f -> new StorageFile(
                             this,
                             path + "/" + f.getName(),
                             f.getName(),
                             f.isDirectory(),
-                            f.length()
+                            f.length(),
+                            f.lastModified()
                     )).toList();
         }
 

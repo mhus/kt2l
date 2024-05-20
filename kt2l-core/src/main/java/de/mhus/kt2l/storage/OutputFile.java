@@ -8,8 +8,8 @@ import java.io.OutputStream;
 public class OutputFile extends StorageFile {
     private OutputStream stream;
 
-    OutputFile(Storage storage, String path, String name, boolean directory, long size, OutputStream stream) {
-        super(storage, path, name, directory, size);
+    OutputFile(Storage storage, String path, String name, boolean directory, long size, long modified, OutputStream stream) {
+        super(storage, path, name, directory, size, modified);
         this.stream = stream;
     }
 

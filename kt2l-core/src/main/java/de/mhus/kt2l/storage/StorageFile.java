@@ -15,18 +15,20 @@ public class StorageFile {
     private final String name;
     private final boolean directory;
     private final long size;
+    private final long modified;
     private final Storage storage;
 
-    StorageFile(Storage storage, String path, String name, boolean directory, long size) {
+    StorageFile(Storage storage, String path, String name, boolean directory, long size, long modified) {
         this.storage = storage;
         this.path = path;
         this.name = name;
         this.directory = directory;
         this.size = size;
+        this.modified = modified;
     }
 
     public StorageFile(StorageFile parent, String path) {
-        this(parent.getStorage(), parent.getPath() + "/" + MFile.normalizePath(path), MString.beforeLastIndex(path, '/'), false, -1);
+        this(parent.getStorage(), parent.getPath() + "/" + MFile.normalizePath(path), MString.beforeLastIndex(path, '/'), false, -1, -1);
     }
 
 }

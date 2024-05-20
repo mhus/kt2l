@@ -29,6 +29,7 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.IFrame;
@@ -66,6 +67,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.vaadin.olli.FileDownloadWrapper;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
@@ -89,13 +91,14 @@ import static de.mhus.commons.tools.MCollection.notNull;
         themeFor = "vaadin-grid",
         value = "./styles/grid.css"
 )
+@JavaScript("./scripts/jquery/3.4.1/jquery.min.js")
 @Slf4j
 // add Used to include js files in the build, only once per vaadin component is needed
 @Uses(ContainerShellPanel.class)
 @Uses(ResourcesGridPanel.class)
 @Uses(ResourceYamlEditorPanel.class)
 @Uses(PodLogsPanel.class)
-
+@Uses(FileDownloadWrapper.class)
 public class Core extends AppLayout {
 
     private @Autowired

@@ -37,7 +37,7 @@ public class DummyDriver implements BucketDriver {
         @Override
         public List<StorageFile> listFiles(String path) throws IOException {
             if (path.equals("/")) {
-                return List.of(new StorageFile(this, "/", "no_content.txt", false, 0));
+                return List.of(new StorageFile(this, "/", "no_content.txt", false, 0, 0));
             }
             throw new FileNotFoundException(path);
         }
