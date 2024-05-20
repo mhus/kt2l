@@ -87,5 +87,16 @@ public class DirectoryDriver implements BucketDriver {
             return file.getAbsolutePath();
         }
 
+        @Override
+        public void delete(StorageFile file) {
+            final var f = new File(root, MFile.normalizePath(file.getPath()));
+            if (f.exists()) {
+                if (f.isFile())
+                    f.delete();
+                else if (f.isDirectory())
+                    MFile.deleteDir(f);
+            }
+        }
+
     }
 }

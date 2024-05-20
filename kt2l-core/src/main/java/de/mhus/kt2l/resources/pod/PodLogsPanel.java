@@ -268,7 +268,11 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
                         LOGGER.error("Error storing logs", e);
                         UiUtil.showErrorNotification("Error storing logs", e);
                     } finally {
-                        core.ui().access(() -> progress.close());
+                        core.ui().access(() -> {
+                                    progress.close();
+                                    storageService.showStoragePanel(core, directory);
+                                }
+                        );
                     }
                 });
         } catch (Exception e) {

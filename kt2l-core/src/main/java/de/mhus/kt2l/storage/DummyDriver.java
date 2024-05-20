@@ -51,5 +51,10 @@ public class DummyDriver implements BucketDriver {
         public String getLocalPath(StorageFile path) throws IOException {
             throw new IOException("Not supported");
         }
+
+        @Override
+        public void delete(StorageFile file) {
+            // do nothing
+        }
     }
 }

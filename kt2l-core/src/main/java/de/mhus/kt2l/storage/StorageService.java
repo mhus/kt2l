@@ -1,9 +1,12 @@
 package de.mhus.kt2l.storage;
 
+import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.util.SoftHashMap;
 import de.mhus.kt2l.config.CmdConfiguration;
 import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +31,9 @@ public class StorageService {
 
     @Autowired
     private CmdConfiguration cmdConfiguration;
+
+    @Autowired
+    private PanelService panelService;
 
     private final SoftHashMap<String, Storage> cache = new SoftHashMap<>();
 
@@ -66,6 +72,22 @@ public class StorageService {
         } catch (Exception e) {
             LOGGER.warn("open {} failed", file, e);
             return false;
+        }
+    }
+
+    public void showStoragePanel(Core core, StorageFile file) {
+        if (!isEnabled()) return;
+
+        var tab = panelService.addPanel(
+                core,
+                null,
+                "storage",
+                "Storage",
+                true,
+                VaadinIcon.STORAGE.create(),
+                () -> new StoragePanel()).select();
+        if (file != null) {
+            ((StoragePanel)tab.getPanel()).showFile(file);
         }
     }
 

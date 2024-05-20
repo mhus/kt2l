@@ -80,4 +80,6 @@ public abstract class Storage {
         final var path = createFilePath(context);
         return new StorageFile(this, path, MString.afterLastIndex(path, '/'), true, 0, System.currentTimeMillis());
     }
+
+    public abstract void delete(StorageFile file);
 }

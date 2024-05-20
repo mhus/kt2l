@@ -15,7 +15,7 @@ public class StoragePanelCoreAction implements CoreAction {
     private StorageConfiguration storageConfiguration;
 
     @Autowired
-    private PanelService panelService;
+    private StorageService storageService;
 
     @Override
     public boolean canHandle(Core core) {
@@ -29,14 +29,7 @@ public class StoragePanelCoreAction implements CoreAction {
 
     @Override
     public void execute(Core core) {
-        panelService.addPanel(
-                core,
-                null,
-                "storage",
-                "Storage",
-                true,
-                VaadinIcon.STORAGE.create(),
-                () -> new StoragePanel()).select();
+        storageService.showStoragePanel(core, null);
     }
 
     @Override

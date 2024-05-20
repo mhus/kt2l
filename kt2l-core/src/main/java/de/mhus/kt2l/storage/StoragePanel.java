@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -12,21 +13,28 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.StreamReceiver;
 import com.vaadin.flow.server.StreamResource;
+import de.mhus.commons.io.PipedStream;
 import de.mhus.commons.tools.MDate;
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MThread;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.ProgressDialog;
+import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.UiUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.olli.FileDownloadWrapper;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
+import java.util.zip.ZipOutputStream;
 
 @Slf4j
 public class StoragePanel extends VerticalLayout implements DeskTabListener {
@@ -34,6 +42,9 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
     private StorageService storageService;
+
+    @Autowired
+    private ViewsConfiguration viewsConfiguration;
 
 //    private ListBox<StorageFile>[] lists;
 //    private HorizontalLayout listPanel;
@@ -52,7 +63,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
         var menuBar = new MenuBar();
         menuBar.setWidthFull();
         menuBar.addItem(VaadinIcon.REFRESH.create(),e -> {
-
+            showSelectedFiles();
         });
         itemDelete = menuBar.addItem("Delete", e -> {
             deleteSelected();
@@ -114,7 +125,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
             showBreadcrumb();
         });
 
-        add(downloads, breadCrumb,menuBar, grid);
+        add(breadCrumb,menuBar, grid, downloads);
 
         selectedDirectory = new StorageFile(storageService.getStorage(), "", "", true, -1, -1);
         showSelectedFiles();
@@ -133,55 +144,186 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
         try {
 
             if (selectedCurrent == null) return;
+            InputStream inputStream = null;
             if (selectedCurrent.isDirectory()) {
-//                FileDownloadWrapper link = new FileDownloadWrapper(selectedCurrent.getName() + ".zip", () -> textField.getValue().getBytes());
-            } else {
+                List<StorageFile> list = new LinkedList<>();
+                collectFiles(list, selectedCurrent);
+
+                PipedStream pipe = new PipedStream(viewsConfiguration.getConfig("storage").getInt("downloadPipeSize", 1024*1024*1024));
+                pipe.setReadTimeout(viewsConfiguration.getConfig("storage").getInt("downloadPipeReadTimeout", 6000));
+                pipe.setWriteTimeout(viewsConfiguration.getConfig("storage").getInt("downloadPipeWriteTimeout", 6000));
+                inputStream = pipe.getIn();
+
+                ZipOutputStream zos = new ZipOutputStream(pipe.getOut());
+//                ZipOutputStream zos = new ZipOutputStream(new FileOutputStream("/tmp/download.zip"));
+
+                ProgressDialog dialog = new ProgressDialog();
+                dialog.setMax(list.size());
+                dialog.open();
                 var ui = getUI();
-                var stream = selectedCurrent.getStorage().openFile(selectedCurrent.getPath()).getStream();
-                var closeActionStream = new InputStream() {
-                    public FileDownloadWrapper download;
 
-                    @Override
-                    public int read() throws IOException {
-                        return stream.read();
-                    }
-
-                    public int read(byte[] b, int off, int len) throws IOException {
-                        return stream.read(b, off, len);
-                    }
-
-                    @Override
-                    public void close() throws IOException {
-                        stream.close();
-                        ui.get().access(() -> {
-                            downloads.remove(download);
-                        });
-                    }
-                };
-                FileDownloadWrapper download = new FileDownloadWrapper(new StreamResource(selectedCurrent.getName(), () -> closeActionStream));
-                closeActionStream.download = download;
-                download.setText("[" + selectedCurrent.getName() + "]");
-                var id = UUID.randomUUID().toString().replace("-", "");
-                download.setId(id);
-                downloads.add(download);
                 Thread.startVirtualThread(() -> {
                     try {
-                        MThread.sleep(200);
-                        ui.get().access(() ->
-                                download.getElement().executeJs("$('#"+id+" a')[0].click();"));
-
+                        int cnt = 0;
+                        for (StorageFile file : list) {
+                            LOGGER.debug("Zip for Download: " + file.getPath());
+                            ui.get().access(() -> dialog.next(file.getPath()));
+                            try (var stream = file.getStorage().openFile(file.getPath()).getStream()){
+                                zos.putNextEntry(new java.util.zip.ZipEntry(file.getPath()));
+                                MFile.copyFile(stream, zos);
+                                zos.flush();
+                                zos.closeEntry();
+                            }
+                        }
+                        zos.finish();
+                        zos.flush();
+                        zos.close();
+                        pipe.getOut().flush();
+                        pipe.getOut().close();
+                        while (!pipe.isInputClosed()) {
+                            MThread.sleep(1000);
+                            ui.get().access(() -> dialog.setProgressDetails("Wait for " + pipe.getBufferedSize() + " bytes"));
+                        }
+                        ui.get().access(() -> dialog.close());
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage(), e);
                     }
                 });
+
+//                FileDownloadWrapper link = new FileDownloadWrapper(selectedCurrent.getName() + ".zip", () -> textField.getValue().getBytes());
+            } else {
+                inputStream = selectedCurrent.getStorage().openFile(selectedCurrent.getPath()).getStream();
             }
+
+            final var ui = getUI();
+            final var finalInputStream = inputStream;
+            var closeActionStream = new InputStream() {
+                public FileDownloadWrapper download;
+
+                @Override
+                public int read() throws IOException {
+                    return finalInputStream.read();
+                }
+
+                public int read(byte[] b, int off, int len) throws IOException {
+                    return finalInputStream.read(b, off, len);
+                }
+
+                @Override
+                public void close() throws IOException {
+                    finalInputStream.close();
+                    ui.get().access(() -> {
+                        downloads.remove(download);
+                    });
+                }
+            };
+            FileDownloadWrapper download = new FileDownloadWrapper(new StreamResource(selectedCurrent.getName() + (selectedCurrent.isDirectory() ? ".zip" : ""), () -> closeActionStream));
+            closeActionStream.download = download;
+            download.setText("[" + selectedCurrent.getName() + "]");
+            var id = UUID.randomUUID().toString().replace("-", "");
+            download.setId(id);
+            downloads.add(download);
+            Thread.startVirtualThread(() -> {
+                try {
+                    MThread.sleep(200);
+                    ui.get().access(() ->
+                            download.getElement().executeJs("$('#"+id+" a')[0].click();"));
+
+                } catch (Exception e) {
+                    LOGGER.error(e.getMessage(), e);
+                }
+            });
+
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             UiUtil.showErrorNotification("Can't prepare file for download",e);
         }
     }
 
+    private void collectFiles(List<StorageFile> list, StorageFile parent) {
+        if (!parent.isDirectory()) {
+            list.add(parent);
+            return;
+        }
+        try {
+            var files = storageService.getStorage().listFiles(parent);
+            for (StorageFile file : files) {
+                if (file.isDirectory()) {
+                    collectFiles(list, file);
+                } else {
+                    list.add(file);
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+    }
+
+    private void collectDirectories(List<StorageFile> list, StorageFile parent) {
+        if (!parent.isDirectory()) {
+            return;
+        }
+        try {
+            var files = storageService.getStorage().listFiles(parent);
+            for (StorageFile file : files) {
+                if (file.isDirectory()) {
+                    collectDirectories(list, file);
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        list.add(parent);
+    }
+
     private void deleteSelected() {
+        if (selectedCurrent == null) return;
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Delete File");
+        dialog.add(new Text("Do you really want to delete the file: " + selectedCurrent.getName()));
+        Button ok = new Button("Delete", e -> {
+            dialog.close();
+            doDeleteSelected();
+        });
+        Button cancel = new Button("Cancel", e -> dialog.close());
+        dialog.getFooter().add(ok, cancel);
+        dialog.open();
+
+    }
+
+    private void doDeleteSelected() {
+        try {
+            List<StorageFile> list = new LinkedList<>();
+            collectFiles(list, selectedCurrent);
+            collectDirectories(list, selectedCurrent);
+            ProgressDialog dialog = new ProgressDialog();
+            dialog.setMax(list.size());
+            dialog.open();
+
+            var sc = SecurityContext.create();
+            var ui = getUI();
+            Thread.startVirtualThread(() -> {
+                try (var sce = sc.enter()) {
+                    int cnt = 0;
+                    for (StorageFile file : list) {
+                        LOGGER.debug("Delete: " + file.getPath());
+                        ui.get().access(() -> dialog.next(file.getPath()));
+                        storageService.getStorage().delete(file);
+                    }
+                } catch (Exception e) {
+                    LOGGER.error(e.getMessage(), e);
+                    ui.get().access(() -> {
+                        UiUtil.showErrorNotification("Can't delete file", e);
+                        dialog.close();
+                    });
+                }
+                ui.get().access(() -> dialog.close());
+                ui.get().access(() -> showSelectedFiles());
+            });
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            UiUtil.showErrorNotification("Can't delete file", e);
+        }
     }
 
     private void showBreadcrumb() {
@@ -244,5 +386,19 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
     @Override
     public void tabShortcut(ShortcutEvent event) {
 
+    }
+
+    public void showFile(StorageFile file) {
+        if (file.isDirectory()) {
+            selectedDirectory = file;
+            selectedCurrent = null;
+        } else {
+            selectedDirectory = new StorageFile(file.getStorage(), MFile.getParentPath(file.getPath()), "", true, -1, -1);
+            selectedCurrent = file;
+        }
+        showSelectedFiles();
+        if (selectedCurrent != null)
+            grid.select(selectedCurrent);
+        showBreadcrumb();
     }
 }
