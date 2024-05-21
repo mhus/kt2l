@@ -106,7 +106,9 @@ public class Configuration {
         }
 
         try {
-            var errors = Zip.builder().srcStream(zipFile).dst(dir).throwException(false).build().unzip().getErrors();
+            var errors = Zip.builder().srcStream(zipFile).dst(dir).consumer(
+                    (e) -> LOGGER.debug("Unzip {}", e)
+            ).throwException(false).build().unzip().getErrors();
             if (MCollection.isSet(errors))
                 LOGGER.error("Error on unzip: {}", errors);
         } catch (Exception e) {
