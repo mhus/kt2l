@@ -64,7 +64,18 @@ mvn clean package -Pproduction -Dvaadin.force.production.build=true
 
 and rerun the application.
 
-# Local test of deb launcher script
+# Local test of deb launcher script (macosx)
+
+* Maybe compile `mhus-commons` before with `mvn clean install`
+* Compile the project `mvn clean install -Pproduction
+* You can start the java app now directly with 
+  `java -XstartOnFirstThread -Dspring.profiles.active=prod -jar ./kt2l-desktop/target/kt2l-desktop-macosx-aarch64-0.0.1-SNAPSHOT.jar`
+* Run launcher create script: `./kt2l-desktop/launcher/create-macosx-aarch64.sh`
+* Mount the dmg file: `hdiutil attach ./kt2l-desktop/target/launcher/KT2L.dmg`
+* Run the created app: `/Volumes/KT2L/KT2L.app/Contents/MacOS/KT2L` in terminal
+* Unmount the dmg file: `hdiutil detach /Volumes/KT2L`
+
+# Local test of deb launcher script (linux)
 
 * Compile the project before with `mvn clean install -Pproduction -Dvaadin.force.production.build=true`
 * Start in the project directory if `kt2l` and run the following commands:

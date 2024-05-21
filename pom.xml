@@ -35,7 +35,7 @@
     <packaging>pom</packaging>
     <properties>
         <java.version>21</java.version>
-        <vaadin.version>24.3.9</vaadin.version> <!--23.3.33 - 24.3.5-->
+        <vaadin.version>24.3.12</vaadin.version> <!--23.3.33 - 24.3.5-->
         <tmpl.plugin>2.2.1</tmpl.plugin>
         <license.plugin>4.3</license.plugin>
         <maven.version>3.2.5</maven.version>

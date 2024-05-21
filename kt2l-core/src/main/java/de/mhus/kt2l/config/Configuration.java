@@ -50,19 +50,19 @@ public class Configuration {
     private static final String LOCAL_DIR = "local";
     private static final String USERS_DIR = "users";
 
-    @Value("${configuration.directory:config}")
+    @Value("${kt2l.configuration.directory:config}")
     private String configurationDirectory;
 
-    @Value("${configuration.usersDirectory:}")
+    @Value("${kt2l.configuration.usersDirectory:}")
     private String usersDirectory;
 
-    @Value("${configuration.localDirectory:}")
+    @Value("${kt2l.configuration.localDirectory:}")
     private String localDirectory;
 
-    @Value("${configuration.create:false}")
-    private boolean createConfiguration;
+    @Value("${kt2l.configuration.deploy:false}")
+    private boolean deployConfiguration;
 
-    @Value("${configuration.tmpDirectory:}")
+    @Value("${kt2l.configuration.tmpDirectory:}")
     private String tmpDirectory;
 
     private static final Set<String> protectedConfigs = Collections.synchronizedSet(toSet("users", "aaa", "login"));
@@ -79,9 +79,9 @@ public class Configuration {
         if (configurationDirectory.startsWith("~")) {
             configurationDirectory = System.getProperty("user.home") + configurationDirectory.substring(1);
         }
-        LOGGER.info("Configuration directory is {}, recreate: {}", configurationDirectory, createConfiguration);
-        if (createConfiguration) {
-            initHomeConfiguration();
+        LOGGER.info("Configuration directory is {}, deploy: {}", configurationDirectory, deployConfiguration);
+        if (deployConfiguration) {
+            deployHomeConfiguration();
         }
 
         if (isEmpty(tmpDirectory)) {
@@ -95,7 +95,7 @@ public class Configuration {
         LOGGER.info("Configuration initialized on {}", configurationDirectoryFile.getAbsolutePath());
     }
 
-    private void initHomeConfiguration() {
+    private void deployHomeConfiguration() {
         var dir = new File(configurationDirectory);
         // if (dir.exists()) return;
         dir.mkdirs();
