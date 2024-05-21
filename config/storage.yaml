@@ -4,7 +4,7 @@ buckets:
     users:
       - autoload
     type: directory
-    root: ${home}/fs/common
+    root: ${home}/home/common
   - name: default
     type: directory
-    root: ${home}/fs/users/${username}
+    root: ${home}/home/users/${username}

@@ -86,7 +86,7 @@ public class HelpConfiguration extends AbstractUserRelatedConfig {
         }
 
         public String getAction() {
-            return link.getString("action").get();
+            return link.getString("action").orElse("not specified");
         }
 
         public ITreeNode getNode() {

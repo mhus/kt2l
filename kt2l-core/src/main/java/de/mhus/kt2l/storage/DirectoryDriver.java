@@ -31,7 +31,6 @@ public class DirectoryDriver implements BucketDriver {
     @Override
     public Storage createStorage(StorageConfiguration.Bucket bucket, String userName) {
         var path = MString.substitute(bucket.getRoot(), "username", userName,  "home", home);
-
         return new DirectoryStorage(path);
     }
 

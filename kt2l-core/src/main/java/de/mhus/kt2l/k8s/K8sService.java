@@ -183,6 +183,7 @@ public class K8sService {
         if (clusterCa.exists()) {
             availableContexts.add(LOCAL_CLUSTER_NAME);
         }
+        LOGGER.debug("Available contexts: {}", availableContexts);
 
         var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_CLUSTER);
         return availableContexts.stream().filter(ctx -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER, ctx, defaultRole, principalFinal)).collect(Collectors.toSet());

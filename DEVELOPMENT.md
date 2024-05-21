@@ -67,6 +67,7 @@ and rerun the application.
 # Local test of deb launcher script (macosx)
 
 * Maybe compile `mhus-commons` before with `mvn clean install`
+* Use the prepare script `./kt2l-desktop/launcher/prepare.sh`
 * Compile the project `mvn clean install -Pproduction
 * You can start the java app now directly with 
   `java -XstartOnFirstThread -Dspring.profiles.active=prod -jar ./kt2l-desktop/target/kt2l-desktop-macosx-aarch64-0.0.1-SNAPSHOT.jar`

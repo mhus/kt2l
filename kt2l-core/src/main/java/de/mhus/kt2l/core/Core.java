@@ -375,6 +375,7 @@ public class Core extends AppLayout {
     }
 
     private HelpAction getHelpAction(HelpConfiguration.HelpLink link) {
+        LOGGER.debug("㋡ Get Help Action for {}", link.getAction());
         return helpActions.stream().filter(a -> a.canHandle(link)).findFirst().orElse(null);
     }
 
