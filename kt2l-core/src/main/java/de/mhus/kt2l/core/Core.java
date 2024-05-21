@@ -57,7 +57,7 @@ import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.help.HelpAction;
 import de.mhus.kt2l.help.HelpConfiguration;
 import de.mhus.kt2l.help.LinkHelpAction;
-import de.mhus.kt2l.resources.all.ResourceYamlEditorPanel;
+import de.mhus.kt2l.resources.common.ResourceYamlEditorPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.pod.ContainerShellPanel;
 import de.mhus.kt2l.resources.pod.PodLogsPanel;

@@ -19,8 +19,12 @@
 package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.ShortcutEvent;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
@@ -33,23 +37,33 @@ import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.kscript.Block;
 import de.mhus.kt2l.kscript.RunCompiler;
 import de.mhus.kt2l.kscript.RunContext;
 import de.mhus.kt2l.resources.util.ResourceManager;
+import de.mhus.kt2l.storage.StorageFile;
+import de.mhus.kt2l.storage.StorageService;
+import io.azam.ulidj.ULID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
 public class PodExecPanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
     private ShellConfiguration shellConfiguration;
+    @Autowired
+    private StorageService storageService;
 
     private final ApiProvider apiProvider;
     private final ResourceManager<ContainerResource> resourceManager;
@@ -62,6 +76,11 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener {
     private List<ResultEntry> resultList = Collections.synchronizedList(new LinkedList<>());
     private MenuItem menuItemClear;
     private MenuItem menuItemStop;
+    private MenuItem menuItemStore;
+    private MenuItem menuItemCapture;
+    private Div menuItemStoreIconDiv;
+    private volatile StorageFile captureDirectory;
+    private Icon menuItemStoreIconDivIcon;
 
     public PodExecPanel(Cluster cluster, Core core, List<ContainerResource> containers) {
         this.apiProvider = cluster.getApiProvider();
@@ -107,6 +126,31 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener {
             });
         });
 
+        if (storageService.isEnabled()) {
+            captureDirectory = tryThis(() -> storageService.getStorage().createDirectory("exec")).or(null);
+            if (captureDirectory != null) {
+                menuItemStoreIconDivIcon = VaadinIcon.BULLSEYE.create();
+                menuItemStoreIconDivIcon.setVisible(false);
+                menuItemStoreIconDivIcon.addClassName("color-red");
+                menuItemStoreIconDivIcon.setSize("var(--lumo-icon-size-s)");
+                menuItemStoreIconDiv = new Div();
+                menuItemStoreIconDiv.add(menuItemStoreIconDivIcon, new Text(" Store"));
+                menuItemStore = menuBar.addItem(menuItemStoreIconDiv);
+                var storeMenu = menuItemStore.getSubMenu();
+                menuItemCapture = storeMenu.addItem("Capture", e -> {
+//                    menuItemCapture.setChecked(!menuItemCapture.isChecked());
+                    menuItemStoreIconDivIcon.setVisible(menuItemCapture.isChecked());
+                });
+                menuItemCapture.setCheckable(true);
+                captureDirectory = tryThis(() -> storageService.getStorage().createDirectory("exec")).or(null);
+
+                storeMenu.addItem(captureDirectory.getName(), e -> {
+                    storageService.showStoragePanel(core, captureDirectory);
+                });
+            }
+        }
+
+        
         editor = new AceEditor();
         editor.setTheme(AceTheme.terminal);
         editor.setMode(AceMode.sh);
@@ -209,6 +253,16 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener {
                 text.addClassName("bgcolor-red");
                 text.setValue(text.getValue() + "\n" + e.getMessage());
             });
+        }
+        if (menuItemCapture.isChecked()) {
+            try (var stream = captureDirectory.getStorage().createFileStream(captureDirectory, ULID.random() + "-" + container.getContainerName() + ".cap.log").getStream()) {
+                OutputStreamWriter writer = new OutputStreamWriter(stream);
+                writer.write(text.getValue());
+                writer.flush();
+            } catch (IOException e) {
+                LOGGER.error("Capture", e);
+                core.ui().access(() -> UiUtil.showErrorNotification("Capture " + e.getMessage()));
+            }
         }
     }
 
