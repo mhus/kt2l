@@ -19,7 +19,12 @@
 package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.ShortcutEvent;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -39,6 +44,8 @@ import de.mhus.kt2l.core.Tail;
 import de.mhus.kt2l.core.TailRow;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.ApiProvider;
+import de.mhus.kt2l.storage.OutputFile;
+import de.mhus.kt2l.storage.StorageFile;
 import de.mhus.kt2l.storage.StorageService;
 import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -58,7 +65,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -95,6 +101,11 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     private TextField filterText;
     private String filter = null;
     private volatile int index;
+    private MenuItem menuItemStore;
+    private MenuItem menuItemCapture;
+    private Div menuItemStoreIconDiv;
+    private volatile StorageFile captureDirectory;
+    private Icon menuItemStoreIconDivIcon;
 
     public PodLogsPanel(Cluster cluster, Core core, List<ContainerResource> containers) {
         this.cluster = cluster;
@@ -163,10 +174,21 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         menuItemShowColors.setCheckable(true);
         menuItemShowColors.setChecked(true);
 
-        if (storageService.isEnabled())
-            menuBar.addItem("Store", e -> {
-                storeLogs();
-            });
+        if (storageService.isEnabled()) {
+
+            menuItemStoreIconDivIcon = VaadinIcon.BULLSEYE.create();
+            menuItemStoreIconDivIcon.setVisible(false);
+            menuItemStoreIconDivIcon.addClassName("color-red");
+            menuItemStoreIconDivIcon.setSize("var(--lumo-icon-size-s)");
+            menuItemStoreIconDiv = new Div();
+            menuItemStoreIconDiv.add(menuItemStoreIconDivIcon, new Text(" Store"));
+            menuItemStore = menuBar.addItem(menuItemStoreIconDiv);
+            var storeMenu = menuItemStore.getSubMenu();
+            storeMenu.addItem("Download", e -> storeLogs());
+            menuItemCapture = storeMenu.addItem("Capture", e -> captureLogs());
+            menuItemCapture.setCheckable(true);
+
+        }
 
         filterText = new TextField();
         filterText.setPlaceholder("Filter ...");
@@ -194,10 +216,29 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         add(logs);
         setSizeFull();
 
+        var sc = SecurityContext.create();
         containers.forEach(c -> {
-            streamLoopThreads.add(Thread.startVirtualThread(() -> streamLoop(c)));
+            streamLoopThreads.add(Thread.startVirtualThread(() -> streamLoop(c, sc)));
         });
         showResultsThread = Thread.startVirtualThread(this::showResults);
+    }
+
+    private void captureLogs() {
+        try {
+            if (captureDirectory == null) {
+                captureDirectory = storageService.getStorage().createDirectory("logs_capture");
+                menuItemStoreIconDivIcon.setVisible(true);
+                menuItemCapture.setChecked(true);
+            } else {
+                storageService.showStoragePanel(core, captureDirectory);
+                captureDirectory = null;
+                menuItemStoreIconDivIcon.setVisible(false);
+                menuItemCapture.setChecked(false);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error capturing logs", e);
+            UiUtil.showErrorNotification("Error capturing logs", e);
+        }
     }
 
     private void showResults() {
@@ -338,12 +379,13 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         ps.flush();
     }
 
-    private void streamLoop(ContainerResource container) {
+    private void streamLoop(ContainerResource container, SecurityContext sc) {
         int index = nextIndex();
         var color = UiUtil.LIGHT_COLORS.get(index % UiUtil.LIGHT_COLORS.size());
+        OutputFile captureFile = null;
 
         InputStream logStream = null;
-        try {
+        try (var sce = sc.enter()) {
             V1Pod pod = container.getPod();
             String source = pod.getMetadata().getName();
 
@@ -365,6 +407,27 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
                     break;
                 }
                 addLogEntry(new LogEntry(source, color, line));
+                if (captureDirectory != null) {
+                    try {
+                        if (captureFile == null) {
+                            captureFile = storageService.getStorage().createFileStream(captureDirectory, pod.getMetadata().getNamespace() + "-" + source + ".log");
+                        }
+                        captureFile.getStream().write(line.getBytes());
+                        captureFile.getStream().write('\n');
+                        captureFile.getStream().flush();
+                    } catch (Exception e) {
+                        LOGGER.error("Error capturing logs", e);
+                    }
+                } else {
+                    if (captureFile != null) {
+                        try {
+                            captureFile.getStream().close();
+                        } catch (Exception e) {
+                            LOGGER.error("Error capturing logs", e);
+                        }
+                        captureFile = null;
+                    }
+                }
             }
 
         } catch (Exception e) {

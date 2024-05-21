@@ -109,10 +109,16 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
         grid = new Grid<StorageFile>();
         grid.setSizeFull();
 
-        grid.addColumn(StorageFile::getName).setHeader("Name").setSortable(true);
-        grid.addColumn(s -> s.getSize() <= 0 ? "" : MString.toByteDisplayString(s.getSize())).setHeader("Size").setSortable(true);
-        grid.addColumn(s -> s.isDirectory() ? "dir" : "file").setHeader("Type").setSortable(true);
-        grid.addColumn(s -> s.getModified() <= 0 ? "" : MDate.toIso8601(s.getModified())).setHeader("Modified").setSortable(true);
+        grid.addColumn(StorageFile::getName).setHeader("Name").setSortProperty("name");
+        grid.addColumn(s -> s.getSize() <= 0 ? "" : MString.toByteDisplayString(s.getSize())).setHeader("Size").setSortProperty("size");
+        grid.addColumn(s -> s.isDirectory() ? "dir" : "file").setHeader("Type").setSortProperty("type");
+        grid.addColumn(s -> s.getModified() <= 0 ? "" : MDate.toIso8601(s.getModified())).setHeader("Modified").setSortProperty("modified");
+        grid.setColumnReorderingAllowed(true);
+        grid.getColumns().forEach(col -> {
+            col.setAutoWidth(true);
+            col.setResizable(true);
+        });
+
 
         grid.addItemDoubleClickListener(e -> {
             var selected = e.getItem();
