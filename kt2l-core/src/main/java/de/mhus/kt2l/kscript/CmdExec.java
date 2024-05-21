@@ -36,7 +36,7 @@ public class CmdExec extends Cmd {
         var proc = exec.exec(
                 context.getPod(),
                 cmdArray,
-                context.getProperties().getString(RunCompiler.PROP_CONTAINER).orElse(""),
+                context.getProperties().getString(RunCompiler.PROP_CONTAINER).orElse(null),
                 useStdin, useTty);
 
         context.setScope(scope, new ExecScope(context, proc));

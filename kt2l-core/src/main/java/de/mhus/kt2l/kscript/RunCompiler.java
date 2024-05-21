@@ -53,6 +53,7 @@ public class RunCompiler {
         commands.put("else", CmdElse.class);
         commands.put("elseif", CmdElseIf.class);
         commands.put("endif", CmdEndIf.class);
+        commands.put("download", CmdDownload.class);
     }
 
     public Block compile(String command) throws Exception {

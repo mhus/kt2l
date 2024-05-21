@@ -24,12 +24,16 @@ import de.mhus.commons.tree.IProperties;
 import de.mhus.commons.tree.MProperties;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.k8s.ApiProvider;
+import de.mhus.kt2l.storage.StorageFile;
+import io.azam.ulidj.ULID;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -53,6 +57,10 @@ public class RunContext implements ICloseable {
     private StringBuffer content = new StringBuffer();
     @Getter
     private SecurityContext securityContext = MLang.tryThis(() -> SecurityContext.create()).or(null);
+
+    @Setter
+    private StorageFile storage;
+
 
     public void setScope(String scope, Scope object) {
         var current = properties.get(RunCompiler.PROP_SCOPE + scope);
@@ -87,4 +95,7 @@ public class RunContext implements ICloseable {
             textChangedObserver.accept(content.toString());
     }
 
+    public OutputStream createFileStream(String to) throws IOException {
+        return storage.getStorage().createFileStream(storage, ULID.random() + "-" + to).getStream();
+    }
 }

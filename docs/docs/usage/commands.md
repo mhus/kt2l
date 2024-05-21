@@ -106,6 +106,14 @@ Arguments:
 - key: string
 - value: string
 
+## DOWNLOAD
+
+Download a file from the pod to the local storage.
+
+Arguments:
+- from: string - the file to download
+- to: string - the target file (ths system will add a timestamp to the file name)
+
 # Scope
 
 Using communication commands to interact with the terminal you can use scopes to separate different sessions.
