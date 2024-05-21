@@ -59,7 +59,10 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"configuration.localDirectory=local_config"}
+        properties = {
+        "kt2l.configuration.localDirectory=local_config",
+                ""
+        }
 )
 @Import({AremoricaContextConfiguration.class, CoreHelper.class})
 public class LocalServerTest {

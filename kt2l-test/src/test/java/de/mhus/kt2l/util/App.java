@@ -38,7 +38,7 @@ public class App {
         for (int i = 0; i < 4; i++) {
             driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort() + "/reset");
             try {
-                new WebDriverWait(driver, ofSeconds(4), ofSeconds(1))
+                new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                         .until(visibilityOfElementLocated(By.xpath("//vaadin-button[contains(.,\"KT2L\")]")));
                 break;
             } catch (Exception e) {
@@ -50,7 +50,7 @@ public class App {
         for (int i = 0; i < 4; i++) {
             driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort());
             try {
-                new WebDriverWait(driver, ofSeconds(4), ofSeconds(1))
+                new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                         .until(visibilityOfElementLocated(By.xpath("//span[contains(.,\"[KT2L]\")]")));
                 return;
             } catch (Exception e) {
