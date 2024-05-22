@@ -106,6 +106,8 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
         ).getEventHandler().registerWeak(this::changeEvent);
 
         setSizeFull();
+        setPadding(false);
+        setMargin(false);
     }
 
     private void changeEvent(Watch.Response<CoreV1Event> coreV1EventResponse) {

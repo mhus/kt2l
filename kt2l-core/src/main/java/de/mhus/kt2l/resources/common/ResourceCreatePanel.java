@@ -93,6 +93,8 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
 
         add(editor);
         setSizeFull();
+        setPadding(false);
+        setMargin(false);
 
     }
 

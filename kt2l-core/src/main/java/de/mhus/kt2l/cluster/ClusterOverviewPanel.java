@@ -154,6 +154,8 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
         Div version = new Div("Version: " + DeployInfo.VERSION + " (" + MString.beforeIndexOrAll(DeployInfo.CREATED, ' ') + ")");
         version.addClassName("version");
         add(version);
+        setPadding(false);
+        setMargin(false);
 
         setWidthFull();
     }

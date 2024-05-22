@@ -194,6 +194,8 @@ public class Core extends AppLayout {
         helpContent = new VerticalLayout();
         helpContent.setVisible(false);
         helpContent.setWidth(helpConfiguration.getWindowWidth());
+        helpContent.setPadding(false);
+        helpContent.setMargin(false);
         helpContent.setHeightFull();
 
         helpBrowser = new IFrame();
@@ -453,6 +455,7 @@ public class Core extends AppLayout {
     private void createDrawer() {
 
         tabBar = new DeskTabBar(this);
+        tabBar.setMargin(false);
         addToDrawer(tabBar);
 
         mainTab = tabBar.addTab(new DeskTab("main", "Main", false, VaadinIcon.HOME_O.create(), new ClusterOverviewPanel(this))).select();

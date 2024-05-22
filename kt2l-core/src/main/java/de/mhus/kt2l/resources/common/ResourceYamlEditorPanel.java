@@ -170,6 +170,8 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
 
         var resLayout = new VerticalLayout();
         resLayout.setSizeFull();
+        resLayout.setPadding(false);
+        resLayout.setMargin(false);
         if (securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_ACTION,SecurityUtils.getResourceId(this) + "_write", "WRITE" ))
             resLayout.add(resMenuBar, resInfo, resYamlEditor);
         else
@@ -219,6 +221,9 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
         tabSheet.setSizeFull();
         add(tabSheet);
 
+        setSizeFull();
+        setPadding(false);
+        setMargin(false);
     }
 
     private void doSave() throws ApiException, IOException {

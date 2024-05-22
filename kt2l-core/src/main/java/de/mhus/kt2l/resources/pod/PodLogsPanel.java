@@ -214,6 +214,8 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         logs.addClassNames("no-word-wrap");
 
         add(logs);
+        setMargin(false);
+        setPadding(false);
         setSizeFull();
 
         var sc = SecurityContext.create();

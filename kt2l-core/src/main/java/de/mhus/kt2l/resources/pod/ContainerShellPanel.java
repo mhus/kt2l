@@ -218,6 +218,8 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
         xterm.focus();
 
         setSizeFull();
+        setPadding(false);
+        setMargin(false);
 
         try {
             Exec exec = new Exec(apiProvider.getClient());

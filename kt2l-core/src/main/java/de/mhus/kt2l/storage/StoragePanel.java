@@ -161,6 +161,8 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
 //        }
 
         setSizeFull();
+        setPadding(false);
+        setMargin(false);
     }
 
     private void downloadSelected() {

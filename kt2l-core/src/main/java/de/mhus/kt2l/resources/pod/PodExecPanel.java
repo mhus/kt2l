@@ -172,6 +172,10 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener {
         splitLayout.setSplitterPosition(50);
         splitLayout.setSizeFull();
 
+        setSizeFull();
+        setPadding(false);
+        setMargin(false);
+
         add(menuBar);
         add(splitLayout);
 
