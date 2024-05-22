@@ -79,7 +79,7 @@
     "date-fns": "2.29.3",
     "lit": "3.1.2",
     "proj4": "2.9.2",
-    "vis-network": "9.0.5",
+    "vis-network": "9.1.9",
     "xterm": "5.1.0",
     "xterm-addon-fit": "0.7.0"
   },
@@ -179,7 +179,7 @@
       "date-fns": "2.29.3",
       "lit": "3.1.2",
       "proj4": "2.9.2",
-      "vis-network": "9.0.5",
+      "vis-network": "9.1.9",
       "xterm": "5.1.0",
       "xterm-addon-fit": "0.7.0"
     },
@@ -201,7 +201,7 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "fb6cb549bf7ff240053e47dee86fb032d6b4a99bdd19115562d4f8745fe4872e"
+    "hash": "9544b86b410f71ae0a97e6f95466296cdec2cb7778cc156b1988c25c50d8885f"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
