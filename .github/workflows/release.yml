@@ -67,6 +67,15 @@ jobs:
             cd ..
             rm -rf mhus-commons
           fi
+      - name: vis-network-vaadin
+        run: |
+          echo "Build vis-network-vaadin"
+          echo "================"
+          git clone https://github.com/mhus/vis-network-vaadin.git
+          cd vis-network-vaadin
+          mvn clean install -B || exit 1
+          cd ..
+          rm -rf vis-network-vaadin
       - name: Prepare
         run: ./kt2l-desktop/launcher/prepare.sh
       - name: Build maven linux-amd64

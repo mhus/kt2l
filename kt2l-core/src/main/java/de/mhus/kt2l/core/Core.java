@@ -74,6 +74,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.olli.FileDownloadWrapper;
 
 import javax.annotation.PostConstruct;
@@ -106,6 +107,7 @@ import static de.mhus.commons.tools.MCollection.notNull;
 @Uses(ResourceYamlEditorPanel.class)
 @Uses(PodLogsPanel.class)
 @Uses(FileDownloadWrapper.class)
+@Uses(NetworkDiagram.class)
 public class Core extends AppLayout {
 
     private @Autowired

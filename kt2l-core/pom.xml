@@ -103,6 +103,12 @@
 			<version>2.0.1</version>
 		</dependency>
 		<dependency>
+			<groupId>org.vaadin.addons.visjs.network</groupId>
+			<artifactId>vis-network-vaadin</artifactId>
+			<version>1.1.0-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
 			<groupId>dev.langchain4j</groupId>
 			<artifactId>langchain4j</artifactId>
 		</dependency>

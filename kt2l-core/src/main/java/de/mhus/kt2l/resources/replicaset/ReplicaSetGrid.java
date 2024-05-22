@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.deployment;
+package de.mhus.kt2l.resources.replicaset;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
@@ -24,37 +24,31 @@ import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.node.NodeWatch;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
-import de.mhus.kt2l.resources.util.AbstractGridWithoutNamespace;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
-import io.kubernetes.client.openapi.models.V1Node;
-import io.kubernetes.client.openapi.models.V1NodeList;
+import io.kubernetes.client.openapi.models.V1ReplicaSet;
+import io.kubernetes.client.openapi.models.V1ReplicaSetList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Objects;
-
-import static de.mhus.commons.tools.MLang.tryThis;
-
 @Slf4j
-public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Resource, Component, V1Deployment, V1DeploymentList> {
+public class ReplicaSetGrid extends AbstractGridWithNamespace<ReplicaSetGrid.Resource, Component, V1ReplicaSet, V1ReplicaSetList> {
 
     @Override
     protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
-        return DeploymentWatch.class;
+        return ReplicaSetWatch.class;
     }
 
     @Override
     protected Class<Resource> getManagedResourceItemClass() {
-        return DeploymentGrid.Resource.class;
+        return Resource.class;
     }
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(DeploymentGrid.Resource::getStatus).setHeader("Status").setSortProperty("status").setSortable(true);
-        resourcesGrid.addColumn(DeploymentGrid.Resource::getReplicas).setHeader("Replicas").setSortable(false);
+        resourcesGrid.addColumn(Resource::getStatus).setHeader("Status").setSortProperty("status").setSortable(true);
+        resourcesGrid.addColumn(Resource::getReplicas).setHeader("Replicas").setSortable(false);
     }
 
     @Override
@@ -75,11 +69,11 @@ public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Res
 
     @Override
     public K8s getManagedResourceType() {
-        return K8s.DEPLOYMENT;
+        return K8s.REPLICA_SET;
     }
 
     @Getter
-    public static class Resource extends ResourceItem<V1Deployment> {
+    public static class Resource extends ResourceItem<V1ReplicaSet> {
         String status;
         String replicas;
 

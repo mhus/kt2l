@@ -17,6 +17,8 @@
 * [https://vaadin.com/directory/] # Vaadin Directory
 * [https://vaadin.com/directory/component/xterm-console-addon]
 * [https://vaadin.com/directory/component/idle-notification]
+* [https://vaadin.com/directory/component/vis-network-vaadin]
+* [https://visjs.github.io/vis-network/docs/network/]
 
 ## Kubernetes
 
