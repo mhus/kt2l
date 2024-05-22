@@ -26,6 +26,3 @@ webbrowser:
   - /usr/bin/open
   - '${url}'
 filebrowser:
-  - /usr/bin/open
-  - '-R'
-  - '${path}'
