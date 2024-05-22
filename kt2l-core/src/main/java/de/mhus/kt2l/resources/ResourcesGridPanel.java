@@ -18,15 +18,19 @@
 
 package de.mhus.kt2l.resources;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.charts.model.Label;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.ThemableLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.lang.IRegistration;
@@ -47,6 +51,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.resources.generic.GenericGrid;
 import de.mhus.kt2l.resources.generic.GenericGridFactory;
+import de.mhus.kt2l.resources.generic.GenericK8s;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
@@ -119,6 +124,12 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         namespaceSelector = new ComboBox<>();
         namespaceSelector.addFocusListener(e -> namespaceSelector.getElement().executeJs("this.querySelector(\"input\").select()") );
         resourceSelector = new ComboBox<>();
+        resourceSelector.setRenderer(new ComponentRenderer<Component, V1APIResource>(item -> {
+            Div div = new Div(item.getName() + (item.getShortNames() == null ? "" : " " + item.getShortNames()));
+            if (k8s.getResourceHandler(item) instanceof GenericK8s)
+                div.addClassName("color-grey");
+            return div;
+        }));
         resourceSelector.addFocusListener(e -> resourceSelector.getElement().executeJs("this.querySelector(\"input\").select()") );
 
         addClassName("list-view");
@@ -172,9 +183,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             cluster.setResourceTypes(types);
             LOGGER.debug("Resource types: {}",types.stream().map(V1APIResource::getName).toList());
             core.ui().access(() -> {
-                resourceSelector.setItems(cluster.getResourceTypes());
+                resourceSelector.setItems(cluster.getResourceTypes().stream().filter(r -> !r.getName().equals("GENERIC") && !r.getName().equals("CUSTOM") && r.getName().indexOf('/') < 0).toList());
                 Thread.startVirtualThread(() -> {
-                    MThread.sleep(200);
+                    MThread.sleep(400);
                     core.ui().access(() -> {
                         resourceSelector.setValue(
                                 k8s.findResource(currentResourceType, cluster.getApiProvider(), principal));
