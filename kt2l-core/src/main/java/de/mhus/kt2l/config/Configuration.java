@@ -147,8 +147,7 @@ public class Configuration {
         final var normalizedSectionFileName = MFile.normalize(sectionName) + ".yaml";
         // 1. try to get config from user directory
         if (!protectedConfigs.contains(sectionName) && userName != null) {
-            final var user = MFile.normalize(userName.toLowerCase());
-            file = new File(getUserConfigurationDirectory(user), normalizedSectionFileName);
+            file = new File(getUserConfigurationDirectory(userName), normalizedSectionFileName);
         }
         // 2. try to get config from local user directory
         if (file == null || !file.exists())
@@ -175,13 +174,14 @@ public class Configuration {
         return section;
     }
 
-    private File getLocalConfigurationDirectory() {
+    public File getLocalConfigurationDirectory() {
         if (isSet(localDirectory))
             return new File(localDirectory);
         return new File( configurationDirectoryFile, LOCAL_DIR);
     }
 
-    private File getUserConfigurationDirectory(String user) {
+    public File getUserConfigurationDirectory(String userName) {
+        final var user = MFile.normalize(userName.toLowerCase());
         if (isSet(usersDirectory))
             return new File(usersDirectory + "/" + user);
         return new File( configurationDirectoryFile, USERS_DIR + "/" + user);
@@ -192,4 +192,12 @@ public class Configuration {
         protectedConfigs.add(sectionName);
     }
 
+    public File getGlobalConfigurationDirectory() {
+        return new File(configurationDirectory);
+    }
+
+    public File getLocalUserConfigurationDirectory(String userName) {
+        userName = userName == null ? null : MFile.normalize(userName.toLowerCase());
+        return new File(getLocalConfigurationDirectory(), "users/" + userName);
+    }
 }

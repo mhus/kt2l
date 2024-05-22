@@ -45,4 +45,4 @@ users:
     - "WRITE"
     - "LOCAL"
     - "SETTINGS"
-#    - "ADMIN"
+    - "ADMIN"

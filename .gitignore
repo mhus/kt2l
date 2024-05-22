@@ -70,3 +70,4 @@ target
 dependency-reduced-pom.xml
 /kt2l-core/src/main/resources/config.zip
 
+/config/local/clusters.yaml

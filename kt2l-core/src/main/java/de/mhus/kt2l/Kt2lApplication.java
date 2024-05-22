@@ -18,11 +18,14 @@
 
 package de.mhus.kt2l;
 
+import de.mhus.commons.tools.MThread;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -35,9 +38,25 @@ import java.util.concurrent.ScheduledExecutorService;
 public class Kt2lApplication {
 
 	public static final String UI_USERNAME = "username";
+	private volatile static ConfigurableApplicationContext context;
+	private static String[] args;
 
 	public static void main(String[] args) {
-		SpringApplication.run(Kt2lApplication.class, args);
+		Kt2lApplication.args = args;
+		context = SpringApplication.run(Kt2lApplication.class, args);
+	}
+
+	public static void restart() {
+
+		Thread thread = new Thread(() -> {
+			if (context != null)
+				context.close();
+			context = null;
+			context = SpringApplication.run(Kt2lApplication.class, Kt2lApplication.args);
+		});
+
+		thread.setDaemon(false);
+		thread.start();
 	}
 
 	@Bean

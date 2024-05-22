@@ -98,3 +98,13 @@ contexts:
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/
+  global_cfg:
+    - name: Global Settings
+      action: docs
+      document: global_cfg
+      default: true
+  user_cfg:
+    - name: User Settings
+      action: docs
+      document: user_cfg
+      default: true

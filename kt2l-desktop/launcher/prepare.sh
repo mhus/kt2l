@@ -29,6 +29,7 @@ cd target
 rm -rf config
 cp -r ../../config .
 rm -rf config/users/*
+rm -f config/local/*.yaml
 cd config
 zip -r ../config.zip *
 cd ../..

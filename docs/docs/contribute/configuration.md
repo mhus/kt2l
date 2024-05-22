@@ -32,4 +32,18 @@ Thread.startVirtualThread(() -> {
 To create a custom configuration service you need to extend the `AbstractUserRelatedConfig` or `AbstractSingleConfig` base class. Call the
 constructor with the basename of the configuration file and use `config()` to get the base node of the configuration each time you access a
 configuration parameter. The `config()` method is getting the configuration from current the user each time you call it. The method has caching
-implemented so you can call it as often as you like.
+implemented you can call it as often as you like.
+
+## Config vs. Cfg
+
+The `config` provides configuration for the application and `cfg` is used to provide editors to store user configurations.
+
+## Create a Cfg panel
+
+To provide UI for a configuration you need to create a `Cfg` factory as Bean. The factory is used to create the editor 
+for the configuration. Implement `CfgFactory` in your new factory class and annotate with `@Component`.
+
+To provide a form in the `CfgPanel` extend The `CPanelVerticalLayout` and use the `YComponent` classes to 
+create the form.
+
+A good example is `ClusterCfgPanel`.
