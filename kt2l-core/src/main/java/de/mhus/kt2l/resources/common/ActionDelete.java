@@ -23,6 +23,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.ProgressDialog;
 import de.mhus.kt2l.core.WithRole;
@@ -48,12 +49,12 @@ public class ActionDelete implements ResourceAction {
     private K8sService k8s;
 
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
+    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 

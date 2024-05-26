@@ -23,6 +23,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.IntegerField;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.ProgressDialog;
 import de.mhus.kt2l.core.WithRole;
@@ -41,13 +42,13 @@ import java.util.Set;
 @WithRole(UsersConfiguration.ROLE.WRITE)
 public class ScaleReplicaSetAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
+    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
         return K8s.REPLICA_SET.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(resourceType) && selected.size() > 0;
+    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
+        return canHandleResourceType(cluster, resourceType) && selected.size() > 0;
     }
 
     @Override

@@ -19,6 +19,8 @@
 package de.mhus.kt2l.resources.pod;
 
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1Container;
+import io.kubernetes.client.openapi.models.V1EphemeralContainer;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 
@@ -53,4 +55,37 @@ public class ContainerResource implements KubernetesObject {
     public V1Pod getPod() {
         return container.getPod();
     }
+
+    public V1Container getContainer() {
+        {
+            var cs = getPod().getSpec().getContainers();
+            if (cs != null)
+                for (var c : cs) {
+                    if (c.getName().equals(getContainerName()))
+                        return c;
+                }
+        }
+        {
+            var cs = getPod().getSpec().getInitContainers();
+            if (cs != null)
+                for (var c : cs) {
+                    if (c.getName().equals(getContainerName()))
+                        return c;
+                }
+        }
+        return null;
+    }
+
+    public V1EphemeralContainer getEphemeralContainer() {
+        {
+            var cs = getPod().getSpec().getEphemeralContainers();
+            if (cs != null)
+                for (var c : cs) {
+                    if (c.getName().equals(getContainerName()))
+                        return c;
+                }
+        }
+        return null;
+    }
+
 }

@@ -235,7 +235,6 @@
     </build>
 
     <modules>
-        <module>vaadin-xterm-addon</module>
         <module>kt2l-core</module>
         <module>kt2l-desktop</module>
         <module>kt2l-server</module>

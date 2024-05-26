@@ -23,6 +23,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.IntegerField;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.ProgressDialog;
 import de.mhus.kt2l.core.WithRole;
@@ -41,13 +42,13 @@ import java.util.Set;
 @WithRole(UsersConfiguration.ROLE.WRITE)
 public class ScaleDeploymentAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
+    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
         return K8s.DEPLOYMENT.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(resourceType) && selected.size() > 0;
+    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
+        return canHandleResourceType(cluster, resourceType) && selected.size() > 0;
     }
 
     @Override
@@ -92,7 +93,7 @@ public class ScaleDeploymentAction implements ResourceAction {
             progress.open();
 
             context.getSelected().forEach(obj -> {
-                progress.setProgress(progress.getProgress() + 1, obj.getMetadata().getName());
+                progress.next(obj.getMetadata().getName());
                 try {
                     PatchUtils.patch(
                             V1Deployment.class,

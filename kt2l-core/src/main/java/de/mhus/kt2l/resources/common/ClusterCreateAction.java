@@ -51,15 +51,15 @@ public class ClusterCreateAction implements ClusterAction {
     public void execute(Core core, ClusterOverviewPanel.ClusterItem cluster) {
         panelService.addPanel(
                 core.getMainTab(),
-                cluster.name() + ":"+cluster.config().getDefaultNamespace()+":create",
-                cluster.config().getDefaultNamespace(),
+                cluster.name() + ":"+cluster.cluster().getDefaultNamespace()+":create",
+                cluster.cluster().getDefaultNamespace(),
                 false,
                 VaadinIcon.FILE_ADD.create(),
                 () ->
                         new ResourceCreatePanel(
-                                cluster.config(),
+                                cluster.cluster(),
                                 core,
-                                cluster.config().getDefaultNamespace()
+                                cluster.cluster().getDefaultNamespace()
                         )).setHelpContext("create").select();
 
     }

@@ -22,6 +22,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextArea;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8sUtil;
@@ -41,7 +42,7 @@ import java.util.Set;
 @WithRole(UsersConfiguration.ROLE.READ)
 public class DescribeAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
+    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
         return true;
     }
 
@@ -49,7 +50,7 @@ public class DescribeAction implements ResourceAction {
     private K8sService k8sService;
 
     @Override
-    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 

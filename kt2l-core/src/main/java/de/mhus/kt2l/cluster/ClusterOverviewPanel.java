@@ -40,11 +40,13 @@ import de.mhus.kt2l.k8s.K8sService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
+@Configurable
 public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
@@ -82,7 +84,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
                     final var cluster = clusterService.getCluster(name);
                     return new ClusterItem(name, cluster.getTitle(), cluster);
                 })
-                .filter(cluster -> cluster.config().isEnabled())
+                .filter(cluster -> cluster.cluster().isEnabled())
                 .toList();
 
         clusterBox.setItems(clusterList);
@@ -161,7 +163,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     }
 
     private boolean validateCluster(ClusterItem cluster) {
-        var clusterId = cluster.config().getName();
+        var clusterId = cluster.cluster().getName();
         try {
             var coreApi = k8s.getKubeClient(clusterId).getCoreV1Api();
             coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null, null);
@@ -207,7 +209,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
     }
 
-    public record ClusterItem(String name, String title, Cluster config) {
+    public record ClusterItem(String name, String title, Cluster cluster) {
     }
 
 }

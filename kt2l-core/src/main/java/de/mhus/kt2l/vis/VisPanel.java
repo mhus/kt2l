@@ -79,23 +79,24 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
         registrationDeploy = core.backgroundJobInstance(cluster, DeploymentWatch.class).getEventHandler().registerWeak(this::updateDeployment);
     }
 
-    private void updateReplicaSet(Watch.Response<V1ReplicaSet> v1ReplicaSetResponse) {
-        var no = nodes.computeIfAbsent("replicaset-" + v1ReplicaSetResponse.object.getMetadata().getName(), n -> {
+    private void updateReplicaSet(Watch.Response<V1ReplicaSet> res) {
+        var no = nodes.computeIfAbsent("replicaset-" + res.object.getMetadata().getName(), n -> {
             var node = new Node();
-            node.setId("replicaset-" + v1ReplicaSetResponse.object.getMetadata().getName());
+            node.setId("replicaset-" + res.object.getMetadata().getName());
             LOGGER.info("Add Node {}", node.getId());
-            node.setLabel(v1ReplicaSetResponse.object.getMetadata().getName());
+            node.setLabel(res.object.getMetadata().getName());
             node.setTitle("Replicas");
             node.setColor("#dedeff");
             node.setMass(4);
+            node.setGroup(res.object.getMetadata().getNamespace());
             core.ui().access(() -> {
                 nodeList.add(node);
                 nodeProvider.refreshItem(node);
             });
-            return new NodeStore(node, v1ReplicaSetResponse.object);
+            return new NodeStore(node, res.object);
         });
 
-        if (v1ReplicaSetResponse.type == "DELETED") {
+        if (res.type == "DELETED") {
             nodes.remove(no.node.getId());
             core.ui().access(() -> {
                 nodeList.remove(no.node);
@@ -106,23 +107,24 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
     }
 
 
-    private void updateDeployment(Watch.Response<V1Deployment> v1DeploymentResponse) {
-        var no = nodes.computeIfAbsent("deploy-" + v1DeploymentResponse.object.getMetadata().getName(), n -> {
+    private void updateDeployment(Watch.Response<V1Deployment> res) {
+        var no = nodes.computeIfAbsent("deploy-" + res.object.getMetadata().getName(), n -> {
             var node = new Node();
-            node.setId("deploy-" + v1DeploymentResponse.object.getMetadata().getName());
+            node.setId("deploy-" + res.object.getMetadata().getName());
             LOGGER.info("Add Node {}", node.getId());
-            node.setLabel(v1DeploymentResponse.object.getMetadata().getName());
+            node.setLabel(res.object.getMetadata().getName());
             node.setTitle("Deployment");
             node.setColor("#deffff");
             node.setMass(5);
+            node.setGroup(res.object.getMetadata().getNamespace());
             core.ui().access(() -> {
                 nodeList.add(node);
                 nodeProvider.refreshItem(node);
             });
-            return new NodeStore(node, v1DeploymentResponse.object);
+            return new NodeStore(node, res.object);
         });
 
-        if (v1DeploymentResponse.type == "DELETED") {
+        if (res.type == "DELETED") {
             nodes.remove(no.node.getId());
             core.ui().access(() -> {
                 nodeList.remove(no.node);
@@ -132,23 +134,24 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
         updateEdges();
     }
 
-    private void updateNamespace(Watch.Response<V1Namespace> v1NamespaceResponse) {
-        var no = nodes.computeIfAbsent("ns-" + v1NamespaceResponse.object.getMetadata().getName(), n -> {
+    private void updateNamespace(Watch.Response<V1Namespace> res) {
+        var no = nodes.computeIfAbsent("ns-" + res.object.getMetadata().getName(), n -> {
             var node = new Node();
-            node.setId("ns-" + v1NamespaceResponse.object.getMetadata().getName());
+            node.setId("ns-" + res.object.getMetadata().getName());
             LOGGER.info("Add Node {}", node.getId());
-            node.setLabel(v1NamespaceResponse.object.getMetadata().getName());
+            node.setLabel(res.object.getMetadata().getName());
             node.setTitle("Namespace");
             node.setColor("#ffdede");
             node.setMass(10);
+            node.setGroup(res.object.getMetadata().getName());
             core.ui().access(() -> {
                 nodeList.add(node);
                 nodeProvider.refreshItem(node);
             });
-            return new NodeStore(node, v1NamespaceResponse.object);
+            return new NodeStore(node, res.object);
         });
 
-        if (v1NamespaceResponse.type == "DELETED") {
+        if (res.type == "DELETED") {
             nodes.remove(no.node.getId());
             core.ui().access(() -> {
                 nodeList.remove(no.node);
@@ -158,23 +161,24 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
         updateEdges();
     }
 
-    private synchronized void updatePod(Watch.Response<V1Pod> v1PodResponse) {
-        var no = nodes.computeIfAbsent("pod-" + v1PodResponse.object.getMetadata().getNamespace() + "-" + v1PodResponse.object.getMetadata().getName(), n -> {
+    private synchronized void updatePod(Watch.Response<V1Pod> res) {
+        var no = nodes.computeIfAbsent("pod-" + res.object.getMetadata().getNamespace() + "-" + res.object.getMetadata().getName(), n -> {
             var node = new Node();
-            node.setId("pod-" + v1PodResponse.object.getMetadata().getNamespace() + "-" + v1PodResponse.object.getMetadata().getName());
+            node.setId("pod-" + res.object.getMetadata().getNamespace() + "-" + res.object.getMetadata().getName());
             LOGGER.info("Add Node {}", node.getId());
-            node.setLabel(v1PodResponse.object.getMetadata().getName());
+            node.setLabel(res.object.getMetadata().getName());
             node.setTitle("Pod");
             node.setColor("#ffffde");
             node.setMass(1);
+            node.setGroup(res.object.getMetadata().getNamespace());
             core.ui().access(() -> {
                 nodeList.add(node);
                 nodeProvider.refreshItem(node);
             });
-            return new NodeStore(node, v1PodResponse.object);
+            return new NodeStore(node, res.object);
         });
 
-        if (v1PodResponse.type == "DELETED") {
+        if (res.type == "DELETED") {
             nodes.remove(no.node.getId());
             core.ui().access(() -> {
                 nodeList.remove(no.node);
@@ -237,7 +241,7 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
             if (k1.startsWith("ns-")) {
 
                 nodes.forEach((k2,v2) -> {
-                    if (!k2.startsWith("ns-")) {
+                    if (k2.startsWith("deploy-")) {
                         var ns = v2.k8sObject().getMetadata().getNamespace();
                         if (ns != null && ns.equals(v1.k8sObject().getMetadata().getName())) {
                             deges.computeIfAbsent(v1.node.getId() + "/" + v2.node.getId(), n -> {

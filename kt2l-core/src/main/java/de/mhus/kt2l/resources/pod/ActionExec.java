@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
@@ -42,13 +43,13 @@ public class ActionExec implements ResourceAction {
     private PanelService panelService;
 
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
+    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
         return K8s.POD.equals(resourceType) || K8s.CONTAINER.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(resourceType) && selected.size() > 0;
+    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
+        return canHandleResourceType(cluster, resourceType) && selected.size() > 0;
     }
 
     @Override

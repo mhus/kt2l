@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.common;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
@@ -39,12 +40,12 @@ public class ActionYamlEditor implements ResourceAction {
     private PanelService panelService;
 
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
+    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
         return selected.size() == 1;
     }
 

@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.namespace;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
@@ -34,13 +35,13 @@ import java.util.Set;
 @WithRole(UsersConfiguration.ROLE.READ)
 public class ShowPodsOfNamespaceAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
+    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
         return K8s.NAMESPACE.equals(resourceType);
     }
 
     @Override
-    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(resourceType) && selected.size() == 1;
+    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
+        return canHandleResourceType(cluster, resourceType) && selected.size() == 1;
     }
 
     @Override

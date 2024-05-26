@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources;
 
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.K8s;
@@ -37,13 +38,13 @@ public class ActionService {
     private SecurityService securityService;
 
 
-    public Collection<ResourceAction> findActionsForResource(K8s resourceType) {
+    public Collection<ResourceAction> findActionsForResource(Cluster cluster, K8s resourceType) {
         if (actions == null) return Collections.emptyList();
-        return actions.stream().filter(a -> hasAccess(a) && canHandle(resourceType, a)).toList();
+        return actions.stream().filter(a -> hasAccess(a) && canHandle(cluster, resourceType, a)).toList();
     }
 
-    private boolean canHandle(K8s resourceType, ResourceAction a) {
-        return a.canHandleResourceType(resourceType);
+    private boolean canHandle(Cluster cluster, K8s resourceType, ResourceAction a) {
+        return a.canHandleResourceType(cluster, resourceType);
     }
 
     private boolean hasAccess(ResourceAction a) {

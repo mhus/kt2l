@@ -56,7 +56,7 @@ public class EventClusterAction implements ClusterAction {
                 cluster.title(),
                 false,
                 VaadinIcon.CALENDAR_CLOCK.create(),
-                () -> new EventPanel(core, cluster.config())
+                () -> new EventPanel(core, cluster.cluster())
         ).setHelpContext("events").setWindowTitle(cluster.title() + " Events").select();
 
     }

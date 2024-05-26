@@ -56,7 +56,7 @@ public class PanelService {
                         unique,
                         icon,
                         panelCreator)
-                .setColor(cluster == null ? UiUtil.COLOR.NONE : cluster.config().getColor());
+                .setColor(cluster == null ? UiUtil.COLOR.NONE : cluster.cluster().getColor());
     }
 
     public DeskTab addDetailsPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {
@@ -84,7 +84,7 @@ public class PanelService {
                         false,
                         VaadinIcon.OPEN_BOOK.create(),
                         () -> new ResourcesGridPanel(cluster.name(), core))
-                .setColor(cluster.config().getColor()).setHelpContext("resources");
+                .setColor(cluster.cluster().getColor()).setHelpContext("resources");
 
     }
 }

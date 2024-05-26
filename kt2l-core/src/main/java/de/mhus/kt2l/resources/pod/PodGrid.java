@@ -114,7 +114,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             var item = createContextMenuItem(menu, action.getAction());
             item.addMenuItemClickListener(event -> {
                         var selected = detailsComponent.getSelectedItems().stream().map(c -> new ContainerResource(c)).collect(Collectors.toSet());
-                        if (!action.getAction().canHandleResource(K8s.CONTAINER, selected)) {
+                        if (!action.getAction().canHandleResource(cluster, K8s.CONTAINER, selected)) {
                             Notification notification = Notification
                                     .show("Can't execute");
                             notification.addThemeVariants(NotificationVariant.LUMO_WARNING);

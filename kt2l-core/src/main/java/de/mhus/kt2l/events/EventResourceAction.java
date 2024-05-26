@@ -19,6 +19,7 @@ package de.mhus.kt2l.events;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.ai.AiResourcePanel;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
@@ -36,12 +37,12 @@ public class EventResourceAction implements ResourceAction {
     private PanelService panelService;
 
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
+    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(K8s resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
         return true;
     }
 

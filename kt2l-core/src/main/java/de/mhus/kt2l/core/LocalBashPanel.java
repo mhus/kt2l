@@ -1,78 +1,34 @@
-/*
- * kt2l-core - kt2l core implementation
- * Copyright © 2024 Mike Hummel (mh@mhus.de)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
-package de.mhus.kt2l.resources.pod;
+package de.mhus.kt2l.core;
 
 import com.flowingcode.vaadin.addons.xterm.ITerminalClipboard;
 import com.flowingcode.vaadin.addons.xterm.ITerminalOptions;
 import com.flowingcode.vaadin.addons.xterm.XTerm;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.contextmenu.MenuItem;
-import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.tools.MJson;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MThread;
-import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.config.ShellConfiguration;
-import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.core.DeskTab;
-import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.k8s.ApiProvider;
-import io.kubernetes.client.Exec;
-import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 @Slf4j
-@Uses(XTerm.class)
-public class ContainerShellPanel extends VerticalLayout implements DeskTabListener {
-
-
-    @Autowired
-    private ShellConfiguration shellConfiguration;
-
-    private final Cluster cluster;
-    private final ApiProvider apiProvider;
+public class LocalBashPanel extends VerticalLayout implements DeskTabListener {
     private final Core core;
-    private final V1Pod pod;
-    private DeskTab tab;
     private XTerm xterm;
-    private Thread threadInput;
-    private Process proc;
-    private Thread threadError;
     private MenuItem menuItemEsc;
+    private volatile Process proc;
+    private volatile boolean echoOn = true;
 
-    public ContainerShellPanel(Cluster cluster, Core core, V1Pod pod) {
-        this.cluster = cluster;
-        this.apiProvider = cluster.getApiProvider();
+    public LocalBashPanel(Core core) {
         this.core = core;
-        this.pod = pod;
     }
 
     @Override
     public void tabInit(DeskTab deskTab) {
-        this.tab = deskTab;
 
         xterm = new XTerm();
         xterm.writeln("Start console\n\n");
@@ -159,39 +115,47 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
 
                     try {
                         proc.getOutputStream().write(key.getBytes());
+                        if (echoOn) {
+                            final var finalKey = key;
+                            core.ui().access(() -> xterm.write(new String(finalKey.getBytes())));
+                        }
                         LOGGER.info("Alive: {}", proc.isAlive());
                     } catch (IOException ex) {
                         LOGGER.error("Write error", ex);
                         closeTerminal();
                     }
                 } else
-                    if (key.equals("Escape")) {
-                        proc.getOutputStream().write("\u001b".getBytes());
+                if (key.equals("Escape")) {
+                    proc.getOutputStream().write("\u001b".getBytes());
                 } else
-                    if (key.equals("ArrowUp")) {
-                        proc.getOutputStream().write("\u001b[A".getBytes());
+                if (key.equals("ArrowUp")) {
+                    proc.getOutputStream().write("\u001b[A".getBytes());
+                }
+                else if (key.equals("ArrowDown")) {
+                    proc.getOutputStream().write("\u001b[B".getBytes()
+                    );
+                }
+                else if (key.equals("ArrowRight")) {
+                    proc.getOutputStream().write("\u001b[C".getBytes());
+                }
+                else if (key.equals("ArrowLeft")) {
+                    proc.getOutputStream().write("\u001b[D".getBytes());
+                }
+                else if (key.equals("Backspace")) {
+                    proc.getOutputStream().write("\u007f".getBytes());
+                }
+                else if (key.equals("Delete")) {
+                    proc.getOutputStream().write("\u001b[3~".getBytes());
+                }
+                else if (key.equals("Enter")) {
+                    proc.getOutputStream().write("\n".getBytes());
+                    if (echoOn) {
+                        core.ui().access(() -> xterm.write("\n"));
                     }
-                    else if (key.equals("ArrowDown")) {
-                        proc.getOutputStream().write("\u001b[B".getBytes()
-                        );
-                    }
-                    else if (key.equals("ArrowRight")) {
-                        proc.getOutputStream().write("\u001b[C".getBytes());
-                    }
-                    else if (key.equals("ArrowLeft")) {
-                        proc.getOutputStream().write("\u001b[D".getBytes());
-                    }
-                    else if (key.equals("Backspace")) {
-                        proc.getOutputStream().write("\u007f".getBytes());
-                    }
-                    else if (key.equals("Delete")) {
-                        proc.getOutputStream().write("\u001b[3~".getBytes());
-                    }
-                    else if (key.equals("Enter")) {
-                        proc.getOutputStream().write("\n".getBytes());
-                    } else if (key.equals("Tab")) {
-                        proc.getOutputStream().write("\t".getBytes());
-                    }
+                } else if (key.equals("Tab")) {
+                    proc.getOutputStream().write("\t".getBytes());
+                }
+                proc.getOutputStream().flush();
             } catch (Exception ex) {
                 LOGGER.error("Key", ex);
             }
@@ -221,52 +185,18 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
         setMargin(false);
 
         try {
-            Exec exec = new Exec(apiProvider.getClient());
-            proc = exec.exec(pod, new String[]{shellConfiguration.getShellFor(cluster, pod )}, true, true);
-
-            threadInput = Thread.startVirtualThread(this::loopInput);
-            threadError = Thread.startVirtualThread(this::loopError);
+            ProcessBuilder builder = new ProcessBuilder("/bin/bash");
+            builder.redirectErrorStream(true);
+            proc = builder.start();
+            Thread.startVirtualThread(this::readFromTerminalLoop);
         } catch (Exception e) {
-            LOGGER.error("Execute", e);
+            LOGGER.error("Error", e);
+            UiUtil.showErrorNotification("Error creating bash " + e.getMessage());
         }
 
-
     }
 
-    private void closeTerminal() {
-        proc = null;
-        if (threadError != null)
-            threadError.interrupt();
-        if (threadInput != null)
-            threadInput.interrupt();
-        menuItemEsc.setEnabled(false);
-        xterm.setEnabled(false);
-    }
-
-    private void handleKey(Key key) {
-        System.out.println("Key: " + key);
-    }
-
-    private void loopError() {
-        try {
-            byte[] buffer = new byte[1024];
-            InputStream is = proc.getErrorStream();
-            while (true) {
-                int len = is.read(buffer);
-                if (len <= 0) {
-                    MThread.sleep(100);
-                    continue;
-                }
-                System.out.println("ERead: " + len);
-                String line = new String(buffer, 0, len);
-                core.ui().access(() -> xterm.write(line));
-            }
-        } catch (Exception e) {
-            LOGGER.error("Loop", e);
-        }
-    }
-
-    private void loopInput() {
+    private void readFromTerminalLoop() {
         try {
             byte[] buffer = new byte[1024];
             InputStream is = proc.getInputStream();
@@ -276,7 +206,7 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
                     MThread.sleep(100);
                     continue;
                 }
-                System.out.println("IRead: " + len);
+                System.out.println("SH Read: " + len);
                 String line = new String(buffer, 0, len);
                 core.ui().access(() -> xterm.write(line));
             }
@@ -285,6 +215,10 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
         }
     }
 
+    private void closeTerminal() {
+        proc.destroy();
+        proc = null;
+    }
 
     @Override
     public void tabSelected() {
@@ -293,32 +227,21 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
 
     @Override
     public void tabUnselected() {
+
     }
 
     @Override
     public void tabDestroyed() {
-        LOGGER.debug("Destroy xterm");
-        if (proc != null) {
-            proc.destroy();
-        }
-        if (threadInput != null) {
-            threadInput.interrupt();
-        }
-        if (threadError != null) {
-            threadError.interrupt();
-        }
-        threadInput = null;
-        threadError = null;
-        proc = null;
+        closeTerminal();
     }
 
     @Override
     public void tabRefresh(long counter) {
+
     }
 
     @Override
     public void tabShortcut(ShortcutEvent event) {
 
     }
-
 }
