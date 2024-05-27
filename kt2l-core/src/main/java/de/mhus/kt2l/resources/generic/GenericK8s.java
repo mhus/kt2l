@@ -20,8 +20,8 @@ package de.mhus.kt2l.resources.generic;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
-import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
@@ -42,7 +42,7 @@ public class GenericK8s implements HandlerK8s {
         this.resourceType = resourceType;
     }
     @Override
-    public K8s getManagedResource() {
+    public K8s getManagedResourceType() {
         return K8s.GENERIC;
     }
 

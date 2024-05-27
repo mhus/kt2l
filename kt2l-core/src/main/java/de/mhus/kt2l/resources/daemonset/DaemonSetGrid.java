@@ -98,7 +98,7 @@ public class DaemonSetGrid extends AbstractGridWithNamespace<DaemonSetGrid.Resou
         }
 
         private String toStringOr0(Integer integer) {
-            if (integer == 0) return "0";
+            if (integer == null) return "0";
             return integer.toString();
         }
     }

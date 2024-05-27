@@ -52,6 +52,9 @@ public class K8sUtil {
     public static final String WATCH_EVENT_ADDED = "ADDED";
     public static final String WATCH_EVENT_MODIFIED = "MODIFIED";
     public static final String WATCH_EVENT_DELETED = "DELETED";
+    public static final String NAMESPACE_DEFAULT = "default";
+    public static final String NAMESPACE_ALL_LABEL = "[all]";
+    public static final String NAMESPACE_ALL = "*";
 
     public static K8s toResourceType(String resourceType) {
         if (isEmpty(resourceType))
@@ -148,9 +151,6 @@ public class K8sUtil {
             LOGGER.error("Error getting events for {}", res, e);
         }
     }
-
-    public static final String NAMESPACE_ALL = "[all]";
-
 
     /**
      * not public to force security checks, use K8sService instead.
@@ -285,6 +285,13 @@ public class K8sUtil {
         return age/86400 + "d";
     }
 
+    public static String getAge(long age) {
+        if (age == 0) return "0";
+        if (age < 60) return age + "s";
+        if (age < 3600) return age/60 + "m";
+        if (age < 86400) return age/3600 + "h";
+        return age/86400 + "d";
+    }
 
     public static String getDns(V1Pod pod) {
         return pod.getMetadata().getName() + "." + pod.getMetadata().getNamespace() + ".cluster.local";

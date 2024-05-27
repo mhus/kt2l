@@ -24,7 +24,6 @@ import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
-import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
@@ -45,7 +44,7 @@ public class DeploymentK8s implements HandlerK8s {
     private SecurityService securityService;
 
     @Override
-    public K8s getManagedResource() {
+    public K8s getManagedResourceType() {
         return K8s.DEPLOYMENT;
     }
 

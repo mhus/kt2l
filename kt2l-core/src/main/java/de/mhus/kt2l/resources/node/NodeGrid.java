@@ -26,7 +26,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithoutNamespace;
 import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.openapi.models.V1NodeList;
-import lombok.*;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;

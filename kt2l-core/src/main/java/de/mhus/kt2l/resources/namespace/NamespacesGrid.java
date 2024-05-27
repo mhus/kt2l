@@ -29,8 +29,6 @@ import io.kubernetes.client.openapi.models.V1NamespaceList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import static de.mhus.commons.tools.MLang.tryThis;
-
 @Slf4j
 public class NamespacesGrid extends AbstractGridWithoutNamespace<NamespacesGrid.Resource, Component, V1Namespace, V1NamespaceList> {
 

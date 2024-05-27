@@ -17,16 +17,15 @@
  */
 package de.mhus.kt2l.resources.util;
 
-import com.google.gson.reflect.TypeToken;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
-import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -102,7 +101,7 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
                 }
             } catch (Exception e) {
                 if (Thread.interrupted()) {
-                    LOGGER.debug("Interrupted");
+                    LOGGER.debug("Interrupted {}", getClass().getSimpleName());
                     return;
                 }
                 onError(e);

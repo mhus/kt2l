@@ -23,6 +23,7 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.resources.ResourcesFilter;
@@ -52,7 +53,7 @@ public class ShowNodeOfPodAction implements ResourceAction {
         var pod = (V1Pod)context.getSelected().iterator().next();
         final var nodeName = pod.getSpec().getNodeName();
         final var podName = pod.getMetadata().getName();
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.NODE, new ResourcesFilter() {
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.NODE, K8sUtil.NAMESPACE_ALL, new ResourcesFilter() {
             @Override
             public boolean filter(KubernetesObject res) {
                 if (res instanceof io.kubernetes.client.openapi.models.V1Node node) {
@@ -63,7 +64,7 @@ public class ShowNodeOfPodAction implements ResourceAction {
 
             @Override
             public String getDescription() {
-                return "Node for pod " + podName;
+                return "Node for Pod " + podName;
             }
         });
     }
@@ -90,6 +91,6 @@ public class ShowNodeOfPodAction implements ResourceAction {
 
     @Override
     public String getDescription() {
-        return "Show node for the pod";
+        return "Show Node for the Pod";
     }
 }

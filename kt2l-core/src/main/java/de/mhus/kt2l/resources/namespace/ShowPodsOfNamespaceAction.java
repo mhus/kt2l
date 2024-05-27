@@ -48,7 +48,7 @@ public class ShowPodsOfNamespaceAction implements ResourceAction {
     public void execute(ExecutionContext context) {
         final String namespace = context.getSelected().iterator().next().getMetadata().getName();
         ((ResourcesGridPanel)context.getSelectedTab().getPanel()).setNamespace(namespace);
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.NAMESPACE, null);
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.NAMESPACE, namespace, null);
 
     }
 

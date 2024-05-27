@@ -28,14 +28,13 @@ import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.HandlerK8s;
-import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.Watch;
-import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +67,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     private void changeEvent(Watch.Response<KubernetesObject> event) {
         if (resourcesList == null) return;
 
-        if (namespace != null && !namespace.equals(K8sUtil.NAMESPACE_ALL) && !namespace.equals(event.object.getMetadata().getNamespace()))
+        if (namespace != null && !namespace.equals(K8sUtil.NAMESPACE_ALL_LABEL) && !namespace.equals(event.object.getMetadata().getNamespace()))
             return;
 
         if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
@@ -212,7 +211,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
                             synchronized (resourcesList) {
-                                tryThis(() -> namespace == null || namespace.equals(K8sUtil.NAMESPACE_ALL) ? createRawResourceListForAllNamespaces() : createRawResourceListForNamespace(namespace) )
+                                tryThis(() -> namespace == null || namespace.equals(K8sUtil.NAMESPACE_ALL_LABEL) ? createRawResourceListForAllNamespaces() : createRawResourceListForNamespace(namespace) )
                                         .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
                                         .onSuccess(list -> {
                                             list.getItems().forEach(res -> {

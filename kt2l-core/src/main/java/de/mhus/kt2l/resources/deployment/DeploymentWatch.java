@@ -22,7 +22,6 @@ import com.google.gson.reflect.TypeToken;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
 import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
 

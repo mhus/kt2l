@@ -20,6 +20,7 @@ package de.mhus.kt2l.k8s;
 import de.mhus.commons.errors.InternalRuntimeException;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.BatchV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,6 +35,7 @@ public abstract class ApiProvider {
     private final long timeout;
     private CoreV1Api coreV1Api;
     private AppsV1Api appsV1Api;
+    private BatchV1Api batchV1Api;
 
     protected ApiProvider(long timeout) {
         this.timeout = timeout;
@@ -51,6 +53,12 @@ public abstract class ApiProvider {
         return appsV1Api;
     }
 
+    public BatchV1Api getBatchV1Api() {
+        if (batchV1Api == null)
+            batchV1Api = new BatchV1Api(getClient());
+        return batchV1Api;
+    }
+
     public ApiClient getClient() {
         if (client == null || System.currentTimeMillis() > refreshAt) {
             try {
@@ -63,6 +71,7 @@ public abstract class ApiProvider {
             }
             coreV1Api = null;
             appsV1Api = null;
+            batchV1Api = null;
         }
         return client;
     }

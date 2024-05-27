@@ -44,7 +44,7 @@ public class DaemonSetK8s implements HandlerK8s {
     private SecurityService securityService;
 
     @Override
-    public K8s getManagedResource() {
+    public K8s getManagedResourceType() {
         return K8s.DAEMON_SET;
     }
 
@@ -56,8 +56,8 @@ public class DaemonSetK8s implements HandlerK8s {
     @Override
     public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         var body = Yaml.loadAs(yaml, V1DaemonSet.class);
-        AppsV1Api appsV1Api = new AppsV1Api(apiProvider.getClient());
-        appsV1Api.replaceNamespacedDaemonSet(
+        var api = apiProvider.getAppsV1Api();
+        api.replaceNamespacedDaemonSet(
                 name, namespace, body, null, null, null, null
         );
     }
@@ -65,15 +65,15 @@ public class DaemonSetK8s implements HandlerK8s {
     @Override
     public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
         K8sUtil.checkDeleteAccess(securityService, K8s.DAEMON_SET);
-        AppsV1Api appsV1Api = new AppsV1Api(apiProvider.getClient());
-        return appsV1Api.deleteNamespacedDaemonSet(name, namespace, null, null, null, null, null, null);
+        var api = apiProvider.getAppsV1Api();
+        return api.deleteNamespacedDaemonSet(name, namespace, null, null, null, null, null, null);
     }
 
     @Override
     public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
         var body = Yaml.loadAs(yaml, V1DaemonSet.class);
-        AppsV1Api appsV1Api = new AppsV1Api(apiProvider.getClient());
-        return appsV1Api.createNamespacedDaemonSet(
+        var api = apiProvider.getAppsV1Api();
+        return api.createNamespacedDaemonSet(
                 body.getMetadata().getNamespace() == null ? "default" : body.getMetadata().getNamespace(),
                 body, null, null, null, null
         );

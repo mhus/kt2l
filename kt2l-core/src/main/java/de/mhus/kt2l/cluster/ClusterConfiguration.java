@@ -51,7 +51,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     }
 
     public String defaultNamespace() {
-        return config().getString("defaultNamespace", K8sUtil.NAMESPACE_ALL);
+        return config().getString("defaultNamespace", K8sUtil.NAMESPACE_ALL_LABEL);
     }
 
     private synchronized Map<String, Cluster> getClusters() {

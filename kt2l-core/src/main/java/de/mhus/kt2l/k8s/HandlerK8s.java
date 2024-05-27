@@ -25,7 +25,7 @@ import okhttp3.Call;
 
 public interface HandlerK8s {
 
-    K8s getManagedResource();
+    K8s getManagedResourceType();
 
     String getDescribe(ApiProvider apiProvider, KubernetesObject res);
 

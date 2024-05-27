@@ -22,7 +22,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.charts.model.Label;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -46,11 +45,10 @@ import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
-import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.generic.GenericGrid;
-import de.mhus.kt2l.resources.generic.GenericGridFactory;
 import de.mhus.kt2l.resources.generic.GenericK8s;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
 import io.kubernetes.client.openapi.models.V1APIResource;
@@ -357,15 +355,19 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         grid.handleShortcut(event);
     }
 
-    public void showResources(K8s resourceType, ResourcesFilter filter) {
+    public void showResources(K8s resourceType, String namespace, ResourcesFilter filter) {
+        setNamespace(namespace);
         if (filter != null)
             setResourcesFilter(filter);
+        setResourceType(resourceType);
+    }
+
+    public void setResourceType(K8s resourceType) {
         if (resourceType != null) {
             resourceSelector.setValue(k8s.findResource(resourceType, cluster.getApiProvider()));
             resourceTypeChanged();
         }
     }
-
 
     private void setResourcesFilter(ResourcesFilter filter) {
         resourcesFilter = filter;
@@ -374,7 +376,13 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     }
 
     public void setNamespace(String namespace) {
-        namespaceSelector.setValue(namespace);
+        if (namespace == null) return;
+        if (namespace.equals(""))
+            namespaceSelector.setValue(K8sUtil.NAMESPACE_DEFAULT);
+        else if (namespace.equals(K8sUtil.NAMESPACE_ALL))
+            namespaceSelector.setValue(K8sUtil.NAMESPACE_ALL_LABEL);
+        else
+            namespaceSelector.setValue(namespace);
     }
 
     // for tests

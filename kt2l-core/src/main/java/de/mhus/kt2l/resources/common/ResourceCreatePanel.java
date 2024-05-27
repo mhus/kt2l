@@ -42,8 +42,8 @@ import de.mhus.kt2l.core.ProgressDialog;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.help.HelpResourceConnector;
 import de.mhus.kt2l.k8s.HandlerK8s;
-import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.k8s.K8sUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 

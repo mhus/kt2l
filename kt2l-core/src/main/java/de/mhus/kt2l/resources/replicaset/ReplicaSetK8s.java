@@ -27,8 +27,6 @@ import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
-import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1DeploymentList;
 import io.kubernetes.client.openapi.models.V1ReplicaSet;
 import io.kubernetes.client.openapi.models.V1ReplicaSetList;
 import io.kubernetes.client.openapi.models.V1Status;
@@ -46,7 +44,7 @@ public class ReplicaSetK8s implements HandlerK8s {
     private SecurityService securityService;
 
     @Override
-    public K8s getManagedResource() {
+    public K8s getManagedResourceType() {
         return K8s.REPLICA_SET;
     }
 
