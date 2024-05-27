@@ -20,7 +20,9 @@ package de.mhus.kt2l.events;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.ai.AiResourcePanel;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.PanelService;
+import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
+@WithRole(UsersConfiguration.ROLE.READ)
 public class EventResourceAction implements ResourceAction {
 
     @Autowired
