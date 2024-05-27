@@ -33,8 +33,10 @@
  */
 package de.mhus.kt2l;
 
+import com.github.javaparser.JavaToken;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
+import de.mhus.commons.tree.MTree;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -54,6 +56,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -61,87 +64,43 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 public class Kt2lDesktopApplication extends Kt2lApplication {
 
     private static Display display;
-    private static Shell shell;
-    private static Browser browser;
-    private static int tabIndex;
+    private static Set<BrowserInstance> browserInstances = Collections.synchronizedSet(new HashSet<>());
 
     public static void main(String[] args) {
         Display.setAppName("KT2L");
         display = new Display();
-        shell = new Shell(display);
 
-        try {
-            ClassLoader loader = Kt2lDesktopApplication.class.getClassLoader();
-            InputStream is128 = loader.getResourceAsStream(
-                    "icons/kt2l128.png");
-            Image icon128 = new Image(display, is128);
-            is128.close();
-
-//            shell.setImages(new Image[]{icon16, icon32, icon48, icon128});
-            shell.setImages(new Image[]{icon128});
-        } catch (Exception e) {
-            LOGGER.warn("Icons not found", e);
-        }
-
-        shell.addListener(SWT.Close, event -> {
-            BrowserBean.setShutdownMessage();
-            Thread.startVirtualThread(() -> {
-                MThread.sleep(1000);
-                System.exit(0);
-            });
-            event.doit = false;
-
-//                int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
-//                MessageBox messageBox = new MessageBox (shell, style);
-//                messageBox.setText ("Information");
-//                messageBox.setMessage ("Close the shell?");
-//                event.doit = messageBox.open () == SWT.YES;
-
-        });
-
-        final Rectangle screenSize = display.getPrimaryMonitor().getBounds();
-        shell.setSize(screenSize.width, screenSize.height);
-        shell.setLocation(0, 0);
-        shell.setLayout(new FillLayout());
-
-        CTabFolder tabFolder = new CTabFolder(shell, SWT.TOP );
-        browser = addNewBrowser(tabFolder, " KT2L ", false);
-        BrowserBean.setStartupMessage();
-
-//        browser.addLocationListener(new LocationListener() {
-//            @Override
-//            public void changing(LocationEvent event) {
-//                LOGGER.debug("Browser changing {}", event);
-//                if (event.location.startsWith("http") && !event.location.startsWith("http://localhost")) {
-//                    MSystem.openBrowserUrl(event.location);
-//                    event.doit = false;
-//                }
-//            }
-//
-//            @Override
-//            public void changed(LocationEvent event) {
-//                //LOGGER.debug("Browser changed {} on top {}", event.location,event.top);
-//            }
-//        });
-
-
-        shell.open();
-
+        new BrowserInstance().setStartupMessage();
+        
         Thread.startVirtualThread(() -> {
             SpringApplicationBuilder builder = new SpringApplicationBuilder(Kt2lApplication.class);
             builder.headless(false);
             ConfigurableApplicationContext context = builder.run(args);
         });
 
-        while (!shell.isDisposed()) {
+        while (!browserInstances.isEmpty()) {
             if (!display.readAndDispatch())
                 display.sleep();
         }
+
+        var shell = new Shell(display);
+        MessageBox messageBox = new MessageBox(shell, SWT.NONE
+                | SWT.ICON_INFORMATION);
+        messageBox.setMessage("Shutting down ...");
+        Thread.startVirtualThread(() -> {
+            MThread.sleep(1000);
+            System.exit(0);
+        });
+        messageBox.open();
         display.dispose();
 
     }
@@ -150,62 +109,15 @@ public class Kt2lDesktopApplication extends Kt2lApplication {
         return display;
     }
 
-    public static Shell getShell() {
-        return shell;
+    public static void register(BrowserInstance instance) {
+        browserInstances.add(instance);
     }
 
-    public static Browser getBrowser() {
-        return browser;
+    public static void unregister(BrowserInstance instance) {
+        browserInstances.remove(instance);
     }
 
-    private static Browser addNewBrowser(CTabFolder folder, String title, boolean closeable)
-    {
-       CTabItem item = new CTabItem(folder, SWT.NONE | (closeable ? SWT.CLOSE : 0));
-        Composite c = new Composite(folder, SWT.NONE);
-        item.setControl(c);
-        c.setLayout(new FillLayout());
-
-        Browser browser = new Browser(c, SWT.NONE);
-
-        item.setText(title);
-
-        browser.addOpenWindowListener(e ->
-        {
-            e.browser = addNewBrowser(folder, " Tab " + (++tabIndex) + " ", true);
-        });
-        browser.addVisibilityWindowListener(new VisibilityWindowListener()
-        {
-            @Override
-            public void hide(WindowEvent e)
-            {
-                Browser browser = (Browser) e.widget;
-                Shell shell = browser.getShell();
-                shell.setVisible(false);
-            }
-
-            @Override
-            public void show(WindowEvent e)
-            {
-                Browser browser = (Browser) e.widget;
-                final Shell shell = browser.getShell();
-                if (e.location != null) shell.setLocation(e.location);
-                if (e.size != null)
-                {
-                    Point size = e.size;
-                    shell.setSize(shell.computeSize(size.x, size.y));
-                }
-                shell.open();
-            }
-        });
-        browser.addCloseWindowListener(e ->
-        {
-            Browser browser1 = (Browser) e.widget;
-            Shell shell = browser1.getShell();
-            shell.close();
-        });
-
-        folder.setSelection(item);
-
-        return browser;
+    public static List<BrowserInstance> getBrowserInstances() {
+        return browserInstances.stream().toList();
     }
 }

@@ -235,7 +235,7 @@ public class Core extends AppLayout {
 
         session = ui.getSession();
         heartbeatRegistration = ui.addHeartbeatListener(event -> {
-            LOGGER.debug("♥ UI Heartbeat");
+            LOGGER.debug("♥ UI Heartbeat ({})", Objects.toIdentityString(ui));
         });
 
         Thread.startVirtualThread(() -> {

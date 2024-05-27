@@ -69,6 +69,10 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
         return K8s.CONFIG_MAP;
     }
 
+    protected void onShowDetails(V1ConfigMap item, boolean flip) {
+
+    }
+
     @Getter
     public static class Resource extends ResourceItem<V1ConfigMap> {
         private int dataCnt;

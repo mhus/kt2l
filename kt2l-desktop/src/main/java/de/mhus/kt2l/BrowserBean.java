@@ -46,22 +46,12 @@ public class BrowserBean {
 
     @Autowired
     private ServletWebServerApplicationContext webServerAppCtxt;
+    private String baseUrl;
 
-    public static void setStartupMessage() {
-        var html = new StringBuffer();
-        html.append("<html><body>Booting [KT2L] ...<br><br><br><center>");
-        try {
-            html.append( MFile.readFile(Kt2lApplication.class.getResourceAsStream("/images/kt2l-logo.svg") ) );
-        } catch (Exception e) {
-            LOGGER.warn("Logo not found", e);
-        }
-        html.append("</center></body></html>");
-        Kt2lDesktopApplication.getBrowser().setText(html.toString());
-    }
-
-    public static void setShutdownMessage() {
-        Kt2lDesktopApplication.getBrowser().setText("<html><body>Shutting down ...</body></html>");
-    }
+//    public static void setShutdownMessage() {
+//        var htmlStr = "<html><body>Shutting down ...</body></html>";
+//        Kt2lDesktopApplication.getBrowserInstances().forEach(b -> b.getBrowser().setText(htmlStr));
+//    }
 
     // https://github.com/jcefmaven/jcefmaven
     @PostConstruct
@@ -70,9 +60,16 @@ public class BrowserBean {
     }
 
     public void loadURL(String url) {
+        baseUrl = url;
         LOGGER.info("Loading URL: {}", url);
         Kt2lDesktopApplication.getDisplay().syncExec(() -> {
-            Kt2lDesktopApplication.getBrowser().setUrl(url);
+            Kt2lDesktopApplication.getBrowserInstances().forEach(b -> b.getBrowser().setUrl(url));
+        });
+    }
+
+    public void openNewWindow() {
+        Kt2lDesktopApplication.getDisplay().syncExec(() -> {
+            new BrowserInstance().getBrowser().setUrl(baseUrl);
         });
     }
 

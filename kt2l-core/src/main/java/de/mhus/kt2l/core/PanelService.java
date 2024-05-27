@@ -47,7 +47,7 @@ public class PanelService {
     }
 
     public DeskTab addPanel(
-            Core core, ClusterOverviewPanel.ClusterItem cluster,
+            Core core, Cluster cluster,
             String id, String title, boolean unique, Icon icon, Supplier<com.vaadin.flow.component.Component> panelCreator) {
         return core.getTabBar().addTab(
                         id,
@@ -56,7 +56,7 @@ public class PanelService {
                         unique,
                         icon,
                         panelCreator)
-                .setColor(cluster == null ? UiUtil.COLOR.NONE : cluster.cluster().getColor());
+                .setColor(cluster == null ? UiUtil.COLOR.NONE : cluster.getColor());
     }
 
     public DeskTab addDetailsPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {

@@ -51,7 +51,7 @@ public class VisClusterAction implements ClusterAction {
     public void execute(Core core, ClusterOverviewPanel.ClusterItem cluster) {
         panelService.addPanel(
                 core,
-                cluster,
+                cluster.cluster(),
                 cluster.name() + ":vis",
                 cluster.name(),
                 false,

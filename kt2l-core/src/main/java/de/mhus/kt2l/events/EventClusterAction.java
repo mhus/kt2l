@@ -51,7 +51,7 @@ public class EventClusterAction implements ClusterAction {
     public void execute(Core core, ClusterOverviewPanel.ClusterItem cluster) {
         var name = cluster.name();
         panelService.addPanel(
-                core, cluster,
+                core, cluster.cluster(),
                 name + ":events",
                 cluster.title(),
                 false,

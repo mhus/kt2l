@@ -37,7 +37,7 @@ public class PortForwardClusterAction implements ClusterAction {
     public void execute(Core core, ClusterOverviewPanel.ClusterItem cluster) {
         panelService.addPanel(
                 core,
-                cluster,
+                cluster.cluster(),
                 "portforward",
                  "Port Forward",
                 true,
