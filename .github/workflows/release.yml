@@ -73,9 +73,18 @@ jobs:
           echo "================"
           git clone https://github.com/mhus/vis-network-vaadin.git
           cd vis-network-vaadin
-          mvn clean install -B || exit 1
+          mvn clean install -B -Pproduction || exit 1
           cd ..
           rm -rf vis-network-vaadin
+      - name: vaadin-raw-xterm-addon
+        run: |
+          echo "Build vaadin-raw-xterm-addon"
+          echo "================"
+          git clone https://github.com/mhus/vaadin-raw-xterm-addon.git
+          cd vaadin-raw-xterm-addon
+          mvn clean install -B -Pproduction || exit 1
+          cd ..
+          rm -rf vaadin-raw-xterm-addon
       - name: Prepare
         run: ./kt2l-desktop/launcher/prepare.sh
       - name: Build maven linux-amd64

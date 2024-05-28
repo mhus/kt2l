@@ -42,7 +42,7 @@ import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.kscript.Block;
 import de.mhus.kt2l.kscript.RunCompiler;
 import de.mhus.kt2l.kscript.RunContext;
-import de.mhus.kt2l.resources.util.ResourceManager;
+import de.mhus.kt2l.resources.util.ResourceSelector;
 import de.mhus.kt2l.storage.StorageFile;
 import de.mhus.kt2l.storage.StorageService;
 import io.azam.ulidj.ULID;
@@ -66,7 +66,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener {
     private StorageService storageService;
 
     private final ApiProvider apiProvider;
-    private final ResourceManager<ContainerResource> resourceManager;
+    private final ResourceSelector<ContainerResource> resourceManager;
     private final Cluster cluster;
     private final Core core;
     private DeskTab tab;
@@ -84,7 +84,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener {
 
     public PodExecPanel(Cluster cluster, Core core, List<ContainerResource> containers) {
         this.apiProvider = cluster.getApiProvider();
-        this.resourceManager = new ResourceManager(containers, true);
+        this.resourceManager = new ResourceSelector(containers, true);
         this.cluster = cluster;
         this.core = core;
     }

@@ -24,7 +24,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
@@ -32,7 +31,7 @@ import de.mhus.kt2l.core.Tail;
 import de.mhus.kt2l.core.TailRow;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
-import de.mhus.kt2l.resources.util.ResourceManager;
+import de.mhus.kt2l.resources.util.ResourceSelector;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.CoreV1Event;
 import io.kubernetes.client.util.Watch;
@@ -43,7 +42,7 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
 
     private final Core core;
     private final Cluster cluster;
-    private final ResourceManager<KubernetesObject> resourceManager;
+    private final ResourceSelector<KubernetesObject> resourceManager;
     private IRegistration eventRegistration;
     private Tail eventList;
     private MenuItem menuItemAutoScroll;
@@ -52,7 +51,7 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
     public EventPanel(ExecutionContext context) {
         this.core = context.getCore();
         this.cluster = context.getCluster();
-        this.resourceManager = new ResourceManager<KubernetesObject>(new ArrayList<>(context.getSelected()), true);
+        this.resourceManager = new ResourceSelector<KubernetesObject>(new ArrayList<>(context.getSelected()), true);
     }
 
     public EventPanel(Core core, Cluster cluster) {

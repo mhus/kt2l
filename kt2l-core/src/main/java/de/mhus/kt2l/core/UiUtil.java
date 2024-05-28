@@ -33,14 +33,18 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.server.Command;
 import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MJson;
 import de.mhus.commons.tools.MSystem;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.List;
 
 import static de.mhus.commons.tools.MCollection.cropArray;
 import static de.mhus.commons.tools.MString.isEmptyTrim;
 
+@Slf4j
 public class UiUtil {
 
     public static COLOR toColor(String color) {
@@ -118,6 +122,54 @@ public class UiUtil {
 
     public static String getOSMetaModifierString() {
         return MSystem.isMac() ? "META" : "CONTROL";
+    }
+
+    public static byte[] xtermKeyToBytes(String xtermKey) {
+        try {
+                /*
+Key: {"key":"A","code":"KeyA","ctrlKey":false,"altKey":false,"metaKey":false,"shiftKey":true}
+Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":true,"shiftKey":false}
+Key: {"key":"ArrowUp","code":"ArrowUp","ctrlKey":false,"altKey":false,"metaKey":false,"shiftKey":false}
+Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":true,"shiftKey":false}
+Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":true,"shiftKey":false}
+Key: {"key":"Escape","code":"Escape","ctrlKey":false,"altKey":false,"metaKey":false,"shiftKey":false}
+Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":true,"shiftKey":false}
+                 */
+            var json = MJson.load(xtermKey);
+            var key = json.get("key").asText();
+            if (key.length() == 1) {
+                if (json.get("ctrlKey").asBoolean()) {
+                    key = key.toUpperCase();
+                    if (key.length() == 1) {
+                        return new byte[]{(byte) (key.charAt(0) - 'A' + 1)};
+                    }
+                    LOGGER.warn("Unknown CTRL key: " + key);
+                    return null;
+                }
+
+                return key.getBytes();
+            }
+
+            switch (key) {
+                case "ArrowUp": return new byte[]{0x1b, 0x5b, 0x41};
+                case "ArrowDown": return new byte[]{0x1b, 0x5b, 0x42};
+                case "ArrowRight": return new byte[]{0x1b, 0x5b, 0x43};
+                case "ArrowLeft": return new byte[]{0x1b, 0x5b, 0x44};
+                case "Escape": return new byte[]{0x1b};
+                case "Backspace": return new byte[]{0x7f};
+                case "Delete": return new byte[]{0x1b, 0x5b, 0x33, 0x7e};
+                case "Enter": return new byte[]{0x0d};
+                case "Tab": return new byte[]{0x09};
+
+            }
+
+            LOGGER.warn("Unknown key: " + key);
+            return null;
+        } catch (Exception ex) {
+            LOGGER.warn("Key", ex);
+            return null;
+        }
+
     }
 
     @Getter

@@ -19,9 +19,7 @@ import java.io.InputStream;
 public class LocalBashPanel extends VerticalLayout implements DeskTabListener {
     private final Core core;
     private XTerm xterm;
-    private MenuItem menuItemEsc;
     private volatile Process proc;
-    private volatile boolean echoOn = true;
 
     public LocalBashPanel(Core core) {
         this.core = core;
@@ -40,137 +38,27 @@ public class LocalBashPanel extends VerticalLayout implements DeskTabListener {
         xterm.setUseSystemClipboard(ITerminalClipboard.UseSystemClipboard.READWRITE);
         xterm.setPasteWithRightClick(true);
         xterm.addAnyKeyListener(e -> {
-            System.out.println("Key: " + e.getKey());
+            byte[] keyBytes = UiUtil.xtermKeyToBytes(e.getKey());
+            if (keyBytes == null) return;
             try {
-                /*
-Key: {"key":"A","code":"KeyA","ctrlKey":false,"altKey":false,"metaKey":false,"shiftKey":true}
-Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":true,"shiftKey":false}
-Key: {"key":"ArrowUp","code":"ArrowUp","ctrlKey":false,"altKey":false,"metaKey":false,"shiftKey":false}
-Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":true,"shiftKey":false}
-Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":true,"shiftKey":false}
-Key: {"key":"Escape","code":"Escape","ctrlKey":false,"altKey":false,"metaKey":false,"shiftKey":false}
-Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":true,"shiftKey":false}
-                 */
-                var json = MJson.load(e.getKey());
-                var key = json.get("key").asText();
-                if (key.length() == 1) {
-                    if (json.get("ctrlKey").asBoolean()) {
-                        key = key.toUpperCase();
-                        if (key.equals("C"))
-                            proc.getOutputStream().write("\u0003".getBytes());
-                        else
-                        if (key.equals("D"))
-                            proc.getOutputStream().write("\u0004".getBytes());
-                        else
-                        if (key.equals("Z"))
-                            proc.getOutputStream().write("\u001a".getBytes());
-                        else if (key.equals("V"))
-                            proc.getOutputStream().write("\u0016".getBytes());
-                        else if (key.equals("X"))
-                            proc.getOutputStream().write("\u0018".getBytes());
-                        else if (key.equals("A"))
-                            proc.getOutputStream().write("\u0001".getBytes());
-                        else if (key.equals("E"))
-                            proc.getOutputStream().write("\u0005".getBytes());
-                        else if (key.equals("K"))
-                            proc.getOutputStream().write("\u000b".getBytes());
-                        else if (key.equals("L"))
-                            proc.getOutputStream().write("\u000c".getBytes());
-                        else if (key.equals("U"))
-                            proc.getOutputStream().write("\u0015".getBytes());
-                        else if (key.equals("W"))
-                            proc.getOutputStream().write("\u0017".getBytes());
-                        else if (key.equals("Y"))
-                            proc.getOutputStream().write("\u0019".getBytes());
-                        else if (key.equals("N"))
-                            proc.getOutputStream().write("\u000e".getBytes());
-                        else if (key.equals("P"))
-                            proc.getOutputStream().write("\u0010".getBytes());
-                        else if (key.equals("R"))
-                            proc.getOutputStream().write("\u0012".getBytes());
-                        else if (key.equals("T"))
-                            proc.getOutputStream().write("\u0014".getBytes());
-                        else if (key.equals("F"))
-                            proc.getOutputStream().write("\u0006".getBytes());
-                        else if (key.equals("B"))
-                            proc.getOutputStream().write("\u0002".getBytes());
-                        else if (key.equals("M"))
-                            proc.getOutputStream().write("\r".getBytes());
-                        else if (key.equals("S"))
-                            proc.getOutputStream().write("\u0013".getBytes());
-                        else if (key.equals("H"))
-                            proc.getOutputStream().write("\u0008".getBytes());
-                        else if (key.equals("J"))
-                            proc.getOutputStream().write("\n".getBytes());
-                        else if (key.equals("G"))
-                            proc.getOutputStream().write("\u0007".getBytes());
-                        else if (key.equals("I"))
-                            proc.getOutputStream().write("\t".getBytes());
-                        else if (key.equals("O"))
-                            proc.getOutputStream().write("\u000f".getBytes());
-                        else if (key.equals("Q"))
-                            proc.getOutputStream().write("\u0011".getBytes());
-                        return;
-                    }
-
-                    try {
-                        proc.getOutputStream().write(key.getBytes());
-                        if (echoOn) {
-                            final var finalKey = key;
-                            core.ui().access(() -> xterm.write(new String(finalKey.getBytes())));
-                        }
-                        LOGGER.info("Alive: {}", proc.isAlive());
-                    } catch (IOException ex) {
-                        LOGGER.error("Write error", ex);
-                        closeTerminal();
-                    }
-                } else
-                if (key.equals("Escape")) {
-                    proc.getOutputStream().write("\u001b".getBytes());
-                } else
-                if (key.equals("ArrowUp")) {
-                    proc.getOutputStream().write("\u001b[A".getBytes());
-                }
-                else if (key.equals("ArrowDown")) {
-                    proc.getOutputStream().write("\u001b[B".getBytes()
-                    );
-                }
-                else if (key.equals("ArrowRight")) {
-                    proc.getOutputStream().write("\u001b[C".getBytes());
-                }
-                else if (key.equals("ArrowLeft")) {
-                    proc.getOutputStream().write("\u001b[D".getBytes());
-                }
-                else if (key.equals("Backspace")) {
-                    proc.getOutputStream().write("\u007f".getBytes());
-                }
-                else if (key.equals("Delete")) {
-                    proc.getOutputStream().write("\u001b[3~".getBytes());
-                }
-                else if (key.equals("Enter")) {
-                    proc.getOutputStream().write("\n".getBytes());
-                    if (echoOn) {
-                        core.ui().access(() -> xterm.write("\n"));
-                    }
-                } else if (key.equals("Tab")) {
-                    proc.getOutputStream().write("\t".getBytes());
-                }
+                proc.getOutputStream().write(keyBytes);
                 proc.getOutputStream().flush();
-            } catch (Exception ex) {
-                LOGGER.error("Key", ex);
+            } catch (IOException ex) {
+                LOGGER.error("Write error", ex);
+                closeTerminal();
             }
         });
 
         var xTermMenuBar = new MenuBar();
-        menuItemEsc = xTermMenuBar.addItem("ESC", e -> {
+        xTermMenuBar.addItem("ESC", e -> {
             MLang.tryThis(() -> proc.getOutputStream().write("\u001b".getBytes()));
             xterm.focus();
         });
-        menuItemEsc = xTermMenuBar.addItem("TAB", e -> {
+        xTermMenuBar.addItem("TAB", e -> {
             MLang.tryThis(() -> proc.getOutputStream().write("\t".getBytes()));
             xterm.focus();
         });
-        menuItemEsc = xTermMenuBar.addItem("Ctrl+C", e -> {
+        xTermMenuBar.addItem("Ctrl+C", e -> {
             MLang.tryThis(() -> proc.getOutputStream().write("\u0003".getBytes()));
             xterm.focus();
         });
@@ -185,7 +73,7 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
         setMargin(false);
 
         try {
-            ProcessBuilder builder = new ProcessBuilder("/bin/bash");
+            ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-i");
             builder.redirectErrorStream(true);
             proc = builder.start();
             Thread.startVirtualThread(this::readFromTerminalLoop);
@@ -206,7 +94,7 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
                     MThread.sleep(100);
                     continue;
                 }
-                System.out.println("SH Read: " + len);
+                // System.out.println("SH Read: " + len);
                 String line = new String(buffer, 0, len);
                 core.ui().access(() -> xterm.write(line));
             }
