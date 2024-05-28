@@ -76,15 +76,15 @@ public class PanelService {
 
     }
 
-    public DeskTab addResourcesGrid(Core core, ClusterOverviewPanel.ClusterItem cluster) {
+    public DeskTab addResourcesGrid(Core core, Cluster cluster) {
         return core.getTabBar().addTab(
-                        "test/" + cluster.name(),
-                        cluster.title(),
+                        "test/" + cluster.getName(),
+                        cluster.getTitle(),
                         true,
                         false,
                         VaadinIcon.OPEN_BOOK.create(),
-                        () -> new ResourcesGridPanel(cluster.name(), core))
-                .setColor(cluster.cluster().getColor()).setHelpContext("resources");
+                        () -> new ResourcesGridPanel(cluster.getName(), core))
+                .setColor(cluster.getColor()).setHelpContext("resources");
 
     }
 }

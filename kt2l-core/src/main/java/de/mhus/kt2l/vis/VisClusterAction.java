@@ -19,6 +19,7 @@ package de.mhus.kt2l.vis;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterAction;
 import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.core.Core;
@@ -38,7 +39,7 @@ public class VisClusterAction implements ClusterAction {
     }
 
     @Override
-    public boolean canHandle(Core core, ClusterOverviewPanel.ClusterItem cluster) {
+    public boolean canHandle(Core core, Cluster cluster) {
         return true;
     }
 
@@ -48,18 +49,18 @@ public class VisClusterAction implements ClusterAction {
     }
 
     @Override
-    public void execute(Core core, ClusterOverviewPanel.ClusterItem cluster) {
+    public void execute(Core core, Cluster cluster) {
         panelService.addPanel(
                 core,
-                cluster.cluster(),
-                cluster.name() + ":vis",
-                cluster.name(),
+                cluster,
+                cluster.getName() + ":vis",
+                cluster.getTitle(),
                 false,
                 VaadinIcon.CLUSTER.create(),
                 () ->
                         new VisPanel(
                                 core,
-                                cluster.cluster()
+                                cluster
                         )).setHelpContext("vis").select();
 
     }

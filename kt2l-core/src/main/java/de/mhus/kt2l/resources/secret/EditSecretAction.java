@@ -46,14 +46,14 @@ public class EditSecretAction implements ResourceAction {
                 "edit-secret-" + secret.getMetadata().getNamespace() + "-" + secret.getMetadata().getName(),
                 "Edit " + secret.getMetadata().getName(),
                 true,
-                VaadinIcon.INPUT.create(),
+                VaadinIcon.PASSWORD.create(),
                 () -> new EditSecretPanel(core, cluster, secret)
         ).setHelpContext("edit_secret").select();
     }
 
     @Override
     public String getTitle() {
-        return "Edit;icon=" + VaadinIcon.INPUT.name();
+        return "Edit;icon=" + VaadinIcon.PASSWORD.name();
     }
 
     @Override

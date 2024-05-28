@@ -19,6 +19,7 @@
 * [https://vaadin.com/directory/component/idle-notification]
 * [https://vaadin.com/directory/component/vis-network-vaadin]
 * [https://visjs.github.io/vis-network/docs/network/]
+* [https://incubator.app.fi/togglebutton-demo/togglebutton]
 
 ## Kubernetes
 

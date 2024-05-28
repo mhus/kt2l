@@ -109,11 +109,11 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
                                 if (!validateCluster(clusterBox.getValue())) {
                                     return;
                                 }
-                                if (!action.canHandle(core, clusterBox.getValue())) {
+                                if (!action.canHandle(core, clusterBox.getValue().cluster())) {
                                     UiUtil.showErrorNotification("Can't handle this cluster");
                                     return;
                                 }
-                                action.execute(core, clusterBox.getValue());
+                                action.execute(core, clusterBox.getValue().cluster());
                             }
                         });
                         var icon = action.getIcon();

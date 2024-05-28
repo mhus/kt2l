@@ -107,6 +107,11 @@
 			<artifactId>vis-network-vaadin</artifactId>
 			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>com.vaadin.componentfactory</groupId>
+			<artifactId>togglebutton</artifactId>
+			<version>3.0.0</version>
+		</dependency>
 
 		<dependency>
 			<groupId>dev.langchain4j</groupId>

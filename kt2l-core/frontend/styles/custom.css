@@ -256,3 +256,11 @@ div.version {
     border-radius: 5px;
     background-color: #efe;
 }
+
+.forwardings div {
+    margin: auto;
+}
+
+.forwardings vaadin-checkbox {
+    margin: auto;
+}
