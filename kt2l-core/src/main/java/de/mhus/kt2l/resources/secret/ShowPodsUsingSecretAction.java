@@ -16,13 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.deployment;
+package de.mhus.kt2l.resources.secret;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.resources.ResourcesFilter;
@@ -34,10 +35,10 @@ import java.util.Set;
 
 @Component
 @WithRole(ROLE.READ)
-public class ShowPodsOfDeploymentAction implements ResourceAction {
+public class ShowPodsUsingSecretAction implements ResourceAction {
     @Override
     public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.DEPLOYMENT.equals(resourceType);
+        return K8s.SECRET.equals(resourceType);
     }
 
     @Override
@@ -52,21 +53,45 @@ public class ShowPodsOfDeploymentAction implements ResourceAction {
         final String parentName = parent.getMetadata().getName();
         final String parentNamespace = parent.getMetadata().getNamespace();
         final var uid = parent.getMetadata().getUid();
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.POD, parent.getMetadata().getNamespace(), new ResourcesFilter() {
+        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.POD, K8sUtil.NAMESPACE_ALL, new ResourcesFilter() {
             @Override
             public boolean filter(KubernetesObject res) {
                 if (res instanceof io.kubernetes.client.openapi.models.V1Pod pod) {
-                    var generatedName = pod.getMetadata().getGenerateName();
-                    if (    generatedName != null &&
-                            pod.getMetadata().getNamespace().equals(parentNamespace) &&
-                            generatedName.startsWith(parentName + "-")) return true;
+                    if (!pod.getMetadata().getNamespace().equals(parentNamespace)) return false;
+
+                    var containers = pod.getSpec().getContainers();
+                    if (containers != null) {
+                        for (var container : containers) {
+                            var env = container.getEnv();
+                            if (env != null) {
+                                for (var envVar : env) {
+                                    if (envVar.getValueFrom() != null && envVar.getValueFrom().getSecretKeyRef() != null) {
+                                        var ref = envVar.getValueFrom().getSecretKeyRef();
+                                        if (ref.getName().equals(parentName)) return true;
+                                    }
+                                }
+                            }
+                            var envFrom = container.getEnvFrom();
+                            if (envFrom != null) {
+                                for (var envVarSource : envFrom) {
+                                    if (envVarSource.getSecretRef() != null && envVarSource.getSecretRef().getName().equals(parentName)) return true;
+                                }
+                            }
+                        }
+                    }
+                    var volumes = pod.getSpec().getVolumes();
+                    if (volumes != null) {
+                        for (var volume : volumes) {
+                            if (volume.getSecret() != null && volume.getSecret().getSecretName().equals(parentName)) return true;
+                        }
+                    }
                 }
                 return false;
             }
 
             @Override
             public String getDescription() {
-                return "Pods of Deployment " + parentName;
+                return "Pods using Secret " + parentName;
             }
         });
     }
@@ -93,6 +118,6 @@ public class ShowPodsOfDeploymentAction implements ResourceAction {
 
     @Override
     public String getDescription() {
-        return "Show Pods of the selected Deployment";
+        return "Show Pods using the selected Secret";
     }
 }

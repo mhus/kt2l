@@ -9,8 +9,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.vaadin.addons.visjs.network.main.Edge;
 import org.vaadin.addons.visjs.network.main.Node;
-import org.vaadin.addons.visjs.network.options.edges.ArrowHead;
-import org.vaadin.addons.visjs.network.options.edges.Arrows;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)

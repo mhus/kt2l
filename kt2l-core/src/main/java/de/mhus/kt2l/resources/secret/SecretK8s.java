@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.daemonset;
+package de.mhus.kt2l.resources.secret;
 
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.ApiProvider;
@@ -26,8 +26,8 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.models.V1DaemonSet;
-import io.kubernetes.client.openapi.models.V1DaemonSetList;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
@@ -37,14 +37,14 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class DaemonSetK8s implements HandlerK8s {
+public class SecretK8s implements HandlerK8s {
 
     @Autowired
     private SecurityService securityService;
 
     @Override
     public K8s getManagedResourceType() {
-        return K8s.DAEMON_SET;
+        return K8s.SECRET;
     }
 
     @Override
@@ -54,43 +54,43 @@ public class DaemonSetK8s implements HandlerK8s {
 
     @Override
     public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1DaemonSet.class);
-        var api = apiProvider.getAppsV1Api();
-        api.replaceNamespacedDaemonSet(
+        var body = Yaml.loadAs(yaml, V1Secret.class);
+        var api = apiProvider.getCoreV1Api();
+        api.replaceNamespacedSecret(
                 name, namespace, body, null, null, null, null
         );
     }
 
     @Override
     public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        K8sUtil.checkDeleteAccess(securityService, K8s.DAEMON_SET);
-        var api = apiProvider.getAppsV1Api();
-        return api.deleteNamespacedDaemonSet(name, namespace, null, null, null, null, null, null);
+        K8sUtil.checkDeleteAccess(securityService, K8s.SECRET);
+        var api = apiProvider.getCoreV1Api();
+        return api.deleteNamespacedSecret(name, namespace, null, null, null, null, null, null);
     }
 
     @Override
     public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1DaemonSet.class);
-        var api = apiProvider.getAppsV1Api();
-        return api.createNamespacedDaemonSet(
+        var body = Yaml.loadAs(yaml, V1Secret.class);
+        var api = apiProvider.getCoreV1Api();
+        return api.createNamespacedSecret(
                 body.getMetadata().getNamespace() == null ? "default" : body.getMetadata().getNamespace(),
                 body, null, null, null, null
         );
     }
 
     @Override
-    public V1DaemonSetList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getAppsV1Api().listDaemonSetForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
+    public V1SecretList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
+        return apiProvider.getCoreV1Api().listSecretForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Override
-    public V1DaemonSetList createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
-        return apiProvider.getAppsV1Api().listNamespacedDaemonSet(namespace, null, null, null, null, null, null, null, null, null, null, null);
+    public V1SecretList createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
+        return apiProvider.getCoreV1Api().listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Override
     public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getAppsV1Api().listDaemonSetForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter(LOGGER));
+        return apiProvider.getCoreV1Api().listSecretForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter(LOGGER));
     }
 
 }

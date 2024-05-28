@@ -16,24 +16,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.cluster;
+package de.mhus.kt2l.resources.secret;
 
-import de.mhus.commons.lang.IRegistry;
-import de.mhus.kt2l.core.Core;
-import io.kubernetes.client.common.KubernetesObject;
+import com.google.gson.reflect.TypeToken;
+import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.resources.util.AbstractClusterWatch;
+import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.util.Watch;
+import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
+import java.lang.reflect.Type;
 
-public abstract class ClusterBackgroundJob {
+@Slf4j
+public class SecretWatch extends AbstractClusterWatch<V1Secret> {
 
-    protected ClusterBackgroundJob() {
+    @Override
+    public K8s getManagedResourceType() {
+        return K8s.SECRET;
     }
 
-    public abstract void close();
-
-    public abstract void init(Core core, String clusterId, String jobId) throws IOException;
-
-    public abstract <V extends KubernetesObject> IRegistry<Watch.Response<V>> getEventHandler();
+    @Override
+    protected Type createTypeToken() {
+        return new TypeToken<Watch.Response<V1Secret>>() {}.getType();
+    }
 
 }

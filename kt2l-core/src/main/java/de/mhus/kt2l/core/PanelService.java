@@ -23,8 +23,8 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.common.ResourceYamlEditorPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
+import de.mhus.kt2l.resources.common.ResourceYamlEditorPanel;
 import io.kubernetes.client.common.KubernetesObject;
 import org.springframework.stereotype.Component;
 

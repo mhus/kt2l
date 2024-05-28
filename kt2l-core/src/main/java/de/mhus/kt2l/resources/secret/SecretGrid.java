@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.configmap;
+package de.mhus.kt2l.resources.secret;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
@@ -26,23 +26,25 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
+@Configurable
 @Slf4j
-public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resource, Component, V1ConfigMap, V1ConfigMapList> {
+public class SecretGrid extends AbstractGridWithNamespace<SecretGrid.Resource, Component, V1Secret, V1SecretList> {
 
     @Autowired
     private PanelService panelService;
 
     @Override
     protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
-        return ConfigMapWatch.class;
+        return SecretWatch.class;
     }
 
     @Override
@@ -68,23 +70,23 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
 
     @Override
     public K8s getManagedResourceType() {
-        return K8s.CONFIG_MAP;
+        return K8s.SECRET;
     }
 
     @Override
     protected void onShowDetails(Resource item, boolean flip) {
-        EditConfigMapAction.openPanelTab(panelService, panel.getTab(), panel.getCore(), cluster, item.getResource());
+        EditSecretAction.openPanelTab(panelService, panel.getTab(), panel.getCore(), cluster, item.getResource());
     }
 
     @Getter
-    public static class Resource extends ResourceItem<V1ConfigMap> {
+    public static class Resource extends ResourceItem<V1Secret> {
         private int dataCnt;
         private long dataSize;
 
         @Override
         public void updateResource() {
             dataCnt = tryThis(() -> resource.getData().size()).or(0);
-            dataSize = tryThis(() -> resource.getData().values().stream().mapToLong(String::length).sum()).or(0L);
+            dataSize = tryThis(() -> resource.getData().values().stream().mapToLong(b -> b.length).sum()).or(0L);
             setColor(null);
         }
 

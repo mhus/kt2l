@@ -117,6 +117,9 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             detailsComponent = null;
         }
         createMenuBar();
+        addAttachListener(event -> {
+            setShortcuts();
+        });
 
         add(MCollection.notNull(menuBar, resourcesGrid, detailsComponent, getFooter()));
         setSizeFull();
@@ -178,15 +181,6 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 item.setEnabled(false);
 
                 action.setMenuItem(item);
-
-                if (action.getAction().getShortcutKey() != null) {
-                    var shortcut = UiUtil.createShortcut(action.getAction().getShortcutKey());
-                    if (shortcut != null) {
-                        shortcut.addShortcutListener(resourcesGrid, () -> {
-                            action.execute();
-                        });
-                    }
-                }
 
             });
         } catch (Exception e) {
@@ -362,20 +356,34 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 action.setContextMenuItem(item);
             });
 
-            getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
-            getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
-
-            getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid);
-            getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.SEMICOLON).listenOn(resourcesGrid);
-            getPanel().getCore().ui().addShortcutListener((event) -> {
-                LOGGER.info("◌ Refresh Grid");
-                resourcesList = null;
-                resourcesGrid.getDataProvider().refreshAll();
-            } , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid);
-
         } catch (Exception e) {
             LOGGER.error("Error creating grid", e);
         }
+    }
+
+
+    protected void setShortcuts() {
+        getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
+        getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
+
+        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid);
+        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.SEMICOLON).listenOn(resourcesGrid);
+        getPanel().getCore().ui().addShortcutListener((event) -> {
+            LOGGER.info("◌ Refresh Grid");
+            resourcesList = null;
+            resourcesGrid.getDataProvider().refreshAll();
+        } , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid);
+
+        actions.forEach(action -> {
+            if (action.getAction().getShortcutKey() != null) {
+                var shortcut = UiUtil.createShortcut(action.getAction().getShortcutKey());
+                if (shortcut != null) {
+                    shortcut.addShortcutListener(resourcesGrid, () -> {
+                        action.execute();
+                    });
+                }
+            }
+        });
     }
 
     protected String getGridRowClass(T res) {

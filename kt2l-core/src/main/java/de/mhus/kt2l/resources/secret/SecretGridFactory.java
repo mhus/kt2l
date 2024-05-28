@@ -16,24 +16,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.cluster;
+package de.mhus.kt2l.resources.secret;
 
-import de.mhus.commons.lang.IRegistry;
-import de.mhus.kt2l.core.Core;
-import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.util.Watch;
+import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.core.WithRole;
+import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.resources.ResourceGridFactory;
+import de.mhus.kt2l.resources.ResourcesGrid;
+import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-
-public abstract class ClusterBackgroundJob {
-
-    protected ClusterBackgroundJob() {
+@Component
+@WithRole(UsersConfiguration.ROLE.READ)
+public class SecretGridFactory implements ResourceGridFactory {
+    @Override
+    public boolean canHandleResourceType(K8s resourceType) {
+        return K8s.SECRET.equals(resourceType);
     }
 
-    public abstract void close();
-
-    public abstract void init(Core core, String clusterId, String jobId) throws IOException;
-
-    public abstract <V extends KubernetesObject> IRegistry<Watch.Response<V>> getEventHandler();
+    @Override
+    public ResourcesGrid create(K8s resourcesType) {
+        return new SecretGrid();
+    }
 
 }

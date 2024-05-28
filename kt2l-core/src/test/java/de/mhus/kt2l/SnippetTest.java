@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l;
 
-import de.mhus.kt2l.help.AbstractGitSnippetsHelpPanel;
 import de.mhus.kt2l.help.SnippetsService;
 import org.junit.jupiter.api.Test;
 

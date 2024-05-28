@@ -3,7 +3,6 @@ package de.mhus.kt2l.portforward;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;

@@ -18,19 +18,16 @@
 package de.mhus.kt2l.resources.generic;
 
 import de.mhus.commons.errors.NotSupportedException;
-import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
-import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.Yaml;
 import okhttp3.Call;
-import org.apache.commons.lang3.NotImplementedException;
 
 public class GenericK8s implements HandlerK8s {
 

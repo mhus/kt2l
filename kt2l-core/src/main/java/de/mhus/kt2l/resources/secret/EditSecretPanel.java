@@ -1,4 +1,4 @@
-package de.mhus.kt2l.resources.configmap;
+package de.mhus.kt2l.resources.secret;
 
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
@@ -21,7 +21,7 @@ import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.util.Watch;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
@@ -32,14 +32,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Configurable
 @Slf4j
-public class EditConfigMapPanel extends VerticalLayout implements DeskTabListener {
+public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
     private K8sService k8sService;
 
     private final Core core;
     private final Cluster cluster;
-    private V1ConfigMap selected;
+    private V1Secret selected;
     private IRegistration registration;
     private DeskTab deskTab;
     private Div status;
@@ -49,7 +49,7 @@ public class EditConfigMapPanel extends VerticalLayout implements DeskTabListene
     private MenuItem saveMenuItem;
     private MenuItem reloadMenuItem;
 
-    public EditConfigMapPanel(Core core, Cluster cluster, V1ConfigMap selected) {
+    public EditSecretPanel(Core core, Cluster cluster, V1Secret selected) {
         this.core = core;
         this.cluster = cluster;
         this.selected = selected;
@@ -58,12 +58,12 @@ public class EditConfigMapPanel extends VerticalLayout implements DeskTabListene
     @Override
     public void tabInit(DeskTab deskTab) {
         this.deskTab = deskTab;
-        registration = core.backgroundJobInstance(cluster, ConfigMapWatch.class).getEventHandler().registerWeak(this::changedEvent);
+        registration = core.backgroundJobInstance(cluster, SecretWatch.class).getEventHandler().registerWeak(this::changedEvent);
 
         status = new Div();
         status.setWidthFull();
         status.addClassName("color-grey");
-        status.setText("ConfigMap created on server " + selected.getMetadata().getCreationTimestamp());
+        status.setText("Secret created on server " + selected.getMetadata().getCreationTimestamp());
         add(status);
 
         var menuBar = new MenuBar();
@@ -94,17 +94,17 @@ public class EditConfigMapPanel extends VerticalLayout implements DeskTabListene
     private void doReload() {
         ConfirmDialog dialog = new ConfirmDialog();
         dialog.setHeader("Reload entry");
-        dialog.setText("Do you really want to reload ConfigMap from server?");
+        dialog.setText("Do you really want to reload Secret from server?");
         dialog.setCloseOnEsc(true);
         dialog.setCancelable(true);
         dialog.addConfirmListener(e2 -> {
             try {
-                var cm = cluster.getApiProvider().getCoreV1Api().readNamespacedConfigMap(selected.getMetadata().getName(), selected.getMetadata().getNamespace(), null);
+                var cm = cluster.getApiProvider().getCoreV1Api().readNamespacedSecret(selected.getMetadata().getName(), selected.getMetadata().getNamespace(), null);
                 selected = cm;
                 entryList.removeAll();
                 updateEntryList();
             } catch (Exception e) {
-                UiUtil.showErrorNotification("Error reloading ConfigMap", e);
+                UiUtil.showErrorNotification("Error reloading Secret", e);
             }
         });
         dialog.open();
@@ -115,14 +115,14 @@ public class EditConfigMapPanel extends VerticalLayout implements DeskTabListene
         data.clear();
         for (int i = 0; i < entryList.getComponentCount(); i++) {
             Entry entry = (Entry)entryList.getComponentAt(i);
-            data.put(entry.key, entry.valueField.getValue());
+            data.put(entry.key, stringToSecret(entry.valueField.getValue()));
         }
 
         try {
             var yaml = Yaml.dump(selected);
-            k8sService.getResourceHandler(K8s.CONFIG_MAP).replace(cluster.getApiProvider(), selected.getMetadata().getName(), selected.getMetadata().getNamespace(), yaml);
+            k8sService.getResourceHandler(K8s.SECRET).replace(cluster.getApiProvider(), selected.getMetadata().getName(), selected.getMetadata().getNamespace(), yaml);
         } catch (Exception e) {
-            UiUtil.showErrorNotification("Error saving ConfigMap", e);
+            UiUtil.showErrorNotification("Error saving Secret", e);
             return;
         }
 
@@ -132,7 +132,7 @@ public class EditConfigMapPanel extends VerticalLayout implements DeskTabListene
             entry.setChanged(false);
         }
 
-        UiUtil.showSuccessNotification("ConfigMap saved");
+        UiUtil.showSuccessNotification("Secret saved");
     }
 
     private void addNewEntry() {
@@ -174,30 +174,43 @@ public class EditConfigMapPanel extends VerticalLayout implements DeskTabListene
                 Entry entry = (Entry)entryList.getComponentAt(i);
                 if (entry.key.equals(key)) {
                     LOGGER.debug("Update entry: {}", key);
-                    entry.updateValue(value);
+                    entry.updateValue(secretToString(value));
                     return;
                 }
             }
             LOGGER.debug("Add entry: {}", key);
-            var entry = new Entry(key, value);
+            var entry = new Entry(key, secretToString(value));
             entryList.addComponentAtIndex(index.get(), entry);
         });
 
     }
 
-    private void changedEvent(Watch.Response<V1ConfigMap> event) {
+    private String secretToString(byte[] value) {
+        try {
+            return new String(value);
+        } catch (Exception e) {
+            LOGGER.warn("Can't decode secret", e);
+            return "ERROR";
+        }
+    }
+
+    private byte[] stringToSecret(String value) {
+        return value.getBytes();
+    }
+
+    private void changedEvent(Watch.Response<V1Secret> event) {
         if (event.object.getMetadata().getNamespace().equals(selected.getMetadata().getNamespace())
                 && event.object.getMetadata().getName().equals(selected.getMetadata().getName())) {
             if (event.type.equals(K8sUtil.WATCH_EVENT_DELETED)) {
                 core.ui().access(() -> {
 //                    deskTab.closeTab();
-                    UiUtil.showErrorNotification("ConfigMap was deleted on server");
-                    status.setText("ConfigMap was deleted on server " + event.object.getMetadata().getCreationTimestamp());
+                    UiUtil.showErrorNotification("Secret was deleted on server");
+                    status.setText("Secret was deleted on server " + event.object.getMetadata().getCreationTimestamp());
                 });
             } else {
                 selected = event.object;
                 core.ui().access(() -> {
-                    status.setText("ConfigMap changed on server " + event.object.getMetadata().getDeletionTimestamp());
+                    status.setText("Secret changed on server " + event.object.getMetadata().getDeletionTimestamp());
                     updateEntryList();
                 });
             }

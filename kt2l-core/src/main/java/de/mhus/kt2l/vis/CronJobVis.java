@@ -3,7 +3,6 @@ package de.mhus.kt2l.vis;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.cronjob.CronJobWatch;
-import de.mhus.kt2l.resources.daemonset.DaemonSetWatch;
 import io.kubernetes.client.common.KubernetesObject;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;

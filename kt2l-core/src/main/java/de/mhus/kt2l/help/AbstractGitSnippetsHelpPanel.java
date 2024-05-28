@@ -22,21 +22,12 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import de.mhus.commons.tools.MFile;
-import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.resources.GitProgressMonitor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jgit.api.Git;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {

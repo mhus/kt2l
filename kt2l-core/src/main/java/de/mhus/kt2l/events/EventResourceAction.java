@@ -18,7 +18,6 @@
 package de.mhus.kt2l.events;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.ai.AiResourcePanel;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.PanelService;
