@@ -54,7 +54,7 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
         add(menuBar);
 
         command = new TextArea();
-        command.setLabel("Port Forwardings:");
+        command.setLabel("Port Forwardings");
         command.setWidthFull();
         command.setHeight("200px");
         add(command);
@@ -96,8 +96,12 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
                 if ("pod".equalsIgnoreCase(cmdName)) {
                     try {
                         var f = portForwarder.getForwarding(namespace, name, remotePort, localPort)
-                                .orElseGet(() -> portForwarder.addForwarding(namespace, name, remotePort, localPort));
-                        forwardings.add(new ForwardEntry(f));
+                                .orElseGet(() -> {
+                                    var newF =portForwarder.addForwarding(namespace, name, remotePort, localPort);
+                                    forwardings.add(new ForwardEntry(newF));
+                                    return newF;
+                                });
+
                         if (action != null) {
                             if ("on".equalsIgnoreCase(action)) {
                                 f.start();
@@ -106,6 +110,7 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
                             } else {
                                 UiUtil.showErrorNotification("Invalid action: " + action);
                             }
+                            tabRefresh(0);
                         }
                     } catch (Exception e) {
                         UiUtil.showErrorNotification("Error: " + e.getMessage());

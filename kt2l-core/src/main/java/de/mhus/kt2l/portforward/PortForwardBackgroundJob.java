@@ -134,12 +134,12 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
         private AtomicLong rx = new AtomicLong();
         private boolean closed;
 
-        private Forwarding(ApiProvider apiProvider, String namespace, String name, int servicePorts, int localPorts) {
-            id = namespace + "/" + name + ":" + servicePorts + "->" + localPorts;
+        private Forwarding(ApiProvider apiProvider, String namespace, String name, int servicePort, int localPort) {
+            id = localPort + "->" + namespace + "/" + name + ":" + servicePort;
             this.namespace = namespace;
             this.name = name;
-            this.servicePort = servicePorts;
-            this.localPort = localPorts;
+            this.servicePort = servicePort;
+            this.localPort = localPort;
             
             portForward = new PortForward(apiProvider.getClient());
         }
