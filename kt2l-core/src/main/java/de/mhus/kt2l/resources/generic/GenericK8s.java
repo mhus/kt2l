@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.generic;
 
+import de.mhus.commons.errors.NotSupportedException;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
@@ -27,6 +28,7 @@ import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Status;
+import io.kubernetes.client.util.Yaml;
 import okhttp3.Call;
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -50,48 +52,53 @@ public class GenericK8s implements HandlerK8s {
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
         var sb = new StringBuilder();
         K8sUtil.describeHeader(apiProvider, this, res, sb);
-
+        sb.append(Yaml.dump(res));
         K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
     }
 
     @Override
     public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
-        var y = MYaml.loadFromString(yaml);
-//        var kind = y.asMap().getString("Kind");
-//        var resource = Arrays.stream(K8s.RESOURCE.values()).filter(r -> r.kind().equalsIgnoreCase(kind)).findFirst().orElse(null);
-//        if (resource == null) throw new ApiException("Kind not found: " + kind);
-//        var v1Resource = K8s.toResource(resource);
-        var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
-        genericApi.replace(name, namespace, yaml);
+        throw new NotSupportedException("Not supported for generic resources");
+//        var y = MYaml.loadFromString(yaml);
+////        var kind = y.asMap().getString("Kind");
+////        var resource = Arrays.stream(K8s.RESOURCE.values()).filter(r -> r.kind().equalsIgnoreCase(kind)).findFirst().orElse(null);
+////        if (resource == null) throw new ApiException("Kind not found: " + kind);
+////        var v1Resource = K8s.toResource(resource);
+//        var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
+//        genericApi.replace(name, namespace, yaml);
     }
 
     @Override
     public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
-        genericApi.delete(name, namespace);
-        return new V1Status(); //XXX
+        throw new NotSupportedException("Not supported for generic resources");
+//        var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
+//        genericApi.delete(name, namespace);
+//        return new V1Status(); //XXX
     }
 
     @Override
     public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
-        var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
-        return genericApi.create(yaml);
+        throw new NotSupportedException("Not supported for generic resources");
+//        var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
+//        return genericApi.create(yaml);
     }
 
     @Override
-    public <L extends KubernetesListObject> L createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
-        throw new NotImplementedException();
+    public GenericObjectList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
+        final var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType);
+        return genericApi.listNamespacedCustomObject(null);
     }
 
     @Override
     public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
-        throw new NotImplementedException();
+        throw new NotSupportedException("Not supported for generic resources");
     }
 
     @Override
-    public <L extends KubernetesListObject> L createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
-        throw new NotImplementedException();
+    public GenericObjectList createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
+        final var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType);
+        return genericApi.listNamespacedCustomObject(namespace);
     }
 
 }

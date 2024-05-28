@@ -244,3 +244,15 @@ div.version {
     font-size: 12px;
     font-style: italic;
 }
+
+.entry-changed {
+    border: 1px dotted #ffa;
+    border-radius: 5px;
+    background-color: #ffe;
+}
+
+.entry-new {
+    border: 1px dotted #afa;
+    border-radius: 5px;
+    background-color: #efe;
+}

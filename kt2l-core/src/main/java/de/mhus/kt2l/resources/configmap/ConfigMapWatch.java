@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Type;
 
 @Slf4j
-public class ConfigMapWatch extends AbstractClusterWatch<V1DaemonSet> {
+public class ConfigMapWatch extends AbstractClusterWatch<V1ConfigMap> {
 
     @Override
     public K8s getManagedResourceType() {
