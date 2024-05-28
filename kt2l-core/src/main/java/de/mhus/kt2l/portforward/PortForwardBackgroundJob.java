@@ -38,7 +38,7 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
     private Cluster cluster;
 
     public boolean hasForwarding(String namespace, String name, int servicePort, int localPort) {
-        return forwardings.stream().anyMatch(f -> f.namespace.equals(namespace) && f.name.equals(name) && f.servicePorts == servicePort && f.localPorts == localPort);
+        return forwardings.stream().anyMatch(f -> f.namespace.equals(namespace) && f.name.equals(name) && f.servicePort == servicePort && f.localPort == localPort);
     }
 
     public boolean hasForwarding(Forwarding forwarding) {
@@ -47,7 +47,7 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
     }
 
     public Optional<Forwarding> getForwarding(String namespace, String name, int servicePort, int localPort) {
-        return forwardings.stream().filter(f -> f.namespace.equals(namespace) && f.name.equals(name) && f.servicePorts == servicePort && f.localPorts == localPort).findFirst();
+        return forwardings.stream().filter(f -> f.namespace.equals(namespace) && f.name.equals(name) && f.servicePort == servicePort && f.localPort == localPort).findFirst();
     }
 
     public Forwarding addForwarding(String namespace, String name, int servicePort, int localPort) {
@@ -122,9 +122,9 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
         @Getter
         private final String name;
         @Getter
-        private final int servicePorts;
+        private final int servicePort;
         @Getter
-        private final int localPorts;
+        private final int localPort;
         private final String id;
         private ServerSocket socket;
         private Thread listenerThread;
@@ -138,8 +138,8 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
             id = namespace + "/" + name + ":" + servicePorts + "->" + localPorts;
             this.namespace = namespace;
             this.name = name;
-            this.servicePorts = servicePorts;
-            this.localPorts = localPorts;
+            this.servicePort = servicePorts;
+            this.localPort = localPorts;
             
             portForward = new PortForward(apiProvider.getClient());
         }
@@ -165,14 +165,14 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
 
         private void listen() {
 
-            LOGGER.info("Forwarding {}/{}:{} to localhost:{}", namespace, name, servicePorts, localPorts);
+            LOGGER.info("Forwarding {}/{}:{} to localhost:{}", namespace, name, servicePort, localPort);
             try {
-                socket = new ServerSocket(localPorts);
+                socket = new ServerSocket(localPort);
                 while(true) {
                     var connection = socket.accept();
-                    LOGGER.info("Connection accepted on {}", localPorts);
+                    LOGGER.info("Connection accepted on {}", localPort);
                     Thread.startVirtualThread(() -> {
-                        startConnection(connection);
+                        startConnection(connection, servicePort);
                     });
                 }
             } catch (Exception e) {
@@ -185,14 +185,14 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
             listenerThread = null;
         }
 
-        private void startConnection(Socket connection) {
+        private void startConnection(Socket connection, int servicePort) {
             try {
-                LOGGER.debug("Forwarding connection on {} to {}", localPorts, servicePorts);
-                var portForwardResult = portForward.forward(namespace, name, List.of(servicePorts));
+                LOGGER.debug("Forwarding connection on local {} -> {}", localPort, servicePort);
+                var portForwardResult = portForward.forward(namespace, name, List.of(servicePort));
                 threads.add(
                         Thread.startVirtualThread(() -> {
                                 try {
-                                    forwardStream("stdin", tx, connection.getInputStream(), portForwardResult.getOutboundStream(0));
+                                    forwardStream("stdin", tx, connection.getInputStream(), portForwardResult.getOutboundStream(servicePort), connection);
                                 } catch (IOException e) {
                                     LOGGER.error("Forwarding failed", e);
                                 }
@@ -200,7 +200,7 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
                 threads.add(
                         Thread.startVirtualThread(() -> {
                             try {
-                                forwardStream("stdout", rx, portForwardResult.getInputStream(0), connection.getOutputStream());
+                                forwardStream("stdout", rx, portForwardResult.getInputStream(servicePort), connection.getOutputStream(), connection);
                             } catch (IOException e) {
                                 LOGGER.error("Forwarding failed", e);
                             }
@@ -220,7 +220,7 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
             }
         }
 
-        private void forwardStream(String name, AtomicLong transfered, InputStream in, OutputStream out) {
+        private void forwardStream(String name, AtomicLong transfered, InputStream in, OutputStream out, Socket connection) {
             try {
                 byte[] buffer = new byte[1024];
                 int len;
@@ -237,6 +237,11 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
                     LOGGER.info("Forwarding interrupted");
                 } else {
                     LOGGER.error("Forwarding failed for {}", name, e);
+                }
+                try {
+                    connection.close();
+                } catch (IOException ex) {
+                    LOGGER.error("Failed to close connection", ex);
                 }
             }
             threads.remove(Thread.currentThread());
