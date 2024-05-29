@@ -75,7 +75,7 @@ public class NodeK8s implements HandlerK8s {
                     var table = new ConsoleTable();
                     table.setHeaderValues("Name", "Namespace", "Status", "Age");
                     for (var pod : pods.getItems()) {
-                        table.addRowValues(pod.getMetadata().getName(), pod.getMetadata().getNamespace(), pod.getStatus().getPhase(), K8sUtil.getAge(pod.getMetadata().getCreationTimestamp()));
+                        table.addRowValues(pod.getMetadata().getName(), pod.getMetadata().getNamespace(), pod.getStatus().getPhase(), K8sUtil.getAgeSeconds(pod.getMetadata().getCreationTimestamp()));
                     }
                     sb.append(table).append("\n\n");
                 }

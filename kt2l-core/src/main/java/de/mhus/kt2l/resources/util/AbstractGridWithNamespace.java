@@ -31,6 +31,7 @@ import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.resources.pod.PodGrid;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
@@ -72,25 +73,26 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
         if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
 
-            AtomicBoolean added = new AtomicBoolean(false);
-            final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
-                    () -> {
-                        final var res = createResourceItem();
-                        res.initResource((V)event.object, true);
-                        res.updateResource();
-                        resourcesList.add((T)res);
-                        added.set(true);
-                        return (T)res;
-                    }
-            ));
-
-            foundRes.setResource((V)event.object);
-            foundRes.updateResource();
-            filterList();
-            if (added.get())
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-            else
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+            synchronized (this) {
+                AtomicBoolean added = new AtomicBoolean(false);
+                final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
+                        () -> {
+                            final var res = createResourceItem();
+                            res.initResource((V) event.object, true);
+                            res.updateResource();
+                            resourcesList.add((T) res);
+                            added.set(true);
+                            return (T) res;
+                        }
+                ));
+                foundRes.setResource((V) event.object);
+                foundRes.updateResource();
+                filterList();
+                if (added.get())
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                else
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+            }
         } else
         if (event.type.equals(K8sUtil.WATCH_EVENT_DELETED)) {
             AtomicBoolean removed = new AtomicBoolean(false);
@@ -155,11 +157,16 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
         createGridColumnsAfterName(resourcesGrid);
         resourcesGrid.addColumn(res -> res.getAge()).setHeader("Age").setSortProperty("age");
+        createGridColumnsAtEnd(resourcesGrid);
     }
 
     protected abstract void createGridColumnsAfterName(Grid<T> resourcesGrid);
 
-    @Override
+    protected void createGridColumnsAtEnd(Grid<T> resourcesGrid) {
+
+    }
+
+        @Override
     protected boolean filterByContent(T resource, String filter) {
         return resource.getName().contains(filter);
     }
@@ -184,29 +191,31 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     public class ResourceDataProvider extends CallbackDataProvider<ResourceItem<V>, Void> {
         public ResourceDataProvider() {
             super(query -> {
-                        LOGGER.debug("◌ Do the query {}",query);
-                        if (filteredList == null) return Stream.empty();
-                        for(QuerySortOrder queryOrder :
-                                query.getSortOrders()) {
-                            Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
-                                case "name" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getName().compareTo(b.getName());
-                                    case DESCENDING -> b.getName().compareTo(a.getName());
-                                };
-                                case "namespace" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getNamespace().compareTo(b.getNamespace());
-                                    case DESCENDING -> b.getNamespace().compareTo(a.getNamespace());
-                                };
-                                case "age" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
-                                    case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
-                                };
-                                default -> sortColumn(queryOrder.getSorted(), queryOrder.getDirection(), a, b);
-                            });
+                synchronized (AbstractGridWithNamespace.this) {
+                    LOGGER.debug("◌ Do the query {}", query);
+                    if (filteredList == null) return Stream.empty();
+                    for (QuerySortOrder queryOrder :
+                            query.getSortOrders()) {
+                        Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
+                            case "name" -> switch (queryOrder.getDirection()) {
+                                case ASCENDING -> a.getName().compareTo(b.getName());
+                                case DESCENDING -> b.getName().compareTo(a.getName());
+                            };
+                            case "namespace" -> switch (queryOrder.getDirection()) {
+                                case ASCENDING -> a.getNamespace().compareTo(b.getNamespace());
+                                case DESCENDING -> b.getNamespace().compareTo(a.getNamespace());
+                            };
+                            case "age" -> switch (queryOrder.getDirection()) {
+                                case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
+                                case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
+                            };
+                            default -> sortColumn(queryOrder.getSorted(), queryOrder.getDirection(), a, b);
+                        });
 
-                        }
-                        return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
-                    }, query -> {
+                    }
+                    return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
+                }
+            }, query -> {
                         LOGGER.debug("◌ Do the size query {}",query);
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
@@ -225,8 +234,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                         }
                         filterList();
                         return filteredList.size();
-                    }
-            );
+            });
         }
 
     }
@@ -282,7 +290,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         }
 
         public String getAge() {
-            return K8sUtil.getAge(resource.getMetadata().getCreationTimestamp());
+            return K8sUtil.getAgeSeconds(created);
         }
 
         @Override

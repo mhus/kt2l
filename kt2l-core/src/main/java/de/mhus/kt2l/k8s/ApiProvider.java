@@ -43,25 +43,29 @@ public abstract class ApiProvider {
     }
 
     public CoreV1Api getCoreV1Api() {
+        getClient();
         if (coreV1Api == null)
             coreV1Api = new CoreV1Api(getClient());
         return coreV1Api;
     }
 
     public AppsV1Api getAppsV1Api() {
+        getClient();
         if (appsV1Api == null)
             appsV1Api = new AppsV1Api(getClient());
         return appsV1Api;
     }
 
     public BatchV1Api getBatchV1Api() {
+        getClient();
         if (batchV1Api == null)
             batchV1Api = new BatchV1Api(getClient());
         return batchV1Api;
     }
 
-    public ApiClient getClient() {
+    public synchronized ApiClient getClient() {
         if (client == null || System.currentTimeMillis() > refreshAt) {
+            invalidate();
             try {
                 LOGGER.debug("Create new cluster client");
                 client = createClient();
@@ -79,4 +83,7 @@ public abstract class ApiProvider {
 
     protected abstract ApiClient createClient() throws IOException;
 
+    public void invalidate() {
+        refreshAt = 0;
+    }
 }

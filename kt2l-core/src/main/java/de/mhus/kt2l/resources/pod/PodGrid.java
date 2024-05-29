@@ -274,7 +274,12 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         podGrid.addColumn(pod -> pod.getScore() < 0 ? "" : pod.getScore()).setHeader("Score").setSortProperty("score");
     }
 
-    @Override
+    protected void createGridColumnsAtEnd(Grid<Resource> podGrid) {
+        podGrid.addColumn(pod -> pod.getOwner()).setHeader("Owner").setSortProperty("owner");
+    }
+
+
+        @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
         return switch (sorted) {
             case "status" -> switch (direction) {
@@ -308,6 +313,10 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             case "score" -> switch (direction) {
                 case ASCENDING -> Integer.compare(a.getScore(), b.getScore());
                 case DESCENDING -> Integer.compare(b.getScore(), a.getScore());
+            };
+            case "owner" -> switch (direction) {
+                case ASCENDING -> a.getOwner().compareTo(b.getOwner());
+                case DESCENDING -> b.getOwner().compareTo(a.getOwner());
             };
             default -> 0;
         };
@@ -422,6 +431,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
 
         private int score = -1;
 
+        private String owner = "";
+
         private PodMetrics metric;
 
         public Resource() {
@@ -434,6 +445,14 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
 
         public void updateResource() {
+            super.updateResource();
+
+            var ownerReferences = resource.getMetadata().getOwnerReferences();
+            if (ownerReferences != null && ownerReferences.size() > 0) {
+                var ownerReference = ownerReferences.get(0);
+                owner = ownerReference.getKind() + "-" + ownerReference.getUid();
+            }
+
             if (this.status != null && !Objects.equals(this.status, resource.getStatus().getPhase())) {
                 setFlashColor(UiUtil.COLOR.MAGENTA);
             }
@@ -481,6 +500,10 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 }
             }
 
+            if (resource.getMetadata().getDeletionTimestamp() != null) {
+                this.status = "Terminating";
+                setColor(UiUtil.COLOR.BROWN);
+            } else
             if ("Succeeded".equals(this.status)) {
                 setColor(UiUtil.COLOR.GREY);
             } else
@@ -491,7 +514,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
 
         public String getAge() {
-            return K8sUtil.getAge(resource.getMetadata().getCreationTimestamp());
+            return K8sUtil.getAgeSeconds(resource.getMetadata().getCreationTimestamp()) + (resource.getMetadata().getDeletionTimestamp() != null ? " (" + K8sUtil.getAgeSeconds(resource.getMetadata().getDeletionTimestamp()) + ")" : "");
         }
 
         public String getReadyContainers() {
@@ -580,7 +603,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 this.status = "Terminated";
             } else if (cs.getState().getRunning() != null) {
                 this.status = "Running";
-                this.age = K8sUtil.getAge(cs.getState().getRunning().getStartedAt());
+                this.age = K8sUtil.getAgeSeconds(cs.getState().getRunning().getStartedAt());
                 this.created = cs.getState().getRunning().getStartedAt().toEpochSecond();
             } else if (cs.getState().getWaiting() != null) {
                 this.status = "Waiting";

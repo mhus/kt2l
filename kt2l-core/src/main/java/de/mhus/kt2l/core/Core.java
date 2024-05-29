@@ -22,7 +22,6 @@ import com.vaadin.componentfactory.IdleNotification;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -108,6 +107,8 @@ import static de.mhus.commons.tools.MCollection.notNull;
 @Uses(NetworkDiagram.class)
 public class Core extends AppLayout {
 
+    private long uiTemeoutSeconds = 60;
+
     private @Autowired
             @Getter
     AutowireCapableBeanFactory beanFactory;
@@ -153,6 +154,7 @@ public class Core extends AppLayout {
     private PanelService panelService;
     @Autowired
     private SecurityService securityService;
+    private long uiLost = 0;
 
     public Core(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -160,6 +162,9 @@ public class Core extends AppLayout {
 
     @PostConstruct
     public void createUi() {
+
+        uiTemeoutSeconds = viewsConfiguration.getConfig("core").getLong("uiTimeoutSeconds", uiTemeoutSeconds);
+
         if (closeScheduler != null) {
             LOGGER.debug("㋡ Session already created");
             return;
@@ -227,6 +232,7 @@ public class Core extends AppLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         ui = attachEvent.getUI();
+        uiLost = 0;
         LOGGER.debug("㋡ UI on attach {}", MSystem.getObjectId(ui));
 
         createIdleNotification();
@@ -287,6 +293,7 @@ public class Core extends AppLayout {
         LOGGER.debug("㋡ UI on detach {} on session {}", MSystem.getObjectId(detachEvent.getUI()), session == null ? "?" : session.getState());
         checkSession();
         ui = null;
+        uiLost = System.currentTimeMillis();
     }
 
     private void clusteredJobsClose() {
@@ -465,6 +472,13 @@ public class Core extends AppLayout {
         if (session == null) return;
         try {
             LOGGER.trace("㋡ Refresh for session {} and ui {}", session, ui == null ? "?" : Objects.toIdentityString(ui));
+            if (ui == null && uiLost > 0) {
+                if (System.currentTimeMillis() - uiLost > uiTemeoutSeconds*1000) {
+                    LOGGER.error("㋡ UI lost, try to close session");
+                    closeSession();
+                }
+                return;
+            }
             refreshCounter++;
             // cleanup clustered jobs
             if (refreshCounter % 10 == 0) {

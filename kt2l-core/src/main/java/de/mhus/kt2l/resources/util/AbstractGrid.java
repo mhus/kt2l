@@ -392,6 +392,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     protected void doRefreshGrid() {
         LOGGER.info("◌ Refresh Grid");
+        cluster.getApiProvider().invalidate();
         resourcesList = null;
         resourcesGrid.getDataProvider().refreshAll();
     }

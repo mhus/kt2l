@@ -77,6 +77,7 @@ public class ReplicaSetGrid extends AbstractGridWithNamespace<ReplicaSetGrid.Res
 
         @Override
         public void updateResource() {
+            super.updateResource();
             int ready = resource.getStatus().getReadyReplicas() == null ? 0 : resource.getStatus().getReadyReplicas();
             int replicas = resource.getStatus().getReplicas() == null ? 0 : resource.getStatus().getReplicas();
             this.replicas = ready + "/" + replicas;

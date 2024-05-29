@@ -70,26 +70,27 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
         if (resourcesList == null) return;
 
         if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
+            synchronized (this) {
+                AtomicBoolean added = new AtomicBoolean(false);
+                final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
+                        () -> {
+                            final var res = createResourceItem();
+                            res.initResource((V) event.object, true);
+                            res.updateResource();
+                            resourcesList.add((T) res);
+                            added.set(true);
+                            return (T) res;
+                        }
+                ));
 
-            AtomicBoolean added = new AtomicBoolean(false);
-            final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
-                    () -> {
-                        final var res = createResourceItem();
-                        res.initResource((V)event.object, true);
-                        res.updateResource();
-                        resourcesList.add((T)res);
-                        added.set(true);
-                        return (T)res;
-                    }
-            ));
-
-            foundRes.setResource((V)event.object);
-            foundRes.updateResource();
-            filterList();
-            if (added.get())
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
-            else
-                getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+                foundRes.setResource((V) event.object);
+                foundRes.updateResource();
+                filterList();
+                if (added.get())
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshAll());
+                else
+                    getPanel().getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(foundRes));
+            }
         } else
         if (event.type.equals(K8sUtil.WATCH_EVENT_DELETED)) {
             AtomicBoolean removed = new AtomicBoolean(false);
@@ -182,45 +183,46 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
     public class ResourceDataProvider extends CallbackDataProvider<ResourceItem<V>, Void> {
         public ResourceDataProvider() {
             super(query -> {
-                        LOGGER.debug("◌ Do the query {}",query);
-                        if (filteredList == null) return Stream.empty();
-                        for(QuerySortOrder queryOrder :
-                                query.getSortOrders()) {
-                            Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
-                                case "name" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> a.getName().compareTo(b.getName());
-                                    case DESCENDING -> b.getName().compareTo(a.getName());
-                                };
-                                case "age" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
-                                    case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
-                                };
-                                default -> sortColumn(queryOrder.getSorted(), queryOrder.getDirection(), a, b);
-                            });
+                synchronized (AbstractGridWithoutNamespace.this) {
+                    LOGGER.debug("◌ Do the query {}", query);
+                    if (filteredList == null) return Stream.empty();
+                    for (QuerySortOrder queryOrder :
+                            query.getSortOrders()) {
+                        Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
+                            case "name" -> switch (queryOrder.getDirection()) {
+                                case ASCENDING -> a.getName().compareTo(b.getName());
+                                case DESCENDING -> b.getName().compareTo(a.getName());
+                            };
+                            case "age" -> switch (queryOrder.getDirection()) {
+                                case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
+                                case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
+                            };
+                            default -> sortColumn(queryOrder.getSorted(), queryOrder.getDirection(), a, b);
+                        });
 
-                        }
-                        return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
-                    }, query -> {
-                        LOGGER.debug("◌ Do the size query {}",query);
-                        if (resourcesList == null) {
-                            resourcesList = new ArrayList<>();
-                            synchronized (resourcesList) {
-                                tryThis(() -> createResourceListWithoutNamespace())
-                                        .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
-                                        .onSuccess(list -> {
-                                            list.getItems().forEach(res -> {
-                                                var newRes = createResourceItem();
-                                                newRes.initResource((V)res, false);
-                                                newRes.updateResource();
-                                                resourcesList.add(newRes);
-                                            });
-                                        });
-                            }
-                        }
-                        filterList();
-                        return filteredList.size();
                     }
-            );
+                    return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
+                }
+            }, query -> {
+                LOGGER.debug("◌ Do the size query {}",query);
+                if (resourcesList == null) {
+                    resourcesList = new ArrayList<>();
+                    synchronized (resourcesList) {
+                        tryThis(() -> createResourceListWithoutNamespace())
+                                .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
+                                .onSuccess(list -> {
+                                    list.getItems().forEach(res -> {
+                                        var newRes = createResourceItem();
+                                        newRes.initResource((V)res, false);
+                                        newRes.updateResource();
+                                        resourcesList.add(newRes);
+                                    });
+                                });
+                    }
+                }
+                filterList();
+                return filteredList.size();
+            });
         }
 
     }
@@ -276,7 +278,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
         }
 
         public String getAge() {
-            return K8sUtil.getAge(resource.getMetadata().getCreationTimestamp());
+            return K8sUtil.getAgeSeconds(resource.getMetadata().getCreationTimestamp());
         }
 
         @Override

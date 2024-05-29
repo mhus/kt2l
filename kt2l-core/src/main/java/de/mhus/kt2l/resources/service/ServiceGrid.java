@@ -85,6 +85,7 @@ public class ServiceGrid extends AbstractGridWithNamespace<ServiceGrid.Resource,
 
         @Override
         public void updateResource() {
+            super.updateResource();
             type = resource.getSpec().getType();
             clusterIp = resource.getSpec().getClusterIP();
             ports = resource.getSpec().getPorts().stream()

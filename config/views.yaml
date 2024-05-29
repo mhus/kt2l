@@ -25,6 +25,7 @@ core:
     autoExtend: true
     autoExtendWaitSeconds: 5
     notifyBeforeSeconds: 90
+  uiTimeoutSeconds: 60
 snippets:
   maxVisibleResults: 30
 portForward:

@@ -97,7 +97,11 @@ public class K8sUtil {
         }
         var creationTimestamp = res.getMetadata().getCreationTimestamp();
         if (creationTimestamp != null) {
-            sb.append("Created:       ").append(creationTimestamp).append("\n");
+            sb.append("Created:       ").append(creationTimestamp).append(" (Age: ").append(getAgeSeconds(creationTimestamp)).append(")").append("\n");
+        }
+        var deletionTimestamp = res.getMetadata().getDeletionTimestamp();
+        if (deletionTimestamp != null) {
+            sb.append("Deletion:      ").append(deletionTimestamp).append(" (In: ").append(getAgeSeconds(deletionTimestamp)).append(")").append("\n");
         }
 
         var labels = res.getMetadata().getLabels();
@@ -146,7 +150,7 @@ public class K8sUtil {
                     table.addRowValues(
                             event.getType(),
                             event.getReason(),
-                            getAge(event.getMetadata().getCreationTimestamp()),
+                            getAgeSeconds(event.getMetadata().getCreationTimestamp()),
                             event.getCount(),
                             event.getSource().getComponent(),
                             event.getMessage()
@@ -283,19 +287,21 @@ public class K8sUtil {
         return resContent;
     }
 
-    public static String getAge(OffsetDateTime creationTimestamp) {
+    public static String getAgeSeconds(OffsetDateTime creationTimestamp) {
         if (creationTimestamp == null) return "";
-        final var age = System.currentTimeMillis()/1000 - creationTimestamp.toEpochSecond();
-        if (age < 60) return age + "s";
-        if (age < 3600) return age/60 + "m";
+        var age = System.currentTimeMillis()/1000 - creationTimestamp.toEpochSecond();
+        if (age < 0) age = -age;
+        if (age < 120) return age + "s";
+        if (age < 7200) return age/60 + "m";
         if (age < 86400) return age/3600 + "h";
         return age/86400 + "d";
     }
 
-    public static String getAge(long age) {
+    public static String getAgeSeconds(long age) {
+        if (age < 0) age = -age;
         if (age == 0) return "0";
-        if (age < 60) return age + "s";
-        if (age < 3600) return age/60 + "m";
+        if (age < 120) return age + "s";
+        if (age < 7200) return age/60 + "m";
         if (age < 86400) return age/3600 + "h";
         return age/86400 + "d";
     }

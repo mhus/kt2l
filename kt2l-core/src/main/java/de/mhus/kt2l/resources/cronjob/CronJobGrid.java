@@ -79,6 +79,7 @@ public class CronJobGrid extends AbstractGridWithNamespace<CronJobGrid.Resource,
 
         @Override
         public void updateResource() {
+            super.updateResource();
             this.scheduled = resource.getSpec().getSchedule();
             this.suspend = resource.getSpec().getSuspend();
             this.active = tryThis(() -> resource.getStatus().getActive().size()).or(0);

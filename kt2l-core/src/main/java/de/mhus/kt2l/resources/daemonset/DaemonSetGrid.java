@@ -85,6 +85,7 @@ public class DaemonSetGrid extends AbstractGridWithNamespace<DaemonSetGrid.Resou
 
         @Override
         public void updateResource() {
+            super.updateResource();
             var ready = resource.getStatus().getNumberReady() == null ? 0 : resource.getStatus().getNumberReady();
             this.ready = String.valueOf(ready);
             this.desired = toStringOr0(resource.getStatus().getDesiredNumberScheduled());
