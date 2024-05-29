@@ -14,6 +14,16 @@ the application in /Applications you can run it like each other application.
 
 It will use autologin and create a `.kt2l` directory in user home by default.
 
+The first time you start the application MacOS will warn you that the application
+is from an unknown developer and it's not possible to open it. You can open it
+using the `command` key and the `right mouse button` and select open. The you
+will see the same warning but you have the option to open it anyway.
+
+![MacOSX Warning](macosx-warn-01.png)
+
+Click `Open` to start the application. The next time you start the application you
+can start it like each other application.
+
 ## Windows Bundle
 
 The bundle is a exe file which contains the application. If you download it
