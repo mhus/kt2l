@@ -42,6 +42,7 @@ import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.K8s;
@@ -83,6 +84,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
     @Autowired
     private SecurityService securityService;
+
+    @Autowired
+    private PanelService panelService;
 
     @Getter
     private ResourcesGrid grid;
@@ -201,13 +205,35 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                 grid.setFilter(e.getValue(), resourcesFilter);
         });
 
+        var cloneButton = new Button(VaadinIcon.COPY_O.create(), e -> clonePanel());
+        cloneButton.setTooltipText("Clone resource panel");
+
         // toolbar
-        var toolbar = new HorizontalLayout(resourceFilterButton, filterText, namespaceSelector,resourceSelector);
+        var toolbar = new HorizontalLayout(resourceFilterButton, filterText, namespaceSelector,resourceSelector, cloneButton);
         toolbar.addClassName("toolbar");
         toolbar.setPadding(false);
         toolbar.setSpacing(true);
         toolbar.setMargin(false);
         return toolbar;
+    }
+
+    private void clonePanel() {
+        var newTab = panelService.addResourcesGrid(tab, core, cluster);
+        newTab.select();
+        final var sc = SecurityContext.create();
+        Thread.startVirtualThread(() -> {
+            try (var cce = sc.enter()) {
+                for (int i = 0; i < 10; i++) {
+                    MThread.sleep(200);
+                    if (((ResourcesGridPanel) newTab.getPanel()).getCurrentResourceType() != null) {
+                        core.ui().access(() -> {
+                            ((ResourcesGridPanel) newTab.getPanel()).showResources(currentResourceType, namespaceSelector.getValue(), resourcesFilter);
+                        });
+                        break;
+                    }
+                }
+            }
+        });
     }
 
     private void updateNamespaceSelector(boolean selectDefault) {

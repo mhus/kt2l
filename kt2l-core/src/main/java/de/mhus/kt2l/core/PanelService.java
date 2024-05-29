@@ -107,13 +107,25 @@ public class PanelService {
 
     public DeskTab addResourcesGrid(Core core, Cluster cluster) {
         return core.getTabBar().addTab(
-                        "test/" + cluster.getName(),
+                        cluster.getName() + ":resources",
                         cluster.getTitle(),
                         true,
                         false,
                         VaadinIcon.OPEN_BOOK.create(),
                         () -> new ResourcesGridPanel(cluster.getName(), core))
                 .setColor(cluster.getColor())
+                .setHelpContext("resources")
+                .setWindowTitle(cluster.getTitle() + " - Resources");
+    }
+
+    public DeskTab addResourcesGrid(DeskTab parentTab, Core core, Cluster cluster) {
+        return addPanel(
+                        parentTab,
+                        cluster.getName() + ":resources",
+                        cluster.getTitle(),
+                        false,
+                        VaadinIcon.OPEN_BOOK.create(),
+                        () -> new ResourcesGridPanel(cluster.getName(), core))
                 .setHelpContext("resources")
                 .setWindowTitle(cluster.getTitle() + " - Resources");
     }
