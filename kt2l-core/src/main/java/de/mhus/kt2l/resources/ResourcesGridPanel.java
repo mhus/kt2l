@@ -20,7 +20,6 @@ package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ItemLabelGenerator;
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
@@ -348,11 +347,6 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                 grid.refresh(counter);
             });
         }
-    }
-
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
-        grid.handleShortcut(event);
     }
 
     public void showResources(K8s resourceType, String namespace, ResourcesFilter filter) {

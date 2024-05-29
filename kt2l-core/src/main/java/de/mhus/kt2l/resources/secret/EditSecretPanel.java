@@ -1,7 +1,6 @@
 package de.mhus.kt2l.resources.secret;
 
 import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
@@ -234,11 +233,6 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabRefresh(long counter) {
-
-    }
-
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
 
     }
 

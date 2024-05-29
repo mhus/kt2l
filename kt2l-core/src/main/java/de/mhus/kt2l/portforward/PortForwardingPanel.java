@@ -1,7 +1,6 @@
 package de.mhus.kt2l.portforward;
 
 import com.vaadin.componentfactory.ToggleButton;
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
@@ -16,10 +15,11 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.help.HelpResourceConnector;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class PortForwardingPanel extends VerticalLayout implements DeskTabListener {
+public class PortForwardingPanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
     private final Core core;
     private final Cluster cluster;
     private PortForwardBackgroundJob portForwarder;
@@ -164,13 +164,23 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
         }
     }
 
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
-
-    }
-
     public void setCommand(String cmd) {
         command.setValue(cmd);
+    }
+
+    @Override
+    public String getHelpContent() {
+        return command.getValue();
+    }
+
+    @Override
+    public void setHelpContent(String content) {
+        command.setValue(content);
+    }
+
+    @Override
+    public int getHelpCursorPos() {
+        return -1;
     }
 
     private class ForwardEntry extends HorizontalLayout {

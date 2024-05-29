@@ -1,7 +1,6 @@
 package de.mhus.kt2l.resources.configmap;
 
 import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
@@ -221,11 +220,6 @@ public class EditConfigMapPanel extends VerticalLayout implements DeskTabListene
 
     @Override
     public void tabRefresh(long counter) {
-
-    }
-
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
 
     }
 

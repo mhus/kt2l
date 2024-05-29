@@ -510,18 +510,6 @@ public class Core extends AppLayout {
         return tabBar;
     }
 
-    private void handleKeyShortcut(ShortcutEvent shortcutEvent) {
-        LOGGER.debug("Shortcut: {}", shortcutEvent.getKey().getKeys().get(0));
-        final var selected = tabBar.getSelectedTab();
-        if (selected != null) {
-            final var panel = selected.getPanel();
-            if (panel != null && panel instanceof DeskTabListener) {
-                LOGGER.debug("㋡ Shortcut to panel {}", panel.getClass());
-                ((DeskTabListener) panel).tabShortcut(shortcutEvent);
-            }
-        }
-    }
-
     public <T extends ClusterBackgroundJob> T backgroundJobInstance(Cluster cluster, Class<T> watchClass) {
         return (T)getBackgroundJob(cluster.getName(), watchClass, () -> MObject.newInstance(watchClass));
     }

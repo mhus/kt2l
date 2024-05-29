@@ -3,7 +3,6 @@ package de.mhus.kt2l.core;
 import com.flowingcode.vaadin.addons.xterm.ITerminalClipboard;
 import com.flowingcode.vaadin.addons.xterm.ITerminalOptions;
 import com.flowingcode.vaadin.addons.xterm.XTerm;
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.tools.MLang;
@@ -126,8 +125,4 @@ public class LocalBashPanel extends VerticalLayout implements DeskTabListener {
 
     }
 
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
-
-    }
 }

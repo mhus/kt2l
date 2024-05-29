@@ -18,7 +18,6 @@
 package de.mhus.kt2l.resources.common;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -281,11 +280,6 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
 
     @Override
     public void tabRefresh(long counter) {
-
-    }
-
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
 
     }
 

@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.cluster;
 
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
@@ -202,11 +201,6 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     @Override
     public void tabRefresh(long counter) {
         LOGGER.trace("Main Refreshed");
-    }
-
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
-
     }
 
     public record ClusterItem(String name, String title, Cluster cluster) {

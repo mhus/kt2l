@@ -18,8 +18,6 @@
 
 package de.mhus.kt2l.core;
 
-import com.vaadin.flow.component.ShortcutEvent;
-
 public interface DeskTabListener {
     void tabInit(DeskTab deskTab);
     void tabSelected();
@@ -28,5 +26,4 @@ public interface DeskTabListener {
 
     void tabRefresh(long counter);
 
-    void tabShortcut(ShortcutEvent event);
 }

@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l.vis;
 
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import de.mhus.kt2l.cluster.Cluster;
@@ -152,11 +151,6 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabRefresh(long counter) {
-
-    }
-
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
 
     }
 

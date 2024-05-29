@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.resources.pod;
 
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.contextmenu.MenuItem;
@@ -303,11 +302,6 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener {
                 editor.setReadOnly(false);
             });
         }
-    }
-
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
-
     }
 
     private record ResultEntry(ContainerResource container, TextArea text, RunContext context, Thread thread) {

@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.resources.pod;
 
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.Div;
@@ -508,11 +507,6 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabRefresh(long counter) {
-    }
-
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
-
     }
 
     @Getter

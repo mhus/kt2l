@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l.storage;
 
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -403,11 +402,6 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabRefresh(long counter) {
-
-    }
-
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
 
     }
 

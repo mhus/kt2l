@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l.events;
 
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -160,8 +159,4 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
 
     }
 
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
-
-    }
 }

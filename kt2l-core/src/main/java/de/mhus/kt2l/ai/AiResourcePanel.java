@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.ai;
 
-import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -188,8 +187,4 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener {
 
     }
 
-    @Override
-    public void tabShortcut(ShortcutEvent event) {
-
-    }
 }
