@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l.storage;
 
-import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.util.SoftHashMap;
 import de.mhus.kt2l.config.CmdConfiguration;
@@ -95,14 +94,7 @@ public class StorageService {
     public void showStoragePanel(Core core, StorageFile file) {
         if (!isEnabled()) return;
 
-        var tab = panelService.addPanel(
-                core,
-                null,
-                "storage",
-                "Storage",
-                true,
-                VaadinIcon.STORAGE.create(),
-                () -> new StoragePanel()).select();
+        var tab = panelService.addStoragePanel(core, file).select();
         if (file != null) {
             ((StoragePanel)tab.getPanel()).showFile(file);
         }

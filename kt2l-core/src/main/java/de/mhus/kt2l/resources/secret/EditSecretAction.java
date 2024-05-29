@@ -3,8 +3,6 @@ package de.mhus.kt2l.resources.secret;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
-import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
@@ -37,18 +35,7 @@ public class EditSecretAction implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
         var selected = context.getSelected().iterator().next();
-        openPanelTab(panelService, context.getSelectedTab(), context.getCore(), context.getCluster(), (V1Secret) selected);
-    }
-
-    public static DeskTab openPanelTab(PanelService panelService, DeskTab parentTab, Core core, Cluster cluster, V1Secret secret) {
-        return panelService.addPanel(
-                parentTab,
-                "edit-secret-" + secret.getMetadata().getNamespace() + "-" + secret.getMetadata().getName(),
-                "Edit " + secret.getMetadata().getName(),
-                true,
-                VaadinIcon.PASSWORD.create(),
-                () -> new EditSecretPanel(core, cluster, secret)
-        ).setHelpContext("edit_secret").select();
+        panelService.addEditSecretPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), (V1Secret) selected).select();
     }
 
     @Override

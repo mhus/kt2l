@@ -60,20 +60,8 @@ public class ActionShell implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
-
         var selected = (V1Pod)context.getSelected().iterator().next();
-
-        panelService.addPanel(
-                context.getSelectedTab(),
-                context.getCluster().getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":shell",
-                selected.getMetadata().getName(),
-                true,
-                VaadinIcon.TERMINAL.create(),
-                () -> new ContainerShellPanel(
-                        context.getCluster(),
-                        context.getCore(),
-                        selected
-                        )).setHelpContext("shell").select();
+        panelService.addContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), selected).select();
     }
 
     @Override

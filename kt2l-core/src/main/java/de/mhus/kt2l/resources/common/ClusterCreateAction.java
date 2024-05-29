@@ -21,7 +21,6 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterAction;
-import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.PanelService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,19 +49,7 @@ public class ClusterCreateAction implements ClusterAction {
 
     @Override
     public void execute(Core core, Cluster cluster) {
-        panelService.addPanel(
-                core.getMainTab(),
-                cluster.getName() + ":"+cluster.getDefaultNamespace()+":create",
-                cluster.getDefaultNamespace(),
-                false,
-                VaadinIcon.FILE_ADD.create(),
-                () ->
-                        new ResourceCreatePanel(
-                                cluster,
-                                core,
-                                cluster.getDefaultNamespace()
-                        )).setHelpContext("create").select();
-
+        panelService.addResourceCreatePanel(null, core, cluster, cluster.getDefaultNamespace()).select();
     }
 
     @Override

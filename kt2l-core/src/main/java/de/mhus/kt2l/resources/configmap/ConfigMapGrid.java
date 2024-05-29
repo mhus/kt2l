@@ -73,7 +73,7 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
 
     @Override
     protected void onShowDetails(Resource item, boolean flip) {
-        EditConfigMapAction.openPanelTab(panelService, panel.getTab(), panel.getCore(), cluster, item.getResource());
+        panelService.addEditConfigMapPanel(panel.getTab(), panel.getCore(), cluster, item.getResource()).select();
     }
 
     @Getter

@@ -3,8 +3,6 @@ package de.mhus.kt2l.resources.configmap;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
-import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
@@ -37,18 +35,7 @@ public class EditConfigMapAction implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
         var selected = context.getSelected().iterator().next();
-        openPanelTab(panelService, context.getSelectedTab(), context.getCore(), context.getCluster(), (V1ConfigMap) selected);
-    }
-
-    public static DeskTab openPanelTab(PanelService panelService, DeskTab parentTab, Core core, Cluster cluster, V1ConfigMap configMap) {
-        return panelService.addPanel(
-                parentTab,
-                "edit-configmap-" + configMap.getMetadata().getNamespace() + "-" + configMap.getMetadata().getName(),
-                "Edit " + configMap.getMetadata().getName(),
-                true,
-                VaadinIcon.INPUT.create(),
-                () -> new EditConfigMapPanel(core, cluster, configMap)
-        ).setHelpContext("edit_cm").select();
+        panelService.addEditConfigMapPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), (V1ConfigMap) selected).select();
     }
 
     @Override

@@ -50,16 +50,7 @@ public class EventResourceAction implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
-
-        var name = context.getSelected().iterator().next().getMetadata().getName();
-        panelService.addPanel(
-                context.getSelectedTab(),
-                context.getCluster().getName() + ":" + context.getResourceType() + ":" + name + ":events",
-                name,
-                false,
-                VaadinIcon.CALENDAR_CLOCK.create(),
-                () -> new EventPanel(context)
-        ).setHelpContext("events").setWindowTitle(context.getCluster().getName() + " - " + name + " - Events").select();
+        panelService.addEventPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), context.getSelected()).select();
     }
 
     @Override

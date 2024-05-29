@@ -30,13 +30,13 @@ import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.Tail;
 import de.mhus.kt2l.core.TailRow;
 import de.mhus.kt2l.core.UiUtil;
-import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.util.ResourceSelector;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.CoreV1Event;
 import io.kubernetes.client.util.Watch;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 public class EventPanel extends VerticalLayout implements DeskTabListener {
 
@@ -48,10 +48,10 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
     private MenuItem menuItemAutoScroll;
     private MenuItem menuItemWrapLines;
 
-    public EventPanel(ExecutionContext context) {
-        this.core = context.getCore();
-        this.cluster = context.getCluster();
-        this.resourceManager = new ResourceSelector<KubernetesObject>(new ArrayList<>(context.getSelected()), true);
+    public EventPanel(Core core, Cluster cluster, Set<? extends KubernetesObject> selected) {
+        this.core = core;
+        this.cluster = cluster;
+        this.resourceManager = new ResourceSelector<KubernetesObject>(new ArrayList<>(selected), true);
     }
 
     public EventPanel(Core core, Cluster cluster) {

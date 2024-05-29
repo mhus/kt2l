@@ -21,7 +21,6 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterAction;
-import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.PanelService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,19 +49,7 @@ public class VisClusterAction implements ClusterAction {
 
     @Override
     public void execute(Core core, Cluster cluster) {
-        panelService.addPanel(
-                core,
-                cluster,
-                cluster.getName() + ":vis",
-                cluster.getTitle(),
-                false,
-                VaadinIcon.CLUSTER.create(),
-                () ->
-                        new VisPanel(
-                                core,
-                                cluster
-                        )).setHelpContext("vis").select();
-
+        panelService.addVisPanel(core, cluster).select();
     }
 
     @Override

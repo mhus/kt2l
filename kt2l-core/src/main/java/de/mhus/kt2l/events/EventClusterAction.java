@@ -21,7 +21,6 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterAction;
-import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.PanelService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,15 +50,7 @@ public class EventClusterAction implements ClusterAction {
     @Override
     public void execute(Core core, Cluster cluster) {
         var name = cluster.getName();
-        panelService.addPanel(
-                core, cluster,
-                name + ":events",
-                cluster.getTitle(),
-                false,
-                VaadinIcon.CALENDAR_CLOCK.create(),
-                () -> new EventPanel(core, cluster)
-        ).setHelpContext("events").setWindowTitle(cluster.getTitle() + " Events").select();
-
+        panelService.addEventPanel(core, cluster).select();
     }
 
     @Override

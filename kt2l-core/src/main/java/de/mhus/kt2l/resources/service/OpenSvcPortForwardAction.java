@@ -7,14 +7,10 @@ import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.portforward.PortForwardBackgroundJob;
-import de.mhus.kt2l.portforward.PortForwardClusterAction;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
-import de.mhus.kt2l.resources.pod.ContainerResource;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -77,10 +73,8 @@ public class OpenSvcPortForwardAction implements ResourceAction {
             }
         }
 
-        var tab = PortForwardClusterAction.openPanel(panelService, context.getCore(), context.getCluster()).select();
-
+        var tab = panelService.addPortForwardingPanel(context.getCore(), context.getCluster()).select();
         ((PortForwardingPanel)tab.getPanel()).setCommand(cmd.toString());
-
     }
 
     @Override

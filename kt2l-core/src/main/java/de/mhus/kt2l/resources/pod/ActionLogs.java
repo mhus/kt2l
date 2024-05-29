@@ -54,51 +54,7 @@ public class ActionLogs implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
-
-        List<ContainerResource> containers = new ArrayList<>();
-
-        if (context.getResourceType().equals(K8s.CONTAINER)) {
-            context.getSelected().forEach(c -> containers.add((ContainerResource)c));
-        } else
-        if (context.getResourceType().equals(K8s.POD)) {
-            context.getSelected().forEach(p -> {
-               final var pod = (V1Pod)p;
-               pod.getStatus().getContainerStatuses().forEach(cs -> {
-                   containers.add(new ContainerResource(new PodGrid.Container(
-                           PodGrid.CONTAINER_TYPE.DEFAULT,
-                           cs,
-                           pod)));
-               });
-                if (pod.getStatus().getEphemeralContainerStatuses() != null)
-                    pod.getStatus().getEphemeralContainerStatuses().forEach(cs -> {
-                    containers.add(new ContainerResource(new PodGrid.Container(
-                            PodGrid.CONTAINER_TYPE.EPHEMERAL,
-                            cs,
-                            pod)));
-                    });
-                if (pod.getStatus().getInitContainerStatuses() != null)
-                    pod.getStatus().getInitContainerStatuses().forEach(cs -> {
-                    containers.add(new ContainerResource(new PodGrid.Container(
-                            PodGrid.CONTAINER_TYPE.INIT,
-                            cs,
-                            pod)));
-                    });
-        });
-        }
-
-        final var selected = (V1Pod)context.getSelected().iterator().next();
-        panelService.addPanel(
-                context.getSelectedTab(),
-                context.getCluster().getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":logs",
-                selected.getMetadata().getName(),
-                false,
-                VaadinIcon.MODAL_LIST.create(),
-                () ->
-                new PodLogsPanel(
-                        context.getCluster(),
-                        context.getCore(),
-                        containers
-                        )).setHelpContext("logs").select();
+        panelService.addPodLogsPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), context.getSelected()).select();
     }
 
     @Override

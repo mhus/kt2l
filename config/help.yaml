@@ -108,3 +108,45 @@ contexts:
       action: docs
       document: user_cfg
       default: true
+  portforward:
+    - name: Port Forward
+      action: docs
+      document: portforward
+      default: true
+    - name: Kubernetes
+      action: link
+      href: https://kubernetes.io/docs/home/
+  edit_secret:
+    - name: Edit Secret
+      action: docs
+      document: edit_secret
+      default: true
+    - name: Kubernetes
+      action: link
+      href: https://kubernetes.io/docs/home/
+  edit_configmap:
+    - name: Edit ConfigMap
+      action: docs
+      document: edit_configmap
+      default: true
+    - name: Kubernetes
+      action: link
+      href: https://kubernetes.io/docs/home/
+  vis:
+    - name: Visualize
+      action: docs
+      document: vis
+      default: true
+  storage:
+    - name: Storage
+      action: docs
+      document: storage
+      default: true
+    - name: Kubernetes
+      action: link
+      href: https://kubernetes.io/docs/home/
+  localbash:
+    - name: Local Bash
+      action: docs
+      document: localbash
+      default: true

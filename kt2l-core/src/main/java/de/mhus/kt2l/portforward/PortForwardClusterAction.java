@@ -4,10 +4,8 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterAction;
-import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,28 +35,7 @@ public class PortForwardClusterAction implements ClusterAction {
 
     @Override
     public void execute(Core core, Cluster cluster) {
-        openPanel(panelService, core, cluster).select();
-        panelService.addPanel(
-                core,
-                cluster,
-                "portforward",
-                 "Port Forward",
-                true,
-                VaadinIcon.CLOUD_UPLOAD_O.create(),
-                () -> new PortForwardingPanel(core, cluster)
-        ).select();
-    }
-
-    public static DeskTab openPanel(PanelService panelService, Core core, Cluster cluster) {
-        return panelService.addPanel(
-                core,
-                cluster,
-                cluster.getName() + "-portforward",
-                "Port Forward",
-                true,
-                VaadinIcon.CLOUD_UPLOAD_O.create(),
-                () -> new PortForwardingPanel(core, cluster)
-        ).setHelpContext("portforward");
+        panelService.addPortForwardingPanel(core, cluster).select();
     }
 
     @Override

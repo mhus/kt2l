@@ -52,19 +52,7 @@ public class ResourceCreateAction implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
-        panelService.addPanel(
-                context.getSelectedTab(),
-                context.getCluster().getName() + ":" + context.getNamespace() + ":create",
-                context.getNamespace(),
-                false,
-                VaadinIcon.FILE_ADD.create(),
-                () ->
-                        new ResourceCreatePanel(
-                                context.getCluster(),
-                                context.getCore(),
-                                context.getNamespace()
-                        )).setHelpContext("create").select();
-
+        panelService.addResourceCreatePanel(context.getSelectedTab(), context.getCore(), context.getCluster(), context.getNamespace()).select();
     }
 
     @Override

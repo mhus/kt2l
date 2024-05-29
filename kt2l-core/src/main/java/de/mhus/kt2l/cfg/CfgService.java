@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l.cfg;
 
-import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.commons.tools.MFile;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.UsersConfiguration;
@@ -86,8 +85,7 @@ public class CfgService {
         File configDir = configuration.getLocalConfigurationDirectory();
         File globalDir = configuration.getGlobalConfigurationDirectory();
 
-        panelService.addPanel(core, null, "global-cfg", "Global Settings", true, VaadinIcon.COGS.create(),
-                () -> new GlobalCfgPanel(core, true, globalFactories, configDir, globalDir)).setHelpContext("global_cfg").select();
+        panelService.addGlobalCfgPanel(core, globalFactories, configDir, globalDir).select();
     }
 
     public void showUserCfg(Core core) {
@@ -103,9 +101,7 @@ public class CfgService {
         File localUserDir = configuration.getLocalUserConfigurationDirectory(userName);
         File localDir = configuration.getLocalConfigurationDirectory();
         File globalDir = configuration.getGlobalConfigurationDirectory();
-
-        panelService.addPanel(core, null, "user-cfg", "User Settings", true, VaadinIcon.COG.create(),
-                () -> new GlobalCfgPanel(core, false, factories, configDir, localUserDir, localDir, globalDir)).setHelpContext("user_cfg").select();
+        panelService.addUserCfgPanel(core, factories, configDir, localUserDir, localDir, globalDir).select();
 
     }
 

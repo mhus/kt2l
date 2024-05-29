@@ -25,10 +25,10 @@ import com.vaadin.flow.component.textfield.TextArea;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
+import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.resources.ExecutionContext;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
 import io.kubernetes.client.common.KubernetesObject;
@@ -43,11 +43,11 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener {
     @Autowired
     private AiService ai;
     private final List<KubernetesObject> resources;
-    private final ExecutionContext context;
+    private final Core core;
 
-    public AiResourcePanel(List<KubernetesObject> resources, ExecutionContext context) {
+    public AiResourcePanel(List<KubernetesObject> resources, Core core) {
         this.resources = resources;
-        this.context = context;
+        this.core = core;
     }
 
     @Override
@@ -102,12 +102,12 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener {
             Prompt prompt = promptTemplate.apply(Map.of("content", content, "language", language));
 
             final var answer = ai.generate(ai.getModelForPrompt("translate").orElse(AiService.MODEL_YI), prompt);
-            context.getUi().access(() -> {
+            core.ui().access(() -> {
                 text.removeClassName("bgcolor-yellow");
                 text.setValue((answer.finishReason() != null ? answer.finishReason() + "\n" : "") + answer.content().text());
             });
         } catch (Throwable t) {
-            context.getUi().access(() -> {
+            core.ui().access(() -> {
                 text.removeClassName("bgcolor-yellow");
                 text.addClassName("bgcolor-red");
                 text.setValue("Error: " + t.toString());
@@ -128,12 +128,12 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener {
             Prompt prompt = promptTemplate.apply(Map.of("content", content));
 
             final var answer = ai.generate(ai.getModelForPrompt("resource").orElse(AiService.MODEL_CODELLAMA), content);
-            context.getUi().access(() -> {
+            core.ui().access(() -> {
                 textArea.removeClassName("bgcolor-yellow");
                 textArea.setValue((answer.finishReason() != null ? answer.finishReason() + "\n" : "") + answer.content().text());
             });
         } catch (Throwable t) {
-            context.getUi().access(() -> {
+            core.ui().access(() -> {
                 textArea.removeClassName("bgcolor-yellow");
                 textArea.addClassName("bgcolor-red");
                 textArea.setValue("Error: " + t.toString());

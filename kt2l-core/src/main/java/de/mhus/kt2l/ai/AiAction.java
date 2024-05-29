@@ -67,15 +67,7 @@ public class AiAction implements ResourceAction  {
         if (resources.size() == 0) return;
 
         // process
-        var name = resources.getFirst().getMetadata().getName();
-        panelService.addPanel(
-                context.getSelectedTab(),
-                context.getCluster().getName() + ":" + context.getResourceType() + ":" + name + ":ai",
-                name,
-                false,
-                VaadinIcon.ACADEMY_CAP.create(),
-                () -> new AiResourcePanel(resources, context)
-                ).setHelpContext("ai").select();
+        panelService.addAiPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), resources).select();
     }
 
     @Override

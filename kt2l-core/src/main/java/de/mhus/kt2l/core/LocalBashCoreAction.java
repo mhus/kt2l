@@ -25,15 +25,7 @@ public class LocalBashCoreAction implements CoreAction {
 
     @Override
     public void execute(Core core) {
-        panelService.addPanel(
-                core,
-                null,
-                "localbash",
-                "Local bash",
-                false,
-                VaadinIcon.MODAL.create(),
-                () -> new LocalBashPanel(core)
-                ).select();
+        panelService.addLocalBashPanel(core).select();
     }
 
     @Override

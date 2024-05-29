@@ -106,7 +106,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     private volatile StorageFile captureDirectory;
     private Icon menuItemStoreIconDivIcon;
 
-    public PodLogsPanel(Cluster cluster, Core core, List<ContainerResource> containers) {
+    public PodLogsPanel(Core core, Cluster cluster, List<ContainerResource> containers) {
         this.cluster = cluster;
         this.apiProvider = cluster.getApiProvider();
         this.core = core;
