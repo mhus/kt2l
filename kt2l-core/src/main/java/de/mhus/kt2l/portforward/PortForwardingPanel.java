@@ -18,6 +18,9 @@ import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.help.HelpResourceConnector;
 import lombok.extern.slf4j.Slf4j;
 
+import static net.logstash.logback.util.StringUtils.isBlank;
+import static net.logstash.logback.util.StringUtils.isEmpty;
+
 @Slf4j
 public class PortForwardingPanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
     private final Core core;
@@ -81,6 +84,8 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
 
             var parts = cmds.split("\n");
             for (String cmd : parts) {
+                cmd = cmd.trim();
+                if (isEmpty(cmd) || cmd.startsWith("#")) continue;
                 var p = cmd.split("\\s+");
                 if (p.length < 5) {
                     UiUtil.showErrorNotification("Invalid command: " + cmd);
