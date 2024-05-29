@@ -16,7 +16,6 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.UiUtil;
-import elemental.json.JsonType;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -93,11 +92,15 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
                 var remotePort = Integer.parseInt(p[3]);
                 var localPort = Integer.parseInt(p[4]);
                 var action = p.length > 5 ? p[5].trim() : null;
-                if ("pod".equalsIgnoreCase(cmdName)) {
+                if ("pod".equalsIgnoreCase(cmdName) || "svc".equalsIgnoreCase(cmdName)) {
                     try {
-                        var f = portForwarder.getForwarding(namespace, name, remotePort, localPort)
+                        var f = portForwarder.getForwarding(cmdName.toLowerCase(), namespace, name, remotePort, localPort)
                                 .orElseGet(() -> {
-                                    var newF =portForwarder.addForwarding(namespace, name, remotePort, localPort);
+                                    var newF = "pod".equalsIgnoreCase(cmdName) ?
+                                            portForwarder.addPodForwarding(namespace, name, remotePort, localPort)
+                                            :
+                                            portForwarder.addServiceForwarding(namespace, name, remotePort, localPort)
+                                            ;
                                     forwardings.add(new ForwardEntry(newF));
                                     return newF;
                                 });

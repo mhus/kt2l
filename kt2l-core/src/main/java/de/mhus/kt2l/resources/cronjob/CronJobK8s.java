@@ -49,7 +49,20 @@ public class CronJobK8s implements HandlerK8s {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
-        return "";
+        var sb = new StringBuilder();
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
+        if (res instanceof V1CronJob) {
+            var cronJob = (V1CronJob) res;
+            sb.append("Schedule:           ").append(cronJob.getSpec().getSchedule()).append("\n");
+            sb.append("Concurrency Policy: ").append(cronJob.getSpec().getConcurrencyPolicy()).append("\n");
+            sb.append("Suspend:            ").append(cronJob.getSpec().getSuspend()).append("\n");
+            sb.append("Starting Deadline Seconds:     ").append(cronJob.getSpec().getStartingDeadlineSeconds()).append("\n");
+            sb.append("Successful Jobs History Limit: ").append(cronJob.getSpec().getSuccessfulJobsHistoryLimit()).append("\n");
+            sb.append("Failed Jobs History Limit:     ").append(cronJob.getSpec().getFailedJobsHistoryLimit()).append("\n");
+            sb.append("Last Schedule Time:            ").append(cronJob.getStatus().getLastScheduleTime()).append("\n");
+        }
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
+        return sb.toString();
     }
 
     @Override

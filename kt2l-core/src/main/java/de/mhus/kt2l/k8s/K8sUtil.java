@@ -312,4 +312,12 @@ public class K8sUtil {
             throw new ApiException(403, "Access denied for non admin users");
     }
 
+    public static boolean matchLabels(Map<String, String> selector, Map<String, String> labels) {
+        if (selector == null || labels == null) return false;
+        for (var e : selector.entrySet()) {
+            if (!labels.containsKey(e.getKey())) return false;
+            if (!labels.get(e.getKey()).equals(e.getValue())) return false;
+        }
+        return true;
+    }
 }

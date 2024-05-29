@@ -49,7 +49,18 @@ public class ConfigMapK8s implements HandlerK8s {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
-        return "";
+        var sb = new StringBuilder();
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
+        if (res instanceof V1ConfigMap configMap) {
+            sb.append("Data:\n");
+            sb.append("====\n");
+            for (var entry : configMap.getData().entrySet()) {
+                sb.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+                sb.append("----\n");
+            }
+        }
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
+        return sb.toString();
     }
 
     @Override

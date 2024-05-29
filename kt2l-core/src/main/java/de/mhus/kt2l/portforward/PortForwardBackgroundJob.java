@@ -1,6 +1,8 @@
 package de.mhus.kt2l.portforward;
 
+import de.mhus.commons.crypt.MRandom;
 import de.mhus.commons.lang.IRegistry;
+import de.mhus.commons.services.MService;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.Cluster;
@@ -10,6 +12,7 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.ApiProvider;
 import io.kubernetes.client.PortForward;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +27,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
@@ -37,21 +41,21 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
     private List<Forwarding> forwardings = Collections.synchronizedList(new LinkedList<>());
     private Cluster cluster;
 
-    public boolean hasForwarding(String namespace, String name, int servicePort, int localPort) {
-        return forwardings.stream().anyMatch(f -> f.namespace.equals(namespace) && f.name.equals(name) && f.servicePort == servicePort && f.localPort == localPort);
+    public Optional<Forwarding> getForwarding(String type, String namespace, String name, int servicePort, int localPort) {
+        return forwardings.stream().filter(f -> f.type.equals(type) && f.namespace.equals(namespace) && f.name.equals(name) && f.servicePort == servicePort && f.localPort == localPort).findFirst();
     }
 
-    public boolean hasForwarding(Forwarding forwarding) {
-        var requested = forwarding.toString();
-        return forwardings.stream().anyMatch(f -> f.toString().equals(requested));
+    public Forwarding addServiceForwarding(String namespace, String name, int servicePort, int localPort) {
+        var forwarding = new ServiceForwarding(cluster.getApiProvider(), namespace, name, servicePort, localPort);
+        if (forwardings.contains(forwarding)) {
+            throw new IllegalArgumentException("Forwarding already exists");
+        }
+        forwardings.add(forwarding);
+        return forwarding;
     }
 
-    public Optional<Forwarding> getForwarding(String namespace, String name, int servicePort, int localPort) {
-        return forwardings.stream().filter(f -> f.namespace.equals(namespace) && f.name.equals(name) && f.servicePort == servicePort && f.localPort == localPort).findFirst();
-    }
-
-    public Forwarding addForwarding(String namespace, String name, int servicePort, int localPort) {
-        var forwarding = new Forwarding(cluster.getApiProvider(), namespace, name, servicePort, localPort);
+    public Forwarding addPodForwarding(String namespace, String name, int servicePort, int localPort) {
+        var forwarding = new PodForwarding(cluster.getApiProvider(), namespace, name, servicePort, localPort);
         if (forwardings.contains(forwarding)) {
             throw new IllegalArgumentException("Forwarding already exists");
         }
@@ -115,7 +119,67 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
         }
     }
 
-    public static class Forwarding {
+    public static class ServiceForwarding extends Forwarding {
+
+        private final MRandom random;
+
+        private ServiceForwarding(ApiProvider apiProvider, String namespace, String name, int servicePort, int localPort) {
+            super(apiProvider, "svc", namespace, name, servicePort, localPort);
+            random = MService.getService(MRandom.class);
+        }
+
+        @Override
+        protected PortForward.PortForwardResult createForwarding() throws IOException, ApiException {
+            var service =  apiProvider.getCoreV1Api().readNamespacedService(getName(), getNamespace(), null);
+            if (service.getSpec().getSelector() == null)
+                throw new ApiException("Service has no selector");
+
+            var port = service.getSpec().getPorts().stream().filter(p -> p.getPort() == getServicePort()).findFirst().orElse(null);
+            if (port == null)
+                throw new ApiException("Service has no port " + getServicePort());
+
+            var labelSelector = service.getSpec().getSelector().entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "," + b).orElse(null);
+            var pods = apiProvider.getCoreV1Api().listNamespacedPod(getNamespace(), null, null, null, null, labelSelector, null, null, null, null, null, null);
+            LOGGER.debug("Found {} pods for service {}/{}", pods.getItems().size(),getNamespace(),getName());
+            if (pods.getItems().size() == 0)
+                throw new ApiException("No pod found for service");
+
+            var pod = pods.getItems().get(random.getInt() % pods.getItems().size());
+
+            AtomicInteger targetPort = new AtomicInteger(-1);
+            if (port.getTargetPort().isInteger())
+                targetPort.set(port.getTargetPort().getIntValue());
+            else {
+                pod.getSpec().getContainers().forEach(c -> {
+                    if (c.getPorts() != null) {
+                        var p = c.getPorts().stream().filter(pp -> pp.getName().equals(port.getTargetPort().getStrValue())).findFirst().orElse(null);
+                        if (p != null) {
+                            targetPort.set(p.getContainerPort());
+                        }
+                    }
+                });
+            }
+            if (targetPort.get() == -1)
+                throw new ApiException("No target port found for service port " + getServicePort());
+
+            LOGGER.debug("Selected pod {}/{} for service {}/{} on port {}", pod.getMetadata().getNamespace(), pod.getMetadata().getName(), getNamespace(), getName(), targetPort);
+            return  portForward.forward(pod, List.of(targetPort.get()));
+        }
+    }
+
+    public static class PodForwarding extends Forwarding {
+
+        private PodForwarding(ApiProvider apiProvider, String namespace, String name, int servicePort, int localPort) {
+            super(apiProvider, "pod", namespace, name, servicePort, localPort);
+        }
+
+        @Override
+        protected PortForward.PortForwardResult createForwarding() throws IOException, ApiException {
+            return  portForward.forward(getNamespace(), getName(), List.of(getServicePort()));
+        }
+    }
+
+    public static abstract class Forwarding {
 
         @Getter
         private final String namespace;
@@ -124,23 +188,26 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
         @Getter
         private final int servicePort;
         @Getter
-        private final int localPort;
+        protected final int localPort;
         private final String id;
+        private final String type;
+        protected final ApiProvider apiProvider;
         private ServerSocket socket;
         private Thread listenerThread;
-        private final PortForward portForward;
+        protected final PortForward portForward;
         private final List<Thread> threads = Collections.synchronizedList(new LinkedList<>());
         private AtomicLong tx = new AtomicLong();
         private AtomicLong rx = new AtomicLong();
         private boolean closed;
 
-        private Forwarding(ApiProvider apiProvider, String namespace, String name, int servicePort, int localPort) {
-            id = localPort + "->" + namespace + "/" + name + ":" + servicePort;
+        private Forwarding(ApiProvider apiProvider, String type, String namespace, String name, int servicePort, int localPort) {
+            this.type = type;
+            id = type + ":" + localPort + "->" + namespace + "/" + name + ":" + servicePort;
             this.namespace = namespace;
             this.name = name;
             this.servicePort = servicePort;
             this.localPort = localPort;
-            
+            this.apiProvider = apiProvider;
             portForward = new PortForward(apiProvider.getClient());
         }
 
@@ -188,7 +255,7 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
         private void startConnection(Socket connection, int servicePort) {
             try {
                 LOGGER.debug("Forwarding connection on local {} -> {}", localPort, servicePort);
-                var portForwardResult = portForward.forward(namespace, name, List.of(servicePort));
+                var portForwardResult = createForwarding();
                 threads.add(
                         Thread.startVirtualThread(() -> {
                                 try {
@@ -219,6 +286,8 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
                 }
             }
         }
+
+        protected abstract PortForward.PortForwardResult createForwarding() throws IOException, ApiException;
 
         private void forwardStream(String name, AtomicLong transfered, InputStream in, OutputStream out, Socket connection) {
             try {

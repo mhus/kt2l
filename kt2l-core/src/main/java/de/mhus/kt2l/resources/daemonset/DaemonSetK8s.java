@@ -49,7 +49,15 @@ public class DaemonSetK8s implements HandlerK8s {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
-        return "";
+        var sb = new StringBuilder();
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
+        if (res instanceof V1DaemonSet deamonSet) {
+            sb.append("Selector: ").append(deamonSet.getSpec().getSelector()).append("\n");
+            sb.append("Template: ").append(deamonSet.getSpec().getTemplate()).append("\n");
+        }
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
+        return sb.toString();
+
     }
 
     @Override

@@ -50,7 +50,15 @@ public class ReplicaSetK8s implements HandlerK8s {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
-        return "";
+        var sb = new StringBuilder();
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
+        if (res instanceof V1ReplicaSet replicaSet) {
+            sb.append("Replicas:     ").append(replicaSet.getSpec().getReplicas()).append("\n");
+            sb.append("Selector:     ").append(replicaSet.getSpec().getSelector().getMatchLabels()).append("\n");
+            sb.append("Template:     ").append(replicaSet.getSpec().getTemplate().getSpec().getContainers()).append("\n");
+        }
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
+        return sb.toString();
     }
 
     @Override

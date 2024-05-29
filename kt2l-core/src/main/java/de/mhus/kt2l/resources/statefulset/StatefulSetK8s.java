@@ -50,7 +50,17 @@ public class StatefulSetK8s implements HandlerK8s {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
-        return "";
+        var sb = new StringBuilder();
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
+        if (res instanceof V1StatefulSet statefulSet) {
+            sb.append("Replicas:      ").append(statefulSet.getSpec().getReplicas()).append("\n");
+            sb.append("Service Name:  ").append(statefulSet.getSpec().getServiceName()).append("\n");
+            sb.append("Selector:      ").append(statefulSet.getSpec().getSelector()).append("\n");
+            sb.append("Template:      ").append(statefulSet.getSpec().getTemplate()).append("\n");
+            sb.append("Volume Claim Templates: ").append(statefulSet.getSpec().getVolumeClaimTemplates()).append("\n");
+        }
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
+        return sb.toString();
     }
 
     @Override

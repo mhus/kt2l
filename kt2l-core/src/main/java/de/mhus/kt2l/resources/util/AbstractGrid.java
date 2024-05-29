@@ -42,7 +42,9 @@ import com.vaadin.flow.data.provider.DataProvider;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
+import de.mhus.commons.tree.ITreeNode;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ActionService;
@@ -81,6 +83,9 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     @Autowired
     private ActionService actionService;
+    @Autowired
+    private ViewsConfiguration viewsConfiguration;
+
     @Getter
     protected ResourcesGridPanel panel;
     private Optional<T> selectedResource;
@@ -89,6 +94,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     protected Div resourceAmount;
     protected Div selectedAmount;
+    protected ITreeNode viewConfig;
 
     @Override
     public Component getComponent() {
@@ -107,6 +113,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     public void init(Cluster cluster, ResourcesGridPanel panel) {
         this.panel = panel;
         this.cluster = cluster;
+        this.viewConfig = viewsConfiguration.getConfig("resourcesGrid");
 
         createActions();
         createGrid();
@@ -296,7 +303,8 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 col.setAutoWidth(true);
                 col.setResizable(true);
             });
-            resourcesGrid.setClassNameGenerator(this::getGridRowClass);
+            if (viewConfig.getBoolean("colors", true))
+                resourcesGrid.setClassNameGenerator(this::getGridRowClass);
             resourcesGrid.setDataProvider(createDataProvider());
 
             resourcesGrid.addCellFocusListener(event -> {
@@ -368,11 +376,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
         getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid);
         getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.SEMICOLON).listenOn(resourcesGrid);
-        getPanel().getCore().ui().addShortcutListener((event) -> {
-            LOGGER.info("◌ Refresh Grid");
-            resourcesList = null;
-            resourcesGrid.getDataProvider().refreshAll();
-        } , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid);
+        getPanel().getCore().ui().addShortcutListener((event) -> doRefreshGrid() , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid);
 
         actions.forEach(action -> {
             if (action.getAction().getShortcutKey() != null) {
@@ -384,6 +388,12 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 }
             }
         });
+    }
+
+    protected void doRefreshGrid() {
+        LOGGER.info("◌ Refresh Grid");
+        resourcesList = null;
+        resourcesGrid.getDataProvider().refreshAll();
     }
 
     protected String getGridRowClass(T res) {

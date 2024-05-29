@@ -50,7 +50,14 @@ public class DeploymentK8s implements HandlerK8s {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
-        return "";
+        var sb = new StringBuilder();
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
+        if (res instanceof V1Deployment deployment) {
+            sb.append("Selector: ").append(deployment.getSpec().getSelector()).append("\n");
+            sb.append("Template: ").append(deployment.getSpec().getTemplate()).append("\n");
+        }
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
+        return sb.toString();
     }
 
     @Override

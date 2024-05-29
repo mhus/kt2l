@@ -3,6 +3,7 @@ package de.mhus.kt2l.resources.pod;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
@@ -20,10 +21,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @WithRole(UsersConfiguration.ROLE.WRITE)
-public class OpenPortForwardAction implements ResourceAction {
+public class OpenPodPortForwardAction implements ResourceAction {
 
     @Autowired
     private PanelService panelService;
+
+    @Autowired
+    private ViewsConfiguration viewsConfiguration;
 
     @Override
     public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
@@ -59,7 +63,7 @@ public class OpenPortForwardAction implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
 
-        AtomicInteger nextPort = new AtomicInteger(9000);
+        AtomicInteger nextPort = new AtomicInteger(viewsConfiguration.getConfig("portForward").getInt("firstPort", 9000));
         var selected = context.getSelected();
         StringBuilder cmd = new StringBuilder();
 

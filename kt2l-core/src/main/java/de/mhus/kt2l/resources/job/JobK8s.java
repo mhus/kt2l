@@ -49,7 +49,14 @@ public class JobK8s implements HandlerK8s {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
-        return "";
+        var sb = new StringBuilder();
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
+        if (res instanceof V1Job job) {
+            sb.append("Status: ").append(job.getStatus()).append("\n");
+            sb.append("Spec: ").append(job.getSpec()).append("\n");
+        }
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
+        return sb.toString();
     }
 
     @Override

@@ -27,3 +27,7 @@ core:
     notifyBeforeSeconds: 90
 snippets:
   maxVisibleResults: 30
+portForward:
+  firstPort: 9000
+resourcesGrid:
+  colors: true

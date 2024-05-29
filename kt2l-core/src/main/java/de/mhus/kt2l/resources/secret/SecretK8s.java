@@ -49,7 +49,15 @@ public class SecretK8s implements HandlerK8s {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
-        return "";
+        var sb = new StringBuilder();
+        K8sUtil.describeHeader(apiProvider, this, res, sb);
+        if (res instanceof V1Secret secret) {
+            sb.append("Type:         ").append(secret.getType()).append("\n");
+            sb.append("Data keys:").append("\n");
+            secret.getData().forEach((k, v) -> sb.append("  ").append(k).append("\n"));
+        }
+        K8sUtil.describeFooter(apiProvider, this, res, sb);
+        return sb.toString();
     }
 
     @Override
