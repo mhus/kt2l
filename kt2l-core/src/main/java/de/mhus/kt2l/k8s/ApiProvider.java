@@ -25,6 +25,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 @Slf4j
 public abstract class ApiProvider {
@@ -77,4 +78,5 @@ public abstract class ApiProvider {
     }
 
     protected abstract ApiClient createClient() throws IOException;
+
 }

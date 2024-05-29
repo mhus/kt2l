@@ -19,25 +19,32 @@
 package de.mhus.kt2l.k8s;
 
 import de.mhus.commons.errors.NotFoundRuntimeException;
+import de.mhus.commons.tools.MFile;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.resources.generic.GenericK8s;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.KubeConfig;
+import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
@@ -58,6 +65,9 @@ public class K8sService {
 
     @Autowired
     private List<HandlerK8s> resourceHandlers;
+
+    @Autowired
+    private Configuration configuration;
 
     public V1APIResource findResource(K8s resourceType, ApiProvider apiProvider) {
         return findResource(resourceType, apiProvider, null);
@@ -271,5 +281,37 @@ public class K8sService {
                     .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
         throw new NotFoundRuntimeException("Resource not found: " + value.getName());
     }
+
+    public Path getKubeConfigPath(Cluster cluster) {
+        if (cluster == null)
+            return null;
+        try {
+            var tmp = new File(configuration.getTmpDirectoryFile(), "kubeconf-" + MFile.normalize(cluster.getName()) + ".conf");
+            if (!tmp.exists() || tmp.lastModified() < System.currentTimeMillis() + cluster.getApiProviderTimeout()) {
+                // create
+                var kubeContext = getKubeContext(cluster.getName());
+                kubeContext.setContext(cluster.getName());
+                Map<String, Object> ctx = K8sUtil.findObject(kubeContext.getContexts(), cluster.getName());
+                String myCluster = (String)ctx.get("cluster");
+                String myUser = (String)ctx.get("user");
+                String currentNamespace = (String)ctx.get("namespace");
+                Map<String, Object> kubeCluster = K8sUtil.findObject(kubeContext.getClusters(), myCluster);
+                Map<String, Object> kubeUser = K8sUtil.findObject(kubeContext.getUsers(), myUser);
+
+                Map<String, Object> configMap = new LinkedHashMap<>();
+                configMap.put("current-context", cluster.getName());
+                configMap.put("contexts", ctx);
+                configMap.put("clusters", kubeCluster);
+                configMap.put("users", kubeUser);
+                var kubeContextStr = Yaml.dump(configMap);
+                MFile.writeFile(tmp, kubeContextStr);
+            }
+            return tmp.toPath();
+        } catch (Exception e) {
+            LOGGER.error("Can't create kube config", e);
+            return null;
+        }
+    }
+
 }
 

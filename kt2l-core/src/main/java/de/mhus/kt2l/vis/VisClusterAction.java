@@ -17,7 +17,7 @@
  */
 package de.mhus.kt2l.vis;
 
-import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterAction;
@@ -53,7 +53,7 @@ public class VisClusterAction implements ClusterAction {
     }
 
     @Override
-    public Icon getIcon() {
+    public AbstractIcon getIcon() {
         return VaadinIcon.CLUSTER.create();
     }
 

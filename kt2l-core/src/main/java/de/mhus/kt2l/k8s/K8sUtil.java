@@ -40,7 +40,9 @@ import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -320,4 +322,25 @@ public class K8sUtil {
         }
         return true;
     }
+
+    static Map<String, Object> findObject(ArrayList<Object> list, String name) {
+        if (list == null) {
+            return null;
+        } else {
+            Iterator var2 = list.iterator();
+
+            Map map;
+            do {
+                if (!var2.hasNext()) {
+                    return null;
+                }
+
+                Object obj = var2.next();
+                map = (Map)obj;
+            } while(!name.equals(map.get("name")));
+
+            return map;
+        }
+    }
+
 }

@@ -21,6 +21,7 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -30,7 +31,7 @@ import java.util.Arrays;
 
 public class DeskTab extends HorizontalLayout {
 
-    private final Icon icon;
+    private final AbstractIcon icon;
     @Getter
     private final String tabId;
     @Getter
@@ -53,7 +54,7 @@ public class DeskTab extends HorizontalLayout {
 //    @Getter
 //    private Map<String, Object> parameters = new HashMap<>();
 
-    public DeskTab(String tabId, String title, boolean closeable, Icon icon, Component panel) {
+    public DeskTab(String tabId, String title, boolean closeable, AbstractIcon icon, Component panel) {
         if (icon == null)
             icon = VaadinIcon.FILE.create();
         this.icon = icon;

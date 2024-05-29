@@ -114,6 +114,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.marcnuri.helm-java</groupId>
+			<artifactId>helm-java</artifactId>
+			<version>0.0.9</version>
+		</dependency>
+
+		<dependency>
 			<groupId>dev.langchain4j</groupId>
 			<artifactId>langchain4j</artifactId>
 		</dependency>

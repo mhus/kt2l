@@ -18,7 +18,7 @@
 
 package de.mhus.kt2l.cluster;
 
-import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import de.mhus.kt2l.core.Core;
 
 public interface ClusterAction {
@@ -31,7 +31,7 @@ public interface ClusterAction {
 
     void execute(Core core, Cluster cluster);
 
-    Icon getIcon();
+    AbstractIcon getIcon();
 
     int getPriority();
 }

@@ -19,6 +19,7 @@
 package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.tools.MCollection;
@@ -44,7 +45,7 @@ public class DeskTabBar extends VerticalLayout {
         addClassName("desktabview");
     }
 
-    synchronized DeskTab addTab(String id, String title, boolean closeable, boolean unique, Icon icon, Supplier<Component> panelCreator) {
+    synchronized DeskTab addTab(String id, String title, boolean closeable, boolean unique, AbstractIcon icon, Supplier<Component> panelCreator) {
         if (unique) {
             Optional<DeskTab> tab = getTab(id);
             if (tab.isPresent()) {

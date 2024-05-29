@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.core;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.ai.AiResourcePanel;
@@ -25,6 +26,8 @@ import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.events.EventPanel;
+import de.mhus.kt2l.helm.HelmChartPanel;
+import de.mhus.kt2l.helm.HelmClusterAction;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
@@ -71,7 +74,7 @@ public class PanelService {
 
     private DeskTab addPanel(
             Core core, Cluster cluster,
-            String id, String title, boolean unique, Icon icon, Supplier<com.vaadin.flow.component.Component> panelCreator) {
+            String id, String title, boolean unique, AbstractIcon icon, Supplier<com.vaadin.flow.component.Component> panelCreator) {
         return core.getTabBar().addTab(
                         id,
                         title,
@@ -411,5 +414,21 @@ public class PanelService {
                 .setColor(cluster.getColor())
                 .setHelpContext("portforward")
                 .setWindowTitle(cluster.getTitle() + " - Port Forward");
+    }
+
+    public DeskTab addHelmChartPanel(Core core, Cluster cluster) {
+        return addPanel(
+                core,
+                cluster,
+                cluster.getName() + "-helm-chart",
+                "Helm Chart",
+                true,
+                HelmClusterAction.getHelmIcon(),
+                () -> new HelmChartPanel(core, cluster)
+        )
+                .setColor(cluster.getColor())
+                .setHelpContext("helm_chart")
+                .setWindowTitle(cluster.getTitle() + " - Helm Charts");
+
     }
 }
