@@ -6,5 +6,5 @@ export let download : DownloadFile = {
     href_help: "/docs/installation/container",
     size: "",
     enabled: true,
-    created: "2024-05-18"
+    created: "2024-05-29"
 }
