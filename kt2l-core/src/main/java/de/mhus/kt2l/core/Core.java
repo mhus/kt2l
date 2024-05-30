@@ -19,6 +19,7 @@
 package de.mhus.kt2l.core;
 
 import com.vaadin.componentfactory.IdleNotification;
+import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
@@ -105,6 +106,7 @@ import static de.mhus.commons.tools.MCollection.notNull;
 @Uses(PodLogsPanel.class)
 @Uses(FileDownloadWrapper.class)
 @Uses(NetworkDiagram.class)
+@Uses(ToggleButton.class)
 public class Core extends AppLayout {
 
     private long uiTemeoutSeconds = 60;
