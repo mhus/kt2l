@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l.helm;
 
-import com.marcnuri.helm.Helm;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -29,10 +28,7 @@ import de.mhus.kt2l.k8s.K8sService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class HelmChartPanel extends VerticalLayout implements DeskTabListener {
+public class HelmListPanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
     private K8sService k8sService;
@@ -41,7 +37,7 @@ public class HelmChartPanel extends VerticalLayout implements DeskTabListener {
     private final Cluster cluster;
     private Grid<HelmResource> grid;
 
-    public HelmChartPanel(Core core, Cluster cluster) {
+    public HelmListPanel(Core core, Cluster cluster) {
         this.core = core;
         this.cluster = cluster;
     }
@@ -64,17 +60,6 @@ public class HelmChartPanel extends VerticalLayout implements DeskTabListener {
 
     private void refresh() {
 
-        var kubeConfig = k8sService.getKubeConfigPath(cluster);
-        if (kubeConfig == null) {
-            grid.setItems(new ArrayList<>());
-            return;
-        }
-        final List<HelmResource> list = new ArrayList<>();
-        Helm.list()
-                .withKubeConfig(kubeConfig)
-                .all()
-                .call().forEach(r -> list.add(new HelmResource(r.getName())));
-        grid.setItems(list);
     }
 
     @Override

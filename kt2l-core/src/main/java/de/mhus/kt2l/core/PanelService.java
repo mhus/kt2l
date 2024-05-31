@@ -26,7 +26,7 @@ import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.events.EventPanel;
-import de.mhus.kt2l.helm.HelmChartPanel;
+import de.mhus.kt2l.helm.HelmListPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
@@ -436,7 +436,7 @@ public class PanelService {
                 "Helm Chart",
                 true,
                 HelmClusterAction.getHelmIcon(),
-                () -> new HelmChartPanel(core, cluster)
+                () -> new HelmListPanel(core, cluster)
         )
                 .setColor(cluster.getColor())
                 .setHelpContext("helm_chart")

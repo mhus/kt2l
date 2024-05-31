@@ -18,7 +18,10 @@
 
 package de.mhus.kt2l;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.gson.reflect.TypeToken;
+import de.mhus.commons.io.Zip;
+import de.mhus.commons.tools.MJson;
 import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
@@ -42,8 +45,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -64,6 +70,58 @@ public class KubeTest {
         }
     }
     private static final String CLUSTER_NAME = LOCAL_PROPERTIES.getProperty("cluster.name", null);
+
+    @Test
+    public void getHelmInstallations() throws IOException, ApiException {
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+
+        final var service = new K8sService();
+        ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
+        //apiProvider.getClient().setDebugging(true);
+        var list = apiProvider.getCoreV1Api().listSecretForAllNamespaces(
+                null,
+                null,
+                "type=helm.sh/release.v1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+        list.getItems().forEach(secret -> {
+            final var metadata = secret.getMetadata();
+            final var name = metadata.getName();
+            final var creationTimestamp = metadata.getCreationTimestamp();
+            System.out.println(name + " " + creationTimestamp);
+        });
+
+
+        var first = list.getItems().get(0);
+        var data = Base64.getDecoder().decode(first.getData().get("release"));
+        var rawStream = new ByteArrayOutputStream();
+        Zip.builder().srcStream(new ByteArrayInputStream(data)).dstStream(rawStream).build().ungzip();
+        var jsonStr = new String(rawStream.toByteArray());
+        var json = MJson.load(jsonStr);
+        System.out.println(MJson.toPrettyString(json));
+
+        var templates = json.get("chart").get("templates");
+        for (int i = 0; i < templates.size(); i++) {
+            var template = templates.get(i);
+            var name = template.get("name").asText();
+            var dataStr = template.get("data").asText();
+            var dataBytes = Base64.getDecoder().decode(dataStr);
+            System.out.println("===============================");
+            System.out.println(name);
+            System.out.println("---------------------------");
+            System.out.println(new String(dataBytes));
+
+        }
+    }
 
     @Test
     public void getEventsForPod() throws IOException, ApiException {

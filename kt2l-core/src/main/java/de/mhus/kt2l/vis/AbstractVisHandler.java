@@ -44,8 +44,13 @@ public abstract class AbstractVisHandler implements VisHandler {
         if (getManagedWatchClass() != null)
             eventRegistration = panel.getCore().backgroundJobInstance(panel.getCluster(), getManagedWatchClass()).getEventHandler().registerWeak(this::changeEvent);
 
+        updateAll();
+    }
+
+    @Override
+    public void updateAll() {
         try {
-            var allResList = k8sHandler.createResourceListWithoutNamespace(visPanel.getCluster().getApiProvider());
+            var allResList = k8sHandler.createResourceListWithoutNamespace(panel.getCluster().getApiProvider());
             allResList.getItems().forEach(res -> {
                 panel.processNode(this, res);
             });

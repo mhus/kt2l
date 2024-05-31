@@ -22,18 +22,29 @@ import com.flowingcode.vaadin.addons.xterm.ITerminalOptions;
 import com.flowingcode.vaadin.addons.xterm.XTerm;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MThread;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import static net.logstash.logback.util.StringUtils.isBlank;
+
+@Configurable
 @Slf4j
 public class LocalBashPanel extends VerticalLayout implements DeskTabListener {
+
     private final Core core;
     private XTerm xterm;
     private volatile Process proc;
+
+    @Autowired
+    private ViewsConfiguration viewsConfiguration;
 
     public LocalBashPanel(Core core) {
         this.core = core;
@@ -87,7 +98,10 @@ public class LocalBashPanel extends VerticalLayout implements DeskTabListener {
         setMargin(false);
 
         try {
-            ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-i");
+            var bash = viewsConfiguration.getConfig("localBash").getString("path", "/bin/bash");
+            var arg = viewsConfiguration.getConfig("localBash").getString("argument", "-i");
+            if (isBlank(arg)) arg = null;
+            ProcessBuilder builder = new ProcessBuilder(MCollection.notNull(bash, arg));
             builder.redirectErrorStream(true);
             proc = builder.start();
             Thread.startVirtualThread(this::readFromTerminalLoop);

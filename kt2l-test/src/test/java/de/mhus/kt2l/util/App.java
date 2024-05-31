@@ -35,10 +35,10 @@ public class App {
     public static void resetUi(ChromeDriver driver, ServletWebServerApplicationContext webServerApplicationContext) {
         LOGGER.info("Reset test on port {}", webServerApplicationContext.getWebServer().getPort());
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 8; i++) {
             driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort() + "/reset");
             try {
-                new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                new WebDriverWait(driver, ofSeconds(30), ofSeconds(5))
                         .until(visibilityOfElementLocated(By.xpath("//vaadin-button[contains(.,\"KT2L\")]")));
                 break;
             } catch (Exception e) {

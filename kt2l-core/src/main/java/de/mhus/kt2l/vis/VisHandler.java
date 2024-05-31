@@ -25,6 +25,8 @@ import org.vaadin.addons.visjs.network.main.Node;
 public interface VisHandler {
     void init(VisPanel visPanel);
 
+    void updateAll();
+
     void postPrepareNode(Node node);
 
     void prepareNode(Node node, KubernetesObject res);

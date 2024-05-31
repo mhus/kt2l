@@ -32,3 +32,6 @@ portForward:
   firstPort: 9000
 resourcesGrid:
   colors: true
+localBash:
+  path: /bin/bash
+  argument: -i

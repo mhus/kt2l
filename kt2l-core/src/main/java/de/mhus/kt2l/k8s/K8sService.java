@@ -282,36 +282,36 @@ public class K8sService {
         throw new NotFoundRuntimeException("Resource not found: " + value.getName());
     }
 
-    public Path getKubeConfigPath(Cluster cluster) {
-        if (cluster == null)
-            return null;
-        try {
-            var tmp = new File(configuration.getTmpDirectoryFile(), "kubeconf-" + MFile.normalize(cluster.getName()) + ".conf");
-            if (!tmp.exists() || tmp.lastModified() < System.currentTimeMillis() + cluster.getApiProviderTimeout()) {
-                // create
-                var kubeContext = getKubeContext(cluster.getName());
-                kubeContext.setContext(cluster.getName());
-                Map<String, Object> ctx = K8sUtil.findObject(kubeContext.getContexts(), cluster.getName());
-                String myCluster = (String)ctx.get("cluster");
-                String myUser = (String)ctx.get("user");
-                String currentNamespace = (String)ctx.get("namespace");
-                Map<String, Object> kubeCluster = K8sUtil.findObject(kubeContext.getClusters(), myCluster);
-                Map<String, Object> kubeUser = K8sUtil.findObject(kubeContext.getUsers(), myUser);
-
-                Map<String, Object> configMap = new LinkedHashMap<>();
-                configMap.put("current-context", cluster.getName());
-                configMap.put("contexts", ctx);
-                configMap.put("clusters", kubeCluster);
-                configMap.put("users", kubeUser);
-                var kubeContextStr = Yaml.dump(configMap);
-                MFile.writeFile(tmp, kubeContextStr);
-            }
-            return tmp.toPath();
-        } catch (Exception e) {
-            LOGGER.error("Can't create kube config", e);
-            return null;
-        }
-    }
+//    public Path getKubeConfigPath(Cluster cluster) {
+//        if (cluster == null)
+//            return null;
+//        try {
+//            var tmp = new File(configuration.getTmpDirectoryFile(), "kubeconf-" + MFile.normalize(cluster.getName()) + ".conf");
+//            if (!tmp.exists() || tmp.lastModified() < System.currentTimeMillis() + cluster.getApiProviderTimeout()) {
+//                // create
+//                var kubeContext = getKubeContext(cluster.getName());
+//                kubeContext.setContext(cluster.getName());
+//                Map<String, Object> ctx = K8sUtil.findObject(kubeContext.getContexts(), cluster.getName());
+//                String myCluster = (String)ctx.get("cluster");
+//                String myUser = (String)ctx.get("user");
+//                String currentNamespace = (String)ctx.get("namespace");
+//                Map<String, Object> kubeCluster = K8sUtil.findObject(kubeContext.getClusters(), myCluster);
+//                Map<String, Object> kubeUser = K8sUtil.findObject(kubeContext.getUsers(), myUser);
+//
+//                Map<String, Object> configMap = new LinkedHashMap<>();
+//                configMap.put("current-context", cluster.getName());
+//                configMap.put("contexts", ctx);
+//                configMap.put("clusters", kubeCluster);
+//                configMap.put("users", kubeUser);
+//                var kubeContextStr = Yaml.dump(configMap);
+//                MFile.writeFile(tmp, kubeContextStr);
+//            }
+//            return tmp.toPath();
+//        } catch (Exception e) {
+//            LOGGER.error("Can't create kube config", e);
+//            return null;
+//        }
+//    }
 
 }
 

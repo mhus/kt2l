@@ -42,19 +42,21 @@ public class HelmClusterAction implements ClusterAction {
 
     @Override
     public boolean canHandle(Core core) {
-        try {
-            var version = Helm.version().call();
-            LOGGER.info("Helm version: {}", version);
-            return version != null;
-        } catch (Exception e) {
-            LOGGER.warn("Helm not available", e);
-            return false;
-        }
+//        try {
+//            var version = Helm.version().call();
+//            LOGGER.info("Helm version: {}", version);
+//            return version != null;
+//        } catch (Exception e) {
+//            LOGGER.warn("Helm not available", e);
+//            return false;
+//        }
+        return true;
     }
 
     @Override
     public boolean canHandle(Core core, Cluster cluster) {
-        return k8sService.getKubeConfigPath(cluster) != null;
+        //return k8sService.getKubeConfigPath(cluster) != null;
+        return true;
     }
 
     @Override

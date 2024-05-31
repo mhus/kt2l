@@ -20,8 +20,11 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
 
 @Component
 @WithRole(UsersConfiguration.ROLE.ADMIN)
@@ -30,9 +33,13 @@ public class LocalBashCoreAction implements CoreAction {
     @Autowired
     private PanelService panelService;
 
+    @Autowired
+    private ViewsConfiguration viewsConfiguration;
+
     @Override
     public boolean canHandle(Core core) {
-        return true;
+        var bash = viewsConfiguration.getConfig("localBash").getString("path", "/bin/bash");
+        return new File(bash).canExecute();
     }
 
     @Override

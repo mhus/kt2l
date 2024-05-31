@@ -112,13 +112,13 @@
 			<artifactId>togglebutton</artifactId>
 			<version>3.0.0</version>
 		</dependency>
-
+		<!-- no need for helm library at the moment
 		<dependency>
 			<groupId>com.marcnuri.helm-java</groupId>
 			<artifactId>helm-java</artifactId>
 			<version>0.0.9</version>
 		</dependency>
-
+		-->
 		<dependency>
 			<groupId>dev.langchain4j</groupId>
 			<artifactId>langchain4j</artifactId>
@@ -276,33 +276,6 @@
 									<goal>prepare-frontend</goal>
 									<goal>build-frontend</goal>
 								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>native</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.graalvm.buildtools</groupId>
-						<artifactId>native-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>build-native</id>
-								<goals>
-									<goal>compile-no-fork</goal>
-								</goals>
-								<phase>package</phase>
-								<configuration>
-									<mainClass>de.mhus.kt2l.Kt2lApplication</mainClass>
-									<buildArgs>
-										<arg>-H:+AllowDeprecatedBuilderClassesOnImageClasspath</arg>
-									</buildArgs>
-									<skipNativeTests>true</skipNativeTests>
-								</configuration>
 							</execution>
 						</executions>
 					</plugin>
