@@ -61,7 +61,7 @@ public class ActionShell implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
         var selected = (V1Pod)context.getSelected().iterator().next();
-        panelService.addContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), selected).select();
+        panelService.showContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), selected).select();
     }
 
     @Override

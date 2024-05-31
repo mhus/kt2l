@@ -52,7 +52,7 @@ public class EditConfigMapAction implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
         var selected = context.getSelected().iterator().next();
-        panelService.addEditConfigMapPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), (V1ConfigMap) selected).select();
+        panelService.showEditConfigMapPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), (V1ConfigMap) selected).select();
     }
 
     @Override

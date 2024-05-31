@@ -85,7 +85,7 @@ public class PanelService {
                 .setColor(cluster == null ? UiUtil.COLOR.NONE : cluster.getColor());
     }
 
-    public DeskTab addDetailsPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {
+    public DeskTab showDetailsPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {
         return parentTab.getViewer().addTab(
                 cluster.getName() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),
@@ -144,7 +144,7 @@ public class PanelService {
                 .setWindowTitle("Local Bash");
     }
 
-    public DeskTab addContainerShellPanel(DeskTab parentTab,Cluster cluster, Core core, V1Pod selected) {
+    public DeskTab showContainerShellPanel(DeskTab parentTab, Cluster cluster, Core core, V1Pod selected) {
         return addPanel(
                 parentTab,
                 cluster.getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":shell",
@@ -160,7 +160,7 @@ public class PanelService {
                 .setWindowTitle(cluster.getTitle() + " - " + selected.getMetadata().getName() + " - Shell");
     }
 
-    public DeskTab addStoragePanel(Core core, StorageFile file) {
+    public DeskTab showStoragePanel(Core core, StorageFile file) {
         return addPanel(
                 core,
                 null,
@@ -218,7 +218,7 @@ public class PanelService {
                 .setWindowTitle(cluster.getTitle() + " Events");
     }
 
-    public DeskTab addEditConfigMapPanel(DeskTab parentTab, Core core, Cluster cluster, V1ConfigMap configMap) {
+    public DeskTab showEditConfigMapPanel(DeskTab parentTab, Core core, Cluster cluster, V1ConfigMap configMap) {
         return addPanel(
                 parentTab,
                 "edit-configmap-" + configMap.getMetadata().getNamespace() + "-" + configMap.getMetadata().getName(),
@@ -245,7 +245,7 @@ public class PanelService {
                 .setWindowTitle(cluster.getTitle() + " - " + name + " - AI");
     }
 
-    public DeskTab addEditSecretPanel(DeskTab parentTab, Core core, Cluster cluster, V1Secret secret) {
+    public DeskTab showEditSecretPanel(DeskTab parentTab, Core core, Cluster cluster, V1Secret secret) {
         return addPanel(
                 parentTab,
                 "edit-secret-" + secret.getMetadata().getNamespace() + "-" + secret.getMetadata().getName(),
@@ -258,7 +258,7 @@ public class PanelService {
                 .setWindowTitle(cluster.getTitle() + " - Edit Secret " + secret.getMetadata().getName());
     }
 
-    public DeskTab addGlobalCfgPanel(Core core, List<CfgFactory> globalFactories, File configDir, File ... fallbackDirs) {
+    public DeskTab showGlobalCfgPanel(Core core, List<CfgFactory> globalFactories, File configDir, File ... fallbackDirs) {
         return addPanel(
                 core,
                 null,
@@ -276,7 +276,7 @@ public class PanelService {
                 .setWindowTitle("Global Settings");
     }
 
-    public DeskTab addUserCfgPanel(Core core, List<CfgFactory> factories, File configDir, File ... fallbackDirs) {
+    public DeskTab showUserCfgPanel(Core core, List<CfgFactory> factories, File configDir, File ... fallbackDirs) {
         return addPanel(
                 core,
                 null,
@@ -413,7 +413,7 @@ public class PanelService {
                 .setWindowTitle(cluster.getTitle() + " - " + (containers.size() == 1 ? firstSelectedPod.getMetadata().getName() : containers.size() + " Items" ) + " - Logs");
     }
 
-    public DeskTab addPortForwardingPanel(Core core, Cluster cluster) {
+    public DeskTab showPortForwardingPanel(Core core, Cluster cluster) {
         return addPanel(
                 core,
                 cluster,
@@ -428,7 +428,7 @@ public class PanelService {
                 .setWindowTitle(cluster.getTitle() + " - Port Forward");
     }
 
-    public DeskTab addHelmChartPanel(Core core, Cluster cluster) {
+    public DeskTab showHelmChartPanel(Core core, Cluster cluster) {
         return addPanel(
                 core,
                 cluster,

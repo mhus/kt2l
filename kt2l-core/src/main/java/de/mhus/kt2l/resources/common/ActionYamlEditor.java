@@ -58,7 +58,7 @@ public class ActionYamlEditor implements ResourceAction {
         var namespace = metadata.getNamespace();
         var name = metadata.getName();
 
-        panelService.addDetailsPanel(context.getSelectedTab(), context.getCluster(), context.getResourceType(), selected).select();
+        panelService.showDetailsPanel(context.getSelectedTab(), context.getCluster(), context.getResourceType(), selected).select();
 
     }
 

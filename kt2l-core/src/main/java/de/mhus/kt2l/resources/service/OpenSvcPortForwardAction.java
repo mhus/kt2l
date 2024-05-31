@@ -90,7 +90,7 @@ public class OpenSvcPortForwardAction implements ResourceAction {
             }
         }
 
-        var tab = panelService.addPortForwardingPanel(context.getCore(), context.getCluster()).select();
+        var tab = panelService.showPortForwardingPanel(context.getCore(), context.getCluster()).select();
         ((PortForwardingPanel)tab.getPanel()).setCommand(cmd.toString());
     }
 

@@ -52,7 +52,7 @@ public class PortForwardClusterAction implements ClusterAction {
 
     @Override
     public void execute(Core core, Cluster cluster) {
-        panelService.addPortForwardingPanel(core, cluster).select();
+        panelService.showPortForwardingPanel(core, cluster).select();
     }
 
     @Override

@@ -85,7 +85,7 @@ public class CfgService {
         File configDir = configuration.getLocalConfigurationDirectory();
         File globalDir = configuration.getGlobalConfigurationDirectory();
 
-        panelService.addGlobalCfgPanel(core, globalFactories, configDir, globalDir).select();
+        panelService.showGlobalCfgPanel(core, globalFactories, configDir, globalDir).select();
     }
 
     public void showUserCfg(Core core) {
@@ -101,7 +101,7 @@ public class CfgService {
         File localUserDir = configuration.getLocalUserConfigurationDirectory(userName);
         File localDir = configuration.getLocalConfigurationDirectory();
         File globalDir = configuration.getGlobalConfigurationDirectory();
-        panelService.addUserCfgPanel(core, factories, configDir, localUserDir, localDir, globalDir).select();
+        panelService.showUserCfgPanel(core, factories, configDir, localUserDir, localDir, globalDir).select();
 
     }
 

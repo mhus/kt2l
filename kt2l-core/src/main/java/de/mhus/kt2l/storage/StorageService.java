@@ -94,7 +94,7 @@ public class StorageService {
     public void showStoragePanel(Core core, StorageFile file) {
         if (!isEnabled()) return;
 
-        var tab = panelService.addStoragePanel(core, file).select();
+        var tab = panelService.showStoragePanel(core, file).select();
         if (file != null) {
             ((StoragePanel)tab.getPanel()).showFile(file);
         }

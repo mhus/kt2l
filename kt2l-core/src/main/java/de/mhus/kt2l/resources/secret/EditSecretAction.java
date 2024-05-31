@@ -52,7 +52,7 @@ public class EditSecretAction implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
         var selected = context.getSelected().iterator().next();
-        panelService.addEditSecretPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), (V1Secret) selected).select();
+        panelService.showEditSecretPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), (V1Secret) selected).select();
     }
 
     @Override

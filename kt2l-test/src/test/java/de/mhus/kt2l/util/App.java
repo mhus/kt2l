@@ -38,7 +38,7 @@ public class App {
         for (int i = 0; i < 8; i++) {
             driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort() + "/reset");
             try {
-                new WebDriverWait(driver, ofSeconds(30), ofSeconds(5))
+                new WebDriverWait(driver, ofSeconds(30), ofSeconds(2))
                         .until(visibilityOfElementLocated(By.xpath("//vaadin-button[contains(.,\"KT2L\")]")));
                 break;
             } catch (Exception e) {

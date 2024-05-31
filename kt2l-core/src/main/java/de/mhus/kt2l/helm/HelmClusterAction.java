@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l.helm;
 
-import com.marcnuri.helm.Helm;
 import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.server.StreamResource;
@@ -28,7 +27,6 @@ import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.k8s.K8sService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 //@Component
 @Slf4j
@@ -66,7 +64,7 @@ public class HelmClusterAction implements ClusterAction {
 
     @Override
     public void execute(Core core, Cluster cluster) {
-        panelService.addHelmChartPanel(core, cluster).select();
+        panelService.showHelmChartPanel(core, cluster).select();
     }
 
     @Override

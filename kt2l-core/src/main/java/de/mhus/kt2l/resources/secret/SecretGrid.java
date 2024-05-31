@@ -75,7 +75,7 @@ public class SecretGrid extends AbstractGridWithNamespace<SecretGrid.Resource, C
 
     @Override
     protected void onShowDetails(Resource item, boolean flip) {
-        panelService.addEditSecretPanel(panel.getTab(), panel.getCore(), cluster, item.getResource()).select();
+        panelService.showEditSecretPanel(panel.getTab(), panel.getCore(), cluster, item.getResource()).select();
     }
 
     @Getter

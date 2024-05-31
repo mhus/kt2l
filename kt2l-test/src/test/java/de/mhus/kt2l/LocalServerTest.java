@@ -141,7 +141,7 @@ public class LocalServerTest {
 
        // validate little-bonum is not there
         var core = coreHelper.getLastCore();
-        ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("test/aremorica").get().getPanel();
+        ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("aremorica:resources").get().getPanel();
         assertThat(grid.getNamespaces().contains("little-bonum")).isFalse();
         assertThatThrownBy(() -> driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"little-bonum\")]")))
                 .isInstanceOf(NoSuchElementException.class);
@@ -187,7 +187,7 @@ public class LocalServerTest {
 
         // validate idefix is not there
         var core = coreHelper.getLastCore();
-        ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("test/aremorica").get().getPanel();
+        ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("aremorica:resources").get().getPanel();
         PodGrid podGrid = (PodGrid)grid.getGrid();
         assertThat(podGrid.getFilteredList().stream().map(pod -> pod.getName())).doesNotContain("idefix");
         assertThatThrownBy(() -> driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]")))
@@ -248,7 +248,7 @@ public class LocalServerTest {
 
 
         var core = coreHelper.getLastCore();
-        ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("test/aremorica").get().getPanel();
+        ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("aremorica:resources").get().getPanel();
 
         Value<Set<PodGrid.Resource>> selected = new Value<>();
         core.getUI().get().access(() -> {
