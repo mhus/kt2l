@@ -26,7 +26,7 @@ import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.events.EventPanel;
-import de.mhus.kt2l.helm.HelmListPanel;
+import de.mhus.kt2l.helm.HelmInstalledChartsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
@@ -428,7 +428,7 @@ public class PanelService {
                 .setWindowTitle(cluster.getTitle() + " - Port Forward");
     }
 
-    public DeskTab showHelmChartPanel(Core core, Cluster cluster) {
+    public DeskTab showHelmInstalledChartsPanel(Core core, Cluster cluster) {
         return addPanel(
                 core,
                 cluster,
@@ -436,7 +436,7 @@ public class PanelService {
                 "Helm Chart",
                 true,
                 HelmClusterAction.getHelmIcon(),
-                () -> new HelmListPanel(core, cluster)
+                () -> new HelmInstalledChartsPanel(core, cluster)
         )
                 .setColor(cluster.getColor())
                 .setHelpContext("helm_chart")

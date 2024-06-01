@@ -27,8 +27,9 @@ import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.k8s.K8sService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-//@Component
+@Component
 @Slf4j
 public class HelmClusterAction implements ClusterAction {
 
@@ -64,7 +65,7 @@ public class HelmClusterAction implements ClusterAction {
 
     @Override
     public void execute(Core core, Cluster cluster) {
-        panelService.showHelmChartPanel(core, cluster).select();
+        panelService.showHelmInstalledChartsPanel(core, cluster).select();
     }
 
     @Override
