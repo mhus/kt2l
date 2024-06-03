@@ -35,7 +35,6 @@ import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.help.HelpResourceConnector;
 import lombok.extern.slf4j.Slf4j;
 
-import static net.logstash.logback.util.StringUtils.isBlank;
 import static net.logstash.logback.util.StringUtils.isEmpty;
 
 @Slf4j
@@ -56,7 +55,7 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
         portForwarder = core.backgroundJobInstance(cluster, PortForwardBackgroundJob.class);
 
         var menuBar = new MenuBar();
-        menuBar.addItem("Add", e -> addForwarding());
+        menuBar.addItem("Run", e -> runForwardingRules());
         menuBar.addItem("Start All", e -> {
             portForwarder.getForwardings().forEach(f -> f.start());
             tabRefresh(0);
@@ -90,7 +89,7 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
 
     }
 
-    private void addForwarding() {
+    private void runForwardingRules() {
         try {
             var cmds = command.getValue();
 //            var selectionStart = command.getElement().executeJs("return this.inputElement.selectionStart").toCompletableFuture().get();
