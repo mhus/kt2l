@@ -109,18 +109,18 @@ public class KubeTest {
         var json = MJson.load(jsonStr);
         System.out.println(MJson.toPrettyString(json));
 
-        var templates = json.get("chart").get("templates");
-        for (int i = 0; i < templates.size(); i++) {
-            var template = templates.get(i);
-            var name = template.get("name").asText();
-            var dataStr = template.get("data").asText();
-            var dataBytes = Base64.getDecoder().decode(dataStr);
-            System.out.println("===============================");
-            System.out.println(name);
-            System.out.println("---------------------------");
-            System.out.println(new String(dataBytes));
-
-        }
+//        var templates = json.get("chart").get("templates");
+//        for (int i = 0; i < templates.size(); i++) {
+//            var template = templates.get(i);
+//            var name = template.get("name").asText();
+//            var dataStr = template.get("data").asText();
+//            var dataBytes = Base64.getDecoder().decode(dataStr);
+//            System.out.println("===============================");
+//            System.out.println(name);
+//            System.out.println("---------------------------");
+//            System.out.println(new String(dataBytes));
+//
+//        }
     }
 
     @Test

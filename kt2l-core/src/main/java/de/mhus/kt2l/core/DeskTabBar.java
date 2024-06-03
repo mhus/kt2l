@@ -22,6 +22,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import de.mhus.commons.lang.Function0;
 import de.mhus.commons.tools.MCollection;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,15 +46,21 @@ public class DeskTabBar extends VerticalLayout {
         addClassName("desktabview");
     }
 
-    synchronized DeskTab addTab(String id, String title, boolean closeable, boolean unique, AbstractIcon icon, Supplier<Component> panelCreator) {
+    synchronized DeskTab addTab(String id, String title, boolean closeable, boolean unique, AbstractIcon icon, Function0<Component> panelCreator) {
         if (unique) {
             Optional<DeskTab> tab = getTab(id);
             if (tab.isPresent()) {
                 return tab.get();
             }
         }
-        final var newTab = new DeskTab(id, title, closeable, icon, panelCreator.get());
-        return addTab(newTab);
+        try {
+            final var newTab = new DeskTab(id, title, closeable, icon, panelCreator.apply());
+            return addTab(newTab);
+        } catch (Exception e) {
+            LOGGER.error("addTab {}", id, e);
+            UiUtil.showErrorNotification("Error open '" + title + "': " + e.getMessage());
+            return null;
+        }
     }
 
     public synchronized DeskTab addTab(DeskTab tab) {

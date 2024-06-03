@@ -27,6 +27,8 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.PanelService;
+import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.secret.SecretWatch;
@@ -47,6 +49,9 @@ public class HelmInstalledChartsPanel extends VerticalLayout implements DeskTabL
     @Autowired
     private K8sService k8sService;
 
+    @Autowired
+    private PanelService panelService;
+
     private final Core core;
     private final Cluster cluster;
     private Grid<HelmResource> grid;
@@ -54,6 +59,7 @@ public class HelmInstalledChartsPanel extends VerticalLayout implements DeskTabL
     private Set<HelmResource> installedCharts = new HashSet<>();
     private Set<HelmResource> filteredCharts = new HashSet<>();
     private MenuItem allItemsMenu;
+    private DeskTab deskTab;
 
     public HelmInstalledChartsPanel(Core core, Cluster cluster) {
         this.core = core;
@@ -62,11 +68,15 @@ public class HelmInstalledChartsPanel extends VerticalLayout implements DeskTabL
 
     @Override
     public void tabInit(DeskTab deskTab) {
+        this.deskTab = deskTab;
 
         var menuBar = new MenuBar();
 //        menuBar.addItem("Refresh", e -> refresh());
         var viewItem = menuBar.addItem("View");
         var viewSub = viewItem.getSubMenu();
+
+        viewSub.addItem("Details", e -> showDetails());
+
         allItemsMenu = viewSub.addItem("All Versions", event -> {
             filterCharts();
             grid.setItems(filteredCharts);
@@ -74,6 +84,7 @@ public class HelmInstalledChartsPanel extends VerticalLayout implements DeskTabL
         });
         allItemsMenu.setCheckable(true);
         allItemsMenu.setChecked(false);
+
         add(menuBar);
 
         grid = new Grid<HelmResource>();
@@ -82,6 +93,7 @@ public class HelmInstalledChartsPanel extends VerticalLayout implements DeskTabL
         grid.addColumn(HelmResource::getVersion).setHeader("Version");
         grid.addColumn(HelmResource::getCreated).setHeader("Created");
         grid.setSizeFull();
+        grid.addItemDoubleClickListener(e -> showDetails());
         add(grid);
 
         refreshGrid();
@@ -89,6 +101,15 @@ public class HelmInstalledChartsPanel extends VerticalLayout implements DeskTabL
 
         registration = core.backgroundJobInstance(cluster, SecretWatch.class).getEventHandler().registerWeak(this::updateEvent);
 
+    }
+
+    private void showDetails() {
+        var selected = grid.getSelectedItems();
+        if (selected.size() != 1) {
+            return;
+        }
+        var item = selected.iterator().next();
+        panelService.showHelmChartDetailsPanel( deskTab, cluster, item.getResource()).select();
     }
 
     private void updateEvent(Watch.Response<V1Secret> event) {

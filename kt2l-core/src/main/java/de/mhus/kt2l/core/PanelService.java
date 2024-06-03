@@ -21,11 +21,13 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.commons.lang.Function0;
 import de.mhus.kt2l.ai.AiResourcePanel;
 import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.events.EventPanel;
+import de.mhus.kt2l.helm.HelmChartDetailsPanel;
 import de.mhus.kt2l.helm.HelmInstalledChartsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
 import de.mhus.kt2l.k8s.K8s;
@@ -60,7 +62,7 @@ public class PanelService {
 
     private DeskTab addPanel(
             DeskTab parentTab,
-            String id, String title, boolean unique, Icon icon, Supplier<com.vaadin.flow.component.Component> panelCreator) {
+            String id, String title, boolean unique, AbstractIcon icon, Function0<com.vaadin.flow.component.Component> panelCreator) {
         return parentTab.getViewer().addTab(
                 id,
                 title,
@@ -74,7 +76,7 @@ public class PanelService {
 
     private DeskTab addPanel(
             Core core, Cluster cluster,
-            String id, String title, boolean unique, AbstractIcon icon, Supplier<com.vaadin.flow.component.Component> panelCreator) {
+            String id, String title, boolean unique, AbstractIcon icon, Function0<com.vaadin.flow.component.Component> panelCreator) {
         return core.getTabBar().addTab(
                         id,
                         title,
@@ -439,8 +441,21 @@ public class PanelService {
                 () -> new HelmInstalledChartsPanel(core, cluster)
         )
                 .setColor(cluster.getColor())
-                .setHelpContext("helm_chart")
+                .setHelpContext("helm_installed_charts")
                 .setWindowTitle(cluster.getTitle() + " - Helm Charts");
 
+    }
+
+    public DeskTab showHelmChartDetailsPanel(DeskTab parentTab, Cluster cluster, V1Secret resource) {
+        return addPanel(
+                parentTab,
+                cluster.getName() + ":" + resource.getMetadata().getNamespace() + "." + resource.getMetadata().getName() + ":helm-details",
+                resource.getMetadata().getName(),
+                true,
+                HelmClusterAction.getHelmIcon(),
+                () -> new HelmChartDetailsPanel(parentTab.getViewer().getCore(), cluster, resource)
+        )
+                .setHelpContext("helm_details")
+                .setWindowTitle(cluster.getTitle() + " - " + resource.getMetadata().getName() + " - Helm Details");
     }
 }

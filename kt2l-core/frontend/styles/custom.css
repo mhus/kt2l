@@ -264,3 +264,9 @@ div.version {
 .forwardings vaadin-checkbox {
     margin: auto;
 }
+
+.monotext {
+    font-family: monospace;
+    font-size: 14px;
+    color: #000;
+}
