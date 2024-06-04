@@ -21,6 +21,7 @@ package de.mhus.kt2l.resources.replicaset;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
+import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
@@ -45,19 +46,23 @@ public class ReplicaSetGrid extends AbstractGridWithNamespace<ReplicaSetGrid.Res
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(Resource::getStatus).setHeader("Status").setSortProperty("status").setSortable(true);
-        resourcesGrid.addColumn(Resource::getReplicas).setHeader("Replicas").setSortable(false);
+        resourcesGrid.addColumn(Resource::getStatus).setHeader("Status").setSortProperty("status").setSortProperty("status");
+        resourcesGrid.addColumn(Resource::getReplicas).setHeader("Replicas").setSortProperty("replicas");
     }
 
     @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
-        if ("status".equals(sorted)) {
-            switch (direction) {
-                case ASCENDING: return a.getStatus().compareTo(b.getStatus());
-                case DESCENDING: return b.getStatus().compareTo(a.getStatus());
-            }
-        }
-        return 0;
+        return switch (sorted) {
+            case "status" -> switch (direction) {
+                case ASCENDING -> MObject.compareTo(a.getStatus(), b.getStatus());
+                case DESCENDING -> MObject.compareTo(b.getStatus(), a.getStatus());
+            };
+            case "replicas" -> switch (direction) {
+                case ASCENDING -> MObject.compareTo(a.getReplicas(), b.getReplicas());
+                case DESCENDING -> MObject.compareTo(b.getReplicas(), a.getReplicas());
+            };
+            default -> 0;
+        };
     }
 
     @Override

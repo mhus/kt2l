@@ -21,6 +21,7 @@ package de.mhus.kt2l.resources.daemonset;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
+import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
@@ -45,23 +46,49 @@ public class DaemonSetGrid extends AbstractGridWithNamespace<DaemonSetGrid.Resou
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(Resource::getStatus).setHeader("Status").setSortProperty("status").setSortable(true);
-        resourcesGrid.addColumn(Resource::getDesired).setHeader("Desired").setSortable(false);
-        resourcesGrid.addColumn(Resource::getCurrent).setHeader("Current").setSortable(false);
-        resourcesGrid.addColumn(Resource::getReady).setHeader("Ready").setSortable(false);
-        resourcesGrid.addColumn(Resource::getUpToDate).setHeader("Up To Date").setSortable(false);
-        resourcesGrid.addColumn(Resource::getAvailable).setHeader("Available").setSortable(false);
+        resourcesGrid.addColumn(Resource::getStatus).setHeader("Status").setSortProperty("status");
+        resourcesGrid.addColumn(Resource::getDesired).setHeader("Desired").setSortProperty("desired");
+        resourcesGrid.addColumn(Resource::getCurrent).setHeader("Current").setSortProperty("current");
+        resourcesGrid.addColumn(Resource::getReady).setHeader("Ready").setSortProperty("ready");
+        resourcesGrid.addColumn(Resource::getUpToDate).setHeader("Up To Date").setSortProperty("upToDate");
+        resourcesGrid.addColumn(Resource::getAvailable).setHeader("Available").setSortProperty("available");
     }
 
     @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
-        if ("status".equals(sorted)) {
-            switch (direction) {
-                case ASCENDING: return a.getStatus().compareTo(b.getStatus());
-                case DESCENDING: return b.getStatus().compareTo(a.getStatus());
-            }
-        }
-        return 0;
+        return switch(sorted) {
+            case ("status") ->
+                switch (direction) {
+                    case ASCENDING -> MObject.compareTo(a.getStatus(), b.getStatus());
+                    case DESCENDING -> MObject.compareTo(b.getStatus(), a.getStatus());
+                };
+            case ("desired") ->
+                switch (direction) {
+                    case ASCENDING -> MObject.compareTo(a.getDesired(), b.getDesired());
+                    case DESCENDING -> MObject.compareTo(b.getDesired(), a.getDesired());
+                };
+            case ("current") ->
+                switch (direction) {
+                    case ASCENDING -> MObject.compareTo(a.getCurrent(), b.getCurrent());
+                    case DESCENDING -> MObject.compareTo(b.getCurrent(), a.getCurrent());
+                };
+            case ("ready") ->
+                switch (direction) {
+                    case ASCENDING -> MObject.compareTo(a.getReady(), b.getReady());
+                    case DESCENDING -> MObject.compareTo(b.getReady(), a.getReady());
+                };
+            case ("upToDate") ->
+                switch (direction) {
+                    case ASCENDING -> MObject.compareTo(a.getUpToDate(), b.getUpToDate());
+                    case DESCENDING -> MObject.compareTo(b.getUpToDate(), a.getUpToDate());
+                };
+            case ("available") ->
+                switch (direction) {
+                    case ASCENDING -> MObject.compareTo(a.getAvailable(), b.getAvailable());
+                    case DESCENDING -> MObject.compareTo(b.getAvailable(), a.getAvailable());
+                };
+            default -> 0;
+        };
     }
 
     @Override

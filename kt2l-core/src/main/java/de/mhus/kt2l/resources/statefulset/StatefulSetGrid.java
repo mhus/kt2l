@@ -45,8 +45,8 @@ public class StatefulSetGrid extends AbstractGridWithNamespace<StatefulSetGrid.R
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(Resource::getStatus).setHeader("Status").setSortProperty("status").setSortable(true);
-        resourcesGrid.addColumn(Resource::getReplicas).setHeader("Replicas").setSortable(false);
+        resourcesGrid.addColumn(Resource::getStatus).setHeader("Status").setSortProperty("status");
+        resourcesGrid.addColumn(Resource::getReplicas).setHeader("Replicas").setSortProperty("replicas");
     }
 
     @Override
@@ -55,6 +55,12 @@ public class StatefulSetGrid extends AbstractGridWithNamespace<StatefulSetGrid.R
             switch (direction) {
                 case ASCENDING: return a.getStatus().compareTo(b.getStatus());
                 case DESCENDING: return b.getStatus().compareTo(a.getStatus());
+            }
+        }
+        if ("replicas".equals(sorted)) {
+            switch (direction) {
+                case ASCENDING: return a.getReplicas().compareTo(b.getReplicas());
+                case DESCENDING: return b.getReplicas().compareTo(a.getReplicas());
             }
         }
         return 0;

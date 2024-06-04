@@ -48,10 +48,10 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(NodeGrid.Resource::getStatus).setHeader("Status").setSortable(true);
-        resourcesGrid.addColumn(NodeGrid.Resource::getTaintCnt).setHeader("Taints").setSortable(true);
-        resourcesGrid.addColumn(NodeGrid.Resource::getIp).setHeader("IP").setSortable(true);
-        resourcesGrid.addColumn(NodeGrid.Resource::getVersion).setHeader("Version").setSortable(true);
+        resourcesGrid.addColumn(NodeGrid.Resource::getStatus).setHeader("Status").setSortProperty("status");
+        resourcesGrid.addColumn(NodeGrid.Resource::getTaintCnt).setHeader("Taints").setSortProperty("taints");
+        resourcesGrid.addColumn(NodeGrid.Resource::getIp).setHeader("IP").setSortProperty("ip");
+        resourcesGrid.addColumn(NodeGrid.Resource::getVersion).setHeader("Version").setSortProperty("version");
     }
 
     @Override

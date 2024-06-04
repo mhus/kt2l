@@ -184,7 +184,13 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             cluster.setResourceTypes(types);
             LOGGER.debug("Resource types: {}",types.stream().map(V1APIResource::getName).toList());
             core.ui().access(() -> {
-                resourceSelector.setItems(cluster.getResourceTypes().stream().filter(r -> !r.getName().equals("GENERIC") && !r.getName().equals("CUSTOM") && r.getName().indexOf('/') < 0).toList());
+                resourceSelector.setItems(cluster.getResourceTypes().stream()
+                        .filter(r ->
+                                !r.getName().equals("GENERIC") &&
+                                !r.getName().equals("CUSTOM") &&
+                                !r.getName().equals("containers") &&
+                                r.getName().indexOf('/') < 0
+                        ).toList());
                 Thread.startVirtualThread(() -> {
                     MThread.sleep(400);
                     core.ui().access(() -> {

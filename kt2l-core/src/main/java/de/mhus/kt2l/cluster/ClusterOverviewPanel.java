@@ -18,15 +18,18 @@
 
 package de.mhus.kt2l.cluster;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.StreamResource;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.CoreAction;
 import de.mhus.kt2l.core.DeskTab;
@@ -36,6 +39,8 @@ import de.mhus.kt2l.core.SecurityUtils;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.resources.generic.GenericK8s;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +68,9 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     @Autowired
     private SecurityService securityService;
 
+    @Autowired
+    private ViewsConfiguration viewsConfiguration;
+
     private DeskTab tab;
 
     @Getter
@@ -89,6 +97,21 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
         clusterBox.setItems(clusterList);
         clusterBox.setItemLabelGenerator(ClusterItem::title);
         clusterBox.setWidthFull();
+
+        if (viewsConfiguration.getConfig("clusterOverview").getBoolean("colors", true)) {
+            clusterBox.setRenderer(new ComponentRenderer<Component, ClusterItem>(item -> {
+                Div div = new Div(item.title());
+                if (item.cluster().getColor() != null)
+                    div.addClassName("color-" + item.cluster().getColor().name().toLowerCase());
+                return div;
+            }));
+            clusterBox.addValueChangeListener(e -> {
+                clusterBox.getClassNames().removeIf(n -> n.startsWith("color-"));
+                if (e.getValue() != null && e.getValue().cluster().getColor() != null) {
+                    clusterBox.addClassName("color-" + e.getValue().cluster().getColor().name().toLowerCase());
+                }
+            });
+        }
         clusterService.defaultClusterName().ifPresent(defaultClusterName -> {
             clusterList.stream().filter(c -> c.name().equals(defaultClusterName)).findFirst().ifPresent(clusterBox::setValue);
         });

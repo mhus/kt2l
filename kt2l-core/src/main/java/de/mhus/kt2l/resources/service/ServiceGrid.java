@@ -45,8 +45,8 @@ public class ServiceGrid extends AbstractGridWithNamespace<ServiceGrid.Resource,
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(Resource::getType).setHeader("Type").setSortProperty("type").setSortable(true);
-        resourcesGrid.addColumn(Resource::getClusterIp).setHeader("ClusterIp").setSortProperty("clusterip").setSortable(true);
+        resourcesGrid.addColumn(Resource::getType).setHeader("Type").setSortProperty("type");
+        resourcesGrid.addColumn(Resource::getClusterIp).setHeader("ClusterIp").setSortProperty("clusterip");
         resourcesGrid.addColumn(Resource::getPorts).setHeader("Ports").setSortable(false);
     }
 

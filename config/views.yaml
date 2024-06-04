@@ -36,3 +36,5 @@ resourcesGrid:
 localBash:
   path: /bin/bash
   argument: -i
+clusterOverview:
+  colors: true

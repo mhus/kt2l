@@ -48,17 +48,43 @@ public class JobGrid extends AbstractGridWithNamespace<JobGrid.Resource, Compone
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(Resource::getActive).setHeader("Active").setSortable(false);
-        resourcesGrid.addColumn(Resource::getReady).setHeader("Ready").setSortable(false);
-        resourcesGrid.addColumn(Resource::getFailed).setHeader("Failed").setSortable(false);
-        resourcesGrid.addColumn(Resource::getSucceeded).setHeader("Succseeded").setSortable(false);
-        resourcesGrid.addColumn(Resource::getCompletions).setHeader("Completions").setSortable(false);
-        resourcesGrid.addColumn(Resource::getDuration).setHeader("Duration").setSortable(false);
+        resourcesGrid.addColumn(Resource::getActive).setHeader("Active").setSortProperty("active");
+        resourcesGrid.addColumn(Resource::getReady).setHeader("Ready").setSortProperty("ready");
+        resourcesGrid.addColumn(Resource::getFailed).setHeader("Failed").setSortProperty("failed");
+        resourcesGrid.addColumn(Resource::getSucceeded).setHeader("Succseeded").setSortProperty("succeeded");
+        resourcesGrid.addColumn(Resource::getCompletions).setHeader("Completions").setSortProperty("completions");
+        resourcesGrid.addColumn(Resource::getDuration).setHeader("Duration").setSortProperty("duration");
     }
 
     @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
-        return 0;
+        return switch (sorted) {
+            case "active" -> switch (direction) {
+                case ASCENDING -> Integer.compare(Integer.parseInt(a.getActive()), Integer.parseInt(b.getActive()));
+                case DESCENDING -> Integer.compare(Integer.parseInt(b.getActive()), Integer.parseInt(a.getActive()));
+            };
+            case "ready" -> switch (direction) {
+                case ASCENDING -> Integer.compare(Integer.parseInt(a.getReady()), Integer.parseInt(b.getReady()));
+                case DESCENDING -> Integer.compare(Integer.parseInt(b.getReady()), Integer.parseInt(a.getReady()));
+            };
+            case "failed" -> switch (direction) {
+                case ASCENDING -> Integer.compare(Integer.parseInt(a.getFailed()), Integer.parseInt(b.getFailed()));
+                case DESCENDING -> Integer.compare(Integer.parseInt(b.getFailed()), Integer.parseInt(a.getFailed()));
+            };
+            case "succeeded" -> switch (direction) {
+                case ASCENDING -> Integer.compare(Integer.parseInt(a.getSucceeded()), Integer.parseInt(b.getSucceeded()));
+                case DESCENDING -> Integer.compare(Integer.parseInt(b.getSucceeded()), Integer.parseInt(a.getSucceeded()));
+            };
+            case "completions" -> switch (direction) {
+                case ASCENDING -> Integer.compare(Integer.parseInt(a.getCompletions()), Integer.parseInt(b.getCompletions()));
+                case DESCENDING -> Integer.compare(Integer.parseInt(b.getCompletions()), Integer.parseInt(a.getCompletions()));
+            };
+            case "duration" -> switch (direction) {
+                case ASCENDING -> Integer.compare(Integer.parseInt(a.getDuration()), Integer.parseInt(b.getDuration()));
+                case DESCENDING -> Integer.compare(Integer.parseInt(b.getDuration()), Integer.parseInt(a.getDuration()));
+            };
+            default -> 0;
+        };
     }
 
     @Override
