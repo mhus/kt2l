@@ -61,6 +61,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
         "kt2l.configuration.localDirectory=local_config",
+        "kt2l.configuration.usersDirectory=users_nodirectoryset",
                 ""
         }
 )
@@ -112,7 +113,7 @@ public class LocalServerTest {
         App.resetUi(driver, webServerApplicationContext);
 
         // Cluster Name
-        var clusterSelector = driver.findElement(By.id("input-vaadin-combo-box-4"));
+        var clusterSelector = driver.findElement(By.cssSelector("#clusterselect input"));
         assertThat(clusterSelector).isNotNull();
         assertThat(clusterSelector.getAttribute("value")).isEqualTo("Aremorica");
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))

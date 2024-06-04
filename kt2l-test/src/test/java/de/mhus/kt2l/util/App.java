@@ -35,10 +35,12 @@ public class App {
     public static void resetUi(ChromeDriver driver, ServletWebServerApplicationContext webServerApplicationContext) {
         LOGGER.info("Reset test on port {}", webServerApplicationContext.getWebServer().getPort());
 
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 30; i++) {
+            driver.get("about:blank");
+            MThread.sleep(300);
             driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort() + "/reset");
             try {
-                new WebDriverWait(driver, ofSeconds(30), ofSeconds(2))
+                new WebDriverWait(driver, ofSeconds(10), ofSeconds(2))
                         .until(visibilityOfElementLocated(By.xpath("//vaadin-button[contains(.,\"KT2L\")]")));
                 break;
             } catch (Exception e) {
@@ -47,10 +49,12 @@ public class App {
             }
         }
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 30; i++) {
+            driver.get("about:blank");
+            MThread.sleep(300);
             driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort());
             try {
-                new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                new WebDriverWait(driver, ofSeconds(10), ofSeconds(2))
                         .until(visibilityOfElementLocated(By.xpath("//span[contains(.,\"[KT2L]\")]")));
                 return;
             } catch (Exception e) {

@@ -97,6 +97,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
         clusterBox.setItems(clusterList);
         clusterBox.setItemLabelGenerator(ClusterItem::title);
         clusterBox.setWidthFull();
+        clusterBox.setId("clusterselect");
 
         if (viewsConfiguration.getConfig("clusterOverview").getBoolean("colors", true)) {
             clusterBox.setRenderer(new ComponentRenderer<Component, ClusterItem>(item -> {
