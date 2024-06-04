@@ -106,6 +106,7 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
 
         @Override
         public void updateResource() {
+            super.updateResource();
             this.status = resource.getStatus().getPhase();
             this.taintCnt = tryThis(() -> resource.getSpec().getTaints().size()).or(0);
             this.ip = resource.getStatus().getAddresses().stream()

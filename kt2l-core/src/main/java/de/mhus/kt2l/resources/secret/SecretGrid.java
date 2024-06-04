@@ -21,6 +21,7 @@ package de.mhus.kt2l.resources.secret;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
+import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.PanelService;
@@ -54,13 +55,29 @@ public class SecretGrid extends AbstractGridWithNamespace<SecretGrid.Resource, C
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(Resource::getDataCnt).setHeader("Data Cnt").setSortable(false);
-        resourcesGrid.addColumn(v -> MString.toByteDisplayString(v.getDataSize()) ).setHeader("Data Size").setSortable(false);
+        resourcesGrid.addColumn(Resource::getType).setHeader("Type").setSortProperty("type");
+        resourcesGrid.addColumn(Resource::getDataCnt).setHeader("Data Cnt").setSortProperty("datacnt");
+        resourcesGrid.addColumn(v -> MString.toByteDisplayString(v.getDataSize()) ).setHeader("Data Size").setSortProperty("datasize");
     }
 
     @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
-        return 0;
+        return switch (sorted) {
+            case "type" ->
+                switch (direction) {
+                    case ASCENDING -> MObject.compareTo(a.getType(), b.getType());
+                    case DESCENDING -> MObject.compareTo(b.getType(), a.getType());
+                };
+            case "datacnt" -> switch (direction) {
+                case ASCENDING -> Integer.compare(a.getDataCnt(), b.getDataCnt());
+                case DESCENDING -> Integer.compare(b.getDataCnt(), a.getDataCnt());
+            };
+            case "datasize" -> switch (direction) {
+                case ASCENDING -> Long.compare(a.getDataSize(), b.getDataSize());
+                case DESCENDING -> Long.compare(b.getDataSize(), a.getDataSize());
+            };
+            default -> 0;
+        };
     }
 
     @Override
@@ -82,10 +99,12 @@ public class SecretGrid extends AbstractGridWithNamespace<SecretGrid.Resource, C
     public static class Resource extends ResourceItem<V1Secret> {
         private int dataCnt;
         private long dataSize;
+        private String type;
 
         @Override
         public void updateResource() {
             super.updateResource();
+            type = resource.getType();
             dataCnt = tryThis(() -> resource.getData().size()).or(0);
             dataSize = tryThis(() -> resource.getData().values().stream().mapToLong(b -> b.length).sum()).or(0L);
             setColor(null);

@@ -38,6 +38,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.data.provider.DataProvider;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
@@ -95,6 +96,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     protected Div resourceAmount;
     protected Div selectedAmount;
     protected ITreeNode viewConfig;
+    private SplitLayout detailsSplit;
 
     @Override
     public Component getComponent() {
@@ -128,7 +130,15 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             setShortcuts();
         });
 
-        add(MCollection.notNull(menuBar, resourcesGrid, detailsComponent, getFooter()));
+        if (detailsComponent != null) {
+            detailsSplit = new SplitLayout(resourcesGrid, detailsComponent);
+            detailsSplit.setSizeFull();
+            detailsSplit.setOrientation(SplitLayout.Orientation.VERTICAL);
+            add(MCollection.notNull(menuBar, detailsSplit, getFooter()));
+        } else {
+            add(MCollection.notNull(menuBar, resourcesGrid, getFooter()));
+        }
+
         setSizeFull();
 
         actions.forEach(a -> a.updateWithResources(Collections.emptySet()));

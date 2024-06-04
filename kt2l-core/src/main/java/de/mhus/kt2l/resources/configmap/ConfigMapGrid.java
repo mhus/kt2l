@@ -21,6 +21,7 @@ package de.mhus.kt2l.resources.configmap;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
+import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.PanelService;
@@ -52,13 +53,23 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(Resource::getDataCnt).setHeader("Data Cnt").setSortable(false);
-        resourcesGrid.addColumn(v -> MString.toByteDisplayString(v.getDataSize()) ).setHeader("Data Size").setSortable(false);
+        resourcesGrid.addColumn(Resource::getDataCnt).setHeader("Data Cnt").setSortProperty("datacnt");
+        resourcesGrid.addColumn(v -> MString.toByteDisplayString(v.getDataSize()) ).setHeader("Data Size").setSortProperty("datasize");
     }
 
     @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
-        return 0;
+        return switch (sorted) {
+            case "datacnt" -> switch (direction) {
+                case ASCENDING -> Integer.compare(a.getDataCnt(), b.getDataCnt());
+                case DESCENDING -> Integer.compare(b.getDataCnt(), a.getDataCnt());
+            };
+            case "datasize" -> switch (direction) {
+                case ASCENDING -> Long.compare(a.getDataSize(), b.getDataSize());
+                case DESCENDING -> Long.compare(b.getDataSize(), a.getDataSize());
+            };
+            default -> 0;
+        };
     }
 
     @Override

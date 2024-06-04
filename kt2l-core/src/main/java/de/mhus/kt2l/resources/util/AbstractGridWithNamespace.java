@@ -25,6 +25,7 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
+import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.HandlerK8s;
@@ -50,9 +51,11 @@ import static de.mhus.commons.tools.MLang.tryThis;
 @Slf4j
 public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamespace.ResourceItem<V>, S extends Component,V extends KubernetesObject, L extends KubernetesListObject> extends AbstractGrid<T, S>{
 
-    protected static final int ALERT_ALERT = 2;
-    protected static final int ALERT_WARNING = 1;
-    protected static final int ALERT_NONE = 0;
+    protected enum ALERT {
+        NONE,
+        WARNING,
+        ALERT
+    };
     private IRegistration eventRegistration;
     @Autowired
     protected K8sService k8sService;
@@ -159,6 +162,8 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         resourcesGrid.addColumn(res -> res.getName()).setHeader("Name").setSortProperty("name");
         createGridColumnsAfterName(resourcesGrid);
         resourcesGrid.addColumn(res -> res.getAge()).setHeader("Age").setSortProperty("age");
+        if (viewConfig.getBoolean("showResourceVersion", false))
+            resourcesGrid.addColumn(res -> res.getResourceVersion()).setHeader("RVersion").setSortProperty("resourceversion");
         createGridColumnsAtEnd(resourcesGrid);
     }
 
@@ -200,8 +205,8 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                             query.getSortOrders()) {
                         Collections.sort(filteredList, (a, b) -> switch (queryOrder.getSorted()) {
                             case "name" -> switch (queryOrder.getDirection()) {
-                                case ASCENDING -> a.getName().compareTo(b.getName());
-                                case DESCENDING -> b.getName().compareTo(a.getName());
+                                case ASCENDING -> MObject.compareTo(a.getName(), b.getName());
+                                case DESCENDING -> MObject.compareTo(b.getName(), a.getName());
                             };
                             case "namespace" -> switch (queryOrder.getDirection()) {
                                 case ASCENDING -> a.getNamespace().compareTo(b.getNamespace());
@@ -210,6 +215,10 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                             case "age" -> switch (queryOrder.getDirection()) {
                                 case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
                                 case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
+                            };
+                            case "resourceversion" -> switch (queryOrder.getDirection()) {
+                                case ASCENDING -> MObject.compareTo(a.getResourceVersion(), b.getResourceVersion());
+                                case DESCENDING -> MObject.compareTo(b.getResourceVersion(), a.getResourceVersion());
                             };
                             default -> sortColumn(queryOrder.getSorted(), queryOrder.getDirection(), a, b);
                         });
@@ -242,10 +251,10 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     }
 
     protected String getGridRowClass(T res) {
-        if (res.alert == ALERT_ALERT)
+        if (res.alert == ALERT.ALERT)
             return "bgcolor-red";
-        if (res.alert == ALERT_WARNING)
-            return "bgcolor-yellow";
+        if (res.alert == ALERT.WARNING)
+            return "bgcolor-orange";
         return res.color != null ? res.color.name().toLowerCase() : "";
     }
 
@@ -285,7 +294,8 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         protected String namespace;
         protected long created;
         protected V resource;
-        public int alert = 0;
+        public ALERT alert = ALERT.NONE;
+        private String resourceVersion;
 
         void initResource(V resource, boolean newResource) {
             this.name = resource.getMetadata().getName();
@@ -317,6 +327,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
         public void updateResource() {
             this.created = tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
+            this.resourceVersion = tryThis(() -> resource.getMetadata().getResourceVersion()).or("");
         }
 
         void setResource(V object) {

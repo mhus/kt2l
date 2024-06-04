@@ -236,11 +236,11 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                         pod.score = score;
 
                         if (score > scoreErrorThreshold) {
-                            pod.alert = ALERT_ALERT;
+                            pod.alert = ALERT.ALERT;
                         } else if (score > scoreWarnThreshold) {
-                            pod.alert = ALERT_WARNING;
+                            pod.alert = ALERT.WARNING;
                         } else {
-                            pod.alert = ALERT_NONE;
+                            pod.alert = ALERT.NONE;
                         }
 
                     }
@@ -511,9 +511,10 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             {
                 var containers = resource.getStatus().getContainerStatuses();
                 if (containers != null) {
-                    this.containerCnt = containers.size();
-                    this.runningContainersCnt = (int)containers.stream().filter(c -> c.getState().getRunning() != null).count();
                     for (V1ContainerStatus container : containers) {
+                        this.containerCnt++;
+                        if (container.getReady() != null && container.getReady())
+                            this.runningContainersCnt++;
                         this.restarts += container.getRestartCount();
                     }
                 }
@@ -521,9 +522,12 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             {
                 var containers = resource.getStatus().getEphemeralContainerStatuses();
                 if (containers != null) {
-                    this.containerCnt = containers.size();
-                    this.runningContainersCnt = (int)containers.stream().filter(c -> c.getState().getRunning() != null).count();
                     for (V1ContainerStatus container : containers) {
+                        if (container.getState() != null && container.getState().getTerminated() == null) {
+                            this.containerCnt++;
+                            if (container.getReady() != null && container.getReady())
+                                this.runningContainersCnt++;
+                        }
                         this.restarts += container.getRestartCount();
                     }
                 }
@@ -531,9 +535,12 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             {
                 var containers = resource.getStatus().getInitContainerStatuses();
                 if (containers != null) {
-                    this.containerCnt = containers.size();
-                    this.runningContainersCnt = (int)containers.stream().filter(c -> c.getState().getRunning() != null).count();
                     for (V1ContainerStatus container : containers) {
+                        if (container.getState() != null && container.getState().getTerminated() == null) {
+                            this.containerCnt++;
+                            if (container.getReady() != null && container.getReady())
+                                this.runningContainersCnt++;
+                        }
                         this.restarts += container.getRestartCount();
                     }
                 }
@@ -552,11 +559,11 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 setColor(null);
 
             if (score > grid.scoreErrorThreshold) {
-                alert = ALERT_ALERT;
+                alert = ALERT.ALERT;
             } else if (score > grid.scoreWarnThreshold) {
-                alert = ALERT_WARNING;
+                alert = ALERT.WARNING;
             } else {
-                alert = ALERT_NONE;
+                alert = ALERT.NONE;
             }
 
         }

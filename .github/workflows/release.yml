@@ -311,7 +311,7 @@ jobs:
 
   website:
     needs: [macosx-aarch64, windows-amd64, deb-amd64, documentation]
-    if: "always() && ${{ contains(inputs.execute, ':website:') }}"
+    if: ${{ always() && contains(inputs.execute, ':website:') }}
     runs-on: ubuntu-latest
     steps:
       - run: |
