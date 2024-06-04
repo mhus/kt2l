@@ -31,7 +31,6 @@ import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
-import de.mhus.kt2l.resources.pod.PodGrid;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
@@ -51,6 +50,9 @@ import static de.mhus.commons.tools.MLang.tryThis;
 @Slf4j
 public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamespace.ResourceItem<V>, S extends Component,V extends KubernetesObject, L extends KubernetesListObject> extends AbstractGrid<T, S>{
 
+    protected static final int ALERT_ALERT = 2;
+    protected static final int ALERT_WARNING = 1;
+    protected static final int ALERT_NONE = 0;
     private IRegistration eventRegistration;
     @Autowired
     protected K8sService k8sService;
@@ -240,7 +242,11 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     }
 
     protected String getGridRowClass(T res) {
-        return res.color != null ? res.color.name().toLowerCase() : null;
+        if (res.alert == ALERT_ALERT)
+            return "bgcolor-red";
+        if (res.alert == ALERT_WARNING)
+            return "bgcolor-yellow";
+        return res.color != null ? res.color.name().toLowerCase() : "";
     }
 
     public void refresh(long counter) {
@@ -259,7 +265,6 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
             }
         }
     }
-
 
         protected L createRawResourceListForNamespace(String namespace) throws ApiException {
         return resourceHandler.createResourceListWithNamespace(cluster.getApiProvider(), namespace);
@@ -280,6 +285,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         protected String namespace;
         protected long created;
         protected V resource;
+        public int alert = 0;
 
         void initResource(V resource, boolean newResource) {
             this.name = resource.getMetadata().getName();
@@ -328,7 +334,6 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
             if (colorTimeout == 0)
                 this.color = color;
         }
-
 
     }
 

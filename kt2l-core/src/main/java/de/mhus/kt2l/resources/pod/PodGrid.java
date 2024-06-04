@@ -33,7 +33,9 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.resources.pod.score.PodScorer;
 import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.pod.score.PodScorerConfiguration;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.ContainerMetrics;
@@ -45,6 +47,8 @@ import io.kubernetes.client.openapi.models.V1PodList;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,10 +61,19 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+@Configurable
 @Slf4j
 public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<PodGrid.Container>, V1Pod, V1PodList> {
 
+    @Autowired(required = false)
+    private List<PodScorer> podSourcerers;
+
+    @Autowired
+    private PodScorerConfiguration podScorerConfiguration;
+
     private volatile boolean needMetricRefresh = true;
+    private int scoreErrorThreshold;
+    private int scoreWarnThreshold;
 
     public enum CONTAINER_TYPE {DEFAULT, INIT, EPHEMERAL};
       private List<Container> containerList = null;
@@ -73,7 +86,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
 
     @Override
     protected Resource createResourceItem() {
-        return new Resource();
+        return new Resource(this);
     }
 
     protected void createDetailsComponent() {
@@ -96,7 +109,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         detailsComponent.setVisible(false);
         detailsComponent.addSelectionListener(event -> {
             if (detailsComponent.isVisible()) {
-                final var selected = detailsComponent.getSelectedItems().stream().map(s -> new Resource(s.getPod())).collect(Collectors.toSet());
+                final var selected = detailsComponent.getSelectedItems().stream().map(s -> new Resource(this, s.getPod())).collect(Collectors.toSet());
                 actions.forEach(a -> a.updateWithResources(selected));
             }
         });
@@ -168,7 +181,6 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
 
     }
 
-
     @Override
     protected void onGridSelectionChanged() {
         if (detailsComponent.isVisible())
@@ -211,6 +223,27 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 if (pod.updateMetric(metric)) {
                     resourcesGrid.getDataProvider().refreshItem(pod);
                     changed.set(true);
+                }
+                if (podSourcerers != null) {
+                    var score = 0;
+                    for (PodScorer scorer : podSourcerers) {
+                        var apiProvider = panel.getCluster().getApiProvider();
+                        if (scorer.isEnabled())
+                            score += scorer.scorePod(apiProvider, pod);
+                    }
+                    if (score != pod.score) {
+                        changed.set(true);
+                        pod.score = score;
+
+                        if (score > scoreErrorThreshold) {
+                            pod.alert = ALERT_ALERT;
+                        } else if (score > scoreWarnThreshold) {
+                            pod.alert = ALERT_WARNING;
+                        } else {
+                            pod.alert = ALERT_NONE;
+                        }
+
+                    }
                 }
             }
         } );
@@ -272,6 +305,9 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         podGrid.addColumn(pod -> pod.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
         podGrid.addColumn(pod -> pod.getMetricMemoryPercentage() < 0 ? "" : pod.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
         podGrid.addColumn(pod -> pod.getScore() < 0 ? "" : pod.getScore()).setHeader("Score").setSortProperty("score");
+
+        scoreErrorThreshold = podScorerConfiguration.getErrorThreshold();
+        scoreWarnThreshold = podScorerConfiguration.getWarnThreshold();
     }
 
     protected void createGridColumnsAtEnd(Grid<Resource> podGrid) {
@@ -415,10 +451,11 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     @Getter
     public static class Resource extends AbstractGridWithNamespace.ResourceItem<V1Pod> {
 
+        private final PodGrid grid;
         private String status;
-        private long runningContainersCnt;
-        private long containerCnt;
-        private long restarts;
+        private int runningContainersCnt;
+        private int containerCnt;
+        private int restarts;
 
         private double metricCpu = Double.MAX_VALUE;
         private long metricMemory = Long.MAX_VALUE;
@@ -435,11 +472,13 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
 
         private PodMetrics metric;
 
-        public Resource() {
+        public Resource(PodGrid grid) {
             super();
+            this.grid = grid;
         }
 
-        public Resource(V1Pod pod) {
+        public Resource(PodGrid grid, V1Pod pod) {
+            this.grid = grid;
             resource = pod;
             updateResource();
         }
@@ -473,7 +512,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 var containers = resource.getStatus().getContainerStatuses();
                 if (containers != null) {
                     this.containerCnt = containers.size();
-                    this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
+                    this.runningContainersCnt = (int)containers.stream().filter(c -> c.getState().getRunning() != null).count();
                     for (V1ContainerStatus container : containers) {
                         this.restarts += container.getRestartCount();
                     }
@@ -483,7 +522,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 var containers = resource.getStatus().getEphemeralContainerStatuses();
                 if (containers != null) {
                     this.containerCnt = containers.size();
-                    this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
+                    this.runningContainersCnt = (int)containers.stream().filter(c -> c.getState().getRunning() != null).count();
                     for (V1ContainerStatus container : containers) {
                         this.restarts += container.getRestartCount();
                     }
@@ -493,7 +532,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 var containers = resource.getStatus().getInitContainerStatuses();
                 if (containers != null) {
                     this.containerCnt = containers.size();
-                    this.runningContainersCnt = containers.stream().filter(c -> c.getState().getRunning() != null).count();
+                    this.runningContainersCnt = (int)containers.stream().filter(c -> c.getState().getRunning() != null).count();
                     for (V1ContainerStatus container : containers) {
                         this.restarts += container.getRestartCount();
                     }
@@ -511,6 +550,15 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 setColor(UiUtil.COLOR.RED);
             } else
                 setColor(null);
+
+            if (score > grid.scoreErrorThreshold) {
+                alert = ALERT_ALERT;
+            } else if (score > grid.scoreWarnThreshold) {
+                alert = ALERT_WARNING;
+            } else {
+                alert = ALERT_NONE;
+            }
+
         }
 
         public String getAge() {

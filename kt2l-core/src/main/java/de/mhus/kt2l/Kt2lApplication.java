@@ -36,25 +36,16 @@ import java.util.concurrent.ScheduledExecutorService;
 public class Kt2lApplication {
 
 	public static final String UI_USERNAME = "username";
-	private volatile static ConfigurableApplicationContext context;
 	private static String[] args;
 
 	public static void main(String[] args) {
 		Kt2lApplication.args = args;
-		context = SpringApplication.run(Kt2lApplication.class, args);
+		SpringApplication.run(Kt2lApplication.class, args);
 	}
 
 	public static void restart() {
-
-		Thread thread = new Thread(() -> {
-			if (context != null)
-				context.close();
-			context = null;
-			context = SpringApplication.run(Kt2lApplication.class, Kt2lApplication.args);
-		});
-
-		thread.setDaemon(false);
-		thread.start();
+		LOGGER.info("Restarting application");
+		System.exit(101); // tell the script to restart the application
 	}
 
 	@Bean

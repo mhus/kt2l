@@ -26,4 +26,14 @@ JAVA_BIN=$JAVA_HOME/bin/java
 APP_JAR=bin/kt2l-server-0.0.1-SNAPSHOT.jar
 KT2L_TMP_DIRECTORY=${KT2L_TMP_DIRECTORY:-var/tmp}
 
+RESTART=1
+while [ $RESTART -eq 1 ]; do
 exec $JAVA_BIN -Dspring.profiles.active=prod $JAVA_VM_OPTS -jar $APP_JAR
+RC=$?
+RESTART=0
+if [ $RC -eq 101 ]; then
+  echo "Restarting kt2l-server"
+  sleep 1
+  RESTART=1
+fi
+done

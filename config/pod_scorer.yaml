@@ -1,0 +1,10 @@
+alerts:
+  error: 100
+  warn: 50
+restarts:
+  enabled: true
+  spread: 10
+notrunning:
+  enabled: true
+  spread: 110
+  age: 120

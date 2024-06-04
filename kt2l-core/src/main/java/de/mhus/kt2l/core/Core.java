@@ -374,6 +374,7 @@ public class Core extends AppLayout {
                             dialog.setHeader("Restart");
                             dialog.setText("Do you really want to restart the server?");
                             dialog.setConfirmText("Restart");
+                            dialog.setCancelable(true);
                             dialog.addConfirmListener(e -> Kt2lApplication.restart());
                             dialog.open();
                         });

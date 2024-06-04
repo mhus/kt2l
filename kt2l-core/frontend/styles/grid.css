@@ -64,3 +64,52 @@
 .grey {
     color: #808080;
 }
+
+.bgcolor-red {
+    background-color: #ff0000;
+}
+
+.bgcolor-green {
+    background-color: #00ff00;
+}
+
+.bgcolor-blue {
+    background-color: #0000ff;
+}
+
+.bgcolor-yellow {
+    background-color: #ffff00;
+}
+
+.bgcolor-orange {
+    background-color: #ff8000;
+}
+
+.bgcolor-purple {
+    background-color: #8000ff;
+}
+
+.bgcolor-cyan {
+    background-color: #00ffff;
+}
+
+.bgcolor-black {
+    background-color: #000000;
+}
+
+.bgcolor-white {
+    background-color: #ffffff;
+}
+
+.bgcolor-pink {
+    background-color: #ff00ff;
+}
+.bgcolor-magenta {
+    background-color: #ff00ff;
+}
+.bgcolor-brown {
+    background-color: #a52a2a;
+}
+.bgcolor-grey {
+    background-color: #808080;
+}
