@@ -50,6 +50,10 @@ public class HelpConfiguration extends AbstractUserRelatedConfig {
                         .getArray(name).orElse(MTree.EMPTY_LIST));
     }
 
+    public boolean isSticky() {
+        return config().getBoolean("sticky", false);
+    }
+
 
     public static class HelpContext {
 

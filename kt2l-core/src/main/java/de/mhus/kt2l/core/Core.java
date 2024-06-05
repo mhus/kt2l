@@ -29,6 +29,7 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.dependency.Uses;
@@ -168,6 +169,7 @@ public class Core extends AppLayout {
     @Autowired
     private SecurityService securityService;
     private long uiLost = 0;
+    private boolean helpSticky;
 
     public Core(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -202,6 +204,7 @@ public class Core extends AppLayout {
         contentContainer = new VerticalLayout();
 
         if (helpConfiguration.isEnabled()) {
+            helpSticky = helpConfiguration.isSticky();
             createHelpContent();
         }
         content.add(notNull(contentContainer, helpContent));
@@ -433,15 +436,24 @@ public class Core extends AppLayout {
                 }
             }
         );
+
+        if (!links.isEmpty())
+            helpMenu.add(new Hr());
+
+        var helpStickyToggel = helpMenu.addItem("Sticky");
+        helpStickyToggel.setCheckable(true);
+        helpStickyToggel.setChecked(helpSticky);
+        helpStickyToggel.addClickListener(event -> {
+            helpSticky = helpStickyToggel.isChecked();
+        });
+
         if (helpContent.isVisible()) {
-            if (!links.isEmpty())
-                helpMenu.add(new Hr());
             helpMenu.addItem("Close Help", event -> {
                 if (!helpContent.isVisible()) return;
                 helpContent.setVisible(false);
                 updateHelpMenu(false);
             });
-            if (setDefaultDocu) {
+            if (setDefaultDocu && !helpSticky) {
                 links.stream().filter(link ->
                             link.getHelpAction() != null &&
                             !(link.getHelpAction() instanceof LinkHelpAction) &&

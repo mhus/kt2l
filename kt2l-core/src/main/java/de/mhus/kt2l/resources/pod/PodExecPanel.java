@@ -37,6 +37,7 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.help.HelpResourceConnector;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.kscript.Block;
 import de.mhus.kt2l.kscript.RunCompiler;
@@ -57,7 +58,7 @@ import java.util.List;
 import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
-public class PodExecPanel extends VerticalLayout implements DeskTabListener {
+public class PodExecPanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
 
     @Autowired
     private ShellConfiguration shellConfiguration;
@@ -302,6 +303,21 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener {
                 editor.setReadOnly(false);
             });
         }
+    }
+
+    @Override
+    public String getHelpContent() {
+        return editor.getValue();
+    }
+
+    @Override
+    public void setHelpContent(String content) {
+        editor.setValue(content);
+    }
+
+    @Override
+    public int getHelpCursorPos() {
+        return editor.getCursorPosition().getIndex();
     }
 
     private record ResultEntry(ContainerResource container, TextArea text, RunContext context, Thread thread) {

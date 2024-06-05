@@ -38,13 +38,23 @@ public class SnippetsHelpPanel extends AbstractGitSnippetsHelpPanel {
             return;
         }
         var pos = HelpUtil.getHelpResourceConnector(core).get().getHelpCursorPos();
-        if (pos < 0) {
-            HelpUtil.setResourceContent(core, current + "\n---\n" + snippet);
-            return;
-        }
-        var before = current.substring(0, pos);
-        var after = current.substring(pos);
+        if (getCodeType().equals("yaml")) {
+            if (pos < 0) {
+                HelpUtil.setResourceContent(core, current + "\n---\n" + snippet);
+                return;
+            }
+            var before = current.substring(0, pos);
+            var after = current.substring(pos);
 
-        HelpUtil.setResourceContent(core, (isSetTrim(before) ? before + "\n---\n" : "") + snippet + (isSetTrim(after) ? "\n---\n" + after : ""));
+            HelpUtil.setResourceContent(core, (isSetTrim(before) ? before + "\n---\n" : "") + snippet + (isSetTrim(after) ? "\n---\n" + after : ""));
+        } else {
+            if (pos <= 0) {
+                HelpUtil.setResourceContent(core, current + "\n" + snippet);
+            } else {
+                var before = current.substring(0, pos);
+                var after = current.substring(pos);
+                HelpUtil.setResourceContent(core, before + "\n" + snippet + (isSetTrim(after) ? "\n" + after : ""));
+            }
+        }
     }
 }

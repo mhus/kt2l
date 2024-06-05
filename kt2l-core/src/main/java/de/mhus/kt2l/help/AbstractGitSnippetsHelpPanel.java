@@ -24,6 +24,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,6 +43,7 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
     protected List<SnippetsService.Snippet> snippets = null;
     protected TextField search;
     protected VerticalLayout content;
+    @Getter
     private final String codeType;
     private long maxVisibleResults = 30;
 
