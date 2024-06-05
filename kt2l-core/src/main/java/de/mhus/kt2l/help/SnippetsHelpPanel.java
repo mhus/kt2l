@@ -22,10 +22,10 @@ import de.mhus.kt2l.core.Core;
 
 import static de.mhus.commons.tools.MString.isSetTrim;
 
-public class YamlSnippetsHelpPanel extends AbstractGitSnippetsHelpPanel {
+public class SnippetsHelpPanel extends AbstractGitSnippetsHelpPanel {
 
-    public YamlSnippetsHelpPanel(Core core, HelpConfiguration.HelpLink link) {
-        super("yaml", core, link);
+    public SnippetsHelpPanel(Core core, HelpConfiguration.HelpLink link) {
+        super( link.getNode().getString("type","yaml"), core, link);
     }
 
     @Override

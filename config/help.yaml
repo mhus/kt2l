@@ -76,6 +76,11 @@ contexts:
       action: docs
       document: exec
       default: true
+    - name: Snippets
+      action: snippets
+      repo: https://github.com/mhus/kt2l-snippets.git
+      type: bash
+      path: exec
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/
@@ -84,8 +89,9 @@ contexts:
       action: docs
       document: create
     - name: Snippets
-      action: yaml-snippets
+      action: snippets
       repo: https://github.com/mhus/kt2l-snippets.git
+      type: yaml
       path: create
     - name: Kubernetes
       action: link

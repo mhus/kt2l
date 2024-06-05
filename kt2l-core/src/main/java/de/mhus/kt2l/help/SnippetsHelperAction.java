@@ -23,16 +23,16 @@ import de.mhus.kt2l.core.Core;
 import org.springframework.stereotype.Component;
 
 @Component
-public class YamlSnippetsHelperAction implements HelpAction {
+public class SnippetsHelperAction implements HelpAction {
 
     @Override
     public boolean canHandle(HelpConfiguration.HelpLink link) {
-        return "yaml-snippets".equals(link.getAction());
+        return "snippets".equals(link.getAction());
     }
 
     @Override
     public void execute(Core core, HelpConfiguration.HelpLink link) {
-        YamlSnippetsHelpPanel panel = new YamlSnippetsHelpPanel(core, link);
+        SnippetsHelpPanel panel = new SnippetsHelpPanel(core, link);
         panel.setSizeFull();
         core.setHelpPanel(panel);
         panel.init();
