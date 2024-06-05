@@ -16,13 +16,3 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-exec:
-  - /usr/bin/osascript
-  - '-e'
-  - tell application "Terminal" to do script "kubectl exec -it --context '${context}' -c '${container}' '${pod}' -- '${cmd}'; exit"
-  - '-e'
-  - tell application "Terminal" to activate
-webbrowser:
-  - /usr/bin/open
-  - '${url}'
-filebrowser:
