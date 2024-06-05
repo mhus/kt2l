@@ -22,6 +22,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.BatchV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -37,6 +38,7 @@ public abstract class ApiProvider {
     private CoreV1Api coreV1Api;
     private AppsV1Api appsV1Api;
     private BatchV1Api batchV1Api;
+    private NetworkingV1Api networkingV1Api;
 
     protected ApiProvider(long timeout) {
         this.timeout = timeout;
@@ -63,6 +65,13 @@ public abstract class ApiProvider {
         return batchV1Api;
     }
 
+    public NetworkingV1Api getNetworkingV1Api() {
+        getClient();
+        if (networkingV1Api == null)
+            networkingV1Api = new NetworkingV1Api(getClient());
+        return networkingV1Api;
+    }
+
     public synchronized ApiClient getClient() {
         if (client == null || System.currentTimeMillis() > refreshAt) {
             invalidate();
@@ -77,6 +86,7 @@ public abstract class ApiProvider {
             coreV1Api = null;
             appsV1Api = null;
             batchV1Api = null;
+            networkingV1Api = null;
         }
         return client;
     }

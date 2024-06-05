@@ -53,11 +53,6 @@ public class ActionYamlEditor implements ResourceAction {
     public void execute(ExecutionContext context) {
 
         var selected = context.getSelected().iterator().next();
-
-        var metadata = ((KubernetesObject) selected).getMetadata();
-        var namespace = metadata.getNamespace();
-        var name = metadata.getName();
-
         panelService.showDetailsPanel(context.getSelectedTab(), context.getCluster(), context.getResourceType(), selected).select();
 
     }

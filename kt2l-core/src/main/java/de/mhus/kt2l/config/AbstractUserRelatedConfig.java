@@ -73,7 +73,7 @@ public abstract class AbstractUserRelatedConfig {
         }
     }
 
-    protected void clearCache(String userName) {
+    public void clearCache(String userName) {
         synchronized (cache) {
             cache.remove(userName);
         }

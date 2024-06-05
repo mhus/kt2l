@@ -17,7 +17,9 @@
  */
 package de.mhus.kt2l.cfg;
 
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
@@ -123,8 +125,15 @@ public class GlobalCfgPanel extends VerticalLayout {
         add(tabSheet);
 
         MenuBar menuBar = new MenuBar();
-        menuBar.addItem("Save", e -> save());
+        menuBar.addItem("Save Settings", e -> save());
         add(menuBar);
+
+        var spacer = new Div(" ");
+        spacer.setHeight("30px");
+        add(spacer);
+
+        setMargin(false);
+        setPadding(false);
     }
 
     private record PanelStore(CfgPanel panel, CfgFactory factory) {

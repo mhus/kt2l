@@ -22,6 +22,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import de.mhus.commons.console.ConsoleTable;
 import de.mhus.commons.errors.NotFoundRuntimeException;
+import de.mhus.commons.tools.MJson;
+import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
@@ -272,14 +274,17 @@ public class K8sUtil {
         return r.getGroup() + "/" + r.getVersion() + "/" + r.getName();
     }
 
-    public static String toYaml(KubernetesObject resource) {
+    public static String toYamlString(KubernetesObject resource) {
 
         if (resource == null) return "";
         if (resource instanceof GenericObject) {
-            Gson gson = new JSON().getGson();
-            JsonElement jsonElement = gson.toJsonTree(((GenericObject)resource).toJson());
-            String jsonTxt = gson.toJson(jsonElement);
-            return jsonTxt; //TODO
+            try {
+                String jsonTxt = ((GenericObject) resource).toJson();
+                return MYaml.toYaml(MJson.load(jsonTxt)).toString();
+            } catch (Exception e) {
+                LOGGER.error("Error converting to yaml", e);
+                return "ERROR: " + e.getMessage() + "\n" + resource.toString();
+            }
         }
         // get yaml
 

@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -49,7 +50,13 @@ public class GenericObject implements KubernetesObject {
     public static final String SERIALIZED_NAME_METADATA = "metadata";
     @SerializedName(SERIALIZED_NAME_METADATA)
     private V1ObjectMeta metadata;
-    
+
+    @JsonAdapter(DataDeserializer.class)
+    private String spec;
+
+    @JsonAdapter(DataDeserializer.class)
+    private String state;
+
     public GenericObject() {
     }
 
@@ -251,6 +258,7 @@ public class GenericObject implements KubernetesObject {
      * @return JSON string
      */
     public String toJson() {
+//        return data;
         return new JSON().getGson().toJson(this);
     }
 }

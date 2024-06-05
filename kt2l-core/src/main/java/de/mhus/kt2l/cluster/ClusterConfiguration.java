@@ -92,7 +92,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
 
     private synchronized Cluster getDefault(String name) {
         var clusterInfo = getClusterInfo();
-        return clusterInfo.defaultClusters.computeIfAbsent(name,(n) -> new Cluster(this, SecurityContext.lookupUserName(), n, MTree.EMPTY_MAP));
+        return clusterInfo.defaultClusters.computeIfAbsent(name, (n) -> new Cluster(this, SecurityContext.lookupUserName(), n, MTree.EMPTY_MAP));
     }
 
     private class ClusterInfo {
@@ -104,4 +104,10 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
             this.name = name;
         }
     }
+
+    public void clearCache(String userName) {
+        super.clearCache(userName);
+        clusterInfos.remove(userName);
+    }
+
 }

@@ -33,6 +33,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MThread;
@@ -262,6 +263,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                 if (selectDefault && !MObject.equals(namespaceSelector.getValue(), cluster.getDefaultNamespace())) {
                     Thread.startVirtualThread(() -> {
                         MThread.sleep(200);
+                        MLang.await(() -> currentResourceType, 10000);
                         core.ui().access(() -> {
                             namespaceSelector.setValue(cluster.getDefaultNamespace());
                         });

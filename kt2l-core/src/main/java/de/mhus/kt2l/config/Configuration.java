@@ -200,4 +200,8 @@ public class Configuration {
         userName = userName == null ? null : MFile.normalize(userName.toLowerCase());
         return new File(getLocalConfigurationDirectory(), "users/" + userName);
     }
+
+    public void clearCache() {
+        sections.clear();
+    }
 }

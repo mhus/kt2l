@@ -52,11 +52,18 @@ import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.Kt2lApplication;
+import de.mhus.kt2l.ai.AiConfiguration;
 import de.mhus.kt2l.cfg.CfgService;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
+import de.mhus.kt2l.cluster.ClusterConfiguration;
 import de.mhus.kt2l.cluster.ClusterOverviewPanel;
+import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.config.AbstractUserRelatedConfig;
+import de.mhus.kt2l.config.CmdConfiguration;
+import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.LoginConfiguration;
+import de.mhus.kt2l.config.ShellConfiguration;
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.help.HelpAction;
@@ -71,6 +78,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.olli.FileDownloadWrapper;
@@ -135,6 +143,9 @@ public class Core extends AppLayout {
 
     @Autowired
     private LoginConfiguration loginConfiguration;
+
+    @Autowired
+    ApplicationContext springContext;
 
     private final transient AuthenticationContext authContext;
     private DeskTabBar tabBar;
@@ -587,6 +598,20 @@ public class Core extends AppLayout {
     }
 
     public void resetSession() {
+        try {
+            springContext.getBean(Configuration.class).clearCache();
+            var userName = SecurityContext.lookupUserName();
+            String[] beanNames = springContext.getBeanDefinitionNames();
+            for (String beanName : beanNames) {
+                var bean = springContext.getBean(beanName);
+                if (bean instanceof AbstractUserRelatedConfig config) {
+                    LOGGER.debug("㋡ Clear cache for {} and user {}", beanName, userName);
+                    config.clearCache(userName);
+                }
+            }
+        } catch (Exception t) {
+            LOGGER.warn("Can't clear cache", t);
+        }
         ui.getSession().close();
         closeSession();
         authContext.logout();

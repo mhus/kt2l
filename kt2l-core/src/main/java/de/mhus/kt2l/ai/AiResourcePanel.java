@@ -145,7 +145,7 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener {
 
 
         // get yaml
-        var resContent = K8sUtil.toYaml(resource);
+        var resContent = K8sUtil.toYamlString(resource);
         YElement yDocument = MYaml.loadFromString(resContent);
 
         YMap yMetadata = yDocument.asMap().getMap("metadata");

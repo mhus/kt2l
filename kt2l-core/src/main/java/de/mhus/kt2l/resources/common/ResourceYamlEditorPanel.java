@@ -98,7 +98,7 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
             return;
         }
 
-        resContent = K8sUtil.toYaml(resource);
+        resContent = K8sUtil.toYamlString(resource);
         YElement yDocument = MYaml.loadFromString(resContent);
 
         YMap yMetadata = yDocument.asMap().getMap("metadata");
@@ -233,18 +233,6 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
         var handler = k8s.getResourceHandler(resType);
 
         if (handler == null) {
-//            var yamlObj = Yaml.loadAs(yaml, V1Pod.class);
-//            GenericObjectsApi genericObjectsApi = new GenericObjectsApi(api.getApiClient());
-//            genericObjectsApi.patchClusterCustomObject(
-//                    resType.getGroup(),
-//                    resType.getVersion() == null ? "v1" : resType.getVersion(),
-//                    resType.getName(),
-//                    null,
-//                    yamlObj,
-//                    null,
-//                    managedFieldsContent,
-//                    false
-//            );
 //XXX
         } else {
             handler.replace(apiProvider, resource.getMetadata().getName(), resource.getMetadata().getNamespace(), yaml);
@@ -277,16 +265,6 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
 
     @Override
     public void tabRefresh(long counter) {
-//        if (ui == null || counter % 10 != 0) return;
-//        ui.access(() -> {
-//            resContainer.getElement().executeJs("return $0.clientHeight", resContainer.getElement()).then( height ->
-//            {
-//                double h = height.asNumber();
-//                yamlRes.setHeight(h + "px");
-//                if (yamlFields != null)
-//                    yamlFields.setHeight(h + "px");
-//            });
-//        });
     }
 
     @Override
