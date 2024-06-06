@@ -21,13 +21,13 @@ name: Build
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
-      - 'config/**'
-      - 'misc/**'
+#    branches:
+#      - main
+#    paths-ignore:
+#      - '*.md'
+#      - 'docs/**'
+#      - 'config/**'
+#      - 'misc/**'
     pull_request:
       branches:
         - main
