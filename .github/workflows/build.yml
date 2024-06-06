@@ -42,15 +42,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  hello:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Configuration $EXECUTE"
-        env:
-          EXECUTE: ${{ inputs.execute }}
-
   build:
-    needs: [hello]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
