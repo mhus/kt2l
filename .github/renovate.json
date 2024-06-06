@@ -3,5 +3,17 @@
   "extends": [
     "config:recommended"
   ],
+  "ignorePaths": [
+    "package.json",
+    "kt2l-core/package.json",
+    "kt2l-desktop/package.json",
+    "kt2l-server/package.json",
+    "kt2l-test/package.json",
+    "package-lock.json",
+    "kt2l-core/package-lock.json",
+    "kt2l-desktop/package-lock.json",
+    "kt2l-server/package-lock.json",
+    "kt2l-test/package-lock.json"
+  ],
   "versioning": "maven"
 }
