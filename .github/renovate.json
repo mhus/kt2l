@@ -1,8 +1,3 @@
 {
-  "fileMatch": [
-    "(^|/|\\.)pom\\.xml$",
-    "^(((\\.mvn)|(\\.m2))/)?settings\\.xml$",
-    "(^|/)\\.mvn/extensions\\.xml$"
-  ],
   "versioning": "maven"
 }
