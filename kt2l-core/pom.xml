@@ -25,6 +25,7 @@
 		<groupId>de.mhus.kt2l</groupId>
 		<artifactId>kt2l-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>kt2l-core</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
