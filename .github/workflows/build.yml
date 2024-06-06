@@ -59,6 +59,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'maven'
       - name: mhus-commons
         run: |
           if [ $(cat pom.xml|grep mhus-common.version|grep -c SNAPSHOT) -eq 1 ]; then
