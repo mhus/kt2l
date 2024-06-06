@@ -386,7 +386,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
 
         getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid);
-        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.SEMICOLON).listenOn(resourcesGrid);
+        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.of(":")).withShift().listenOn(resourcesGrid);
         getPanel().getCore().ui().addShortcutListener((event) -> panel.focusNamespaces() , Key.QUOTE).listenOn(resourcesGrid);
         getPanel().getCore().ui().addShortcutListener((event) -> doRefreshGrid() , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid);
 

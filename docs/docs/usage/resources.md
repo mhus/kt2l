@@ -14,7 +14,7 @@ have focus in the grid. Moreover there are the following shortkeys available:
 
 - `Meta + R` to refresh the resources grid
 - `Ctrl + /` to focus the name filter
-- `Ctrl + ;` to focus the resource type filter
+- `Ctrl + :` to focus the resource type filter
 - `Ctrl + '` to focus the namespace filter
 
 ***NOTE:*** The grey resource types have no specialized grid implemented yet.
