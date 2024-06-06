@@ -4,5 +4,3 @@ KT2L (ktool) is a web based tool to manage your kubernetes clusters. The tool ca
 cluster. The goal is to provide a control center and do things smarter. It adresses administrators and developers.
 
 See [KT2L Website](https://kt2l.org) for more information.
-
-* Helm Icon: https://www.svgrepo.com/svg/373664/helm

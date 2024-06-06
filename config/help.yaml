@@ -21,11 +21,11 @@ enabled: true
 sticky: false
 contexts:
   default:
-    - name: Chat Agent
-      action: ai
     - name: Documentation
       action: docs
-      document: index
+      document: cluster
+    - name: Chat Agent
+      action: ai
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/

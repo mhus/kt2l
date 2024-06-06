@@ -27,6 +27,7 @@ import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.MenuItemBase;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
+import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.html.Div;
@@ -386,6 +387,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
         getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid);
         getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.SEMICOLON).listenOn(resourcesGrid);
+        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusNamespaces() , Key.QUOTE).listenOn(resourcesGrid);
         getPanel().getCore().ui().addShortcutListener((event) -> doRefreshGrid() , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid);
 
         actions.forEach(action -> {
@@ -486,27 +488,40 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     public void setUnselected() {
     }
 
+    @Override
+    public List<GridSortOrder<T>> getSortOrder() {
+        return resourcesGrid.getSortOrder();
+    }
+
+    @Override
+    public void setSortOrder(List<GridSortOrder<Object>> sortOrder) {
+        if (sortOrder == null || sortOrder.isEmpty()) return;
+        resourcesGrid.sort((List)sortOrder);
+    }
+
     protected void filterList() {
-        if (resourcesList == null) {
-            filteredList = Collections.emptyList();
-        } else {
-            List<T> list;
-            if (resourcesFilter != null) {
-                list = resourcesList.stream().filter(res -> resourcesFilter.filter(getSelectedKubernetesObject(res))).collect(Collectors.toList());
+        synchronized (this) {
+            if (resourcesList == null) {
+                filteredList = Collections.emptyList();
             } else {
-                list = resourcesList;
-            }
-            final var filter = filterText;
-            if (filter.isBlank()) {
-                filteredList = list;
-            } if (filter.startsWith("/")) {
-                var f = filter.substring(1);
-                filteredList = list.stream().filter(res -> filterByRegex(res, f)).collect(Collectors.toList());
-            } else {
-                filteredList = list.stream().filter(res -> filterByContent(res, filter)).collect(Collectors.toList());
+                List<T> list;
+                if (resourcesFilter != null) {
+                    list = resourcesList.stream().filter(res -> resourcesFilter.filter(getSelectedKubernetesObject(res))).collect(Collectors.toList());
+                } else {
+                    list = resourcesList;
+                }
+                final var filter = filterText;
+                if (filter.isBlank()) {
+                    filteredList = list;
+                }
+                if (filter.startsWith("/")) {
+                    var f = filter.substring(1);
+                    filteredList = list.stream().filter(res -> filterByRegex(res, f)).collect(Collectors.toList());
+                } else {
+                    filteredList = list.stream().filter(res -> filterByContent(res, filter)).collect(Collectors.toList());
+                }
             }
         }
-
         getPanel().getCore().ui().access(() -> {
             if (filteredList != null) {
                 if (filteredList.size() == resourcesList.size())

@@ -20,8 +20,11 @@ package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ShortcutEvent;
+import com.vaadin.flow.component.grid.GridSortOrder;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.k8s.K8s;
+
+import java.util.List;
 
 public interface ResourcesGrid {
 
@@ -46,4 +49,11 @@ public interface ResourcesGrid {
     void setUnselected();
 
     void destroy();
+
+    boolean isNamespaced();
+
+    <T> List<GridSortOrder<T>> getSortOrder();
+
+    void setSortOrder(List<GridSortOrder<Object>> sortOrder);
+
 }

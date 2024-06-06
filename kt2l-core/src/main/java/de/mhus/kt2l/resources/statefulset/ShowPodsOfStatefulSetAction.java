@@ -68,7 +68,7 @@ public class ShowPodsOfStatefulSetAction implements ResourceAction {
             public String getDescription() {
                 return "Pods of StatefulSet " + parentName;
             }
-        });
+        }, null);
     }
 
     @Override

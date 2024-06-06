@@ -43,6 +43,10 @@ public class Kt2lApplication {
 		SpringApplication.run(Kt2lApplication.class, args);
 	}
 
+	public static boolean canRestart() {
+		return "true".equals(System.getenv("KT2L_RESTART_POSSIBLE"));
+	}
+
 	public static void restart() {
 		LOGGER.info("Restarting application");
 		System.exit(101); // tell the script to restart the application

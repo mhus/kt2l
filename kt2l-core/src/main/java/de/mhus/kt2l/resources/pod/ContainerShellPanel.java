@@ -59,6 +59,7 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
     private Thread threadInput;
     private Process proc;
     private Thread threadError;
+    private MenuBar xTermMenuBar;
 
     public ContainerShellPanel(Cluster cluster, Core core, V1Pod pod) {
         this.cluster = cluster;
@@ -92,7 +93,7 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
             }
         });
 
-        var xTermMenuBar = new MenuBar();
+        xTermMenuBar = new MenuBar();
         xTermMenuBar.addItem("ESC", e -> {
             MLang.tryThis(() -> proc.getOutputStream().write("\u001b".getBytes()));
             xterm.focus();
@@ -133,7 +134,9 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
             threadError.interrupt();
         if (threadInput != null)
             threadInput.interrupt();
+        xterm.write("\n+++ Terminal closed +++\n");
         xterm.setEnabled(false);
+        xTermMenuBar.setEnabled(false);
     }
 
     private void handleKey(Key key) {

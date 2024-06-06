@@ -285,6 +285,11 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     protected abstract int sortColumn(String sorted, SortDirection direction, T a, T b);
 
+    @Override
+    public boolean isNamespaced() {
+        return true;
+    }
+
     @Getter
     public static class ResourceItem<V extends KubernetesObject> {
         protected UiUtil.COLOR altColor;

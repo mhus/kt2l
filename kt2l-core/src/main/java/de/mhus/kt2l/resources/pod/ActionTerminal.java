@@ -84,7 +84,7 @@ public class ActionTerminal implements ResourceAction {
         vars.setString("context", context.getCluster().getName());
         vars.setString("cmd", shell);
 
-        cmdConfiguration.execute("exec", vars);
+        cmdConfiguration.execute("terminal", vars);
 
     }
 

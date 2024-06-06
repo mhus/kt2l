@@ -68,7 +68,7 @@ public class ShowPodsOfDeploymentAction implements ResourceAction {
             public String getDescription() {
                 return "Pods of Deployment " + parentName;
             }
-        });
+        }, null);
     }
 
     @Override

@@ -86,7 +86,7 @@ public class ShowOwnerOfResourceAction implements ResourceAction {
                     public String getDescription() {
                         return "Owner of " + name;
                     }
-                });
+                }, null);
 
                 break;
             case "Deployment":
@@ -104,7 +104,7 @@ public class ShowOwnerOfResourceAction implements ResourceAction {
                     public String getDescription() {
                         return "Owner of " + name;
                     }
-                });
+                }, null);
                 break;
 
             case "StatefulSet":
@@ -122,7 +122,7 @@ public class ShowOwnerOfResourceAction implements ResourceAction {
                     public String getDescription() {
                         return "Owner of " + name;
                     }
-                });
+                }, null);
                 break;
 
             case "Job":
@@ -140,7 +140,7 @@ public class ShowOwnerOfResourceAction implements ResourceAction {
                     public String getDescription() {
                         return "Owner of " + name;
                     }
-                });
+                }, null);
                 break;
 
             case "CronJob":
@@ -158,7 +158,7 @@ public class ShowOwnerOfResourceAction implements ResourceAction {
                     public String getDescription() {
                         return "Owner of " + name;
                     }
-                });
+                }, null);
                 break;
 
             case "DaemonSet":
@@ -176,7 +176,7 @@ public class ShowOwnerOfResourceAction implements ResourceAction {
                     public String getDescription() {
                         return "Owner of " + name;
                     }
-                });
+                }, null);
                 break;
 
         }

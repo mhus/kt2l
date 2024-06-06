@@ -382,7 +382,7 @@ public class Core extends AppLayout {
                             resetSession();
                         });
                     }
-                    if (securityService.hasRole(UsersConfiguration.ROLE.ADMIN.name())) {
+                    if (securityService.hasRole(UsersConfiguration.ROLE.ADMIN.name()) && Kt2lApplication.canRestart()) {
                         UiUtil.createIconItem(userMenu, VaadinIcon.WARNING, "Restart Server", null, true).addClickListener(click -> {
                             ConfirmDialog dialog = new ConfirmDialog();
                             dialog.setHeader("Restart");

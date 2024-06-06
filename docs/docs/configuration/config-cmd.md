@@ -14,7 +14,7 @@ For each executed command you can define a list of arguments that is used to exe
 
 cmd-macos.yaml:
 ```yaml
-exec:
+terminal:
   - /usr/bin/osascript
   - '-e'
   - tell application "Terminal" to do script "kubectl exec -it --context '${context}' -c '${container}' '${pod}' -- '${cmd}'; exit"

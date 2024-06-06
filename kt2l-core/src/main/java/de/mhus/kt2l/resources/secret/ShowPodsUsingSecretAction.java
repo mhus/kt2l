@@ -93,7 +93,7 @@ public class ShowPodsUsingSecretAction implements ResourceAction {
             public String getDescription() {
                 return "Pods using Secret " + parentName;
             }
-        });
+        }, null);
     }
 
     @Override

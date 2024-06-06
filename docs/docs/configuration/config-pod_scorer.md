@@ -20,6 +20,13 @@ notrunning:
   enabled: true
   spread: 100
   age: 120
+metrics:
+  enabled: true
+  cpu: 80
+  cpuSpread: 5
+  memory: 80
+  memorySpread: 5
+  spread: 90
 ```
 
 The `alerts` section defines the thresholds for the error and warn alerts. The other sections configure the Scorer
@@ -27,3 +34,4 @@ components.
 
 * restarts: The number of restarts a pod can have before it is considered unhealthy.
 * notrunning: The number of seconds a pod can be not running before it is considered unhealthy.
+* metrics: The thresholds for the CPU and memory usage of a pod.

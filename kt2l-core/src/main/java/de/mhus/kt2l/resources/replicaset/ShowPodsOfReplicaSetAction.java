@@ -69,7 +69,7 @@ public class ShowPodsOfReplicaSetAction implements ResourceAction {
             public String getDescription() {
                 return "Pods of Replica Set " + parentName;
             }
-        });
+        }, null);
     }
 
     @Override

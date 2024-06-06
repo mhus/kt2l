@@ -23,6 +23,7 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.ProgressDialog;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
@@ -104,8 +105,31 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
         k8sMap = Collections.synchronizedMap(new HashMap<>());
         k8sHandler.forEach(handler -> k8sMap.put(handler.getManagedResourceType().kind(), handler));
 
-        visHandlers.forEach(handler -> handler.init(this));
+        ProgressDialog progress = new ProgressDialog();
+        progress.setHeaderTitle("Start Visualization");
+        progress.setMax(visHandlers.size());
+        progress.open();
 
+        nd.setVisible(false);
+
+        Thread.startVirtualThread(() -> {
+            try {
+                visHandlers.forEach(handler -> {
+                    core.ui().access(() -> progress.next(handler.getManagedResourceType().resourceType()));
+                    handler.init(this);
+                });
+            } catch (Exception e) {
+                LOGGER.warn("Error", e);
+            }
+            core.ui().access(() -> {
+                progress.setIndeterminate(true);
+                progress.setProgress(0, "visualize ...");
+            } );
+            core.ui().access(() -> {
+                nd.setVisible(true);
+                progress.close();
+            } );
+        });
     }
 
     public HandlerK8s getK8sHandler(K8s resourceType) {

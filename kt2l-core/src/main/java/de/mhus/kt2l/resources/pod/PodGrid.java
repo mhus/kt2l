@@ -74,6 +74,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     private volatile boolean needMetricRefresh = true;
     private int scoreErrorThreshold;
     private int scoreWarnThreshold;
+    private boolean scoringEnabled;
 
     public enum CONTAINER_TYPE {DEFAULT, INIT, EPHEMERAL};
       private List<Container> containerList = null;
@@ -224,7 +225,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                     resourcesGrid.getDataProvider().refreshItem(pod);
                     changed.set(true);
                 }
-                if (podSourcerers != null) {
+                if (scoringEnabled && podSourcerers != null) {
                     var score = 0;
                     for (PodScorer scorer : podSourcerers) {
                         var apiProvider = panel.getCluster().getApiProvider();
@@ -297,6 +298,10 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> podGrid) {
+        scoreErrorThreshold = podScorerConfiguration.getErrorThreshold();
+        scoreWarnThreshold = podScorerConfiguration.getWarnThreshold();
+        scoringEnabled = podScorerConfiguration.isEnabled();
+
         podGrid.addColumn(pod -> pod.getReadyContainers()).setHeader("Ready").setSortProperty("ready");
         podGrid.addColumn(pod -> pod.getRestarts()).setHeader("Restarts").setSortProperty("restarts");
         podGrid.addColumn(pod -> pod.getStatus()).setHeader("Status").setSortProperty("status");
@@ -304,10 +309,9 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         podGrid.addColumn(pod -> pod.getMetricCpuPercentage() < 0 ? "" : pod.getMetricCpuPercentage()).setHeader("CPU%").setSortProperty("cpu%");
         podGrid.addColumn(pod -> pod.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
         podGrid.addColumn(pod -> pod.getMetricMemoryPercentage() < 0 ? "" : pod.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
-        podGrid.addColumn(pod -> pod.getScore() < 0 ? "" : pod.getScore()).setHeader("Score").setSortProperty("score");
+        if (scoringEnabled)
+            podGrid.addColumn(pod -> pod.getScore() < 0 ? "" : pod.getScore()).setHeader("Score").setSortProperty("score");
 
-        scoreErrorThreshold = podScorerConfiguration.getErrorThreshold();
-        scoreWarnThreshold = podScorerConfiguration.getWarnThreshold();
     }
 
     protected void createGridColumnsAtEnd(Grid<Resource> podGrid) {

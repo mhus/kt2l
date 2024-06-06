@@ -69,7 +69,7 @@ public class ShowPodsOfJobAction implements ResourceAction {
             public String getDescription() {
                 return "Pods of Job " + parentName;
             }
-        });
+        }, null);
     }
 
     @Override

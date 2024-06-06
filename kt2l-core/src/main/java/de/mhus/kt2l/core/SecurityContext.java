@@ -20,6 +20,7 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.component.UI;
 import de.mhus.commons.errors.AuthorizationException;
 import de.mhus.commons.lang.ICloseable;
+import de.mhus.commons.security.SimplePrincipal;
 import de.mhus.kt2l.Kt2lApplication;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,11 @@ public class SecurityContext {
 
     public static SecurityContext create() {
         return new SecurityContext();
+    }
+
+    public SecurityContext(String userName) {
+        this.userName = userName;
+        this.principal = new SimplePrincipal(userName);
     }
 
     protected SecurityContext() {

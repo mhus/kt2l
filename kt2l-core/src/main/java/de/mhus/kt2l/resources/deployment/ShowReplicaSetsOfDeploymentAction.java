@@ -68,7 +68,7 @@ public class ShowReplicaSetsOfDeploymentAction implements ResourceAction {
             public String getDescription() {
                 return "Replica Sets of Deployment " + parentName;
             }
-        });
+        }, null);
     }
 
     @Override

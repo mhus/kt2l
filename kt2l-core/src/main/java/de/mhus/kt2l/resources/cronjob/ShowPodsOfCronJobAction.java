@@ -68,7 +68,7 @@ public class ShowPodsOfCronJobAction implements ResourceAction {
             public String getDescription() {
                 return "Pods of CronJob " + parentName;
             }
-        });
+        }, null);
     }
 
     @Override

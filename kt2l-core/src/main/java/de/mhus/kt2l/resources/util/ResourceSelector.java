@@ -59,9 +59,10 @@ public class ResourceSelector<T extends KubernetesObject> {
     }
 
     public void injectMenu(MenuBar menuBar) {
-        menuBarItem = menuBar.addItem(VaadinIcon.BULLSEYE.create(), e -> {
+        menuBarItem = menuBar.addItem(VaadinIcon.LINES_LIST.create(), e -> {
             showMenu(menuBarItem);
         });
+        menuBarItem.getElement().setAttribute("title", "Resources Selector");
     }
 
     private void showMenu(Component component) {

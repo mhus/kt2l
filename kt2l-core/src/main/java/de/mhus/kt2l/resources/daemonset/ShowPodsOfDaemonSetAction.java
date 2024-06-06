@@ -69,7 +69,7 @@ public class ShowPodsOfDaemonSetAction implements ResourceAction {
             public String getDescription() {
                 return "Pods of Daemon Set " + parentName;
             }
-        });
+        }, null);
     }
 
     @Override

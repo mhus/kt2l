@@ -136,6 +136,11 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         super.setResourceType(K8s.CUSTOM);
     }
 
+    @Override
+    public boolean isNamespaced() {
+        return true;
+    }
+
     private class ResourcesProvider extends CallbackDataProvider<Resource, Void> {
 
         public ResourcesProvider() {

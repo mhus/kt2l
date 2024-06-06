@@ -76,7 +76,7 @@
                 </goals>
                 <configuration>
                   <descriptors>
-                    <descriptor>launch/assembly.xml</descriptor>
+                    <descriptor>launcher/assembly.xml</descriptor>
                   </descriptors>
                 </configuration>
               </execution>

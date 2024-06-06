@@ -188,6 +188,11 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
         super.destroy();
     }
 
+    @Override
+    public boolean isNamespaced() {
+        return false;
+    }
+
     public class ResourceDataProvider extends CallbackDataProvider<ResourceItem<V>, Void> {
         public ResourceDataProvider() {
             super(query -> {

@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
+enabled: true
 alerts:
   error: 100
   warn: 50
@@ -26,3 +26,10 @@ notrunning:
   enabled: true
   spread: 110
   age: 120
+metrics:
+  enabled: true
+  cpu: 80
+  cpuSpread: 5
+  memory: 80
+  memorySpread: 5
+  spread: 90

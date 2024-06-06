@@ -62,6 +62,7 @@ public class GlobalCfgPanel extends VerticalLayout {
                 ps.panel().save(content);
                 MTree.save(content, file);
             } catch (Exception t) {
+                UiUtil.showErrorNotification("Can't save panel " + ps.factory().handledConfigType());
                 LOGGER.error("Can't save panel {}", ps.factory().handledConfigType(), t);
             }
         });
@@ -70,8 +71,13 @@ public class GlobalCfgPanel extends VerticalLayout {
             UiUtil.showSuccessNotification("Saved configuration");
             ConfirmDialog dialog = new ConfirmDialog();
             dialog.setHeader("Restart required");
-            dialog.setText("The configuration has been saved. A restart is required to apply the changes.");
-            dialog.setConfirmText("Restart");
+            if (Kt2lApplication.canRestart()) {
+                dialog.setText("The configuration has been saved. A restart of the server is required to apply the changes.");
+                dialog.setConfirmText("Restart");
+            } else {
+                dialog.setText("The configuration has been saved. A restart is required to apply the changes. Please start the application again.");
+                dialog.setConfirmText("Shutdown");
+            }
             dialog.setCloseOnEsc(true);
             dialog.addConfirmListener(e -> Kt2lApplication.restart());
             dialog.open();

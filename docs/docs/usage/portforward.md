@@ -1,3 +1,7 @@
+---
+sidebar_position: 21
+title: Port Forwarding
+---
 # Port Forwarding
 
 Port forwarding is a way to make a pod or service available to the local machine. This is useful for debugging or 

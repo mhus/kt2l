@@ -37,6 +37,7 @@
 * [https://github.com/walokra/markdown-page-generator-plugin]
 * [lombok](https://projectlombok.org/features/all)
 * [https://www.baeldung.com/spring-boot]
+* Helm Icon: https://www.svgrepo.com/svg/373664/helm
 
 ## Github Actions
 

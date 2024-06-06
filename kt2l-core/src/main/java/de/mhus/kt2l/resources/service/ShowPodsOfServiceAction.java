@@ -70,7 +70,7 @@ public class ShowPodsOfServiceAction implements ResourceAction {
             public String getDescription() {
                 return "Pods of Service " + parentName;
             }
-        });
+        }, null);
     }
 
     @Override

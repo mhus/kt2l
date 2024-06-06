@@ -93,7 +93,7 @@ public class ShowPodsUsingConfigMapAction implements ResourceAction {
             public String getDescription() {
                 return "Pods using ConfigMap " + parentName;
             }
-        });
+        }, null);
     }
 
     @Override

@@ -42,6 +42,10 @@ public class PodScorerConfiguration extends AbstractUserRelatedConfig {
         return config().getObject("alerts").orElse(MTree.EMPTY_MAP).getInt("warn", 1000);
     }
 
+    public boolean isEnabled() {
+        return config().getBoolean("enabled", true);
+    }
+
     public static class Config {
 
         private final PodScorerConfiguration podScorerConfiguration;

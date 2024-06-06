@@ -66,7 +66,7 @@ public class ShowNodeOfPodAction implements ResourceAction {
             public String getDescription() {
                 return "Node for Pod " + podName;
             }
-        });
+        }, null);
     }
 
     @Override

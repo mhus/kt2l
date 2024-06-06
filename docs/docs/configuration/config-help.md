@@ -11,6 +11,7 @@ Example:
 ```yaml
 windowWidth: 400px
 enabled: true
+sticky: false
 contexts:
   default:
     - name: Chat Agent

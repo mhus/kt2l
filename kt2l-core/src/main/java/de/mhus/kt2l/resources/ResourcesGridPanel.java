@@ -56,6 +56,7 @@ import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.security.Principal;
 import java.util.Collections;
@@ -63,6 +64,7 @@ import java.util.List;
 
 import static de.mhus.commons.tools.MString.isEmpty;
 
+@Configurable
 @Slf4j
 public class ResourcesGridPanel extends VerticalLayout implements DeskTabListener {
 
@@ -213,14 +215,18 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         });
 
         var cloneButton = new Button(VaadinIcon.COPY_O.create(), e -> clonePanel());
-        cloneButton.setTooltipText("Clone resource panel");
+        cloneButton.setTooltipText("Duplicate resource panel");
+
+        Div spacer = new Div();
+        spacer.setWidthFull();
 
         // toolbar
-        var toolbar = new HorizontalLayout(resourceFilterButton, filterText, namespaceSelector,resourceSelector, cloneButton);
+        var toolbar = new HorizontalLayout(resourceFilterButton, filterText, namespaceSelector,resourceSelector, spacer, cloneButton);
         toolbar.addClassName("toolbar");
         toolbar.setPadding(false);
         toolbar.setSpacing(true);
         toolbar.setMargin(false);
+        toolbar.setWidthFull();
         return toolbar;
     }
 
@@ -234,7 +240,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                     MThread.sleep(200);
                     if (((ResourcesGridPanel) newTab.getPanel()).getCurrentResourceType() != null) {
                         core.ui().access(() -> {
-                            ((ResourcesGridPanel) newTab.getPanel()).showResources(currentResourceType, namespaceSelector.getValue(), resourcesFilter);
+                            ((ResourcesGridPanel) newTab.getPanel()).showResources(currentResourceType, namespaceSelector.getValue(), resourcesFilter, filterText.getValue());
+                            var sortOrder = grid.getSortOrder();
+                            ((ResourcesGridPanel) newTab.getPanel()).getGrid().setSortOrder(sortOrder);
                         });
                         break;
                     }
@@ -339,6 +347,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         gridContainer.removeAll();
         if (grid != null) {
             grid.setFilter(filterText.getValue(), resourcesFilter);
+            namespaceSelector.setEnabled(grid.isNamespaced());
             grid.setNamespace(namespaceSelector.getValue());
             if (grid instanceof GenericGrid genericGrid)
                 genericGrid.setResourceType(resourceSelector.getValue());
@@ -383,7 +392,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         }
     }
 
-    public void showResources(K8s resourceType, String namespace, ResourcesFilter filter) {
+    public void showResources(K8s resourceType, String namespace, ResourcesFilter filter, String filterText) {
+        if (filterText != null)
+            this.filterText.setValue(filterText);
         setNamespace(namespace);
         if (filter != null)
             setResourcesFilter(filter);
@@ -425,4 +436,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     public void focusResources() {
         resourceSelector.focus();
     }
+
+    public void focusNamespaces() {
+        namespaceSelector.focus();
+    }
+
 }

@@ -63,7 +63,7 @@ public class ShowPodsOfNodeAction implements ResourceAction {
             public String getDescription() {
                 return "Pods on Node " + nodeName;
             }
-        });
+        }, null);
     }
 
     @Override
