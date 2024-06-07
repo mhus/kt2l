@@ -37,9 +37,9 @@
         <java.version>21</java.version>
         <vaadin.version>24.3.12</vaadin.version> <!--23.3.33 - 24.3.5-->
         <tmpl.plugin>2.2.1</tmpl.plugin>
-        <license.plugin>4.3</license.plugin>
+        <license.plugin>4.5</license.plugin>
         <maven.version>3.2.5</maven.version>
-        <testcontainers.version>1.19.7</testcontainers.version>
+        <testcontainers.version>1.19.8</testcontainers.version>
         <sonar.organization>mhus</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <mhus-common.version>8.2.0-SNAPSHOT</mhus-common.version>
@@ -150,12 +150,12 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.4.12</version>
+            <version>1.5.6</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.6.0-M1</version>
+            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -198,7 +198,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.4.1</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <id>enforce-versions</id>
