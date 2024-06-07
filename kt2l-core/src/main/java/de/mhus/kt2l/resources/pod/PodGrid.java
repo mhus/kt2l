@@ -40,6 +40,7 @@ import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1ContainerStatus;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -276,6 +277,9 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         try {
             var list = metrics.getPodMetrics(ns);
             return list.getItems();
+        } catch (ApiException e) {
+            LOGGER.error("Can't get metrics for namespace {} with RC {}",ns, e.getCode(), e);
+            panel.getCluster().getApiProvider().invalidate();
         } catch (Exception e) {
             LOGGER.error("Can't get metrics for namespace {}",ns,e);
         }
