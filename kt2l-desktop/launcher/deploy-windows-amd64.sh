@@ -50,6 +50,7 @@ TITLE="Desktop Windows (amd64) Installer"
 DESCRIPTION="Installer for Windows amd64 systems. Java JDK 21 is included."
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
 HREF_HELP="/docs/installation/desktop#windows-bundle"
+SIZE=$(echo $(du -m ../KT2L.exe)|cut -d ' ' -f 1)MB
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-windows-amd64.ts
 
 # cleanup

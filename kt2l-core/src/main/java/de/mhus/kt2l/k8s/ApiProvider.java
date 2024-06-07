@@ -19,6 +19,7 @@ package de.mhus.kt2l.k8s;
 
 import de.mhus.commons.errors.InternalRuntimeException;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.BatchV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -26,7 +27,13 @@ import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 public abstract class ApiProvider {
@@ -50,6 +57,35 @@ public abstract class ApiProvider {
             coreV1Api = new CoreV1Api(getClient());
         return coreV1Api;
     }
+//
+//    private <T> T createProxy(T api) {
+//        return (T)Proxy.newProxyInstance(api.getClass().getClassLoader(), new Class[]{api.getClass()}, new InvocationHandler() {
+//
+//            private final Map<String, Method> methods = new HashMap<>();
+//            private Object target;
+//
+//            {
+//                target = api;
+//                for(Method method: target.getClass().getDeclaredMethods()) {
+//                    this.methods.put(method.getName(), method);
+//                }
+//            }
+//
+//            @Override
+//            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+//                try {
+//                    Object result = methods.get(method.getName()).invoke(target, args);
+//                    return result;
+//                } catch (InvocationTargetException e) {
+//                    if (e.getCause() != null && e.getCause() instanceof ApiException apiException) {
+//                        LOGGER.warn("ApiException RC {}, Body {}", apiException.getCode(), apiException.getResponseBody());
+//                        invalidate();
+//                    }
+//                    throw e;
+//                }
+//            }
+//        });
+//    }
 
     public AppsV1Api getAppsV1Api() {
         getClient();

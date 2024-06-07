@@ -67,6 +67,7 @@ TITLE="Desktop Mac OSX (M1) Bundled"
 DESCRIPTION="Can be executed directly in Mac OS X M1. Java JDK 21 is included."
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
 HREF_HELP="/docs/installation/desktop#mac-osx-bundle"
+SIZE=$(echo $(du -m ../launcher/KT2L.dmg)|cut -d ' ' -f 1)MB
 # create download information
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-macosx-aarch64.ts
 
