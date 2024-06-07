@@ -163,17 +163,35 @@ public class PodK8s implements HandlerK8s {
 
     @Override
     public V1PodList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
+        try {
+            return apiProvider.getCoreV1Api().listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
+        } catch (ApiException apiException) {
+            LOGGER.warn("ApiException RC {}, Body {}", apiException.getCode(), apiException.getResponseBody());
+            apiProvider.invalidate();
+            return apiProvider.getCoreV1Api().listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
+        }
     }
 
     @Override
     public V1PodList createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
-        return apiProvider.getCoreV1Api().listNamespacedPod(namespace,null, null, null, null, null, null, null, null, null, null, null);
+        try {
+            return apiProvider.getCoreV1Api().listNamespacedPod(namespace, null, null, null, null, null, null, null, null, null, null, null);
+        } catch (ApiException apiException) {
+            LOGGER.warn("ApiException RC {}, Body {}", apiException.getCode(), apiException.getResponseBody());
+            apiProvider.invalidate();
+            return apiProvider.getCoreV1Api().listNamespacedPod(namespace, null, null, null, null, null, null, null, null, null, null, null);
+        }
     }
 
     @Override
     public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listPodForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter<V1Pod>(LOGGER));
+        try {
+            return apiProvider.getCoreV1Api().listPodForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter<V1Pod>(LOGGER));
+        } catch (ApiException apiException) {
+            LOGGER.warn("ApiException RC {}, Body {}", apiException.getCode(), apiException.getResponseBody());
+            apiProvider.invalidate();
+            return apiProvider.getCoreV1Api().listPodForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter<V1Pod>(LOGGER));
+        }
     }
 
 }
