@@ -18,6 +18,7 @@
 package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MLang;
+import de.mhus.commons.tools.MThread;
 import de.mhus.commons.util.Value;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.pod.PodGrid;
@@ -228,8 +229,6 @@ public class LocalServerTest {
         // click on pod asterix
         driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]")).click();
 
-//        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(1));
-
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1)).until((d) ->
         {
             try {
@@ -239,14 +238,6 @@ public class LocalServerTest {
                 return false;
             }
         });
-
-//        new WebDriverWait(driver, ofSeconds(600), ofSeconds(1))
-//                .until(ExpectedConditions.attributeToBe(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[2]/vaadin-checkbox"), "checked", ""));
-
-//        vaadinUiHelper.
-        // should be selected
-//XXX        assertThat(driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/../..")).getAttribute("selected")).isEqualTo("true");
-
 
         var core = coreHelper.getLastCore();
         ResourcesGridPanel grid = (ResourcesGridPanel) core.getTabBar().getTab("aremorica:resources").get().getPanel();
@@ -261,8 +252,47 @@ public class LocalServerTest {
         assertThat(selected.value).isNotNull();
         assertThat(selected.value.size()).isEqualTo(1);
 
-//        DebugTestUtil.doScreenshot(driver, "cluster_resources_pod");
+        DebugTestUtil.doScreenshot(driver, "cluster_resources_pod");
         DebugTestUtil.debugBreakpoint("Pod Details");
+
+    }
+
+
+    @Test
+    @Order(6)
+    public void testXTermAddon() throws InterruptedException {
+        App.resetUi(driver, webServerApplicationContext);
+
+        // click on Resources on Main
+        App.clusterOpenResources(driver);
+
+        // click on pod asterix
+        driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]")).click();
+
+        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1)).until((d) ->
+        {
+            try {
+                var element = d.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[2]/vaadin-checkbox"));
+                return element.getAttribute("checked") != null;
+            } catch (Exception e) {
+                return false;
+            }
+        });
+
+        // send 's' for Shell
+        {
+            var element = driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[2]/vaadin-checkbox"));
+            element.sendKeys("s");
+        }
+        // wait for shell
+        {
+            var element = new WebDriverWait(driver, ofSeconds(10), ofSeconds(1))
+                    .until(visibilityOfElementLocated(By.xpath("//vaadin-app-layout/vaadin-horizontal-layout[1]/vaadin-vertical-layout[1]/vaadin-vertical-layout/fc-xterm/div/div/div[2]/div[2]/div[1]/span[1]")));
+            assertThat(element.getText()).isEqualTo("S");
+        }
+
+        DebugTestUtil.doScreenshot(driver, "pod_xterm");
+        DebugTestUtil.debugBreakpoint("xTerm");
 
     }
 
