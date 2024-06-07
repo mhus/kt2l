@@ -64,7 +64,7 @@ public abstract class AbstractVisHandler implements VisHandler {
             eventRegistration.unregister();
     }
 
-    private void changeEvent(Watch.Response<KubernetesObject> event) {
+    protected void changeEvent(Watch.Response<KubernetesObject> event) {
         if (K8sUtil.WATCH_EVENT_DELETED.equals(event.type))
             panel.deleteNode(this, event.object);
         else
