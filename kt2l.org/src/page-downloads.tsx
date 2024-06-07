@@ -55,7 +55,7 @@ export default function pageDownloads() {
                                     </dt>
                                         ) }
                                 <dd className="mt-2 text-base leading-7 text-gray-600">{download.description}</dd>
-                                <dd className="mt-2 text-base leading-7 text-gray-400">Updated {download.created}</dd>
+                                <dd className="mt-2 text-base leading-7 text-gray-400">{download.size.length !== 0 ? download.size + ", " : ""}Updated {download.created}</dd>
                             </div>
                         ) : (null) ) }
                     </dl>
