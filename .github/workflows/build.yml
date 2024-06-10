@@ -81,11 +81,9 @@ jobs:
 #          mvn install -B -Pproduction || exit 1
 #          cd ..
 #          rm -rf vaadin-raw-xterm-addon
-      - name: Purge snapshots
-        run: |
-          mvn dependency:purge-local-repository -B -Dinclude:de.mhus.kt2l:vaadin-raw-xterm-addon -DresolutionFuzziness=groupId
-          mvn dependency:purge-local-repository -B -Dinclude:de.mhus.kt2l:vis-network-vaadin -DresolutionFuzziness=groupId
-          mvn dependency:purge-local-repository -B -Dinclude:de.mhus.lib:mhus-commons -DresolutionFuzziness=groupId -Dverbose
+#      - name: Purge snapshots
+#        run: |
+#          mvn dependency:purge-local-repository -B -Dinclude:de.mhus.lib:mhus-commons,de.mhus.kt2l:vis-network-vaadin,de.mhus.kt2l:vaadin-raw-xterm-addon
       - name: Prepare
         run: ./kt2l-desktop/launcher/prepare.sh
       - name: Integration Tests
