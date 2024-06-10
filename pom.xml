@@ -179,7 +179,12 @@
         <repository>
             <id>vaadin-addons-snap</id>
             <url>https://maven.flowingcode.com/snapshots/</url>
-            <snapshots></snapshots>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
         </repository>
     </repositories>
 
