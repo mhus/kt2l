@@ -16,28 +16,26 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.ingress;
+package de.mhus.kt2l.resources.hpa;
 
-import com.google.gson.reflect.TypeToken;
+import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.util.AbstractClusterWatch;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.util.Watch;
-import lombok.extern.slf4j.Slf4j;
+import de.mhus.kt2l.resources.ResourceGridFactory;
+import de.mhus.kt2l.resources.ResourcesGrid;
+import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Type;
-
-@Slf4j
-public class IngressWatch extends AbstractClusterWatch<V1Ingress> {
-
+@Component
+@WithRole(UsersConfiguration.ROLE.READ)
+public class HorizontalPodAutoscalerGridFactory implements ResourceGridFactory {
     @Override
-    public K8s getManagedResourceType() {
-        return K8s.INGRESS;
+    public boolean canHandleResourceType(K8s resourceType) {
+        return K8s.HPA.equals(resourceType);
     }
 
     @Override
-    protected Type createTypeToken() {
-        return new TypeToken<Watch.Response<V1Ingress>>() {}.getType();
+    public ResourcesGrid create(K8s resourcesType) {
+        return new HorizontalPodAutoscalerGrid();
     }
 
 }

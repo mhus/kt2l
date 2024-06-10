@@ -19,7 +19,6 @@
 package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.icon.AbstractIcon;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.commons.lang.Function0;
 import de.mhus.kt2l.ai.AiResourcePanel;
@@ -28,8 +27,8 @@ import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.events.EventPanel;
 import de.mhus.kt2l.helm.HelmChartDetailsPanel;
-import de.mhus.kt2l.helm.HelmInstalledChartsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
+import de.mhus.kt2l.helm.HelmInstalledChartsPanel;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
@@ -55,7 +54,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 @Component
 public class PanelService {

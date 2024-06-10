@@ -16,33 +16,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.configmap;
+package de.mhus.kt2l.resources.rolebinding;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
-import de.mhus.commons.tools.MString;
+import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.openapi.models.V1RoleBinding;
+import io.kubernetes.client.openapi.models.V1RoleBindingList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
-public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resource, Component, V1ConfigMap, V1ConfigMapList> {
-
-    @Autowired
-    private PanelService panelService;
+public class RoleBindingGrid extends AbstractGridWithNamespace<RoleBindingGrid.Resource, Component, V1RoleBinding, V1RoleBindingList> {
 
     @Override
     protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
-        return ConfigMapWatch.class;
+        return RoleBindingWatch.class;
     }
 
     @Override
@@ -52,21 +47,24 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(Resource::getDataCnt).setHeader("Data Cnt").setSortProperty("datacnt");
-        resourcesGrid.addColumn(v -> MString.toByteDisplayString(v.getDataSize()) ).setHeader("Data Size").setSortProperty("datasize");
+        resourcesGrid.addColumn(Resource::getRole).setHeader("Role").setSortProperty("role");
+        resourcesGrid.addColumn(Resource::getKind).setHeader("Kind").setSortProperty("kind");
+        resourcesGrid.addColumn(Resource::getSubjects).setHeader("Subjects").setSortable(false);
     }
 
     @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
-        return switch (sorted) {
-            case "datacnt" -> switch (direction) {
-                case ASCENDING -> Integer.compare(a.getDataCnt(), b.getDataCnt());
-                case DESCENDING -> Integer.compare(b.getDataCnt(), a.getDataCnt());
-            };
-            case "datasize" -> switch (direction) {
-                case ASCENDING -> Long.compare(a.getDataSize(), b.getDataSize());
-                case DESCENDING -> Long.compare(b.getDataSize(), a.getDataSize());
-            };
+        return switch(sorted) {
+            case ("role") ->
+                switch (direction) {
+                    case ASCENDING -> MObject.compareTo(a.getRole(), b.getRole());
+                    case DESCENDING -> MObject.compareTo(b.getRole(), a.getRole());
+                };
+            case ("kind") ->
+                switch (direction) {
+                    case ASCENDING -> MObject.compareTo(a.getKind(), b.getKind());
+                    case DESCENDING -> MObject.compareTo(b.getKind(), a.getKind());
+                };
             default -> 0;
         };
     }
@@ -78,25 +76,21 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
 
     @Override
     public K8s getManagedResourceType() {
-        return K8s.CONFIG_MAP;
-    }
-
-    @Override
-    protected void onShowDetails(Resource item, boolean flip) {
-        panelService.showEditConfigMapPanel(panel.getTab(), panel.getCore(), cluster, item.getResource()).select();
+        return K8s.ROLE_BINDING;
     }
 
     @Getter
-    public static class Resource extends ResourceItem<V1ConfigMap> {
-        private int dataCnt;
-        private long dataSize;
+    public static class Resource extends ResourceItem<V1RoleBinding> {
+        String role;
+        String kind;
+        String subjects;
 
         @Override
         public void updateResource() {
             super.updateResource();
-            dataCnt = tryThis(() -> resource.getData().size()).or(0);
-            dataSize = tryThis(() -> resource.getData().values().stream().mapToLong(String::length).sum()).or(0L);
-            setColor(null);
+            role = tryThis(() -> resource.getRoleRef().getName()).or("");
+            kind = tryThis(() -> resource.getRoleRef().getKind()).or("");
+            subjects = tryThis(() -> resource.getSubjects().stream().map(s -> s.getName()).reduce((a, b) -> a + ", " + b).orElse("")).or("");
         }
 
         private String toStringOr0(Integer integer) {

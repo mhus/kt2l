@@ -16,33 +16,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.configmap;
+package de.mhus.kt2l.resources.role;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
-import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.openapi.models.V1Role;
+import io.kubernetes.client.openapi.models.V1RoleList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
-public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resource, Component, V1ConfigMap, V1ConfigMapList> {
-
-    @Autowired
-    private PanelService panelService;
+public class RoleGrid extends AbstractGridWithNamespace<RoleGrid.Resource, Component, V1Role, V1RoleList> {
 
     @Override
     protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
-        return ConfigMapWatch.class;
+        return RoleWatch.class;
     }
 
     @Override
@@ -52,23 +46,12 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(Resource::getDataCnt).setHeader("Data Cnt").setSortProperty("datacnt");
-        resourcesGrid.addColumn(v -> MString.toByteDisplayString(v.getDataSize()) ).setHeader("Data Size").setSortProperty("datasize");
+        resourcesGrid.addColumn(Resource::getResources).setHeader("Resources").setSortable(false);
     }
 
     @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
-        return switch (sorted) {
-            case "datacnt" -> switch (direction) {
-                case ASCENDING -> Integer.compare(a.getDataCnt(), b.getDataCnt());
-                case DESCENDING -> Integer.compare(b.getDataCnt(), a.getDataCnt());
-            };
-            case "datasize" -> switch (direction) {
-                case ASCENDING -> Long.compare(a.getDataSize(), b.getDataSize());
-                case DESCENDING -> Long.compare(b.getDataSize(), a.getDataSize());
-            };
-            default -> 0;
-        };
+        return 0;
     }
 
     @Override
@@ -78,25 +61,17 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
 
     @Override
     public K8s getManagedResourceType() {
-        return K8s.CONFIG_MAP;
-    }
-
-    @Override
-    protected void onShowDetails(Resource item, boolean flip) {
-        panelService.showEditConfigMapPanel(panel.getTab(), panel.getCore(), cluster, item.getResource()).select();
+        return K8s.ROLE;
     }
 
     @Getter
-    public static class Resource extends ResourceItem<V1ConfigMap> {
-        private int dataCnt;
-        private long dataSize;
+    public static class Resource extends ResourceItem<V1Role> {
+        String resources;
 
         @Override
         public void updateResource() {
             super.updateResource();
-            dataCnt = tryThis(() -> resource.getData().size()).or(0);
-            dataSize = tryThis(() -> resource.getData().values().stream().mapToLong(String::length).sum()).or(0L);
-            setColor(null);
+            resources = tryThis(()-> resource.getRules().stream().map(rule -> rule.getResources().toString()).reduce("", (a, b) -> a + b)).or("");
         }
 
         private String toStringOr0(Integer integer) {

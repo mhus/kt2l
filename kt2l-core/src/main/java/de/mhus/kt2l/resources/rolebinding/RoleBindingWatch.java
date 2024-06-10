@@ -16,28 +16,28 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.ingress;
+package de.mhus.kt2l.resources.rolebinding;
 
 import com.google.gson.reflect.TypeToken;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
-import io.kubernetes.client.openapi.models.V1Ingress;
+import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Type;
 
 @Slf4j
-public class IngressWatch extends AbstractClusterWatch<V1Ingress> {
+public class RoleBindingWatch extends AbstractClusterWatch<V1RoleBinding> {
 
     @Override
     public K8s getManagedResourceType() {
-        return K8s.INGRESS;
+        return K8s.ROLE_BINDING;
     }
 
     @Override
     protected Type createTypeToken() {
-        return new TypeToken<Watch.Response<V1Ingress>>() {}.getType();
+        return new TypeToken<Watch.Response<V1RoleBinding>>() {}.getType();
     }
 
 }

@@ -22,10 +22,9 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
-import de.mhus.commons.tools.MString;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import de.mhus.commons.tools.MString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;

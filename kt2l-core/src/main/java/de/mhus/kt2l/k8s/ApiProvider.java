@@ -19,21 +19,15 @@ package de.mhus.kt2l.k8s;
 
 import de.mhus.commons.errors.InternalRuntimeException;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.AutoscalingV1Api;
 import io.kubernetes.client.openapi.apis.BatchV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
+import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 public abstract class ApiProvider {
@@ -46,6 +40,8 @@ public abstract class ApiProvider {
     private AppsV1Api appsV1Api;
     private BatchV1Api batchV1Api;
     private NetworkingV1Api networkingV1Api;
+    private RbacAuthorizationV1Api rbacV1Api;
+    private AutoscalingV1Api autoscalingV1Api;
 
     protected ApiProvider(long timeout) {
         this.timeout = timeout;
@@ -87,6 +83,13 @@ public abstract class ApiProvider {
 //        });
 //    }
 
+    public RbacAuthorizationV1Api getRbacAuthorizationV1Api() {
+        getClient();
+        if (rbacV1Api == null)
+            rbacV1Api = new RbacAuthorizationV1Api(getClient());
+        return rbacV1Api;
+    }
+
     public AppsV1Api getAppsV1Api() {
         getClient();
         if (appsV1Api == null)
@@ -99,6 +102,13 @@ public abstract class ApiProvider {
         if (batchV1Api == null)
             batchV1Api = new BatchV1Api(getClient());
         return batchV1Api;
+    }
+
+    public AutoscalingV1Api getAutoscalingV1Api() {
+        getClient();
+        if (autoscalingV1Api == null)
+            autoscalingV1Api = new AutoscalingV1Api(getClient());
+        return autoscalingV1Api;
     }
 
     public NetworkingV1Api getNetworkingV1Api() {
@@ -123,6 +133,8 @@ public abstract class ApiProvider {
             appsV1Api = null;
             batchV1Api = null;
             networkingV1Api = null;
+            rbacV1Api = null;
+            autoscalingV1Api = null;
         }
         return client;
     }

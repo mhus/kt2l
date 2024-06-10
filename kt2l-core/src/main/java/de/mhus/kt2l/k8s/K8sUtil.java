@@ -18,8 +18,6 @@
 
 package de.mhus.kt2l.k8s;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import de.mhus.commons.console.ConsoleTable;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.tools.MJson;
@@ -31,7 +29,6 @@ import de.mhus.kt2l.resources.generic.GenericObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1APIResourceList;
@@ -299,7 +296,8 @@ public class K8sUtil {
         if (age < 120) return age + "s";
         if (age < 7200) return age/60 + "m";
         if (age < 86400) return age/3600 + "h";
-        return age/86400 + "d";
+        if (age < 86400*400) return age/86400 + "d";
+        return age/86400/365 + "y";
     }
 
     public static String getAgeSeconds(long age) {
@@ -308,7 +306,8 @@ public class K8sUtil {
         if (age < 120) return age + "s";
         if (age < 7200) return age/60 + "m";
         if (age < 86400) return age/3600 + "h";
-        return age/86400 + "d";
+        if (age < 86400*400) return age/86400 + "d";
+        return age/86400/365 + "y";
     }
 
     public static String getDns(V1Pod pod) {

@@ -177,6 +177,7 @@ vaadin-scroller.log-view {
 vaadin-scroller.log-view div {
     font-family: monospace;
     font-size: 14px;
+    min-height: 1em;
 }
 
 vaadin-scroller.log-view-nowrap {
@@ -198,6 +199,7 @@ vaadin-scroller.events-view-nowrap {
 vaadin-scroller.events-view div {
     font-family: monospace;
     font-size: 14px;
+    min-height: 1em;
 }
 
 vaadin-text-area.preview textarea {

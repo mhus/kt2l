@@ -191,8 +191,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                         .filter(r ->
                                 !r.getName().equals("GENERIC") &&
                                 !r.getName().equals("CUSTOM") &&
-                                !r.getName().equals("containers") &&
-                                r.getName().indexOf('/') < 0
+                                !r.getName().equals("containers") //&&
+                                //r.getName().indexOf('/') < 0
                         ).toList());
                 Thread.startVirtualThread(() -> {
                     MThread.sleep(400);
