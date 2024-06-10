@@ -26,7 +26,7 @@
         <artifactId>kt2l-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
-save me    </parent>
+    </parent>
     <properties>
         <start-class>de.mhus.kt2l.Kt2lServerApplication</start-class>
     </properties>
