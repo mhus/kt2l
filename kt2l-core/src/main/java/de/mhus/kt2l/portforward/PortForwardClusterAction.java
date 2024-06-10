@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@WithRole(UsersConfiguration.ROLE.WRITE)
+@WithRole({UsersConfiguration.ROLE.WRITE,UsersConfiguration.ROLE.LOCAL})
 public class PortForwardClusterAction implements ClusterAction {
 
     @Autowired

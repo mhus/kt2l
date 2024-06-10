@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
-@WithRole(UsersConfiguration.ROLE.WRITE)
+@WithRole({UsersConfiguration.ROLE.WRITE,UsersConfiguration.ROLE.LOCAL})
 public class OpenSvcPortForwardAction implements ResourceAction {
 
     @Autowired

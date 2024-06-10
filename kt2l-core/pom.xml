@@ -80,14 +80,12 @@
 			<artifactId>vaadin-raw-xterm-addon</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<!--
 		<dependency>
-			<groupId>com.flowingcode.addons</groupId>
-			<artifactId>xterm-console</artifactId>
-			<version>3.0.0-x1-SNAPSHOT</version>
+			<groupId>de.mhus.kt2l</groupId>
+			<artifactId>vis-network-vaadin</artifactId>
+			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
-		-->
+
 		<dependency>
 			<groupId>de.f0rce</groupId>
 			<artifactId>ace</artifactId>
@@ -102,11 +100,6 @@
 			<groupId>com.vaadin.componentfactory</groupId>
 			<artifactId>idle-notification</artifactId>
 			<version>2.0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.vaadin.addons.visjs.network</groupId>
-			<artifactId>vis-network-vaadin</artifactId>
-			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaadin.componentfactory</groupId>
@@ -185,13 +178,6 @@
 			<artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
 		</dependency>
 
-		<!--
-		<dependency>
-			<groupId>com.flowingcode.addons</groupId>
-			<artifactId>xterm-console</artifactId>
-			<version>2.2.0</version>
-		</dependency>
-		-->
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
