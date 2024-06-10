@@ -52,44 +52,47 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
-      - name: mhus-commons
+#      - name: mhus-commons
+#        run: |
+#          if [ $(cat pom.xml|grep mhus-common.version|grep -c SNAPSHOT) -eq 1 ]; then
+#            echo "Build mhus-commons"
+#            echo "================"
+#            git clone https://github.com/mhus/mhus-commons.git
+#            cd mhus-commons
+#            mvn install -B -U || exit 1
+#            cd ..
+#            rm -rf mhus-commons
+#          fi
+#      - name: vis-network-vaadin
+#        run: |
+#          echo "Build vis-network-vaadin"
+#          echo "================"
+#          git clone https://github.com/mhus/vis-network-vaadin.git
+#          cd vis-network-vaadin
+#          mvn install -B -Pproduction || exit 1
+#          cd ..
+#          rm -rf vis-network-vaadin
+#      - name: vaadin-raw-xterm-addon
+#        run: |
+#          echo "Build vaadin-raw-xterm-addon"
+#          echo "================"
+#          git clone https://github.com/mhus/vaadin-raw-xterm-addon.git
+#          cd vaadin-raw-xterm-addon
+#          mvn install -B -Pproduction || exit 1
+#          cd ..
+#          rm -rf vaadin-raw-xterm-addon
+      - name: Purge snapshots
         run: |
-          if [ $(cat pom.xml|grep mhus-common.version|grep -c SNAPSHOT) -eq 1 ]; then
-            echo "Build mhus-commons"
-            echo "================"
-            git clone https://github.com/mhus/mhus-commons.git
-            cd mhus-commons
-            mvn install -B -U || exit 1
-            cd ..
-            rm -rf mhus-commons
-          fi
-      - name: vis-network-vaadin
-        run: |
-          echo "Build vis-network-vaadin"
-          echo "================"
-          git clone https://github.com/mhus/vis-network-vaadin.git
-          cd vis-network-vaadin
-          mvn install -B -Pproduction || exit 1
-          cd ..
-          rm -rf vis-network-vaadin
-      - name: vaadin-raw-xterm-addon
-        run: |
-          echo "Build vaadin-raw-xterm-addon"
-          echo "================"
-          git clone https://github.com/mhus/vaadin-raw-xterm-addon.git
-          cd vaadin-raw-xterm-addon
-          mvn install -B -Pproduction || exit 1
-          cd ..
-          rm -rf vaadin-raw-xterm-addon
+          mvn dependency:purge-local-repository -Dinclude:de.mhus.kt2l:vaadin-raw-xterm-addon -DresolutionFuzziness=groupId
+          mvn dependency:purge-local-repository -Dinclude:de.mhus.kt2l:vis-network-vaadin -DresolutionFuzziness=groupId
+          mvn dependency:purge-local-repository -Dinclude:de.mhus.lib:mhus-commons -DresolutionFuzziness=groupId -Dverbose
       - name: Prepare
         run: ./kt2l-desktop/launcher/prepare.sh
-      - name: Build maven linux-amd64
-        run: mvn clean install -B -Plinux-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
       - name: Integration Tests
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
-          mvn -B verify -Pdeploy -Pproduction -Pintegration_tests -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
+          mvn -pl kt2l-core,kt2l-test -am -B clean verify -Pdeploy -Pdeploy -Pproduction -Pintegration_tests -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
         env:
           TEST_DEBUG: false
           TEST_SCREENSHOTS: false
