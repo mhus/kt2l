@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkKT2L=self.webpackChunkKT2L||[]).push([[7771],{3652:e=>{e.exports=JSON.parse('{"title":"Usage","description":"User manual","slug":"/category/usage","permalink":"/docs/category/usage","navigation":{"previous":{"title":"Screenshots","permalink":"/docs/screenshots"},"next":{"title":"Navigation","permalink":"/docs/usage/navigation"}}}')}}]);
