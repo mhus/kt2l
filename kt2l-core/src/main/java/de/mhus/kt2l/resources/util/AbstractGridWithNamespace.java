@@ -252,9 +252,9 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     protected String getGridRowClass(T res) {
         if (res.alert == ALERT.ALERT)
-            return "bgcolor-red";
+            return "bgcolor-alert";
         if (res.alert == ALERT.WARNING)
-            return "bgcolor-orange";
+            return "bgcolor-warning";
         return res.color != null ? res.color.name().toLowerCase() : "";
     }
 
