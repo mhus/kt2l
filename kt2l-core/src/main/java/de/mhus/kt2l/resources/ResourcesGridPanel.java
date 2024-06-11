@@ -187,13 +187,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             cluster.setResourceTypes(types);
             LOGGER.debug("Resource types: {}",types.stream().map(V1APIResource::getName).toList());
             core.ui().access(() -> {
-                resourceSelector.setItems(cluster.getResourceTypes().stream()
-                        .filter(r ->
-                                !r.getName().equals("GENERIC") &&
-                                !r.getName().equals("CUSTOM") &&
-                                !r.getName().equals("containers") //&&
-                                //r.getName().indexOf('/') < 0
-                        ).toList());
+                resourceSelector.setItems(cluster.getResourceTypes());
                 Thread.startVirtualThread(() -> {
                     MThread.sleep(400);
                     core.ui().access(() -> {
@@ -296,7 +290,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     }
 
     private ResourcesGrid createDefaultGrid() {
-        return new GenericGrid();
+        var g =  new GenericGrid();
+        core.getBeanFactory().autowireBean(g);
+        return g;
     }
 
     private ResourcesGrid createGrid(K8s resourceType) {
@@ -347,12 +343,12 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         gridContainer.removeAll();
         if (grid != null) {
             grid.setFilter(filterText.getValue(), resourcesFilter);
-            namespaceSelector.setEnabled(grid.isNamespaced());
             grid.setNamespace(namespaceSelector.getValue());
             if (grid instanceof GenericGrid genericGrid)
                 genericGrid.setResourceType(resourceSelector.getValue());
             else
                 grid.setResourceType(k8s.findResource(resourceSelector.getValue()));
+            namespaceSelector.setEnabled(grid.isNamespaced());
             grid.init(cluster, this);
             var gc = grid.getComponent();
             if (gc instanceof ThemableLayout tl) {

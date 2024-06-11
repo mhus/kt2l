@@ -138,7 +138,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 
     @Override
     public boolean isNamespaced() {
-        return true;
+        return resourceType != null && resourceType.getNamespaced() != null && resourceType.getNamespaced();
     }
 
     private class ResourcesProvider extends CallbackDataProvider<Resource, Void> {

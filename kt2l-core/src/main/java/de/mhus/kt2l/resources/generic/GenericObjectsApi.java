@@ -20,6 +20,7 @@ package de.mhus.kt2l.resources.generic;
 import de.mhus.commons.errors.InternalRuntimeException;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.ApiResponse;
 import io.kubernetes.client.openapi.Pair;
 import io.kubernetes.client.openapi.models.V1APIResource;
@@ -31,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static net.logstash.logback.util.StringUtils.isBlank;
 
 @Slf4j
 public class GenericObjectsApi {
@@ -67,7 +70,7 @@ public class GenericObjectsApi {
             Object localVarPostBody = null;
 
             // create path and map variables
-            String localVarPath = createPath(resourceType, namespace);
+            String localVarPath = createPath(resourceType, resourceType.getNamespaced() != null && resourceType.getNamespaced() ? namespace : null);
 
             List<Pair> localVarQueryParams = new ArrayList<Pair>();
             List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
@@ -100,6 +103,8 @@ public class GenericObjectsApi {
 
             ApiResponse<GenericObjectList> response = localVarApiClient.execute(call, GenericObjectList.class);
             return response.getData();
+        } catch (ApiException e) {
+                LOGGER.error("Error while listing custom objects with RC {}", e.getCode(), e);
         } catch (Exception e) {
             LOGGER.error("Error while listing custom objects", e);
         }
@@ -121,7 +126,7 @@ public class GenericObjectsApi {
         var path = new StringBuffer();
         if (r.getGroup() != null) {
             path.append("/apis/").append(r.getGroup());
-            if (r.getVersion() != null) {
+            if (!isBlank(r.getVersion())) {
                 path.append("/").append(r.getVersion());
             } else {
                 path.append("/v1");

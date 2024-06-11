@@ -99,7 +99,14 @@ public class K8sService {
             }
             try (SecurityContext.Environment cce = cc.enter()) {
                 final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE);
-                resources = resources.stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal)).toList();
+                resources = resources.stream().filter(
+                        res ->
+                            !res.getName().equals("GENERIC") &&
+                            !res.getName().equals("CUSTOM") &&
+                            !res.getName().equals("containers") &&
+                            res.getName().indexOf('/') < 0 &&
+                            securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal)
+                ).toList();
                 future.complete(resources);
                 return resources;
             }
