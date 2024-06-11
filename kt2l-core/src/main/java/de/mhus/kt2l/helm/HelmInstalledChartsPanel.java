@@ -28,7 +28,6 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.PanelService;
-import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.secret.SecretWatch;

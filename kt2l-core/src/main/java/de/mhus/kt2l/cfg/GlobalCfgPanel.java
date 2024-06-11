@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l.cfg;
 
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.menubar.MenuBar;

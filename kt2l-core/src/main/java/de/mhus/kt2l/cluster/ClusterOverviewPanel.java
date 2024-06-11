@@ -39,8 +39,6 @@ import de.mhus.kt2l.core.SecurityUtils;
 import de.mhus.kt2l.core.UiUtil;
 import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;
-import de.mhus.kt2l.resources.generic.GenericK8s;
-import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

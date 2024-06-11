@@ -19,6 +19,7 @@ package de.mhus.kt2l.events;
 
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MString;
@@ -77,10 +78,11 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
         menuItemAutoScroll.setChecked(true);
 
         menuItemWrapLines = viewMenu.addItem("Wrap lines", e -> {
-            if (menuItemWrapLines.isChecked())
-                eventList.addClassNames("events-view-nowrap");
-            else
-                eventList.removeClassNames("events-view-nowrap");
+//            if (menuItemWrapLines.isChecked())
+//                eventList.addClassNames("events-view-nowrap");
+//            else
+//                eventList.removeClassNames("events-view-nowrap");
+            eventList.setScrollDirection(menuItemWrapLines.isChecked() ? Scroller.ScrollDirection.VERTICAL : Scroller.ScrollDirection.BOTH);
         });
         menuItemWrapLines.setCheckable(true);
 
@@ -91,6 +93,7 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
         add(menuBar);
 
         eventList = new Tail();
+        eventList.setScrollDirection(Scroller.ScrollDirection.BOTH);
         eventList.addClassName("events-view");
         eventList.setSizeFull();
         eventList.setAutoScroll(true);
@@ -133,8 +136,10 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
         MString.fillUntil(sb, 30, ' ');
         sb.append(event.getReason()).append(" ");
         MString.fillUntil(sb, 50, ' ');
-        sb.append(event.getInvolvedObject().getName()).append(" ");
+        sb.append(event.getInvolvedObject().getNamespace()).append(" ");
         MString.fillUntil(sb, 70, ' ');
+        sb.append(event.getInvolvedObject().getName()).append(" ");
+        MString.fillUntil(sb, 90, ' ');
         sb.append(event.getMessage());
         return sb.toString();
     }

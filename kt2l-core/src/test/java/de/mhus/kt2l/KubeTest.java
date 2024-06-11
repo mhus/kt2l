@@ -26,14 +26,22 @@ import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.resources.generic.APIGroupDiscoveryList;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
 import io.kubernetes.client.openapi.ApiCallback;
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.ApiResponse;
+import io.kubernetes.client.openapi.Pair;
+import io.kubernetes.client.openapi.apis.ApiextensionsV1Api;
+import io.kubernetes.client.openapi.apis.ApisApi;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1Event;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1APIResourceList;
 import io.kubernetes.client.openapi.models.V1EphemeralContainer;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -42,6 +50,7 @@ import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.KubeConfig;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Call;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -49,8 +58,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -349,6 +362,7 @@ public class KubeTest {
         ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
 
         CoreV1Api api = new CoreV1Api(apiProvider.getClient());
+        api.getApiClient().setDebugging(true);
 
         final var list = api.getAPIResources();
 
@@ -356,8 +370,87 @@ public class KubeTest {
         list.getResources().forEach(resource -> {
             resources.put(resource.getName(), resource);
         });
-        resources.keySet().forEach(k -> System.out.println(k) );
+        resources.keySet().forEach(k -> System.out.println("core " + k) );
 
+        // ---
+
+        AppsV1Api appsApi = new AppsV1Api(apiProvider.getClient());
+        appsApi.getAPIResources().getResources().forEach(resource -> {
+            System.out.println("apps " + resource.getName());
+        });
+
+        // ---
+
+        ApiextensionsV1Api apiextensionsApi = new ApiextensionsV1Api(apiProvider.getClient());
+        apiextensionsApi.getAPIResources().getResources().forEach(resource -> {
+            System.out.println("apiextensions " + resource.getName());
+        });
+
+        // ---
+
+        ApisApi apisApi = new ApisApi(apiProvider.getClient());
+        var v = apisApi.getAPIVersions();
+
+        System.out.println("ApisVersion: " + v.getApiVersion());
+
+        // ---
+
+
+    }
+
+    @Test
+    public void testAPIGroupDiscoveryList() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        System.out.println("CLUSTER_NAME: " + CLUSTER_NAME);
+        final var service = new K8sService();
+        ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
+        apiProvider.getClient().setDebugging(true);
+
+        {
+            var getAPIResourcesCall = getAPIResourcesCall((ApiCallback) null, apiProvider.getClient());
+            Type localVarReturnType = (new TypeToken<APIGroupDiscoveryList>() {
+            }).getType();
+            var res = apiProvider.getClient().execute(getAPIResourcesCall, localVarReturnType);
+        }
+        var getAPIResourcesCall = getAPIResourcesCall((ApiCallback)null, apiProvider.getClient()  );
+        Type localVarReturnType = (new TypeToken<APIGroupDiscoveryList>() {}).getType();
+        var res = apiProvider.getClient().execute(getAPIResourcesCall, localVarReturnType);
+
+        ((APIGroupDiscoveryList)res.getData()).getItems().forEach(v -> {
+            try {
+                System.out.println(v.getVersions());
+                MJson.load(v.getVersions()).get(0).withArrayProperty("resources").forEach(item -> {
+                    System.out.println(item.get("singularResource").asText());
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+
+    }
+
+    public Call getAPIResourcesCall(ApiCallback _callback, ApiClient client) throws ApiException {
+        Object localVarPostBody = null;
+        String localVarPath = "/api";
+        List<Pair> localVarQueryParams = new ArrayList();
+        List<Pair> localVarCollectionQueryParams = new ArrayList();
+        Map<String, String> localVarHeaderParams = new HashMap();
+        Map<String, String> localVarCookieParams = new HashMap();
+        Map<String, Object> localVarFormParams = new HashMap();
+
+        localVarHeaderParams.put("Accept", "application/json;g=apidiscovery.k8s.io;v=v2beta1;as=APIGroupDiscoveryList,application/json");
+        localVarHeaderParams.put("User-Agent", "kubectl/v1.29.2 (darwin/arm64) kubernetes/4b8e819");
+
+        String[] localVarContentTypes = new String[0];
+        String localVarContentType = client.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+        String[] localVarAuthNames = new String[]{"BearerToken"};
+        return client.buildCall(localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
     }
 
     @Test

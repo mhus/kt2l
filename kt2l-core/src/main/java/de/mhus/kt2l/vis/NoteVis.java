@@ -19,11 +19,9 @@ package de.mhus.kt2l.vis;
 
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.node.NodeWatch;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1Service;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;

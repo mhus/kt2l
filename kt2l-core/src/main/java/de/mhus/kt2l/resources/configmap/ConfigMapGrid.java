@@ -21,7 +21,6 @@ package de.mhus.kt2l.resources.configmap;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
-import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.PanelService;

@@ -35,7 +35,7 @@ public class DataDeserializer implements JsonDeserializer<String>, JsonSerialize
         } else if (jsonElement.isJsonPrimitive()) {
             return jsonElement.getAsString();
         }
-        return "";
+        return jsonElement.toString();
     }
 
     @Override
