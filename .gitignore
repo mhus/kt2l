@@ -4,6 +4,7 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+*.bak
 
 ### STS ###
 .apt_generated
@@ -37,7 +38,7 @@ build/
 
 /kt2l-core/frontend/generated
 /vaadin-xterm-addon/frontend/generated/
-
+/config/local/*.yaml
 
 /kt2l-core/src/test/resources/local.properties
 /config/users/autologin/
