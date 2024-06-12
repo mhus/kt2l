@@ -15,31 +15,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.core;
 
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Paragraph;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+package de.mhus.kt2l.resources.storageclass;
 
-@Builder
-@AllArgsConstructor
-@Getter
-public class TailRow<U> {
-    private final String text;
-    private Paragraph element;
-    private UiUtil.COLOR color;
-    private UiUtil.COLOR bgcolor;
-    @Setter
-    private U userObject;
+import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.core.WithRole;
+import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.resources.ResourceGridFactory;
+import de.mhus.kt2l.resources.ResourcesGrid;
+import org.springframework.stereotype.Component;
 
-    public TailRow(String text) {
-        this.text = text;
+@Component
+@WithRole(UsersConfiguration.ROLE.READ)
+public class StorageClassGridFactory implements ResourceGridFactory {
+    @Override
+    public boolean canHandleResourceType(K8s resourceType) {
+        return K8s.STORAGE_CLASS.equals(resourceType);
     }
 
-    void setElement(Paragraph element) {
-        this.element = element;
+    @Override
+    public ResourcesGrid create(K8s resourcesType) {
+        return new StorageClassGrid();
     }
+
 }

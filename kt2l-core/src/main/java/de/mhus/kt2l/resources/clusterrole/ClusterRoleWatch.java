@@ -15,31 +15,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.core;
 
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Paragraph;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+package de.mhus.kt2l.resources.clusterrole;
 
-@Builder
-@AllArgsConstructor
-@Getter
-public class TailRow<U> {
-    private final String text;
-    private Paragraph element;
-    private UiUtil.COLOR color;
-    private UiUtil.COLOR bgcolor;
-    @Setter
-    private U userObject;
+import com.google.gson.reflect.TypeToken;
+import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.resources.util.AbstractClusterWatch;
+import io.kubernetes.client.openapi.models.V1ClusterRole;
+import io.kubernetes.client.util.Watch;
+import lombok.extern.slf4j.Slf4j;
 
-    public TailRow(String text) {
-        this.text = text;
+import java.lang.reflect.Type;
+
+@Slf4j
+public class ClusterRoleWatch extends AbstractClusterWatch<V1ClusterRole> {
+
+    @Override
+    public K8s getManagedResourceType() {
+        return K8s.CLUSTER_ROLE;
     }
 
-    void setElement(Paragraph element) {
-        this.element = element;
+    @Override
+    protected Type createTypeToken() {
+        return new TypeToken<Watch.Response<V1ClusterRole>>() {}.getType();
     }
+
 }

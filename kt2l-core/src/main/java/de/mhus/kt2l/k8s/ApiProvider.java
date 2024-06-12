@@ -25,6 +25,7 @@ import io.kubernetes.client.openapi.apis.BatchV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
+import io.kubernetes.client.openapi.apis.StorageV1Api;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ public abstract class ApiProvider {
     private NetworkingV1Api networkingV1Api;
     private RbacAuthorizationV1Api rbacV1Api;
     private AutoscalingV1Api autoscalingV1Api;
+    private StorageV1Api storageV1Api;
 
     protected ApiProvider(long timeout) {
         this.timeout = timeout;
@@ -53,6 +55,14 @@ public abstract class ApiProvider {
             coreV1Api = new CoreV1Api(getClient());
         return coreV1Api;
     }
+
+    public StorageV1Api getStorageV1Api() {
+        getClient();
+        if (storageV1Api == null)
+            storageV1Api = new StorageV1Api(getClient());
+        return storageV1Api;
+    }
+
 //
 //    private <T> T createProxy(T api) {
 //        return (T)Proxy.newProxyInstance(api.getClass().getClassLoader(), new Class[]{api.getClass()}, new InvocationHandler() {
@@ -135,6 +145,7 @@ public abstract class ApiProvider {
             networkingV1Api = null;
             rbacV1Api = null;
             autoscalingV1Api = null;
+            storageV1Api = null;
         }
         return client;
     }

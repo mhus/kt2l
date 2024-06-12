@@ -18,7 +18,9 @@
 
 package de.mhus.kt2l.k8s;
 
+import ch.qos.logback.core.model.processor.ModelHandlerBase;
 import de.mhus.commons.errors.NotFoundRuntimeException;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.SecurityContext;
@@ -281,6 +283,26 @@ public class K8sService {
             return Arrays.stream(K8s.values()).filter(r -> r.resourceType().equalsIgnoreCase(value.getName())).findFirst()
                     .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
         throw new NotFoundRuntimeException("Resource not found: " + value.getName());
+    }
+
+    public CompletableFuture<List<V1APIResource>> fillResourceTypes(Cluster cluster) {
+        CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
+        if (cluster.getResourceTypes() != null) {
+            future.complete(cluster.getResourceTypes());
+            return future;
+        }
+
+        getResourceTypesAsync(cluster.getApiProvider()).handle((types, t) -> {
+            if (t != null) {
+                LOGGER.error("Can't load resource types", t);
+                future.completeExceptionally(t);
+                return Collections.emptyList();
+            }
+            cluster.setResourceTypes(types);
+            future.complete(types);
+            return types;
+        });
+        return future;
     }
 
 //    public Path getKubeConfigPath(Cluster cluster) {

@@ -423,7 +423,7 @@ public class KubeTest {
         ((APIGroupDiscoveryList)res.getData()).getItems().forEach(v -> {
             try {
                 System.out.println(v.getVersions());
-                MJson.load(v.getVersions()).get(0).withArrayProperty("resources").forEach(item -> {
+                MJson.load(v.getVersions()).get(0).withArray("resources").forEach(item -> {
                     System.out.println(item.get("singularResource").asText());
                 });
             } catch (IOException e) {

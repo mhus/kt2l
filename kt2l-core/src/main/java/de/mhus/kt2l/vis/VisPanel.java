@@ -17,15 +17,24 @@
  */
 package de.mhus.kt2l.vis;
 
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.ProgressDialog;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.resources.common.DescribeAction;
 import io.kubernetes.client.common.KubernetesObject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -36,21 +45,32 @@ import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.addons.visjs.network.main.Node;
 import org.vaadin.addons.visjs.network.options.Options;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static de.mhus.commons.tools.MLang.tryThis;
 
 @Configurable
 @Slf4j
-public class VisPanel extends VerticalLayout implements DeskTabListener {
+public class VisPanel extends SplitLayout implements DeskTabListener {
 
     @Autowired
     private List<VisHandler> visHandlers;
     @Autowired
     private List<HandlerK8s> k8sHandler;
     private Map<String, HandlerK8s> k8sMap;
+    @Autowired
+    private K8sService k8sService;
+    @Autowired
+    private PanelService panelService;
+    @Autowired
+    private DescribeAction describeAction;
 
     @Getter
     private final Core core;
@@ -63,6 +83,14 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
     private LinkedList<Node> nodeList;
     private LinkedList<Edge> edgeList;
     private ListDataProvider<Edge> edgeProvider;
+    private VerticalLayout content;
+    private VerticalLayout settings;
+    private ComboBox<String> namespaceSelector;
+    private String selectedNode;
+
+    private volatile boolean needEdgeUpdate = false;
+    private volatile boolean isUpdaing = false;
+
 //    private IRegistration registrationNs;
 //    private IRegistration registrationPod;
 //    private IRegistration registrationDeploy;
@@ -89,6 +117,20 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
                         .withAutoResize(true)
                         .build()
         );
+
+        k8sService.fillResourceTypes(cluster); // prepare cluster
+
+        content = new VerticalLayout();
+        content.setSizeFull();
+        addToPrimary(content);
+
+        settings = new VerticalLayout();
+        settings.setSizeFull();
+        addToSecondary(settings);
+
+        setOrientation(Orientation.HORIZONTAL);
+        setSplitterPosition(90);
+
         nodeList = new LinkedList<>();
         nodeProvider = new ListDataProvider<>(nodeList);
         nd.setNodesDataProvider(nodeProvider);
@@ -97,13 +139,86 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
         nd.setEdgesDataProvider(edgeProvider);
 
         nd.setSizeFull();
-        add(nd);
+
+        content.add(nd);
         setSizeFull();
-        setPadding(false);
-        setMargin(false);
+        content.setPadding(false);
+        content.setMargin(false);
 
         k8sMap = Collections.synchronizedMap(new HashMap<>());
         k8sHandler.forEach(handler -> k8sMap.put(handler.getManagedResourceType().kind(), handler));
+
+        var contextMenu = new ContextMenu(nd);
+        contextMenu.addItem("Yaml", e -> {
+            if (selectedNode == null) return;
+            var nodeStore = nodes.get(selectedNode);
+            if (nodeStore == null) return;
+            panelService.showYamlPanel(deskTab, cluster, nodeStore.handler.getManagedResourceType(), nodeStore.k8sObject).select();
+        });
+        contextMenu.addItem("Refresh", e -> updateAll());
+
+        nd.setVisible(false);
+
+        // ---
+
+        var updateSwitch = new Checkbox("Auto Update");
+        updateSwitch.addValueChangeListener(e -> {
+            visHandlers.forEach(handler -> handler.setAutoUpdate(e.getValue()));
+        });
+        settings.add(updateSwitch);
+
+        visHandlers.forEach(handler -> {
+            handler.setNamespace(K8sUtil.NAMESPACE_DEFAULT);
+            handler.setAutoUpdate(false);
+            handler.setEnabled(false);
+        });
+        visHandlers.stream().filter(h -> h.getManagedResourceType() == K8s.NAMESPACE).findFirst().ifPresent(h -> h.setEnabled(true));
+
+        namespaceSelector = new ComboBox<String>();
+        namespaceSelector.setItems(k8sService.getNamespaces(true,cluster.getApiProvider()));
+        namespaceSelector.setValue(K8sUtil.NAMESPACE_DEFAULT);
+        namespaceSelector.addValueChangeListener(e -> {
+            var ns = e.getValue().equals(K8sUtil.NAMESPACE_ALL_LABEL) ? null : e.getValue();
+            visHandlers.forEach(handler -> handler.setNamespace(ns));
+            updateAll();
+        });
+        settings.add(namespaceSelector);
+
+
+        final AtomicBoolean isNamespacedHandler = new AtomicBoolean(true);
+        for (VisHandler handler : visHandlers.stream().sorted((a,b) -> {
+            if (a.getManagedResourceType().isNamespaced() != b.getManagedResourceType().isNamespaced())
+                return a.getManagedResourceType().isNamespaced() ? -1 : 1;
+            return a.getManagedResourceType().kind().compareTo(b.getManagedResourceType().kind());
+        } ).toList()) {
+            if (isNamespacedHandler.get() && !handler.getManagedResourceType().isNamespaced()) {
+                isNamespacedHandler.set(false);
+                settings.add(new Hr());
+            }
+            var useSwitch = new Checkbox(handler.getManagedResourceType().kind());
+            useSwitch.setValue(handler.isEnabled());
+            useSwitch.addValueChangeListener(e -> {
+                if (e.getValue()) {
+                    handler.setEnabled(true);
+                    handler.updateAll();
+                } else {
+                    handler.setEnabled(false);
+                    new ArrayList<>(nodes.values()).forEach(n -> {
+                        if (n.handler == handler) {
+                                deleteNode(handler, n.k8sObject());
+                        }
+                    });
+                }
+            });
+            settings.add(useSwitch);
+        }
+
+        // ---
+
+        updateAll();
+    }
+
+    private void updateAll() {
 
         ProgressDialog progress = new ProgressDialog();
         progress.setHeaderTitle("Start Visualization");
@@ -111,6 +226,8 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
         progress.open();
 
         nd.setVisible(false);
+        isUpdaing = true;
+        clearAll();
 
         Thread.startVirtualThread(() -> {
             try {
@@ -123,13 +240,31 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
             }
             core.ui().access(() -> {
                 progress.setIndeterminate(true);
+                progress.setProgress(0, "edges ...");
+                updateEdges();
+                needEdgeUpdate = false;
+            });
+            core.ui().access(() -> {
+                progress.setIndeterminate(true);
                 progress.setProgress(0, "visualize ...");
+                progress.setProgressDetails("nodes: " + nodes.size() + ", edges: " + deges.size());
             } );
             core.ui().access(() -> {
                 nd.setVisible(true);
                 progress.close();
+                isUpdaing = false;
             } );
         });
+
+    }
+
+    private void clearAll() {
+        nodes.clear();
+        nodeList.clear();
+        deges.clear();
+        edgeList.clear();
+        edgeProvider.refreshAll();
+        nodeProvider.refreshAll();
     }
 
     public HandlerK8s getK8sHandler(K8s resourceType) {
@@ -160,7 +295,24 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabSelected() {
+        nd.addSelectListener(e -> {
+            var nodeId = tryThis(() -> e.getParams().getArray("nodes").get(0).asString()).or(null);
+            if (nodeId == null) {
+                selectedNode = null;
+            } else {
+                selectedNode = nodeId;
+            }
+            LOGGER.debug("Selected Node: {} ", selectedNode);
+        });
 
+        nd.addDoubleClickListener(e -> {
+            if (selectedNode == null) return;
+            var nodeStore = nodes.get(selectedNode);
+            if (nodeStore == null) return;
+            describeAction.showPreview(core, cluster, nodeStore.handler.getManagedResourceType(), Set.of(nodeStore.k8sObject));
+        });
+        if (nd.isVisible())
+            nd.diagamRedraw();
     }
 
     @Override
@@ -175,7 +327,10 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabRefresh(long counter) {
-
+        if ( counter % 5 == 0 && !isUpdaing && needEdgeUpdate) {
+            needEdgeUpdate = false;
+            updateEdges();
+        }
     }
 
     public void processNode(VisHandler handler, KubernetesObject res) {
@@ -196,7 +351,7 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
             });
             return new NodeStore(node, handler, res);
         });
-        updateEdges();
+        needEdgeUpdate = true;
     }
 
     public void deleteNode(VisHandler handler, KubernetesObject object) {
@@ -204,10 +359,18 @@ public class VisPanel extends VerticalLayout implements DeskTabListener {
         var nodeStore = nodes.values().stream().filter(n -> n.k8sObject.getMetadata().getUid().equals(uid)).findFirst().orElse(null);
         if (nodeStore == null) return;
         core.ui().access(() -> {
+            nodes.remove(nodeStore.node.getId());
             nodeList.remove(nodeStore.node);
             nodeProvider.refreshItem(nodeStore.node);
+            edgeList.removeIf(e -> {
+                var remove = e.getFrom().equals(nodeStore.node().getId()) || e.getTo().equals(nodeStore.node().getId());
+                if (remove) {
+                    edgeProvider.getItems().remove(e.getValue());
+                }
+                return remove;
+            });
         });
-        updateEdges();
+        needEdgeUpdate = true;
     }
 
     public Map<String, NodeStore> getNodes() {

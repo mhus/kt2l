@@ -18,6 +18,7 @@
 package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.Getter;
@@ -48,7 +49,7 @@ public class Tail extends Scroller {
     public void removeRow(TailRow row) {
         synchronized (rows) {
             rows.remove(row);
-            content.remove(row.getDiv());
+            content.remove(row.getElement());
         }
     }
 
@@ -71,20 +72,20 @@ public class Tail extends Scroller {
                 rows.remove(row);
                 rows.add(row);
 
-                if (row.getDiv() != null) {
-                    content.remove(row.getDiv()); // for secure
+                if (row.getElement() != null) {
+                    content.remove(row.getElement()); // for secure
                 } else {
-                    row.setDiv(new Div(row.getText()));
+                    row.setElement(new Paragraph(row.getText()));
                 }
                 if (row.getColor() != null)
-                    row.getDiv().addClassName("color-" + row.getColor().name().toLowerCase());
+                    row.getElement().addClassName("color-" + row.getColor().name().toLowerCase());
                 if (row.getBgcolor() != null)
-                    row.getDiv().addClassName("bgcolor-" + row.getBgcolor().name().toLowerCase());
-                content.add(row.getDiv());
+                    row.getElement().addClassName("bgcolor-" + row.getBgcolor().name().toLowerCase());
+                content.add(row.getElement());
             });
             while (maxRows > 0 && rows.size() > maxRows) {
                 TailRow first = rows.removeFirst();
-                content.remove(first.getDiv());
+                content.remove(first.getElement());
             }
         }
         if (autoScroll) {
@@ -97,19 +98,19 @@ public class Tail extends Scroller {
             rows.remove(row);
             rows.add(row);
 
-            if (row.getDiv() != null) {
-                content.remove(row.getDiv()); // for secure
+            if (row.getElement() != null) {
+                content.remove(row.getElement()); // for secure
             } else {
-                row.setDiv(new Div(row.getText()));
+                row.setElement(new Paragraph(row.getText()));
             }
             if (row.getColor() != null)
-                row.getDiv().addClassName("color-" + row.getColor().name().toLowerCase());
+                row.getElement().addClassName("color-" + row.getColor().name().toLowerCase());
             if (row.getBgcolor() != null)
-                row.getDiv().addClassName("bgcolor-" + row.getBgcolor().name().toLowerCase());
-            content.add(row.getDiv());
+                row.getElement().addClassName("bgcolor-" + row.getBgcolor().name().toLowerCase());
+            content.add(row.getElement());
             while (maxRows > 0 && rows.size() > maxRows) {
                 TailRow first = rows.removeFirst();
-                content.remove(first.getDiv());
+                content.remove(first.getElement());
             }
         }
         if (autoScroll) {

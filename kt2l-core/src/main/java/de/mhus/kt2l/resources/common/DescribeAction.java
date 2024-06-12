@@ -24,6 +24,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextArea;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
@@ -56,15 +57,19 @@ public class DescribeAction implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
+        showPreview(context.getCore(), context.getCluster(), context.getResourceType(), context.getSelected());
+    }
+
+    public void showPreview(Core core, Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
 
         // prepare preview
         StringBuilder sb = new StringBuilder();
-        context.getSelected().forEach(
+        selected.forEach(
                 res -> {
-                    final var handler = k8sService.getResourceHandler(K8sUtil.toResource(res, context.getCluster()));
-                    final var previewText = handler.getDescribe(context.getCluster().getApiProvider(), res);
+                    final var handler = k8sService.getResourceHandler(K8sUtil.toResource(res, cluster));
+                    final var previewText = handler.getDescribe(cluster.getApiProvider(), res);
                     sb.append(">>> ")
-                            .append(res.getKind() == null ? context.getResourceType() : res.getKind())
+                            .append(res.getKind() == null ? resourceType : res.getKind())
                             .append(" ").append(res.getMetadata().getName()).append('\n');
                     sb.append(previewText).append('\n');
                 }
@@ -82,7 +87,7 @@ public class DescribeAction implements ResourceAction {
         dialog.add(preview);
         dialog.setWidth("80%");
         dialog.setHeight("80%");
-        final var ui = context.getUi();
+        final var ui = core.ui();
         Button closeButton = new Button("Close", e -> {
             dialog.close();
             ui.remove(dialog);

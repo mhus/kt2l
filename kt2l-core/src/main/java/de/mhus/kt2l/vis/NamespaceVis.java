@@ -32,7 +32,7 @@ import org.vaadin.addons.visjs.network.main.Node;
 public class NamespaceVis extends AbstractVisHandler {
     @Override
     public K8s[] getConnectedResourceTypes() {
-        return new K8s[] {K8s.POD, K8s.DEPLOYMENT, K8s.DAEMON_SET, K8s.REPLICA_SET};
+        return null;
     }
 
     @Override
@@ -63,4 +63,9 @@ public class NamespaceVis extends AbstractVisHandler {
         if (v1.k8sObject().getMetadata().getName().equals(v2.k8sObject().getMetadata().getNamespace()))
             panel.processEdge(v1, v2);
     }
+
+    protected boolean isInNamespace(KubernetesObject res) {
+        return namespace != null && !namespace.equals(res.getMetadata().getName());
+    }
+
 }

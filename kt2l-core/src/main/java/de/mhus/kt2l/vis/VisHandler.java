@@ -38,4 +38,12 @@ public interface VisHandler {
     void createEdge(Edge edge, VisPanel.NodeStore v1, VisPanel.NodeStore v2);
 
     void destroy();
+
+    void setAutoUpdate(Boolean value);
+
+    void setEnabled(boolean value);
+
+    void setNamespace(String value);
+
+    boolean isEnabled();
 }
