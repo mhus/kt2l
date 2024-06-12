@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.vaadin.addons.visjs.network.main.Node;
 
 import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,27 +37,33 @@ public abstract class AbstractVisHandler implements VisHandler {
     protected VisPanel panel;
     private HandlerK8s k8sHandler;
     private IRegistration eventRegistration;
+    private Boolean autoUpdate = false;
+    private boolean enabled = true;
+    protected String namespace = null;
 
     public void init(VisPanel visPanel) {
         this.panel = visPanel;
         k8sHandler = visPanel.getK8sHandler(getManagedResourceType());
-
-        if (getManagedWatchClass() != null)
-            eventRegistration = panel.getCore().backgroundJobInstance(panel.getCluster(), getManagedWatchClass()).getEventHandler().registerWeak(this::changeEvent);
 
         updateAll();
     }
 
     @Override
     public void updateAll() {
+        if (!enabled) return;
         try {
             var allResList = k8sHandler.createResourceListWithoutNamespace(panel.getCluster().getApiProvider());
             allResList.getItems().forEach(res -> {
+                if (isInNamespace(res)) return;
                 panel.processNode(this, res);
             });
         } catch (Exception e) {
             LOGGER.warn("Error", e);
         }
+    }
+
+    protected boolean isInNamespace(KubernetesObject res) {
+        return getManagedResourceType().isNamespaced() && namespace != null && !namespace.equals(res.getMetadata().getNamespace());
     }
 
     public void destroy() {
@@ -65,6 +72,9 @@ public abstract class AbstractVisHandler implements VisHandler {
     }
 
     protected void changeEvent(Watch.Response<KubernetesObject> event) {
+        if (!autoUpdate || !enabled) return;
+        if (getManagedResourceType().isNamespaced() && namespace != null && !namespace.equals(event.object.getMetadata().getNamespace())) return;
+
         if (K8sUtil.WATCH_EVENT_DELETED.equals(event.type))
             panel.deleteNode(this, event.object);
         else
@@ -72,12 +82,17 @@ public abstract class AbstractVisHandler implements VisHandler {
     }
 
     public void updateEdges(String k1, VisPanel.NodeStore v1) {
-        var connectedKinds = Arrays.stream(getConnectedResourceTypes()).map(t -> t.kind() ).collect(Collectors.toSet());
+
+        var connectedKinds = getConnectedResourceTypes() == null ? null : Arrays.stream(getConnectedResourceTypes()).map(t -> t.kind() ).collect(Collectors.toSet());
         panel.getNodes().forEach((k2, v2) -> {
             var kind = VisPanel.getKindOfNodId(k2);
             if (kind == null) return;
-            if (connectedKinds.contains(kind)) {
-                updateConnectedEdge(k1, v1, k2, v2);
+            if (connectedKinds == null || connectedKinds.contains(kind)) {
+                try {
+                    updateConnectedEdge(k1, v1, k2, v2);
+                } catch (Exception e) {
+                    LOGGER.debug("Error", e);
+                }
             }
         });
     }
@@ -88,7 +103,11 @@ public abstract class AbstractVisHandler implements VisHandler {
         if (ownerReferences != null) {
             ownerReferences.forEach(ref -> {
                 if (ref.getUid().equals(uid)) {
-                    panel.processEdge(v1, v2);
+                    try {
+                        panel.processEdge(v1, v2);
+                    } catch (Exception e) {
+                        LOGGER.debug("Error", e);
+                    }
                 }
             });
         }
@@ -100,4 +119,30 @@ public abstract class AbstractVisHandler implements VisHandler {
 
     public void postPrepareNode(Node node) {
     }
+
+    public synchronized void setAutoUpdate(Boolean value) {
+        this.autoUpdate = value;
+        if (autoUpdate) {
+            if (getManagedWatchClass() != null)
+                eventRegistration = panel.getCore().backgroundJobInstance(panel.getCluster(), getManagedWatchClass()).getEventHandler().registerWeak(this::changeEvent);
+        } else {
+            if (eventRegistration != null)
+                eventRegistration.unregister();
+            eventRegistration = null;
+        }
+    }
+
+    public void setEnabled(boolean value) {
+        this.enabled = value;
+    }
+
+    public void setNamespace(String value) {
+        this.namespace = value;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+
 }

@@ -53,7 +53,7 @@ public class ActionYamlEditor implements ResourceAction {
     public void execute(ExecutionContext context) {
 
         var selected = context.getSelected().iterator().next();
-        panelService.showDetailsPanel(context.getSelectedTab(), context.getCluster(), context.getResourceType(), selected).select();
+        panelService.showYamlPanel(context.getSelectedTab(), context.getCluster(), context.getResourceType(), selected).select();
 
     }
 

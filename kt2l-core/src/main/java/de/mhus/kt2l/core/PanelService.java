@@ -85,7 +85,7 @@ public class PanelService {
                 .setColor(cluster == null ? UiUtil.COLOR.NONE : cluster.getColor());
     }
 
-    public DeskTab showDetailsPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {
+    public DeskTab showYamlPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {
         return parentTab.getViewer().addTab(
                 cluster.getName() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),

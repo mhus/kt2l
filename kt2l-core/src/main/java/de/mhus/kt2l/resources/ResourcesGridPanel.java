@@ -179,12 +179,11 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
         final Principal principal = securityService.getPrincipal();
 
-        k8s.getResourceTypesAsync(cluster.getApiProvider()).handle((types, t) -> {
+        k8s.fillResourceTypes(cluster).handle((types, t) -> {
             if (t != null) {
                 LOGGER.error("Can't fetch resource types",t);
                 return Collections.emptyList();
             }
-            cluster.setResourceTypes(types);
             LOGGER.debug("Resource types: {}",types.stream().map(V1APIResource::getName).toList());
             core.ui().access(() -> {
                 resourceSelector.setItems(cluster.getResourceTypes());

@@ -57,7 +57,9 @@ public class GlobalCfgPanel extends VerticalLayout {
         panels.forEach(ps -> {
             try {
                 var file = new File(configDir, ps.factory().handledConfigType() + ".yaml");
-                var content = file.exists() ? MTree.load(file) : MTree.create();
+                var actualFile = findActualConfigFile(ps.factory().handledConfigType());
+                var content = actualFile != null ? MTree.load(actualFile) : MTree.create();
+
                 ps.panel().save(content);
                 MTree.save(content, file);
             } catch (Exception t) {
@@ -95,24 +97,33 @@ public class GlobalCfgPanel extends VerticalLayout {
     private void load() {
         panels.forEach(ps -> {
             try {
-                var file = new File(configDir, ps.factory().handledConfigType() + ".yaml");
-                if (file.exists()) {
+                var file = findActualConfigFile(ps.factory().handledConfigType());
+                if (file != null) {
                     var content = MTree.load(file);
                     ps.panel().load(content);
-                } else if (fallbackDirs != null) {
-                    for (File fallbackDir : fallbackDirs) {
-                        var fallbackFile = new File(fallbackDir, ps.factory().handledConfigType() + ".yaml");
-                        if (fallbackFile.exists()) {
-                            var content = MTree.load(fallbackFile);
-                            ps.panel().load(content);
-                            break;
-                        }
-                    }
                 }
             } catch (Exception t) {
                 LOGGER.error("Can't load panel {}", ps.factory().handledConfigType(), t);
             }
         });
+    }
+
+    private File findActualConfigFile(String handledConfigType) {
+        var file = new File(configDir, handledConfigType + ".yaml");
+        if (file.exists()) {
+            LOGGER.debug("Load config {} from {}", handledConfigType, file);
+            return file;
+        } else if (fallbackDirs != null) {
+            for (File fallbackDir : fallbackDirs) {
+                var fallbackFile = new File(fallbackDir, handledConfigType + ".yaml");
+                if (fallbackFile.exists()) {
+                    LOGGER.debug("Load config {} from {}", handledConfigType, fallbackFile);
+                    return fallbackFile;
+                }
+            }
+        }
+        LOGGER.debug("Load config {} not found", handledConfigType);
+        return null;
     }
 
     public void initUi() {
