@@ -33,6 +33,7 @@ portForward:
 resourcesGrid:
   colors: true
   showResourceVersion: false
+  historyMaxSize: 50
 localBash:
   path: /bin/bash
   argument: -i

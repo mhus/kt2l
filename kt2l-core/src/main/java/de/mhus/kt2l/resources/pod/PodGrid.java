@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -386,8 +387,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                                     case DESCENDING -> Long.compare(b.getRestarts(), a.getRestarts());
                                 };
                                 case "age" -> switch (queryOrder.getDirection()) {
-                                    case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
-                                    case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
+                                    case ASCENDING -> K8sUtil.compareTo(a.getCreated(), b.getCreated());
+                                    case DESCENDING -> K8sUtil.compareTo(b.getCreated(), a.getCreated());
                                 };
                                 case "cpu" -> switch (queryOrder.getDirection()) {
                                     case ASCENDING -> Double.compare(a.getMetricCpu(), b.getMetricCpu());
@@ -577,7 +578,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
 
         public String getAge() {
-            return K8sUtil.getAgeSeconds(resource.getMetadata().getCreationTimestamp()) + (resource.getMetadata().getDeletionTimestamp() != null ? " (" + K8sUtil.getAgeSeconds(resource.getMetadata().getDeletionTimestamp()) + ")" : "");
+            return K8sUtil.getAge(resource.getMetadata().getCreationTimestamp()) + (resource.getMetadata().getDeletionTimestamp() != null ? " (" + K8sUtil.getAge(resource.getMetadata().getDeletionTimestamp()) + ")" : "");
         }
 
         public String getReadyContainers() {
@@ -647,7 +648,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         private final String status;
         private final CONTAINER_TYPE type;
         private String age = "-";
-        private long created = 0;
+        private OffsetDateTime created;
         private long restarts = 0;
         private final V1Pod pod;
         private double metricCpu = Double.MAX_VALUE;
@@ -666,8 +667,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 this.status = "Terminated";
             } else if (cs.getState().getRunning() != null) {
                 this.status = "Running";
-                this.age = K8sUtil.getAgeSeconds(cs.getState().getRunning().getStartedAt());
-                this.created = cs.getState().getRunning().getStartedAt().toEpochSecond();
+                this.age = K8sUtil.getAge(cs.getState().getRunning().getStartedAt());
+                this.created = cs.getState().getRunning().getStartedAt();
             } else if (cs.getState().getWaiting() != null) {
                 this.status = "Waiting";
             } else {

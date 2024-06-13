@@ -71,7 +71,7 @@ public class ShowNodeOfPodAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Nodes;icon=" + VaadinIcon.OPEN_BOOK;
+        return "Nodes;icon=" + VaadinIcon.ARROW_FORWARD;
     }
 
     @Override

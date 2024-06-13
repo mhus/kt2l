@@ -19,10 +19,10 @@
 
 
 cd "$(dirname "$0")"
-cd ../kt2l-core
+cd ..
 mvn clean install -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
-cd ../kt2l-server
-mvn clean package -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
+
+cd kt2l-server
 
 if [ ! -x ~/.kt2l/kt2l-server ]; then
   ./launcher/create-zip.sh

@@ -41,6 +41,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
@@ -72,9 +73,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractGrid<T, S extends Component> extends VerticalLayout implements ResourcesGrid {
 
-    protected List<T> resourcesList = null;
+    protected volatile List<T> resourcesList = null;
     @Getter // for testing
-    protected List<T> filteredList = null;
+    protected volatile List<T> filteredList = null;
     private String filterText = "";
     protected String namespace;
     protected Cluster cluster;
@@ -305,6 +306,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
         resourcesGrid = new Grid<>(getManagedResourceItemClass(), false);
         addClassNames("contact-grid");
+        setSpacing(false);
         resourcesGrid.setSizeFull();
         resourcesGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         try {
@@ -313,6 +315,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             resourcesGrid.getColumns().forEach(col -> {
                 col.setAutoWidth(true);
                 col.setResizable(true);
+                col.setKey(col.getHeaderText().toLowerCase());
             });
             if (viewConfig.getBoolean("colors", true))
                 resourcesGrid.setClassNameGenerator(this::getGridRowClass);
@@ -366,6 +369,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                         }
                     }
                 }
+            });
+
+            resourcesGrid.addSortListener(event -> {
+                panel.historyAdd();
             });
 
             GridContextMenu<T> menu = resourcesGrid.addContextMenu();
@@ -494,9 +501,9 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     }
 
     @Override
-    public void setSortOrder(List<GridSortOrder<Object>> sortOrder) {
+    public void setSortOrder(String sortOrder, boolean sortAscending) {
         if (sortOrder == null || sortOrder.isEmpty()) return;
-        resourcesGrid.sort((List)sortOrder);
+        resourcesGrid.sort(List.of( new GridSortOrder<>(resourcesGrid.getColumnByKey(sortOrder), sortAscending ? SortDirection.ASCENDING : SortDirection.DESCENDING)));
     }
 
     protected void filterList() {

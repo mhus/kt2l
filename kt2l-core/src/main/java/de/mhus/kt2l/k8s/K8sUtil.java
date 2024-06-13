@@ -96,11 +96,11 @@ public class K8sUtil {
         }
         var creationTimestamp = res.getMetadata().getCreationTimestamp();
         if (creationTimestamp != null) {
-            sb.append("Created:       ").append(creationTimestamp).append(" (Age: ").append(getAgeSeconds(creationTimestamp)).append(")").append("\n");
+            sb.append("Created:       ").append(creationTimestamp).append(" (Age: ").append(getAge(creationTimestamp)).append(")").append("\n");
         }
         var deletionTimestamp = res.getMetadata().getDeletionTimestamp();
         if (deletionTimestamp != null) {
-            sb.append("Deletion:      ").append(deletionTimestamp).append(" (In: ").append(getAgeSeconds(deletionTimestamp)).append(")").append("\n");
+            sb.append("Deletion:      ").append(deletionTimestamp).append(" (In: ").append(getAge(deletionTimestamp)).append(")").append("\n");
         }
 
         var labels = res.getMetadata().getLabels();
@@ -149,7 +149,7 @@ public class K8sUtil {
                     table.addRowValues(
                             event.getType(),
                             event.getReason(),
-                            getAgeSeconds(event.getMetadata().getCreationTimestamp()),
+                            getAge(event.getMetadata().getCreationTimestamp()),
                             event.getCount(),
                             event.getSource().getComponent(),
                             event.getMessage()
@@ -289,8 +289,8 @@ public class K8sUtil {
         return resContent;
     }
 
-    public static String getAgeSeconds(OffsetDateTime creationTimestamp) {
-        if (creationTimestamp == null) return "";
+    public static String getAge(OffsetDateTime creationTimestamp) {
+        if (creationTimestamp == null || creationTimestamp.toEpochSecond() == 0) return "";
         var age = System.currentTimeMillis()/1000 - creationTimestamp.toEpochSecond();
         if (age < 0) age = -age;
         if (age < 120) return age + "s";
@@ -300,7 +300,7 @@ public class K8sUtil {
         return age/86400/365 + "y";
     }
 
-    public static String getAgeSeconds(long age) {
+    public static String getAge(long age) {
         if (age < 0) age = -age;
         if (age == 0) return "0";
         if (age < 120) return age + "s";
@@ -351,6 +351,13 @@ public class K8sUtil {
 
             return map;
         }
+    }
+
+    public static int compareTo(OffsetDateTime a, OffsetDateTime b) {
+        if (a == null && b == null) return 0;
+        if (a == null) return -1;
+        if (b == null) return 1;
+        return a.compareTo(b);
     }
 
 }

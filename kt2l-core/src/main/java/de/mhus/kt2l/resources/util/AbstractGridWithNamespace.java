@@ -39,7 +39,9 @@ import io.kubernetes.client.util.Watch;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
@@ -48,6 +50,7 @@ import java.util.stream.Stream;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
+@Configurable
 @Slf4j
 public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamespace.ResourceItem<V>, S extends Component,V extends KubernetesObject, L extends KubernetesListObject> extends AbstractGrid<T, S>{
 
@@ -213,8 +216,8 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                                 case DESCENDING -> b.getNamespace().compareTo(a.getNamespace());
                             };
                             case "age" -> switch (queryOrder.getDirection()) {
-                                case ASCENDING -> Long.compare(a.getCreated(), b.getCreated());
-                                case DESCENDING -> Long.compare(b.getCreated(), a.getCreated());
+                                case ASCENDING ->  K8sUtil.compareTo(a.getCreated(), b.getCreated());
+                                case DESCENDING -> K8sUtil.compareTo(b.getCreated(), a.getCreated());
                             };
                             case "resourceversion" -> switch (queryOrder.getDirection()) {
                                 case ASCENDING -> MObject.compareTo(a.getResourceVersion(), b.getResourceVersion());
@@ -261,6 +264,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     public void refresh(long counter) {
         super.refresh(counter);
         if (counter % 2 == 0) {
+            if (resourcesList == null) return;
             synchronized (resourcesList) {
                 resourcesList.forEach(res -> {
                     if (res.color != null && res.colorTimeout != 0 && res.colorTimeout < System.currentTimeMillis()) {
@@ -297,7 +301,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         protected long colorTimeout;
         protected String name;
         protected String namespace;
-        protected long created;
+        protected OffsetDateTime created;
         protected V resource;
         public ALERT alert = ALERT.NONE;
         private String resourceVersion;
@@ -311,7 +315,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         }
 
         public String getAge() {
-            return K8sUtil.getAgeSeconds(created);
+            return K8sUtil.getAge(created);
         }
 
         @Override
@@ -331,7 +335,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         }
 
         public void updateResource() {
-            this.created = tryThis(() -> resource.getMetadata().getCreationTimestamp().toEpochSecond()).or(0L);
+            this.created = resource.getMetadata().getCreationTimestamp();
             this.resourceVersion = tryThis(() -> resource.getMetadata().getResourceVersion()).or("");
         }
 
