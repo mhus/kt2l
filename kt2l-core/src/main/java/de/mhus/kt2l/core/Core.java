@@ -629,4 +629,8 @@ public class Core extends AppLayout {
         closeSession();
         authContext.logout();
     }
+
+    public int getBackgroundJobCount() {
+        return backgroundJobs.size();
+    }
 }

@@ -1,4 +1,4 @@
-package de.mhus.kt2l.debug;
+package de.mhus.kt2l.development;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -31,7 +31,7 @@ public class DevelopmentAction implements CoreAction {
     public void execute(Core core) {
         panelService.addPanel(core, null, "development", "Development", true, VaadinIcon.HAMMER.create(), () ->
             new DevelopmentPanel()
-        );
+        ).setReproducable(true).select();
     }
 
     @Override
