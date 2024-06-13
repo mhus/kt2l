@@ -72,7 +72,7 @@ public class PanelService {
                 .setParentTab(parentTab);
     }
 
-    private DeskTab addPanel(
+    public DeskTab addPanel(
             Core core, Cluster cluster,
             String id, String title, boolean unique, AbstractIcon icon, Function0<com.vaadin.flow.component.Component> panelCreator) {
         return core.getTabBar().addTab(

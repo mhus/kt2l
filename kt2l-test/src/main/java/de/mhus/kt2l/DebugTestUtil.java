@@ -18,6 +18,7 @@
 package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MCast;
+import de.mhus.commons.tools.MSystem;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.OutputType;
 
@@ -27,7 +28,7 @@ import java.io.File;
 @Slf4j
 public class DebugTestUtil {
 
-    public static final boolean TEST_DEBUG = MCast.toboolean(System.getenv("TEST_DEBUG"), true);
+    public static final boolean TEST_DEBUG = MCast.toboolean(System.getenv("TEST_DEBUG"), MSystem.isVmDebug());
     public static final boolean TEST_HEADLESS = MCast.toboolean(System.getenv("TEST_HEADLESS"), TEST_DEBUG);
     public static final boolean TEST_SCREENSHOTS = MCast.toboolean(System.getenv("TEST_SCREENSHOTS"), false);
     private static JFrame frame;
