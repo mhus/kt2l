@@ -76,7 +76,7 @@ public class DeskTabBar extends VerticalLayout {
         if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener) {
             tryThis(() -> ((DeskTabListener) tab.getPanel()).tabInit(tab)).onFailure(e -> LOGGER.warn("TabListener:tabInit failed", e));
         }
-        if (tab.getPanel() != null) {
+        if (!tab.isReproducable() && tab.getPanel() != null) {
             var panel = tab.getPanel();
             panel.addClassName("hidden-tab");
             content.add(panel);
@@ -111,6 +111,8 @@ public class DeskTabBar extends VerticalLayout {
             if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof DeskTabListener) {
                 tryThis(() -> ((DeskTabListener) selectedTab.getPanel()).tabUnselected()).onFailure(e -> LOGGER.warn("TabListener:tabDeselected failed", e));
             }
+            if (selectedTab.getPanel() != null && selectedTab.isReproducable())
+                content.add(selectedTab.getPanel());
         }
         // select fallback
         if (tab == null && !tabs.isEmpty() && tabs.get(0) != selectedTab) {
@@ -124,7 +126,8 @@ public class DeskTabBar extends VerticalLayout {
         // select
         selectedTab = tab;
         if (selectedTab != null) {
-           // core.setContent(selectedTab.getPanel());
+            if (selectedTab.isReproducable())
+               content.add(selectedTab.getPanel());
             core.setWindowTitle(selectedTab.getWindowTitle(), selectedTab.getColor());
             if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof DeskTabListener) {
                 tryThis(() -> ((DeskTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));

@@ -115,6 +115,7 @@ public class PanelService {
                         () -> new ResourcesGridPanel(cluster.getName(), core))
                 .setColor(cluster.getColor())
                 .setHelpContext("resources")
+                .setReproducable(true)
                 .setWindowTitle(cluster.getTitle() + " - Resources");
     }
 
@@ -127,6 +128,7 @@ public class PanelService {
                         VaadinIcon.OPEN_BOOK.create(),
                         () -> new ResourcesGridPanel(cluster.getName(), core))
                 .setHelpContext("resources")
+                .setReproducable(true)
                 .setWindowTitle(cluster.getTitle() + " - Resources");
     }
 

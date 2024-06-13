@@ -485,7 +485,14 @@ public class Core extends AppLayout {
         tabBar.setMargin(false);
         addToDrawer(tabBar);
 
-        mainTab = tabBar.addTab(new DeskTab("main", "Main", false, VaadinIcon.HOME_O.create(), new ClusterOverviewPanel(this))).select();
+        mainTab = tabBar.addTab(
+                new DeskTab(
+                        "main",
+                        "Main",
+                        false,
+                        VaadinIcon.HOME_O.create(),
+                        new ClusterOverviewPanel(this))
+        ).setReproducable(true).select();
     }
 
     private void fireRefresh() {

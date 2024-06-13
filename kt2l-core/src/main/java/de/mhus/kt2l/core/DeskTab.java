@@ -50,6 +50,8 @@ public class DeskTab extends HorizontalLayout {
     private DeskTab parentTab;
     @Getter
     private String helpContext;
+    @Getter
+    private boolean reproducable = false;
 
 //    @Getter
 //    private Map<String, Object> parameters = new HashMap<>();
@@ -131,4 +133,16 @@ public class DeskTab extends HorizontalLayout {
         return this;
     }
 
+    /**
+     * Set to false if the content will be lost after switching to another tab. In this case the
+     * content will be hidden instead of removed. In this case the tab will allocate memory in the
+     * browser for all live time. Default is false.
+     *
+     * @param reproducable
+     * @return
+     */
+    public DeskTab setReproducable(boolean reproducable) {
+        this.reproducable = reproducable;
+        return this;
+    }
 }
