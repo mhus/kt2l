@@ -35,12 +35,19 @@ import static de.mhus.commons.tools.MLang.tryThis;
 public class DeskTabBar extends VerticalLayout {
 
     private final Core core;
+    private final VerticalLayout content;
     private List<DeskTab> tabs = new LinkedList<>();
     private DeskTab selectedTab;
 
     public DeskTabBar(Core core) {
         setWidthFull();
         this.core = core;
+        content = new VerticalLayout();
+        content.setSizeFull();
+        content.setMargin(false);
+        content.setPadding(false);
+        content.setSpacing(false);
+        core.setContent(content);
         addClassName("desktabview");
     }
 
@@ -69,7 +76,11 @@ public class DeskTabBar extends VerticalLayout {
         if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener) {
             tryThis(() -> ((DeskTabListener) tab.getPanel()).tabInit(tab)).onFailure(e -> LOGGER.warn("TabListener:tabInit failed", e));
         }
-
+        if (tab.getPanel() != null) {
+            var panel = tab.getPanel();
+            panel.addClassName("hidden-tab");
+            content.add(panel);
+        }
         return tab;
     }
 
@@ -86,6 +97,7 @@ public class DeskTabBar extends VerticalLayout {
             tryThis(() -> ((DeskTabListener) tab.getPanel()).tabDestroyed()).onFailure(e -> LOGGER.warn("TabListener:tabDestroyed failed", e));
 
         tabs.remove(tab);
+        content.remove(tab.getPanel());
         remove(tab);
     }
 
@@ -107,10 +119,12 @@ public class DeskTabBar extends VerticalLayout {
         // cleanup tab buttons
         final var finalTab = tab;
         tabs.forEach(t -> t.setShowButtonAsSelected(t == finalTab));
+        // cleanup content
+        tabs.forEach(t -> tryThis(() -> {if (t == finalTab) t.getPanel().removeClassName("hidden-tab"); else t.getPanel().addClassName("hidden-tab");  } ));
         // select
         selectedTab = tab;
         if (selectedTab != null) {
-            core.setContent(selectedTab.getPanel());
+           // core.setContent(selectedTab.getPanel());
             core.setWindowTitle(selectedTab.getWindowTitle(), selectedTab.getColor());
             if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof DeskTabListener) {
                 tryThis(() -> ((DeskTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));

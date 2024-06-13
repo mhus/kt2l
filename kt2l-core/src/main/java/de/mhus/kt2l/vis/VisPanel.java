@@ -216,6 +216,32 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
         // ---
 
         updateAll();
+
+        addAttachListener(event -> {
+            setListeners();
+        });
+
+    }
+
+    private void setListeners() {
+        nd.addSelectListener(e -> {
+            var nodeId = tryThis(() -> e.getParams().getArray("nodes").get(0).asString()).or(null);
+            if (nodeId == null) {
+                selectedNode = null;
+            } else {
+                selectedNode = nodeId;
+            }
+            LOGGER.debug("Selected Node: {} ", selectedNode);
+        });
+
+        nd.addDoubleClickListener(e -> {
+            if (selectedNode == null) return;
+            var nodeStore = nodes.get(selectedNode);
+            if (nodeStore == null) return;
+            describeAction.showPreview(core, cluster, nodeStore.handler.getManagedResourceType(), Set.of(nodeStore.k8sObject));
+        });
+//        if (nd.isVisible())
+//            nd.diagamRedraw();
     }
 
     private void updateAll() {
@@ -295,24 +321,6 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
 
     @Override
     public void tabSelected() {
-        nd.addSelectListener(e -> {
-            var nodeId = tryThis(() -> e.getParams().getArray("nodes").get(0).asString()).or(null);
-            if (nodeId == null) {
-                selectedNode = null;
-            } else {
-                selectedNode = nodeId;
-            }
-            LOGGER.debug("Selected Node: {} ", selectedNode);
-        });
-
-        nd.addDoubleClickListener(e -> {
-            if (selectedNode == null) return;
-            var nodeStore = nodes.get(selectedNode);
-            if (nodeStore == null) return;
-            describeAction.showPreview(core, cluster, nodeStore.handler.getManagedResourceType(), Set.of(nodeStore.k8sObject));
-        });
-        if (nd.isVisible())
-            nd.diagamRedraw();
     }
 
     @Override
