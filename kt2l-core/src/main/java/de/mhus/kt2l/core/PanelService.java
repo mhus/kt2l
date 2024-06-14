@@ -25,6 +25,7 @@ import de.mhus.kt2l.ai.AiResourcePanel;
 import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.development.SystemInfoPanel;
 import de.mhus.kt2l.events.EventPanel;
 import de.mhus.kt2l.helm.HelmChartDetailsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
@@ -458,4 +459,19 @@ public class PanelService {
                 .setHelpContext("helm_details")
                 .setWindowTitle(cluster.getTitle() + " - " + resource.getMetadata().getName() + " - Helm Details");
     }
+
+    public DeskTab showSystemInfoPanel(Core core) {
+        return addPanel(
+                core,
+                null,
+                "system-info",
+                "System Info",
+                true,
+                VaadinIcon.INFO_CIRCLE_O.create(),
+                () -> new SystemInfoPanel()
+        )
+                .setReproducable(true)
+                .setHelpContext("system_info");
+    }
+
 }

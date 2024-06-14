@@ -13,12 +13,11 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
-import java.util.Objects;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
 @Configurable
-public class DevelopmentPanel extends VerticalLayout implements DeskTabListener {
+public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
     private Configuration config;
@@ -69,16 +68,8 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
 
     private void updateInfo(long counter) {
         StringBuffer i = new StringBuffer();
-        i.append("KT2L Development Panel\n");
-        i.append("-----------------------\n");
         i.append("Counter: " + counter + "\n");
-        i.append("Core Element Count   : " + deskTab.getViewer().getCore().getContent().getChildren().count() + "\n");
-        i.append("Core Background Count: " + deskTab.getViewer().getCore().getBackgroundJobCount() + "\n");
         i.append("DeployInfo: " + DeployInfo.VERSION + " " + DeployInfo.CREATED + "\n");
-        i.append("UI        : " + Objects.toIdentityString(deskTab.getViewer().getCore().ui()) + "\n");
-        i.append("Session   : " + tryThis(() -> Objects.toIdentityString(deskTab.getViewer().getCore().ui().getSession())).or("?") + "\n");
-        i.append("CumulativeRequestDuration: " + tryThis(() -> String.valueOf(deskTab.getViewer().getCore().ui().getSession().getCumulativeRequestDuration()) ).or("?") + "\n");
-
         i.append("Core instances: " + CoreCounterListener.getCounter() + "\n");
 
         i.append("Memory : " + MSystem.freeMemoryAsString() + " / " + MSystem.maxMemoryAsString() + "\n");
