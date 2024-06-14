@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-title: Clusters Configuration
+title: Clusters
 ---
 
 # Clusters Configuration

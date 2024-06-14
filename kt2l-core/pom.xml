@@ -225,12 +225,13 @@
 					<execution>
 						<id>manual</id>
 						<configuration>
-							<inputDirectory>${project.basedir}/../docs/docs/usage</inputDirectory>
+							<inputDirectory>${project.basedir}/../docs/docs</inputDirectory>
 							<outputDirectory>${project.basedir}/src/main/resources/META-INF/resources/public/docs</outputDirectory>
 							<applyFiltering>false</applyFiltering>
 							<headerHtmlFile>${project.basedir}/misc/markdown_header.html</headerHtmlFile>
 							<footerHtmlFile>${project.basedir}/misc/markdown_footer.html</footerHtmlFile>
 							<transformRelativeMarkdownLinks>true</transformRelativeMarkdownLinks>
+							<recursiveInput>true</recursiveInput>
 						</configuration>
 						<phase>process-resources</phase>
 						<goals>

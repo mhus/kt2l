@@ -21,7 +21,7 @@ public class SystemInfoAction implements CoreAction {
 
     @Override
     public boolean canHandle(Core core) {
-        return MSystem.isVmDebug();
+        return true;
     }
 
     @Override

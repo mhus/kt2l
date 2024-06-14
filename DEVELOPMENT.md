@@ -38,6 +38,7 @@
 * [lombok](https://projectlombok.org/features/all)
 * [https://www.baeldung.com/spring-boot]
 * Helm Icon: https://www.svgrepo.com/svg/373664/helm
+* [https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/examples-s3.html]
 
 ## Github Actions
 

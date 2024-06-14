@@ -3,6 +3,7 @@ package de.mhus.kt2l.development;
 import com.sun.management.UnixOperatingSystemMXBean;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import de.mhus.commons.tools.MDate;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.DeskTab;
@@ -68,20 +69,21 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
 
     private void updateInfo(long counter) {
         StringBuffer i = new StringBuffer();
-        i.append("Counter: " + counter + "\n");
-        i.append("DeployInfo: " + DeployInfo.VERSION + " " + DeployInfo.CREATED + "\n");
-        i.append("Core instances: " + CoreCounterListener.getCounter() + "\n");
-
-        i.append("Memory : " + MSystem.freeMemoryAsString() + " / " + MSystem.maxMemoryAsString() + "\n");
-        i.append("Threads: " + Thread.getAllStackTraces().size() + "\n");
+        i.append("DeployInfo     : " + DeployInfo.VERSION + " " + DeployInfo.CREATED + "\n");
+        i.append("Active Sessions: " + CoreCounterListener.getCounter() + "\n");
+        i.append("Local Time     : " + MDate.toIso8601(System.currentTimeMillis()) + "\n");
+        i.append("\n");
+        i.append("Memory         : " + MSystem.freeMemoryAsString() + " / " + MSystem.maxMemoryAsString() + "\n");
+        i.append("Threads        : " + Thread.getAllStackTraces().size() + "\n");
         if (osBean != null) {
-            i.append("OS     : " + osBean.getName() + " " + osBean.getVersion() + " " + osBean.getArch() + "\n");
-            i.append("OS Load: " + osBean.getSystemLoadAverage() + "\n");
-            i.append("CPUs   : " + osBean.getAvailableProcessors() + "\n");
-            if (osBean instanceof UnixOperatingSystemMXBean unixOsBean) {
-                i.append("OS Open File Descriptor Count: " + unixOsBean.getOpenFileDescriptorCount() + " / " + unixOsBean.getMaxFileDescriptorCount() + "\n");
-            }
+        i.append("OS             : " + osBean.getName() + " " + osBean.getVersion() + " " + osBean.getArch() + "\n");
+        i.append("OS Load        : " + osBean.getSystemLoadAverage() + "\n");
+        i.append("OS CPUs        : " + osBean.getAvailableProcessors() + "\n");
+        if (osBean instanceof UnixOperatingSystemMXBean unixOsBean) {
+        i.append("OS Open File   : " + unixOsBean.getOpenFileDescriptorCount() + " / " + unixOsBean.getMaxFileDescriptorCount() + "\n");
         }
+        }
+        i.append("\n");
         i.append("Browser App    : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getBrowserApplication()).or("?") + "\n");
         i.append("Browser Locale : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getLocale().toString()).or("?") + "\n");
         i.append("Browser Address: " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getAddress()).or("?") + "\n");

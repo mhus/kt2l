@@ -47,8 +47,9 @@ import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoIcon;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MObject;
-import de.mhus.commons.tools.MSystem;
+import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.Kt2lApplication;
@@ -91,6 +92,7 @@ import java.util.function.Supplier;
 
 import static de.mhus.commons.tools.MCollection.detached;
 import static de.mhus.commons.tools.MCollection.notNull;
+import static org.apache.logging.log4j.util.Strings.isBlank;
 
 @PermitAll
 @Route(value = "/")
@@ -164,6 +166,7 @@ public class Core extends AppLayout {
     private SecurityService securityService;
     private long uiLost = 0;
     private boolean helpSticky;
+    private boolean trackBrowserMemoryUsage = true;
 
     public Core(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -173,6 +176,7 @@ public class Core extends AppLayout {
     public void createUi() {
 
         uiTemeoutSeconds = viewsConfiguration.getConfig("core").getLong("uiTimeoutSeconds", uiTemeoutSeconds);
+        trackBrowserMemoryUsage = viewsConfiguration.getConfig("core").getBoolean("trackBrowserMemoryUsage", trackBrowserMemoryUsage);
 
         if (closeScheduler != null) {
             LOGGER.debug("㋡ Session already created");
@@ -243,13 +247,13 @@ public class Core extends AppLayout {
     protected void onAttach(AttachEvent attachEvent) {
         ui = attachEvent.getUI();
         uiLost = 0;
-        LOGGER.debug("㋡ UI on attach {}", MSystem.getObjectId(ui));
+        LOGGER.debug("㋡ {} UI attach", Objects.hashCode(ui));
 
         createIdleNotification();
 
         session = ui.getSession();
         heartbeatRegistration = ui.addHeartbeatListener(event -> {
-            LOGGER.debug("♥ UI Heartbeat ({})", Objects.toIdentityString(ui));
+            LOGGER.debug("♥ {} UI Heartbeat", Objects.hashCode(ui));
         });
 
         Thread.startVirtualThread(() -> {
@@ -300,7 +304,7 @@ public class Core extends AppLayout {
         session = null;
     }
     protected void onDetach(DetachEvent detachEvent) {
-        LOGGER.debug("㋡ UI on detach {} on session {}", MSystem.getObjectId(detachEvent.getUI()), session == null ? "?" : session.getState());
+        LOGGER.debug("㋡ {} UI on detach on session {}", Objects.hashCode(detachEvent.getUI()), session == null ? "?" : session.getState());
         checkSession();
         ui = null;
         uiLost = System.currentTimeMillis();
@@ -315,7 +319,7 @@ public class Core extends AppLayout {
 
     private void clusteredJobsCleanup() {
         if (backgroundJobs == null) return;
-        LOGGER.trace("㋡ Cleanup Clustered Jobs");
+        LOGGER.trace("㋡ {} Cleanup Clustered Jobs",Objects.hashCode(ui));
         synchronized (backgroundJobs) {
             backgroundJobs.values().forEach(map -> {
                 map.values().removeIf(job -> {
@@ -462,7 +466,7 @@ public class Core extends AppLayout {
     }
 
     private HelpAction getHelpAction(HelpConfiguration.HelpLink link) {
-        LOGGER.debug("㋡ Get Help Action for {}", link.getAction());
+        LOGGER.debug("㋡ {} Get Help Action for {}", Objects.hashCode(ui), link.getAction());
         return helpActions.stream().filter(a -> a.canHandle(link)).findFirst().orElse(null);
     }
 
@@ -498,15 +502,24 @@ public class Core extends AppLayout {
     private void fireRefresh() {
         if (session == null) return;
         try {
-            LOGGER.trace("㋡ Refresh for session {} and ui {}", session, ui == null ? "?" : Objects.toIdentityString(ui));
+            LOGGER.trace("㋡ {} Refresh for session {}", Objects.hashCode(ui), session);
             if (ui == null && uiLost > 0) {
                 if (System.currentTimeMillis() - uiLost > uiTemeoutSeconds*1000) {
-                    LOGGER.error("㋡ UI lost, try to close session");
+                    LOGGER.error("㋡ {} UI lost, try to close session", Objects.hashCode(ui));
                     closeSession();
                 }
                 return;
             }
             refreshCounter++;
+            // get browser info
+            if (trackBrowserMemoryUsage &&  refreshCounter % 300 == 0 && ui != null) {
+                ui.access(() -> {
+                    getElement().executeJs("return performance && performance.memory ? performance.memory.jsHeapSizeLimit + \" \" + performance.memory.totalJSHeapSize + \" \" + performance.memory.usedJSHeapSize : \"\"").then(String.class, value -> {
+                        if (!isBlank(value))
+                            LOGGER.debug("㋡ {} Browser Memory {} ({})", Objects.hashCode(ui), MString.toByteDisplayString(MCast.tolong(MString.afterLastIndex(value, ' '), 0)) , value);
+                    });
+                });
+            }
             // cleanup clustered jobs
             if (refreshCounter % 10 == 0) {
                 clusteredJobsCleanup();
@@ -516,12 +529,12 @@ public class Core extends AppLayout {
             if (selected != null) {
                 final var panel = selected.getPanel();
                 if (panel != null && panel instanceof DeskTabListener) {
-                    LOGGER.trace("㋡ Refresh selected panel {}", panel.getClass());
+                    LOGGER.trace("㋡ {} Refresh selected panel {}", Objects.hashCode(ui), panel.getClass());
                     ((DeskTabListener) panel).tabRefresh(refreshCounter);
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Error refreshing", e);
+            LOGGER.error("{} Error refreshing", Objects.hashCode(ui), e);
         }
     }
 
@@ -532,7 +545,7 @@ public class Core extends AppLayout {
                 closeSession();
             }
         } catch (Exception e) {
-            LOGGER.error("Error checking session", e);
+            LOGGER.error("{} Error checking session", Objects.hashCode(ui), e);
         }
     }
 
@@ -566,14 +579,14 @@ public class Core extends AppLayout {
     public ClusterBackgroundJob getBackgroundJob(String clusterId, String jobId, Supplier<ClusterBackgroundJob> create) {
         synchronized (backgroundJobs) {
             return backgroundJobs.computeIfAbsent(clusterId, k -> new HashMap<>()).computeIfAbsent(jobId, k -> {
-                LOGGER.debug("㋡ Create Job {}/{} with class {}", clusterId, jobId, k);
+                LOGGER.debug("㋡ {} Create Job {}/{} with class {}", Objects.hashCode(ui), clusterId, jobId, k);
                 try {
                     final var job = create.get();
                     beanFactory.autowireBean(job);
                     job.init(this, clusterId, jobId);
                     return job;
                 } catch (Exception e) {
-                    LOGGER.error("Create Job {}", k, e);
+                    LOGGER.error("{} Create Job {}", Objects.hashCode(ui), k, e);
                     return null;
                 }
             });
@@ -618,12 +631,12 @@ public class Core extends AppLayout {
             for (String beanName : beanNames) {
                 var bean = springContext.getBean(beanName);
                 if (bean instanceof AbstractUserRelatedConfig config) {
-                    LOGGER.debug("㋡ Clear cache for {} and user {}", beanName, userName);
+                    LOGGER.debug("㋡ {} Clear cache for {} and user {}", Objects.hashCode(ui), beanName, userName);
                     config.clearCache(userName);
                 }
             }
         } catch (Exception t) {
-            LOGGER.warn("Can't clear cache", t);
+            LOGGER.warn("{} Can't clear cache", Objects.hashCode(ui), t);
         }
         ui.getSession().close();
         closeSession();

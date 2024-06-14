@@ -112,7 +112,7 @@ public class DeskTabBar extends VerticalLayout {
                 tryThis(() -> ((DeskTabListener) selectedTab.getPanel()).tabUnselected()).onFailure(e -> LOGGER.warn("TabListener:tabDeselected failed", e));
             }
             if (selectedTab.getPanel() != null && selectedTab.isReproducable())
-                content.add(selectedTab.getPanel());
+                content.remove(selectedTab.getPanel());
         }
         // select fallback
         if (tab == null && !tabs.isEmpty() && tabs.get(0) != selectedTab) {

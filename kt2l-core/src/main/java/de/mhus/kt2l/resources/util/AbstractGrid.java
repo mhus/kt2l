@@ -23,6 +23,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
+import com.vaadin.flow.component.ShortcutRegistration;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.MenuItemBase;
 import com.vaadin.flow.component.grid.Grid;
@@ -46,6 +47,7 @@ import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
 import de.mhus.commons.tree.ITreeNode;
+import de.mhus.kt2l.cfg.panel.CPanelVerticalLayout;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.UiUtil;
@@ -99,6 +101,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     protected Div selectedAmount;
     protected ITreeNode viewConfig;
     private SplitLayout detailsSplit;
+    private List<ShortcutRegistration> shortcutRegistrations = Collections.synchronizedList(new ArrayList<>());
 
     @Override
     public Component getComponent() {
@@ -128,6 +131,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             detailsComponent = null;
         }
         createMenuBar();
+
         addAttachListener(event -> {
             setShortcuts();
         });
@@ -389,24 +393,34 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
 
     protected void setShortcuts() {
-        getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
-        getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
+        LOGGER.debug("Set shortcuts");
+        shortcutRegistrations.forEach(ShortcutRegistration::remove);
+        shortcutRegistrations.clear();
 
-        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid);
-        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.of(":")).withShift().listenOn(resourcesGrid);
-        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusNamespaces() , Key.QUOTE).listenOn(resourcesGrid);
-        getPanel().getCore().ui().addShortcutListener((event) -> doRefreshGrid() , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid);
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid));
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid));
+
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid));
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.of(":")).withShift().listenOn(resourcesGrid));
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener((event) -> panel.focusNamespaces() , Key.QUOTE).listenOn(resourcesGrid));
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener((event) -> doRefreshGrid() , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid));
 
         actions.forEach(action -> {
             if (action.getAction().getShortcutKey() != null) {
                 var shortcut = UiUtil.createShortcut(action.getAction().getShortcutKey());
                 if (shortcut != null) {
+                    LOGGER.debug("Shortcut: {} {}", action.getAction().getTitle(), shortcut);
                     shortcut.addShortcutListener(resourcesGrid, () -> {
                         action.execute();
                     });
+                    addShortcutRegistration(shortcut.getRegistration());
                 }
             }
         });
+    }
+
+    private void addShortcutRegistration(ShortcutRegistration shortcutRegistration) {
+        shortcutRegistrations.add(shortcutRegistration);
     }
 
     protected void doRefreshGrid() {

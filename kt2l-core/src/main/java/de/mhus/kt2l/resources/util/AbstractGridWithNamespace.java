@@ -92,7 +92,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                             added.set(true);
                             return (T) res;
                         }
-                ));
+                ), resourcesList);
                 foundRes.setResource((V) event.object);
                 foundRes.updateResource();
                 filterList();

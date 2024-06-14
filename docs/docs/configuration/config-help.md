@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-title: Help Configuration
+title: Help
 ---
 
 # Help Configuration

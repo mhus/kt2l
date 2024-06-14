@@ -26,6 +26,7 @@ core:
     autoExtendWaitSeconds: 5
     notifyBeforeSeconds: 90
   uiTimeoutSeconds: 60
+  trackBrowserMemoryUsage: true
 snippets:
   maxVisibleResults: 30
 portForward:
