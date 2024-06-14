@@ -59,7 +59,7 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
     public void tabRefresh(long counter) {
 
         if (counter % 3 == 0) {
-            deskTab.getViewer().getCore().ui().access(() -> {
+            deskTab.getTabBar().getCore().ui().access(() -> {
                 updateInfo(counter);
             });
         }
@@ -82,9 +82,9 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
                 i.append("OS Open File Descriptor Count: " + unixOsBean.getOpenFileDescriptorCount() + " / " + unixOsBean.getMaxFileDescriptorCount() + "\n");
             }
         }
-        i.append("Browser App    : " + tryThis(() -> deskTab.getViewer().getCore().ui().getSession().getBrowser().getBrowserApplication()).or("?") + "\n");
-        i.append("Browser Locale : " + tryThis(() -> deskTab.getViewer().getCore().ui().getSession().getBrowser().getLocale().toString()).or("?") + "\n");
-        i.append("Browser Address: " + tryThis(() -> deskTab.getViewer().getCore().ui().getSession().getBrowser().getAddress()).or("?") + "\n");
+        i.append("Browser App    : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getBrowserApplication()).or("?") + "\n");
+        i.append("Browser Locale : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getLocale().toString()).or("?") + "\n");
+        i.append("Browser Address: " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getAddress()).or("?") + "\n");
 
         info.setValue(i.toString());
     }

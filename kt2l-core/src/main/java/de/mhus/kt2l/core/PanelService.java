@@ -62,7 +62,7 @@ public class PanelService {
     private DeskTab addPanel(
             DeskTab parentTab,
             String id, String title, boolean unique, AbstractIcon icon, Function0<com.vaadin.flow.component.Component> panelCreator) {
-        return parentTab.getViewer().addTab(
+        return parentTab.getTabBar().addTab(
                 id,
                 title,
                 true,
@@ -87,7 +87,7 @@ public class PanelService {
     }
 
     public DeskTab showYamlPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {
-        return parentTab.getViewer().addTab(
+        return parentTab.getTabBar().addTab(
                 cluster.getName() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),
                 true,
@@ -96,7 +96,7 @@ public class PanelService {
                 () ->
                         new ResourceYamlEditorPanel(
                                 cluster,
-                                parentTab.getViewer().getCore(),
+                                parentTab.getTabBar().getCore(),
                                 resourceType,
                                 resource
                         ))
@@ -454,7 +454,7 @@ public class PanelService {
                 resource.getMetadata().getName(),
                 true,
                 HelmClusterAction.getHelmIcon(),
-                () -> new HelmChartDetailsPanel(parentTab.getViewer().getCore(), cluster, resource)
+                () -> new HelmChartDetailsPanel(parentTab.getTabBar().getCore(), cluster, resource)
         )
                 .setHelpContext("helm_details")
                 .setWindowTitle(cluster.getTitle() + " - " + resource.getMetadata().getName() + " - Helm Details");

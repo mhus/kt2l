@@ -60,7 +60,7 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
     public void tabRefresh(long counter) {
 
         if (counter % 3 == 0) {
-            deskTab.getViewer().getCore().ui().access(() -> {
+            deskTab.getTabBar().getCore().ui().access(() -> {
                 updateInfo(counter);
             });
         }
@@ -72,12 +72,12 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         i.append("KT2L Development Panel\n");
         i.append("-----------------------\n");
         i.append("Counter: " + counter + "\n");
-        i.append("Core Element Count   : " + deskTab.getViewer().getCore().getContent().getChildren().count() + "\n");
-        i.append("Core Background Count: " + deskTab.getViewer().getCore().getBackgroundJobCount() + "\n");
+        i.append("Core Element Count   : " + deskTab.getTabBar().getCore().getContent().getChildren().count() + "\n");
+        i.append("Core Background Count: " + deskTab.getTabBar().getCore().getBackgroundJobCount() + "\n");
         i.append("DeployInfo: " + DeployInfo.VERSION + " " + DeployInfo.CREATED + "\n");
-        i.append("UI        : " + Objects.toIdentityString(deskTab.getViewer().getCore().ui()) + "\n");
-        i.append("Session   : " + tryThis(() -> Objects.toIdentityString(deskTab.getViewer().getCore().ui().getSession())).or("?") + "\n");
-        i.append("CumulativeRequestDuration: " + tryThis(() -> String.valueOf(deskTab.getViewer().getCore().ui().getSession().getCumulativeRequestDuration()) ).or("?") + "\n");
+        i.append("UI        : " + Objects.toIdentityString(deskTab.getTabBar().getCore().ui()) + "\n");
+        i.append("Session   : " + tryThis(() -> Objects.toIdentityString(deskTab.getTabBar().getCore().ui().getSession())).or("?") + "\n");
+        i.append("CumulativeRequestDuration: " + tryThis(() -> String.valueOf(deskTab.getTabBar().getCore().ui().getSession().getCumulativeRequestDuration()) ).or("?") + "\n");
 
         i.append("Core instances: " + CoreCounterListener.getCounter() + "\n");
 
@@ -91,9 +91,9 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
                 i.append("OS Open File Descriptor Count: " + unixOsBean.getOpenFileDescriptorCount() + " / " + unixOsBean.getMaxFileDescriptorCount() + "\n");
             }
         }
-        i.append("Browser App    : " + tryThis(() -> deskTab.getViewer().getCore().ui().getSession().getBrowser().getBrowserApplication()).or("?") + "\n");
-        i.append("Browser Locale : " + tryThis(() -> deskTab.getViewer().getCore().ui().getSession().getBrowser().getLocale().toString()).or("?") + "\n");
-        i.append("Browser Address: " + tryThis(() -> deskTab.getViewer().getCore().ui().getSession().getBrowser().getAddress()).or("?") + "\n");
+        i.append("Browser App    : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getBrowserApplication()).or("?") + "\n");
+        i.append("Browser Locale : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getLocale().toString()).or("?") + "\n");
+        i.append("Browser Address: " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getAddress()).or("?") + "\n");
 
         info.setValue(i.toString());
     }
