@@ -49,8 +49,8 @@ jpackage \
   --main-jar kt2l-desktop-macosx-aarch64.jar \
   --resource-dir package/macos \
   --type dmg \
-  --java-options "XstartOnFirstThread" \
-  --java-options "Dspring.profiles.active=prod" \
+  --java-options "-XstartOnFirstThread" \
+  --java-options "-Dspring.profiles.active=prod" \
   --icon kt2l.icns \
   --vendor "www.kt2l.org"
 
