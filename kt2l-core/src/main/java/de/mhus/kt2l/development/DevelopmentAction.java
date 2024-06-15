@@ -29,8 +29,12 @@ public class DevelopmentAction implements CoreAction {
 
     @Override
     public void execute(Core core) {
+        execute(panelService, core);
+    }
+
+    public void execute(PanelService panelService, Core core) {
         panelService.addPanel(core, null, "development", "Development", true, VaadinIcon.HAMMER.create(), () ->
-            new DevelopmentPanel()
+                new DevelopmentPanel()
         ).setReproducable(true).select();
     }
 

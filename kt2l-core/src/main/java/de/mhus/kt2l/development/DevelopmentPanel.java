@@ -1,6 +1,7 @@
 package de.mhus.kt2l.development;
 
 import com.sun.management.UnixOperatingSystemMXBean;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -30,6 +31,9 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
     @Autowired
     private Configuration config;
 
+    @Autowired
+    private UpTimeService upTimeService;
+
     private TextArea info;
     private DeskTab deskTab;
     private OperatingSystemMXBean osBean;
@@ -57,6 +61,9 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         add(output);
 
 
+        var about = new Anchor("https://mhus.de", "The project was created by Mike Hummel in 2024.");
+        about.setTarget("_blank");
+        add(about);
 
         osBean = ManagementFactory.getOperatingSystemMXBean();
         updateInfo(0);
@@ -124,15 +131,16 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         i.append("KT2L Development Panel\n");
         i.append("-----------------------\n");
         i.append("Counter: " + counter + "\n");
-        i.append("Local Time: " + MDate.toIso8601(System.currentTimeMillis()) + "\n");
+        i.append("Local Time           : " + MDate.toIso8601(System.currentTimeMillis()) + "\n");
         i.append("Core Panels Count    : " + deskTab.getTabBar().getCore().getContent().getChildren().count() + "\n");
         i.append("Core Background Count: " + deskTab.getTabBar().getCore().getBackgroundJobCount() + "\n");
-        i.append("DeployInfo: " + DeployInfo.VERSION + " " + DeployInfo.CREATED + "\n");
-        i.append("UI        : " + Objects.toIdentityString(deskTab.getTabBar().getCore().ui()) + "\n");
-        i.append("Session   : " + tryThis(() -> Objects.toIdentityString(deskTab.getTabBar().getCore().ui().getSession())).or("?") + "\n");
+        i.append("DeployInfo           : " + DeployInfo.VERSION + " " + DeployInfo.CREATED + "\n");
+        i.append("UI                   : " + Objects.hashCode(deskTab.getTabBar().getCore().ui()) + "\n");
+        i.append("Session Id           : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getSession().getId() ).or("?") + "\n");
         i.append("CumulativeRequestDuration: " + tryThis(() -> String.valueOf(deskTab.getTabBar().getCore().ui().getSession().getCumulativeRequestDuration()) ).or("?") + "\n");
+        i.append("Up Time              : " + upTimeService.getUpTimeFormatted() + "\n");
 
-        i.append("Core instances: " + CoreCounterListener.getCounter() + "\n");
+        i.append("Core instances       : " + CoreCounterListener.getCounter() + "\n");
 
         i.append("Memory : " + MSystem.freeMemoryAsString() + " / " + MSystem.maxMemoryAsString() + "\n");
         i.append("Threads: " + Thread.getAllStackTraces().size() + "\n");
