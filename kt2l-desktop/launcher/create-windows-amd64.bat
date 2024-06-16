@@ -23,7 +23,6 @@ jpackage  --name KT2L ^
   --input . ^
   --main-jar kt2l-desktop-windows-amd64.jar ^
   --type exe ^
-  --java-options "-XstartOnFirstThread" ^
   --java-options "-Dspring.profiles.active=prod" ^
   --win-menu ^
   --win-shortcut ^
