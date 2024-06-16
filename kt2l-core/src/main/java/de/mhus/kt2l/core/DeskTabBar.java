@@ -23,11 +23,13 @@ import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.lang.Function0;
 import de.mhus.commons.tools.MCollection;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
@@ -35,12 +37,29 @@ import static de.mhus.commons.tools.MLang.tryThis;
 public class DeskTabBar extends VerticalLayout {
 
     private final Core core;
+    private final VerticalLayout content;
     private List<DeskTab> tabs = new LinkedList<>();
     private DeskTab selectedTab;
+    /**
+     * Preserve mode will keep the panel in the content area even if the tab is not selected.
+     * This is useful for tabs that are not reproducable and should not be recreated.
+     *
+     * Need to disable preserve mode if in integration tests. Vaadin will throw an assertation exception
+     * if the addClassname() / removeClassname() is called on a component in this environment - don't know why.
+     */
+    private boolean preserveMode = true;
 
-    public DeskTabBar(Core core) {
+    public DeskTabBar(Core core, boolean preserveMode) {
+        this.preserveMode = preserveMode;
+        LOGGER.info("DeskTabBar preserve mode: {}", preserveMode);
         setWidthFull();
         this.core = core;
+        content = new VerticalLayout();
+        content.setSizeFull();
+        content.setMargin(false);
+        content.setPadding(false);
+        content.setSpacing(false);
+        core.setContent(content);
         addClassName("desktabview");
     }
 
@@ -62,30 +81,46 @@ public class DeskTabBar extends VerticalLayout {
     }
 
     public synchronized DeskTab addTab(DeskTab tab) {
+        // unique panel id before adding
+        if (tab.getPanel() != null) {
+            var tabId = UiUtil.normalizeId(tab.getTabId());
+            var listOfIds = tabs.stream().filter(t -> t.getPanel() != null).map(t -> t.getPanel().getId() ).collect(Collectors.toSet());
+            while (listOfIds.contains(tabId)) {
+                tabId = tabId + "_";
+            }
+            tab.getPanel().setId(UiUtil.normalizeId(tab.getTabId()));
+        }
+        // add
         tabs.add(tab);
         tab.setTabViewer(this);
         add(tab);
-
-        if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener) {
-            tryThis(() -> ((DeskTabListener) tab.getPanel()).tabInit(tab)).onFailure(e -> LOGGER.warn("TabListener:tabInit failed", e));
+        // fire init
+        if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener deskTabListener) {
+            tryThis(() -> deskTabListener.tabInit(tab)).onFailure(e -> LOGGER.warn("TabListener:tabInit failed", e));
         }
-
+        // add to preserve content if needed
+        if (preserveMode && !tab.isReproducable() && tab.getPanel() != null) {
+            var panel = tab.getPanel();
+            panel.addClassName("hidden-tab");
+            content.add(panel);
+        }
         return tab;
     }
 
     // internal, use getTab().closeTab()
     synchronized void closeTab(DeskTab tab) {
-
+        // select another tab
         if (selectedTab == tab) {
             setSelected(
                     MCollection.contains(tabs, selectedTab.getParentTab())
                             ? selectedTab.getParentTab() : null );
         }
-
-        if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener)
-            tryThis(() -> ((DeskTabListener) tab.getPanel()).tabDestroyed()).onFailure(e -> LOGGER.warn("TabListener:tabDestroyed failed", e));
-
+        // fire destroy
+        if (tab.getPanel() != null && tab.getPanel() instanceof DeskTabListener deskTabListener)
+            tryThis(() -> deskTabListener.tabDestroyed()).onFailure(e -> LOGGER.warn("TabListener:tabDestroyed failed", e));
+        // remove
         tabs.remove(tab);
+        content.remove(tab.getPanel());
         remove(tab);
     }
 
@@ -96,8 +131,12 @@ public class DeskTabBar extends VerticalLayout {
     public synchronized void setSelected(DeskTab tab) {
         // deselect
         if (selectedTab != null) {
-            if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof DeskTabListener) {
-                tryThis(() -> ((DeskTabListener) selectedTab.getPanel()).tabUnselected()).onFailure(e -> LOGGER.warn("TabListener:tabDeselected failed", e));
+            if (selectedTab.getPanel() != null) {
+                if (selectedTab.getPanel() instanceof DeskTabListener deskTabListener) {
+                    tryThis(() -> deskTabListener.tabUnselected()).onFailure(e -> LOGGER.warn("TabListener:tabDeselected failed", e));
+                }
+                if (!preserveMode || selectedTab.isReproducable())
+                    content.remove(selectedTab.getPanel());
             }
         }
         // select fallback
@@ -107,14 +146,21 @@ public class DeskTabBar extends VerticalLayout {
         // cleanup tab buttons
         final var finalTab = tab;
         tabs.forEach(t -> t.setShowButtonAsSelected(t == finalTab));
+        // cleanup content classes
+        if (preserveMode)
+            tabs.forEach(t -> tryThis(() -> {if (t == finalTab) t.getPanel().removeClassName("hidden-tab"); else t.getPanel().addClassName("hidden-tab");  } ));
         // select
         selectedTab = tab;
         if (selectedTab != null) {
-            core.setContent(selectedTab.getPanel());
-            core.setWindowTitle(selectedTab.getWindowTitle(), selectedTab.getColor());
-            if (selectedTab.getPanel() != null && selectedTab.getPanel() instanceof DeskTabListener) {
-                tryThis(() -> ((DeskTabListener) selectedTab.getPanel()).tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));
+            if (selectedTab.getPanel() != null) {
+                if (!preserveMode || selectedTab.isReproducable()) {
+                    content.add(selectedTab.getPanel());
+                }
+                if (selectedTab.getPanel() instanceof DeskTabListener deskTabListener) {
+                    tryThis(() -> deskTabListener.tabSelected()).onFailure(e -> LOGGER.warn("TabListener:tabSelected failed", e));
+                }
             }
+            core.setWindowTitle(selectedTab.getWindowTitle(), selectedTab.getColor());
             core.updateHelpMenu(true);
             // do not set title UI.getCurrent().getPage().setTitle("KT2L " + selectedTab.getWindowTitle());
         }

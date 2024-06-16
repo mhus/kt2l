@@ -98,7 +98,7 @@ public class UiUtil {
         }
         notification.add(text);
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        notification.setPosition(Notification.Position.TOP_START);
+        notification.setPosition(Notification.Position.TOP_END);
         notification.setDuration(5000);
         notification.open();
     }
@@ -106,7 +106,7 @@ public class UiUtil {
     public static void showSuccessNotification(String msg) {
         Notification notification = Notification.show(msg);
         notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-        notification.setPosition(Notification.Position.TOP_START);
+        notification.setPosition(Notification.Position.TOP_END);
         notification.setDuration(5000);
     }
 
@@ -169,6 +169,11 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
             return null;
         }
 
+    }
+
+    public static String normalizeId(String id) {
+        if (id == null) return null;
+        return id.replaceAll("[^A-Za-z0-9\\-]", "");
     }
 
     @Getter

@@ -16,6 +16,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+.hidden-tab {
+    display: none;
+}
+
 .desktabview .tabitem:hover {
     background-color: #f2f2f2;
 }
@@ -274,3 +278,11 @@ div.version {
     font-size: 14px;
     color: #000;
 }
+
+vaadin-text-area.development-info textarea {
+    font-family: monospace;
+    font-size: 14px;
+    color: #fff;
+    background-color: #000;
+}
+

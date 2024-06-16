@@ -1,6 +1,6 @@
 ---
 sidebar_position: 10
-title: Login Configuration
+title: Pod Scorer
 ---
 
 # Pod Scorer Configuration

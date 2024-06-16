@@ -217,7 +217,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         }
 
         public String getAge() {
-            return K8sUtil.getAgeSeconds(created);
+            return K8sUtil.getAge(created);
         }
     }
 

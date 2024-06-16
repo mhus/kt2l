@@ -21,6 +21,7 @@ package de.mhus.kt2l.cluster;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -34,9 +35,11 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.CoreAction;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.core.SecurityUtils;
 import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.development.DevelopmentAction;
 import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;
 import lombok.Getter;
@@ -46,6 +49,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Comparator;
 import java.util.List;
+
+import static org.apache.logging.log4j.util.Strings.isBlank;
 
 @Slf4j
 @Configurable
@@ -69,12 +74,22 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     @Autowired
     private ViewsConfiguration viewsConfiguration;
 
+    @Autowired
+    private PanelService panelService;
+
     private DeskTab tab;
 
     @Getter
     private Core core;
     private ComboBox<ClusterItem> clusterBox;
     private List<ClusterItem> clusterList;
+
+    private KonamiAction konamiAction = new KonamiAction() {
+        public void doAction() {
+            UiUtil.showSuccessNotification("You found the Konami Code");
+            new DevelopmentAction().execute(panelService, core);
+        }
+    };
 
     public ClusterOverviewPanel(Core core) {
         this.core = core;
@@ -177,10 +192,28 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
         Div version = new Div("Version: " + DeployInfo.VERSION + " (" + MString.beforeIndexOrAll(DeployInfo.CREATED, ' ') + ")");
         version.addClassName("version");
         add(version);
+
+        var supportText = viewsConfiguration.getConfig("clusterOverview").getString("supportText", "KT2L Website");
+        var supportLink = viewsConfiguration.getConfig("clusterOverview").getString("supportLink", "https://kt2l.org");
+        if (!isBlank(supportText)) {
+            var support = new Anchor(supportLink, supportText);
+            support.setTarget("_blank");
+            add(support);
+        }
+        var showLicence = viewsConfiguration.getConfig("clusterOverview").getBoolean("showLicence", true);
+        if (showLicence) {
+            var licence = new Anchor("https://www.gnu.org/licenses/gpl-3.0.html#license-text", "This is open source software and provided \"as is\", without warranties. See  GPLv3 License");
+            licence.setTarget("_blank");
+            add(licence);
+        }
+
         setPadding(false);
         setMargin(false);
 
         setWidthFull();
+        if (viewsConfiguration.getConfig("clusterOverview").getBoolean("konami", true))
+            konamiAction.attach(version);
+
     }
 
     private boolean validateCluster(ClusterItem cluster) {

@@ -54,6 +54,6 @@ public interface ResourcesGrid {
 
     <T> List<GridSortOrder<T>> getSortOrder();
 
-    void setSortOrder(List<GridSortOrder<Object>> sortOrder);
+    void setSortOrder(String sortOrder, boolean sortAscending);
 
 }

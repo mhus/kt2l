@@ -22,12 +22,14 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.ThemableLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import de.mhus.commons.errors.NotFoundRuntimeException;
@@ -40,6 +42,7 @@ import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterService;
 import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
@@ -60,6 +63,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.security.Principal;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 
 import static de.mhus.commons.tools.MString.isEmpty;
@@ -91,6 +96,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     @Autowired
     private PanelService panelService;
 
+    @Autowired
+    private ViewsConfiguration viewConfig;
+
     @Getter
     private ResourcesGrid grid;
     private TextField filterText;
@@ -106,6 +114,11 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     private ResourcesFilter resourcesFilter;
     private Button resourceFilterButton;
     private IRegistration namespaceEventRegistration;
+    private Button historyBackButton;
+    private Button historyForwardButton;
+    private LinkedList<HistoryItem> history = new LinkedList<>();
+    private int historyPointer = 0;
+    private int historyMaxSize = 50;
 
     public ResourcesGridPanel(String clusterId, Core core) {
         this.clusterId = clusterId;
@@ -120,6 +133,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                 grid.setFilter(filterText.getValue(), resourcesFilter);
                 resourceFilterButton.setEnabled(false);
                 resourceFilterButton.setTooltipText("");
+                if (e.isFromClient())
+                    historyAdd();
             }
         });
         resourceFilterButton.setEnabled(false);
@@ -130,6 +145,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         resourceSelector = new ComboBox<>();
         resourceSelector.setRenderer(new ComponentRenderer<Component, V1APIResource>(item -> {
             Div div = new Div(item.getName() + (item.getShortNames() == null ? "" : " " + item.getShortNames()));
+            if (currentResourceType != null && item.getName().equals(currentResourceType.resourceType()))
+                div.addClassName("color-blue");
+            else
             if (k8s.getResourceHandler(item) instanceof GenericK8s)
                 div.addClassName("color-grey");
             return div;
@@ -161,8 +179,11 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
         updateNamespaceSelector(true);
         namespaceSelector.addValueChangeListener(e -> {
-            if (grid != null && !MString.equals(e.getValue(), grid.getNamespace()))
+            if (grid != null && !MString.equals(e.getValue(), grid.getNamespace())) {
                 grid.setNamespace(e.getValue());
+                if (e.isFromClient())
+                    historyAdd();
+            }
         });
         // resource type selector
         resourceSelector.setPlaceholder("Resource");
@@ -175,6 +196,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         });
         resourceSelector.addValueChangeListener(e -> {
             resourceTypeChanged();
+            if (e.isFromClient())
+                historyAdd();
         });
 
         final Principal principal = securityService.getPrincipal();
@@ -186,7 +209,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             }
             LOGGER.debug("Resource types: {}",types.stream().map(V1APIResource::getName).toList());
             core.ui().access(() -> {
-                resourceSelector.setItems(cluster.getResourceTypes());
+                resourceSelector.setItems(cluster.getResourceTypes().stream().sorted(Comparator.comparing(V1APIResource::getName)).toList());
                 Thread.startVirtualThread(() -> {
                     MThread.sleep(400);
                     core.ui().access(() -> {
@@ -203,8 +226,19 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
         filterText.addValueChangeListener(e -> {
-            if (grid != null)
+            if (grid != null) {
                 grid.setFilter(e.getValue(), resourcesFilter);
+                if (e.isFromClient())
+                    historyAdd();
+            }
+        });
+
+        historyBackButton = new Button(VaadinIcon.ARROW_LEFT.create(), e -> {
+            historyBack();
+        });
+
+        historyForwardButton = new Button(VaadinIcon.ARROW_RIGHT.create(), e -> {
+            historyForward();
         });
 
         var cloneButton = new Button(VaadinIcon.COPY_O.create(), e -> clonePanel());
@@ -214,13 +248,63 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         spacer.setWidthFull();
 
         // toolbar
-        var toolbar = new HorizontalLayout(resourceFilterButton, filterText, namespaceSelector,resourceSelector, spacer, cloneButton);
+        var toolbar = new HorizontalLayout(resourceFilterButton, filterText, namespaceSelector,resourceSelector, spacer, historyBackButton, historyForwardButton, cloneButton);
         toolbar.addClassName("toolbar");
         toolbar.setPadding(false);
-        toolbar.setSpacing(true);
+        toolbar.setSpacing(false);
+        toolbar.getThemeList().add("spacing-xs");
         toolbar.setMargin(false);
         toolbar.setWidthFull();
+        historyUpdate();
         return toolbar;
+    }
+
+    private synchronized void historyUpdate() {
+        historyBackButton.setEnabled(historyPointer > 1);
+        historyForwardButton.setEnabled(historyPointer < history.size());
+    }
+
+    private synchronized void historyForward() {
+        if (historyPointer < history.size()) {
+            var item = history.get(historyPointer++);
+            showResourcesInternal(item.resourceType, item.namespace, item.filter, item.filterText, item.sortOrder, item.sortAscending, history, historyPointer);
+        }
+        historyUpdate();
+    }
+
+    private synchronized void historyBack() {
+        if (historyPointer > 1) {
+            historyPointer--;
+            var item = history.get(historyPointer-1);
+            showResourcesInternal(item.resourceType, item.namespace, item.filter, item.filterText, item.sortOrder, item.sortAscending, history, historyPointer);
+        }
+        historyUpdate();
+    }
+
+
+    public synchronized void historyAdd() {
+        if (historyPointer < history.size()) {
+            history.subList(historyPointer, history.size()).clear();
+        }
+        var sortOrderList = grid.getSortOrder();
+        String sortOrder = sortOrderList != null && sortOrderList.size() > 0 ? sortOrderList.get(0).getSorted().getKey() : null;
+        boolean orderAsc = sortOrderList != null && sortOrderList.size() > 0 ? sortOrderList.get(0).getDirection().equals(SortDirection.ASCENDING) : true;
+
+        historyAdd(currentResourceType, namespaceSelector.getValue(), resourcesFilter, filterText.getValue(), sortOrder, orderAsc);
+    }
+
+    protected synchronized void historyAdd(K8s resourceType, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending) {
+        if (historyPointer < history.size()) {
+            history.subList(historyPointer, history.size()).clear();
+        }
+        var entry = new HistoryItem(currentResourceType, namespaceSelector.getValue(), resourcesFilter, filterText, sortOrder, sortAscending);
+        if (history.size() > 0 && history.getLast().equals(entry)) return;
+
+        history.add(entry);
+        if (history.size() > historyMaxSize)
+            history.removeFirst();
+        historyPointer = history.size();
+        historyUpdate();
     }
 
     private void clonePanel() {
@@ -233,9 +317,10 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                     MThread.sleep(200);
                     if (((ResourcesGridPanel) newTab.getPanel()).getCurrentResourceType() != null) {
                         core.ui().access(() -> {
-                            ((ResourcesGridPanel) newTab.getPanel()).showResources(currentResourceType, namespaceSelector.getValue(), resourcesFilter, filterText.getValue());
-                            var sortOrder = grid.getSortOrder();
-                            ((ResourcesGridPanel) newTab.getPanel()).getGrid().setSortOrder(sortOrder);
+                            var sortOrderList = grid.getSortOrder();
+                            String sortOrder = sortOrderList != null && sortOrderList.size() > 0 ? sortOrderList.get(0).getSorted().getKey() : null;
+                            boolean orderAsc = sortOrderList != null && sortOrderList.size() > 0 ? sortOrderList.get(0).getDirection().equals(SortDirection.ASCENDING) : true;
+                            ((ResourcesGridPanel) newTab.getPanel()).showResourcesInternal(currentResourceType, namespaceSelector.getValue(), resourcesFilter, filterText.getValue(), sortOrder, orderAsc, history, historyPointer);
                         });
                         break;
                     }
@@ -259,7 +344,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             }
             cluster.setCurrentNamespaces(namespaces);
             core.ui().access(() -> {
-                namespaceSelector.setItems(namespaces);
+                namespaceSelector.setItems(namespaces.stream().sorted().toList());
                 core.ui().push();
                 if (selectDefault && !MObject.equals(namespaceSelector.getValue(), cluster.getDefaultNamespace())) {
                     Thread.startVirtualThread(() -> {
@@ -316,6 +401,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         LOGGER.info("ClusterId: {}",clusterId);
         cluster = clusterService.getCluster(clusterId);
         currentResourceType = cluster.getDefaultResourceType();
+        historyMaxSize = viewConfig.getConfig("resourcesGrid").getInt("historyMaxSize", historyMaxSize);
 
         createUI();
 
@@ -335,6 +421,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                     }
                 }
         );
+
+        historyAdd(cluster.getDefaultResourceType(), cluster.getDefaultNamespace(), null, "", null, true);
     }
 
     private void initGrid() {
@@ -388,12 +476,25 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     }
 
     public void showResources(K8s resourceType, String namespace, ResourcesFilter filter, String filterText) {
+        historyAdd(resourceType, namespace, filter, filterText, null, true);
+        showResourcesInternal(resourceType, namespace, filter, filterText, null, true, history, historyPointer);
+    }
+
+    private void showResourcesInternal(K8s resourceType, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending, LinkedList<HistoryItem> history, int historyPointer) {
         if (filterText != null)
             this.filterText.setValue(filterText);
         setNamespace(namespace);
         if (filter != null)
             setResourcesFilter(filter);
         setResourceType(resourceType);
+        if (sortOrder != null) {
+            grid.setSortOrder(sortOrder, sortAscending);
+        }
+        if (history != null) {
+            this.history = new LinkedList<>(history);
+            this.historyPointer = historyPointer;
+            historyUpdate();
+        }
     }
 
     public void setResourceType(K8s resourceType) {
@@ -434,6 +535,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
     public void focusNamespaces() {
         namespaceSelector.focus();
+    }
+
+    private record HistoryItem(K8s resourceType, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending) {
     }
 
 }

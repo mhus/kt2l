@@ -30,10 +30,13 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -47,6 +50,7 @@ import org.springframework.boot.web.servlet.context.ServletWebServerApplicationC
 import org.springframework.context.annotation.Import;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Set;
 
 import static java.time.Duration.ofSeconds;
@@ -63,7 +67,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
         properties = {
         "kt2l.configuration.localDirectory=local_config",
         "kt2l.configuration.usersDirectory=users_nodirectoryset",
-                ""
+        "kt2l.deskTabPreserveMode=false"
         }
 )
 @Import({AremoricaContextConfiguration.class, CoreHelper.class})
@@ -80,7 +84,9 @@ public class LocalServerTest {
 
     @BeforeAll
     public static void beforeAll() throws IOException, ApiException {
-        System.out.println("Before All");
+        System.out.println("----------------------------------------------------------------");
+        System.out.println("ⓧ Before All");
+        System.out.println("----------------------------------------------------------------");
         DebugTestUtil.debugPrepare();
         AremoricaK8sService.start();
 
@@ -102,10 +108,29 @@ public class LocalServerTest {
 
     @AfterAll
     public static void afterAll() {
-        System.out.println("After All");
+        System.out.println("----------------------------------------------------------------");
+        System.out.println("ⓧ After All");
+        System.out.println("----------------------------------------------------------------");
 
         MLang.tryThis(() -> driver.quit()).onFailure(e -> LOGGER.error("Error on quit", e));
         AremoricaK8sService.stop();
+    }
+
+    @BeforeEach
+    public void beforeEach(TestInfo testInfo) {
+        System.out.println("----------------------------------------------------------------");
+        var name = testInfo.getTestMethod().map(Method::getName).orElse("unknown");
+        System.out.println("ⓧ Start Test: " + name);
+        System.out.println("----------------------------------------------------------------");
+    }
+
+    @AfterEach
+    public void afterEach(TestInfo testInfo) {
+        System.out.println("----------------------------------------------------------------");
+        var name = testInfo.getTestMethod().map(Method::getName).orElse("unknown");
+        System.out.println("ⓧ End Test: " + name);
+        System.out.println("----------------------------------------------------------------");
+        DebugTestUtil.debugBreakpoint("After " + name);
     }
 
     @Test
@@ -123,7 +148,6 @@ public class LocalServerTest {
         assertThat(driver.findElement(By.xpath("//vaadin-menu-bar-item[contains(.,\"Resources\")]"))).isNotNull();
 
         DebugTestUtil.doScreenshot(driver, "cluster_select");
-        DebugTestUtil.debugBreakpoint("Cluster Select");
 
     }
 
@@ -165,8 +189,6 @@ public class LocalServerTest {
                 .until( (d) -> !grid.getNamespaces().contains("little-bonum"));
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                 .until(invisibilityOfElementLocated(By.xpath("//vaadin-grid-cell-content[contains(.,\"little-bonum\")]")));
-
-        DebugTestUtil.debugBreakpoint("Namespace Push");
 
     }
 
@@ -213,8 +235,6 @@ public class LocalServerTest {
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                 .until(invisibilityOfElementLocated(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]")));
 
-        DebugTestUtil.debugBreakpoint("Pod Push");
-
     }
 
 
@@ -253,8 +273,6 @@ public class LocalServerTest {
         assertThat(selected.value.size()).isEqualTo(1);
 
         DebugTestUtil.doScreenshot(driver, "cluster_resources_pod");
-        DebugTestUtil.debugBreakpoint("Pod Details");
-
     }
 
 
@@ -287,13 +305,11 @@ public class LocalServerTest {
         // wait for shell
         {
             var element = new WebDriverWait(driver, ofSeconds(10), ofSeconds(1))
-                    .until(visibilityOfElementLocated(By.xpath("//vaadin-app-layout/vaadin-horizontal-layout[1]/vaadin-vertical-layout[1]/vaadin-vertical-layout/fc-xterm/div/div/div[2]/div[2]/div[1]/span[1]")));
+                    .until(visibilityOfElementLocated(By.xpath("//vaadin-vertical-layout[@id=\"aremoricaindomitable-villageasterixshell\"]/fc-xterm/div/div/div[2]/div[2]/div[1]/span[1]")));
             assertThat(element.getText()).isEqualTo("S");
         }
 
         DebugTestUtil.doScreenshot(driver, "pod_xterm");
-        DebugTestUtil.debugBreakpoint("xTerm");
-
     }
 
 }

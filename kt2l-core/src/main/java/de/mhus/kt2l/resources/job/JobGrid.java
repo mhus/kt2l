@@ -111,7 +111,7 @@ public class JobGrid extends AbstractGridWithNamespace<JobGrid.Resource, Compone
         public void updateResource() {
             super.updateResource();
             this.completed = resource.getStatus().getCompletedIndexes();
-            this.duration = tryThis(() -> K8sUtil.getAgeSeconds(resource.getStatus().getCompletionTime().toEpochSecond() - resource.getStatus().getStartTime().toEpochSecond())).or("");
+            this.duration = tryThis(() -> K8sUtil.getAge(resource.getStatus().getCompletionTime().toEpochSecond() - resource.getStatus().getStartTime().toEpochSecond())).or("");
             this.ready = toStringOr0(resource.getStatus().getReady());
             this.active = toStringOr0(resource.getStatus().getActive());
             this.failed = toStringOr0(resource.getStatus().getFailed());

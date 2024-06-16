@@ -1,6 +1,6 @@
 ---
 sidebar_position: 3
-title: Shell Configuration
+title: Shell
 ---
 
 # Shell Configuration

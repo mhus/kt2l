@@ -23,7 +23,7 @@ contexts:
   default:
     - name: Documentation
       action: docs
-      document: cluster
+      document: usage/cluster
     - name: Chat Agent
       action: ai
     - name: Kubernetes
@@ -35,7 +35,7 @@ contexts:
       prompt: Answer with a new resources example. [resource] {{content}}
     - name: Details
       action: docs
-      document: details
+      document: usage/details
       default: true
     - name: Kubernetes
       action: link
@@ -43,7 +43,7 @@ contexts:
   resources:
     - name: Resources
       action: docs
-      document: resources
+      document: usage/resources
       default: true
     - name: Kubernetes
       action: link
@@ -51,7 +51,7 @@ contexts:
   logs:
     - name: Logs
       action: docs
-      document: logs
+      document: usage/logs
       default: true
     - name: Kubernetes
       action: link
@@ -59,7 +59,7 @@ contexts:
   shell:
     - name: Shell
       action: docs
-      document: shell
+      document: usage/shell
       default: true
     - name: Kubernetes
       action: link
@@ -67,7 +67,7 @@ contexts:
   ai:
     - name: AI
       action: docs
-      document: ai
+      document: usage/ai
       default: true
     - name: Kubernetes
       action: link
@@ -75,7 +75,7 @@ contexts:
   exec:
     - name: Exec
       action: docs
-      document: exec
+      document: usage/exec
       default: true
     - name: Snippets
       action: snippets
@@ -88,7 +88,7 @@ contexts:
   create:
     - name: Create
       action: docs
-      document: create
+      document: usage/create
     - name: Snippets
       action: snippets
       repo: https://github.com/mhus/kt2l-snippets.git
@@ -100,7 +100,7 @@ contexts:
   events:
     - name: Events
       action: docs
-      document: events
+      document: usage/events
       default: true
     - name: Kubernetes
       action: link
@@ -108,17 +108,17 @@ contexts:
   global_cfg:
     - name: Global Settings
       action: docs
-      document: global_cfg
+      document: usage/global_cfg
       default: true
   user_cfg:
     - name: User Settings
       action: docs
-      document: user_cfg
+      document: usage/user_cfg
       default: true
   portforward:
     - name: Port Forward
       action: docs
-      document: portforward
+      document: usage/portforward
       default: true
     - name: Kubernetes
       action: link
@@ -126,7 +126,7 @@ contexts:
   edit_secret:
     - name: Edit Secret
       action: docs
-      document: edit_secret
+      document: usage/edit_secret
       default: true
     - name: Kubernetes
       action: link
@@ -134,7 +134,7 @@ contexts:
   edit_configmap:
     - name: Edit ConfigMap
       action: docs
-      document: edit_configmap
+      document: usage/edit_configmap
       default: true
     - name: Kubernetes
       action: link
@@ -147,7 +147,7 @@ contexts:
   storage:
     - name: Storage
       action: docs
-      document: storage
+      document: usage/storage
       default: true
     - name: Kubernetes
       action: link
@@ -156,4 +156,9 @@ contexts:
     - name: Local Bash
       action: docs
       document: localbash
+      default: true
+  system_info:
+    - name: System Info
+      action: docs
+      document: usage/system_info
       default: true

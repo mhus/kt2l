@@ -45,11 +45,13 @@ public class DeskTab extends HorizontalLayout {
     @Getter
     private Component panel;
     @Getter
-    private DeskTabBar viewer;
+    private DeskTabBar tabBar;
     @Getter
     private DeskTab parentTab;
     @Getter
     private String helpContext;
+    @Getter
+    private boolean reproducable = false;
 
 //    @Getter
 //    private Map<String, Object> parameters = new HashMap<>();
@@ -85,13 +87,13 @@ public class DeskTab extends HorizontalLayout {
     }
 
     public void closeTab() {
-        viewer.closeTab(this);
+        tabBar.closeTab(this);
         panel = null;
     }
 
     public void setTabViewer(DeskTabBar tabViewer) {
-        this.viewer = tabViewer;
-        viewer.getCore().getBeanFactory().autowireBean(panel);
+        this.tabBar = tabViewer;
+        tabBar.getCore().getBeanFactory().autowireBean(panel);
     }
 
     public DeskTab setParentTab(DeskTab parent) {
@@ -105,7 +107,7 @@ public class DeskTab extends HorizontalLayout {
     }
 
     public DeskTab select() {
-        viewer.setSelected(this);
+        tabBar.setSelected(this);
         return this;
     }
 
@@ -131,4 +133,16 @@ public class DeskTab extends HorizontalLayout {
         return this;
     }
 
+    /**
+     * Set to false if the content will be lost after switching to another tab. In this case the
+     * content will be hidden instead of removed. In this case the tab will allocate memory in the
+     * browser for all live time. Default is false.
+     *
+     * @param reproducable
+     * @return
+     */
+    public DeskTab setReproducable(boolean reproducable) {
+        this.reproducable = reproducable;
+        return this;
+    }
 }

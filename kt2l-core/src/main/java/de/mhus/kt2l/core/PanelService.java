@@ -25,6 +25,7 @@ import de.mhus.kt2l.ai.AiResourcePanel;
 import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.development.SystemInfoPanel;
 import de.mhus.kt2l.events.EventPanel;
 import de.mhus.kt2l.helm.HelmChartDetailsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
@@ -61,7 +62,7 @@ public class PanelService {
     private DeskTab addPanel(
             DeskTab parentTab,
             String id, String title, boolean unique, AbstractIcon icon, Function0<com.vaadin.flow.component.Component> panelCreator) {
-        return parentTab.getViewer().addTab(
+        return parentTab.getTabBar().addTab(
                 id,
                 title,
                 true,
@@ -72,7 +73,7 @@ public class PanelService {
                 .setParentTab(parentTab);
     }
 
-    private DeskTab addPanel(
+    public DeskTab addPanel(
             Core core, Cluster cluster,
             String id, String title, boolean unique, AbstractIcon icon, Function0<com.vaadin.flow.component.Component> panelCreator) {
         return core.getTabBar().addTab(
@@ -86,7 +87,7 @@ public class PanelService {
     }
 
     public DeskTab showYamlPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {
-        return parentTab.getViewer().addTab(
+        return parentTab.getTabBar().addTab(
                 cluster.getName() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),
                 true,
@@ -95,7 +96,7 @@ public class PanelService {
                 () ->
                         new ResourceYamlEditorPanel(
                                 cluster,
-                                parentTab.getViewer().getCore(),
+                                parentTab.getTabBar().getCore(),
                                 resourceType,
                                 resource
                         ))
@@ -115,6 +116,7 @@ public class PanelService {
                         () -> new ResourcesGridPanel(cluster.getName(), core))
                 .setColor(cluster.getColor())
                 .setHelpContext("resources")
+                .setReproducable(true)
                 .setWindowTitle(cluster.getTitle() + " - Resources");
     }
 
@@ -127,6 +129,7 @@ public class PanelService {
                         VaadinIcon.OPEN_BOOK.create(),
                         () -> new ResourcesGridPanel(cluster.getName(), core))
                 .setHelpContext("resources")
+                .setReproducable(true)
                 .setWindowTitle(cluster.getTitle() + " - Resources");
     }
 
@@ -451,9 +454,24 @@ public class PanelService {
                 resource.getMetadata().getName(),
                 true,
                 HelmClusterAction.getHelmIcon(),
-                () -> new HelmChartDetailsPanel(parentTab.getViewer().getCore(), cluster, resource)
+                () -> new HelmChartDetailsPanel(parentTab.getTabBar().getCore(), cluster, resource)
         )
                 .setHelpContext("helm_details")
                 .setWindowTitle(cluster.getTitle() + " - " + resource.getMetadata().getName() + " - Helm Details");
     }
+
+    public DeskTab showSystemInfoPanel(Core core) {
+        return addPanel(
+                core,
+                null,
+                "system-info",
+                "System Info",
+                true,
+                VaadinIcon.INFO_CIRCLE_O.create(),
+                () -> new SystemInfoPanel()
+        )
+                .setReproducable(true)
+                .setHelpContext("system_info");
+    }
+
 }

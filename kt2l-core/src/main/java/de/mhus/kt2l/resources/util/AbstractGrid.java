@@ -23,6 +23,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
+import com.vaadin.flow.component.ShortcutRegistration;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.MenuItemBase;
 import com.vaadin.flow.component.grid.Grid;
@@ -41,10 +42,12 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
 import de.mhus.commons.tree.ITreeNode;
+import de.mhus.kt2l.cfg.panel.CPanelVerticalLayout;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.UiUtil;
@@ -72,9 +75,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractGrid<T, S extends Component> extends VerticalLayout implements ResourcesGrid {
 
-    protected List<T> resourcesList = null;
+    protected volatile List<T> resourcesList = null;
     @Getter // for testing
-    protected List<T> filteredList = null;
+    protected volatile List<T> filteredList = null;
     private String filterText = "";
     protected String namespace;
     protected Cluster cluster;
@@ -98,6 +101,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     protected Div selectedAmount;
     protected ITreeNode viewConfig;
     private SplitLayout detailsSplit;
+    private List<ShortcutRegistration> shortcutRegistrations = Collections.synchronizedList(new ArrayList<>());
 
     @Override
     public Component getComponent() {
@@ -127,6 +131,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             detailsComponent = null;
         }
         createMenuBar();
+
         addAttachListener(event -> {
             setShortcuts();
         });
@@ -305,6 +310,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
         resourcesGrid = new Grid<>(getManagedResourceItemClass(), false);
         addClassNames("contact-grid");
+        setSpacing(false);
         resourcesGrid.setSizeFull();
         resourcesGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         try {
@@ -313,6 +319,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             resourcesGrid.getColumns().forEach(col -> {
                 col.setAutoWidth(true);
                 col.setResizable(true);
+                col.setKey(col.getHeaderText().toLowerCase());
             });
             if (viewConfig.getBoolean("colors", true))
                 resourcesGrid.setClassNameGenerator(this::getGridRowClass);
@@ -368,6 +375,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                 }
             });
 
+            resourcesGrid.addSortListener(event -> {
+                panel.historyAdd();
+            });
+
             GridContextMenu<T> menu = resourcesGrid.addContextMenu();
             actions.stream().sorted(Comparator.comparingInt((MenuAction a) -> a.getAction().getMenuOrder())).forEach(action -> {
                 var item = createContextMenuItem(menu, action.getAction());
@@ -382,24 +393,34 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
 
     protected void setShortcuts() {
-        getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid);
-        getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid);
+        LOGGER.debug("Set shortcuts");
+        shortcutRegistrations.forEach(ShortcutRegistration::remove);
+        shortcutRegistrations.clear();
 
-        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid);
-        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.of(":")).withShift().listenOn(resourcesGrid);
-        getPanel().getCore().ui().addShortcutListener((event) -> panel.focusNamespaces() , Key.QUOTE).listenOn(resourcesGrid);
-        getPanel().getCore().ui().addShortcutListener((event) -> doRefreshGrid() , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid);
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.SPACE).listenOn(resourcesGrid));
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener(this::handleShortcut, Key.ENTER).listenOn(resourcesGrid));
+
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener((event) -> panel.focusFilter() , Key.SLASH).listenOn(resourcesGrid));
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener((event) -> panel.focusResources() , Key.of(":")).withShift().listenOn(resourcesGrid));
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener((event) -> panel.focusNamespaces() , Key.QUOTE).listenOn(resourcesGrid));
+        addShortcutRegistration(getPanel().getCore().ui().addShortcutListener((event) -> doRefreshGrid() , Key.KEY_R, UiUtil.getOSMetaModifier()).listenOn(resourcesGrid));
 
         actions.forEach(action -> {
             if (action.getAction().getShortcutKey() != null) {
                 var shortcut = UiUtil.createShortcut(action.getAction().getShortcutKey());
                 if (shortcut != null) {
+                    LOGGER.debug("Shortcut: {} {}", action.getAction().getTitle(), shortcut);
                     shortcut.addShortcutListener(resourcesGrid, () -> {
                         action.execute();
                     });
+                    addShortcutRegistration(shortcut.getRegistration());
                 }
             }
         });
+    }
+
+    private void addShortcutRegistration(ShortcutRegistration shortcutRegistration) {
+        shortcutRegistrations.add(shortcutRegistration);
     }
 
     protected void doRefreshGrid() {
@@ -494,9 +515,9 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     }
 
     @Override
-    public void setSortOrder(List<GridSortOrder<Object>> sortOrder) {
+    public void setSortOrder(String sortOrder, boolean sortAscending) {
         if (sortOrder == null || sortOrder.isEmpty()) return;
-        resourcesGrid.sort((List)sortOrder);
+        resourcesGrid.sort(List.of( new GridSortOrder<>(resourcesGrid.getColumnByKey(sortOrder), sortAscending ? SortDirection.ASCENDING : SortDirection.DESCENDING)));
     }
 
     protected void filterList() {
