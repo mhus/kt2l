@@ -171,6 +171,11 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
 
     }
 
+    public static String normalizeId(String id) {
+        if (id == null) return null;
+        return id.replaceAll("[^A-Za-z0-9\\-]", "");
+    }
+
     @Getter
     public static class Shortcut {
 
