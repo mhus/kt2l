@@ -49,7 +49,7 @@ Before you update remove the package with
 sudo apt remove kt2l-desktop
 ```
 
-To use a desktop icon install (once) a desktop file:
+WIP: To use a desktop icon install (once) a desktop file:
 
 ```bash
 echo "[Desktop Entry]
@@ -60,9 +60,9 @@ Exec=/opt/kt2l-deskop/bin/kt2l-desktop
 Icon=/opt/kt2l-desktop/lib/kt2l-desktop.png
 Categories=Utility;Security;
 Type=Application
-" >kt2l-desktop.desktop
+" > kt2l-desktop.desktop
 
-sudo desktop-file-install ./kt2l-desktop.desktop
-sudo update-desktop-database
+desktop-file-install ./kt2l-desktop.desktop --dir=~/.local/share/applications
+update-desktop-database ~/.local/share/applications
 ```
 
