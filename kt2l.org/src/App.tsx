@@ -11,6 +11,7 @@ import pageLicense from './page-license'
 import pageDisclaimer from './page-disclaimer';
 
 function App() {
+  document.title = 'KT2L Website';
   return (
       <div className="bg-white">
           {pageHeader()}
