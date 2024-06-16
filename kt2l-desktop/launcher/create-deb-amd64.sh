@@ -47,8 +47,8 @@ jpackage \
   --input . \
   --main-jar kt2l-desktop-linux-amd64.jar \
   --type deb \
-  --java-options "XstartOnFirstThread" \
-  --java-options "Dspring.profiles.active=prod" \
+  --java-options "-XstartOnFirstThread" \
+  --java-options "-Dspring.profiles.active=prod" \
   --app-version "1.0" \
   --linux-menu-group "Utility;Administration;kt2l" \
   --linux-app-category "Administration" \
