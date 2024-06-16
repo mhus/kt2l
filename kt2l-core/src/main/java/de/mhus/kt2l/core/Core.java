@@ -74,6 +74,7 @@ import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -171,6 +172,8 @@ public class Core extends AppLayout {
     private boolean trackBrowserMemoryUsage = true;
     @Getter
     private String browserMemoryUsage;
+    @Value("${kt2l.deskTabPreserveMode:true}")
+    private boolean deskTabPreserveMode;
 
     public Core(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -493,10 +496,14 @@ public class Core extends AppLayout {
 
     private void createDrawer() {
 
-        tabBar = new DeskTabBar(this);
+        tabBar = new DeskTabBar(this, deskTabPreserveMode);
         tabBar.setMargin(false);
         addToDrawer(tabBar);
 
+        createMainTab();
+    }
+
+    private void createMainTab() {
         mainTab = tabBar.addTab(
                 new DeskTab(
                         "main",

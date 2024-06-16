@@ -66,7 +66,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
         properties = {
         "kt2l.configuration.localDirectory=local_config",
         "kt2l.configuration.usersDirectory=users_nodirectoryset",
-                ""
+        "kt2l.deskTabPreserveMode=false"
         }
 )
 @Import({AremoricaContextConfiguration.class, CoreHelper.class})
