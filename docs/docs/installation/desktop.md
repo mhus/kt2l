@@ -34,10 +34,35 @@ It will use autologin and create a `.kt2l` directory in user home by default.
 ## Linux DEB
 
 Linux distributions supporting deb packages can use the deb package to install the desktop.
-To install the latest snapshot version of the desktop, add the following repository to your system:
+To install the latest snapshot version of the desktop download the DEB file from the website and
+install it using 
 
 ```bash
-echo "deb [trusted=yes] https://apt.kt2l.org/ /" | sudo tee /etc/apt/sources.list.d/kt2l.list
-sudo apt update
-sudo apt install kt2l-desktop
+sudo apt install ./Download/kt2l-desktop-linux-amd64_...deb
 ```
+Now the application can be startet with
+```bash
+/opt/kt2l-desktop/bin/kt2l-desktop &
+```
+Before you update remove the package with
+```bash
+sudo apt remove kt2l-desktop
+```
+
+To use a desktop icon install (once) a desktop file:
+
+```bash
+echo "[Desktop Entry]
+Name=KT2L
+Comment=KT2L Desktop
+Terminal=false
+Exec=/opt/kt2l-deskop/bin/kt2l-desktop
+Icon=/opt/kt2l-desktop/lib/kt2l-desktop.png
+Categories=Utility;Security;
+Type=Application
+" >kt2l-desktop.desktop
+
+sudo desktop-file-install ./kt2l-desktop.desktop
+sudo update-desktop-database
+```
+
