@@ -18,6 +18,7 @@
 package de.mhus.kt2l.util;
 
 import de.mhus.commons.tools.MThread;
+import de.mhus.kt2l.DebugTestUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -35,32 +36,40 @@ public class App {
     public static void resetUi(ChromeDriver driver, ServletWebServerApplicationContext webServerApplicationContext) {
         LOGGER.info("Reset test on port {}", webServerApplicationContext.getWebServer().getPort());
 
-        for (int i = 0; i < 30; i++) {
+        boolean done = false;
+        for (int i = 0; i < 15; i++) {
+            LOGGER.info("ⓧ Reset try {}", i);
             driver.get("about:blank");
             MThread.sleep(300);
             driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort() + "/reset");
             try {
                 new WebDriverWait(driver, ofSeconds(10), ofSeconds(2))
                         .until(visibilityOfElementLocated(By.xpath("//vaadin-button[contains(.,\"KT2L\")]")));
+                done = true;
                 break;
             } catch (Exception e) {
-                LOGGER.error("Reset reset failed", e);
-                throw new RuntimeException("Reset reset failed");
+                LOGGER.error("ⓧ Reset reset failed", e);
             }
+        }
+        if (!done) {
+            DebugTestUtil.debugBreakpoint("Reset reset failed");
+            throw new RuntimeException("Reset reset failed");
         }
 
         for (int i = 0; i < 30; i++) {
-            driver.get("about:blank");
-            MThread.sleep(300);
+            LOGGER.info("ⓧ Reset home try {}", i);
+//            driver.get("about:blank");
+//            MThread.sleep(300);
             driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort());
             try {
                 new WebDriverWait(driver, ofSeconds(10), ofSeconds(2))
                         .until(visibilityOfElementLocated(By.xpath("//span[contains(.,\"[KT2L]\")]")));
                 return;
             } catch (Exception e) {
-                LOGGER.error("Reset home failed", e);
+                LOGGER.error("ⓧ Reset home failed", e);
             }
         }
+        DebugTestUtil.debugBreakpoint("Reset home failed");
         throw new RuntimeException("Reset home failed");
     }
 
@@ -83,7 +92,6 @@ public class App {
             input.sendKeys(Keys.DOWN, Keys.RETURN);
         }
     }
-
 
     public static void resourcesSelectResource(ChromeDriver driver, String resource) {
         {

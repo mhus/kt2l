@@ -30,10 +30,13 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -80,7 +83,7 @@ public class LocalServerTest {
 
     @BeforeAll
     public static void beforeAll() throws IOException, ApiException {
-        System.out.println("Before All");
+        System.out.println("ⓧ Before All");
         DebugTestUtil.debugPrepare();
         AremoricaK8sService.start();
 
@@ -102,10 +105,26 @@ public class LocalServerTest {
 
     @AfterAll
     public static void afterAll() {
-        System.out.println("After All");
+        System.out.println("ⓧ After All");
 
         MLang.tryThis(() -> driver.quit()).onFailure(e -> LOGGER.error("Error on quit", e));
         AremoricaK8sService.stop();
+    }
+
+    @BeforeEach
+    public void beforeEach(TestInfo testInfo) {
+        System.out.println("----------------------------------------------------------------");
+        System.out.println("Start Test: " + testInfo.getTestMethod());
+        System.out.println("----------------------------------------------------------------");
+    }
+
+    @AfterEach
+    public void afterEach(TestInfo testInfo) {
+        System.out.println("----------------------------------------------------------------");
+        System.out.println("End Test: " + testInfo.getTestMethod());
+        System.out.println("----------------------------------------------------------------");
+        DebugTestUtil.debugBreakpoint("After " + testInfo.getTestMethod());
+
     }
 
     @Test
@@ -123,7 +142,6 @@ public class LocalServerTest {
         assertThat(driver.findElement(By.xpath("//vaadin-menu-bar-item[contains(.,\"Resources\")]"))).isNotNull();
 
         DebugTestUtil.doScreenshot(driver, "cluster_select");
-        DebugTestUtil.debugBreakpoint("Cluster Select");
 
     }
 
@@ -165,8 +183,6 @@ public class LocalServerTest {
                 .until( (d) -> !grid.getNamespaces().contains("little-bonum"));
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                 .until(invisibilityOfElementLocated(By.xpath("//vaadin-grid-cell-content[contains(.,\"little-bonum\")]")));
-
-        DebugTestUtil.debugBreakpoint("Namespace Push");
 
     }
 
@@ -213,8 +229,6 @@ public class LocalServerTest {
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                 .until(invisibilityOfElementLocated(By.xpath("//vaadin-grid-cell-content[contains(.,\"idefix\")]")));
 
-        DebugTestUtil.debugBreakpoint("Pod Push");
-
     }
 
 
@@ -253,8 +267,6 @@ public class LocalServerTest {
         assertThat(selected.value.size()).isEqualTo(1);
 
         DebugTestUtil.doScreenshot(driver, "cluster_resources_pod");
-        DebugTestUtil.debugBreakpoint("Pod Details");
-
     }
 
 
@@ -292,8 +304,6 @@ public class LocalServerTest {
         }
 
         DebugTestUtil.doScreenshot(driver, "pod_xterm");
-        DebugTestUtil.debugBreakpoint("xTerm");
-
     }
 
 }
