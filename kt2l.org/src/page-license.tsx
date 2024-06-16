@@ -2,7 +2,8 @@ export default function pageLicense() {
 
     return (
         <div className="bg-white py-4 sm:py-8" id="downloads">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div dangerouslySetInnerHTML={{ __html: "<a name='license'></a>" }} />
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <div className="mx-auto max-w-2xl lg:text-center">
                     <h2 className="text-base font-semibold leading-7 text-indigo-600">License</h2>
                     <p className="mt-6 text-lg leading-8 text-gray-600">

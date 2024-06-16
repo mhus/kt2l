@@ -1,10 +1,12 @@
 import {Bars3Icon} from '@heroicons/react/24/outline'
 
 const navigation = [
-    {name: 'Download', href: '/#download'},
+    {name: 'Downloads', href: '/#downloads'},
     {name: 'Intro', href: '/docs/intro'},
     {name: 'Get Started', href: '/docs/get-started'},
     {name: 'Documentation', href: '/docs'},
+    {name: 'Disclaimer', href: '/#disclaimer'},
+    {name: 'License', href: '/#license'},
 //    {name: 'Contribute', href: '/#contribute'},
 ]
 

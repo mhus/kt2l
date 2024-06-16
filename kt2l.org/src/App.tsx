@@ -8,12 +8,14 @@ import pageHeader from './page-header'
 import pageGeneralInformation from './page-general-information'
 import pageDownloads from './page-downloads'
 import pageLicense from './page-license'
+import pageDisclaimer from './page-disclaimer';
 
 function App() {
   return (
       <div className="bg-white">
           {pageHeader()}
           {pageGeneralInformation()}
+          {pageDisclaimer()}
           {pageDownloads()}
           {pageLicense()}
       </div>
