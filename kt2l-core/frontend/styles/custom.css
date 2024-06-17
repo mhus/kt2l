@@ -286,3 +286,6 @@ vaadin-text-area.development-info textarea {
     background-color: #000;
 }
 
+div.div-space {
+    height: 10px;
+}

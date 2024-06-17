@@ -30,6 +30,7 @@ import io.kubernetes.client.common.KubernetesObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class ResourceSelector<T extends KubernetesObject> {
@@ -38,6 +39,10 @@ public class ResourceSelector<T extends KubernetesObject> {
     private volatile List<T> selectedResources;
     private final boolean canChange;
     private MenuItem menuBarItem;
+
+    public ResourceSelector(Set<T> resources, boolean canChange) {
+        this(new ArrayList<>(resources), canChange, null);
+    }
 
     public ResourceSelector(List<T> resources, boolean canChange) {
         this(resources, canChange, null);
@@ -108,5 +113,9 @@ public class ResourceSelector<T extends KubernetesObject> {
 
     private String getColumnValue(T v) {
         return v.getMetadata().getName();
+    }
+
+    public double size() {
+        return selectedResources.size();
     }
 }

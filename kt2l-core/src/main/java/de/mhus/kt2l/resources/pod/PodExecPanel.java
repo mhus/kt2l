@@ -48,6 +48,7 @@ import de.mhus.kt2l.storage.StorageService;
 import io.azam.ulidj.ULID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -57,6 +58,7 @@ import java.util.List;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
+@Configurable
 @Slf4j
 public class PodExecPanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
 
@@ -66,7 +68,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
     private StorageService storageService;
 
     private final ApiProvider apiProvider;
-    private final ResourceSelector<ContainerResource> resourceManager;
+    private final ResourceSelector<ContainerResource> resourceSelector;
     private final Cluster cluster;
     private final Core core;
     private DeskTab tab;
@@ -84,7 +86,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
 
     public PodExecPanel(Cluster cluster, Core core, List<ContainerResource> containers) {
         this.apiProvider = cluster.getApiProvider();
-        this.resourceManager = new ResourceSelector(containers, true);
+        this.resourceSelector = new ResourceSelector(containers, true);
         this.cluster = cluster;
         this.core = core;
     }
@@ -94,7 +96,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
         this.tab = deskTab;
 
         var menuBar = new MenuBar();
-        resourceManager.injectMenu(menuBar);
+        resourceSelector.injectMenu(menuBar);
         menuItemRun = menuBar.addItem("Run", e -> {
             menuItemRun.setEnabled(false);
             menuItemStop.setEnabled(true);
@@ -186,7 +188,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
 
         var compiledBlock = compileProgram(command);
 
-        for (ContainerResource container : resourceManager.getResources()) {
+        for (ContainerResource container : resourceSelector.getResources()) {
 
             var text = new TextArea();
             text.setLabel(container.getContainerName());

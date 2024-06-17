@@ -182,6 +182,7 @@ public class Core extends AppLayout {
     @PostConstruct
     public void createUi() {
 
+        ui = UI.getCurrent();
         session = UI.getCurrent().getSession();
         sessionId = session.getSession().getId();
 
@@ -633,6 +634,7 @@ public class Core extends AppLayout {
     }
 
     public UI ui() {
+        if (ui == null) return UI.getCurrent();
         return ui;
     }
 

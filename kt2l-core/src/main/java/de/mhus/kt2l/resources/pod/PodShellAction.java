@@ -20,6 +20,7 @@ package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
@@ -27,36 +28,45 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1Pod;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
+@Slf4j
 @Component
 @WithRole(ROLE.WRITE)
-public class ActionExec implements ResourceAction {
+public class PodShellAction implements ResourceAction {
+
+    @Autowired
+    private Configuration configuration;
 
     @Autowired
     private PanelService panelService;
 
+
     @Override
     public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.POD.equals(resourceType) || K8s.CONTAINER.equals(resourceType);
+        return
+                K8s.POD.equals(resourceType) || K8s.CONTAINER.equals(resourceType);
     }
 
     @Override
     public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(cluster, resourceType) && selected.size() > 0;
+        return canHandleResourceType(cluster, resourceType) && selected.size() == 1;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        panelService.addPodExecPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), context.getSelected()).select();
+        var selected = (V1Pod)context.getSelected().iterator().next();
+        panelService.showContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), selected).select();
     }
 
     @Override
     public String getTitle() {
-        return "Exec;icon=" + VaadinIcon.FORWARD;
+        return "Shell;icon=" + VaadinIcon.TERMINAL;
     }
 
     @Override
@@ -66,16 +76,16 @@ public class ActionExec implements ResourceAction {
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.ACTIONS_ORDER + 10;
+        return ResourceAction.ACTIONS_ORDER+20;
     }
 
     @Override
     public String getShortcutKey() {
-        return "e";
+        return "s";
     }
 
     @Override
     public String getDescription() {
-        return "Execute command in container";
+        return "Open shell";
     }
 }

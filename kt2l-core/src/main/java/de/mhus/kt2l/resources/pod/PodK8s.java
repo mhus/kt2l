@@ -28,9 +28,11 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
+import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -74,27 +76,27 @@ public class PodK8s implements HandlerK8s {
                 sb.append("Host PID:      ").append(res.getSpec().getHostPID()).append("\n");
             if (res.getSpec().getHostIPC() != null)
                 sb.append("Host IPC:      ").append(res.getSpec().getHostIPC()).append("\n");
-            if (res.getSpec().getServiceAccountName()!=null)
+            if (res.getSpec().getServiceAccountName() != null)
                 sb.append("Service Acc:   ").append(res.getSpec().getServiceAccountName()).append("\n");
-            if (res.getSpec().getAutomountServiceAccountToken()!=null)
+            if (res.getSpec().getAutomountServiceAccountToken() != null)
                 sb.append("Automount:     ").append(res.getSpec().getAutomountServiceAccountToken()).append("\n");
-            if (res.getSpec().getImagePullSecrets()!=null)
+            if (res.getSpec().getImagePullSecrets() != null)
                 sb.append("Image Pull:    ").append(res.getSpec().getImagePullSecrets()).append("\n");
-            if (res.getSpec().getSecurityContext()!=null)
+            if (res.getSpec().getSecurityContext() != null)
                 sb.append("Security Cont: ").append(res.getSpec().getSecurityContext()).append("\n");
-            if (res.getSpec().getSubdomain()!=null)
+            if (res.getSpec().getSubdomain() != null)
                 sb.append("Subdomain:     ").append(res.getSpec().getSubdomain()).append("\n");
-            if (res.getSpec().getAffinity()!=null)
+            if (res.getSpec().getAffinity() != null)
                 sb.append("Affinity:      ").append(res.getSpec().getAffinity()).append("\n");
-            if (res.getSpec().getSchedulerName()!=null)
+            if (res.getSpec().getSchedulerName() != null)
                 sb.append("Scheduler:     ").append(res.getSpec().getSchedulerName()).append("\n");
-            if (res.getSpec().getTolerations()!=null)
+            if (res.getSpec().getTolerations() != null)
                 sb.append("Tolerations:   ").append(res.getSpec().getTolerations()).append("\n");
-            if (res.getSpec().getHostAliases()!=null)
+            if (res.getSpec().getHostAliases() != null)
                 sb.append("Host Aliases:  ").append(res.getSpec().getHostAliases()).append("\n");
-            if (res.getSpec().getTopologySpreadConstraints()!=null)
+            if (res.getSpec().getTopologySpreadConstraints() != null)
                 sb.append("Topology:      ").append(res.getSpec().getTopologySpreadConstraints()).append("\n");
-            if (res.getSpec().getOverhead()!=null)
+            if (res.getSpec().getOverhead() != null)
                 sb.append("Overhead:      ").append(res.getSpec().getOverhead()).append("\n");
             sb.append("Init Cont:     ").append(res.getSpec().getInitContainers()).append("\n");
             sb.append("Cont:          ").append(res.getSpec().getContainers()).append("\n");
@@ -128,7 +130,7 @@ public class PodK8s implements HandlerK8s {
                     sb.append(line).append("\n");
                 });
             } catch (Exception e) {
-                if (e.getMessage()!= null && !e.getMessage().equals("stream closed"))
+                if (e.getMessage() != null && !e.getMessage().equals("stream closed"))
                     LOGGER.warn("Error reading logs for {}", res.getMetadata().getName(), e);
             }
         }
@@ -192,6 +194,27 @@ public class PodK8s implements HandlerK8s {
             apiProvider.invalidate();
             return apiProvider.getCoreV1Api().listPodForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter<V1Pod>(LOGGER));
         }
+    }
+
+    @Override
+    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
+        V1Patch patch = new V1Patch(patchString);
+        return PatchUtils.patch(
+                V1Pod.class,
+                () -> apiProvider.getCoreV1Api().patchNamespacedPodCall(
+                        name,
+                        namespace,
+                        patch,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                ),
+                V1Patch.PATCH_FORMAT_JSON_PATCH,
+                apiProvider.getClient()
+        );
     }
 
 }

@@ -27,10 +27,13 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ClusterRole;
 import io.kubernetes.client.openapi.models.V1ClusterRoleList;
+import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Status;
+import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -113,4 +116,25 @@ public class ClusterRoleK8s implements HandlerK8s {
     public V1ClusterRoleList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
         return apiProvider.getRbacAuthorizationV1Api().listClusterRole(null, null, null, null, null, null, null, null, null, null, null);
     }
+
+    @Override
+    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
+        V1Patch patch = new V1Patch(patchString);
+        return PatchUtils.patch(
+                V1ClusterRole.class,
+                () -> apiProvider.getRbacAuthorizationV1Api().patchClusterRoleCall(
+                        name,
+                        patch,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                ),
+                V1Patch.PATCH_FORMAT_JSON_PATCH,
+                apiProvider.getClient()
+        );
+    }
+
 }

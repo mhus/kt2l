@@ -23,6 +23,7 @@ import de.mhus.kt2l.resources.GitProgressMonitor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -69,28 +70,35 @@ public class SnippetsService {
 
         var targetDir = new File(configuration.getTmpDirectoryFile(), "git_" + MFile.normalize(repo) + "_" + MFile.normalize(branch) );
         if (!targetDir.exists()) {
-            LOGGER.info("Clone {} to {}", repo, targetDir);
-            try (Git result = Git.cloneRepository()
-                    .setURI(repo)
-                    .setBranch(branch)
-                    .setDirectory(targetDir)
-                    .setProgressMonitor(new GitProgressMonitor())
-                    .call()) {
-                // Note: the call() returns an opened repository already which needs to be closed to avoid file handle leaks!
-                LOGGER.info("Having repository: " + result.getRepository().getDirectory());
-            } catch (Exception e) {
-                LOGGER.error("Clone failed", e);
-            }
+            cloneRepository(repo, branch, targetDir);
         } else {
             LOGGER.info("Pull {}", repo);
             try (Git git = Git.open(targetDir)) {
                 git.pull().setProgressMonitor(new GitProgressMonitor()).call();
+            } catch (RepositoryNotFoundException e) {
+                MFile.deleteDir(targetDir);
+                cloneRepository(repo, branch, targetDir);
             } catch (Exception e) {
                 LOGGER.error("Pull failed", e);
             }
         }
 
         return targetDir;
+    }
+
+    private static void cloneRepository(String repo, String branch, File targetDir) {
+        LOGGER.info("Clone {} to {}", repo, targetDir);
+        try (Git result = Git.cloneRepository()
+                .setURI(repo)
+                .setBranch(branch)
+                .setDirectory(targetDir)
+                .setProgressMonitor(new GitProgressMonitor())
+                .call()) {
+            // Note: the call() returns an opened repository already which needs to be closed to avoid file handle leaks!
+            LOGGER.info("Having repository: " + result.getRepository().getDirectory());
+        } catch (Exception e) {
+            LOGGER.error("Clone failed", e);
+        }
     }
 
 

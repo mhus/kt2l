@@ -21,8 +21,11 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -45,14 +48,17 @@ import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static de.mhus.commons.tools.MString.isEmpty;
 import static de.mhus.commons.tools.MString.isSet;
 
+@Configurable
 @Slf4j
 public class ResourceCreatePanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
     private final Cluster cluster;
@@ -63,6 +69,7 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
 
     @Autowired
     private K8sService k8s;
+    private MenuItem tmplEnablesToggle;
 
     public ResourceCreatePanel(Cluster cluster, Core core, String namespace) {
         this.cluster = cluster;
@@ -75,13 +82,34 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
         this.tab = deskTab;
 
         var menuBar = new MenuBar();
-        menuBar.addItem("Template", e -> {
+        var tmplItem = menuBar.addItem("Templates");
+        var tmplSub = tmplItem.getSubMenu();
+        tmplSub.addItem("Open Form", e -> {
             fillTemplate();
         });
-        menuBar.addItem("Create", e -> {
+        tmplEnablesToggle = tmplSub.addItem("Enabled");
+        tmplEnablesToggle.setCheckable(true);
+        tmplEnablesToggle.setChecked(true);
+
+        var createItem = menuBar.addItem(VaadinIcon.FORWARD.create(), e -> {
             createResource();
         });
+        createItem.add("Create");
+
+        var deleteItem = menuBar.addItem(VaadinIcon.FILE_REMOVE.create(), e -> {
+            ConfirmDialog confirm = new ConfirmDialog();
+            confirm.setText("Delete resources?");
+            confirm.setCloseOnEsc(true);
+            confirm.setCancelable(true);
+            confirm.setConfirmText("Delete");
+            confirm.setCancelText("Cancel");
+            confirm.addConfirmListener(this::deleteResource);
+            confirm.open();
+        });
+        deleteItem.add("Delete");
+
         add(menuBar);
+
 
         editor = new AceEditor();
         editor.setTheme(AceTheme.terminal);
@@ -97,8 +125,99 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
 
     }
 
+    private void deleteResource(ConfirmDialog.ConfirmEvent confirmEvent) {
+
+        final var parts = splitContent();
+        parseContent(parts);
+        substituteContent(parts);
+
+        ProgressDialog dialog = new ProgressDialog();
+        dialog.setHeaderTitle("Delete");
+        dialog.setMax(parts.size());
+        dialog.open();
+
+        Thread.startVirtualThread(() -> {
+            for (ContentEntry entry : parts.reversed()) {
+                core.ui().access(() -> {
+                    try {
+                        dialog.setProgress(dialog.getProgress() + 1, entry.kind);
+                        var metadata = entry.yaml.asMap().getMap("metadata");
+                        var resName = metadata.getString("name");
+                        var resNamespace = metadata.getString("namespace");
+                        entry.handler.delete(cluster.getApiProvider(), resName, resNamespace);
+                        UiUtil.showSuccessNotification("Resource deleted: " + entry.kind);
+                    } catch (Exception t) {
+                        LOGGER.error("Error creating resource", t);
+                        UiUtil.showErrorNotification("Error deleting resource", t);
+                    }
+                });
+            }
+            dialog.close();
+        });
+    }
+
     private void createResource() {
-        final var parts = parseContent();
+        final var parts = splitContent();
+        if (!parseContent(parts)) return;
+        if (!substituteContent(parts)) return;
+
+        ProgressDialog dialog = new ProgressDialog();
+        dialog.setHeaderTitle("Create");
+        dialog.setMax(parts.size());
+        dialog.open();
+
+        Thread.startVirtualThread(() -> {
+            AtomicBoolean exit = new AtomicBoolean(false);
+            for (ContentEntry entry : parts) {
+                if (exit.get()) break;
+                core.ui().access(() -> {
+                    try {
+                        dialog.setProgress(dialog.getProgress() + 1, entry.kind);
+                        entry.handler.create(cluster.getApiProvider(), entry.preparedContent);
+                        UiUtil.showSuccessNotification("Resource created: " + entry.kind);
+                    } catch (Exception t) {
+                        LOGGER.error("Error creating resource", t);
+                        UiUtil.showErrorNotification("Error creating resource", t);
+                        dialog.close();
+                        exit.set(true);
+                    }
+                });
+            }
+            dialog.close();
+        });
+    }
+
+    private boolean substituteContent(List<ContentEntry> parts) {
+        try {
+            if (tmplEnablesToggle.isChecked()) {
+                for (ContentEntry entry : parts) {
+                    MProperties properties = new MProperties();
+                    properties.setString("namespace", namespace);
+                    for (TemplateEntry template : entry.templates) {
+                        if (!template.valid) continue;
+                        properties.setString(template.name, template.value);
+                    }
+                    entry.preparedContent = MString.substitute(entry.content, properties);
+                    entry.handler = k8s.getResourceHandler(K8sUtil.toResourceType(entry.kind));
+                    if (entry.handler == null) {
+                        UiUtil.showErrorNotification("Resource not supported: " + entry.kind);
+                        return false;
+                    }
+                }
+            } else {
+                for (ContentEntry entry : parts) {
+                    entry.preparedContent = entry.content;
+                }
+            }
+        } catch (Exception t) {
+            LOGGER.error("Error preparing content", t);
+            UiUtil.showErrorNotification("Error preparing content", t);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean parseContent(List<ContentEntry> parts) {
         for (ContentEntry entry : parts) {
             try {
                 entry.parseYaml();
@@ -106,48 +225,15 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
             } catch (Exception t) {
                 LOGGER.error("Error parsing content", t);
                 UiUtil.showErrorNotification("Error parsing content", t);
-                return;
+                return false;
             }
         }
-        for (ContentEntry entry : parts) {
-            MProperties properties = new MProperties();
-            properties.setString("namespace", namespace);
-            for (TemplateEntry template : entry.templates) {
-                if (!template.valid) continue;
-                properties.setString(template.name, template.value);
-            }
-            entry.preparedContent = MString.substitute(entry.content, properties);
-            entry.handler = k8s.getResourceHandler(K8sUtil.toResourceType(entry.kind));
-            if (entry.handler == null) {
-                UiUtil.showErrorNotification("Resource not supported: " + entry.kind);
-                return;
-            }
-        }
-
-        ProgressDialog dialog = new ProgressDialog();
-        dialog.setHeaderTitle("Create");
-        dialog.setMax(parts.size());
-        dialog.open();
-
-        for (ContentEntry entry : parts) {
-            try {
-                dialog.setProgress(dialog.getProgress() + 1, entry.kind);
-                entry.handler.create(cluster.getApiProvider(), entry.preparedContent);
-                UiUtil.showSuccessNotification("Resource created: " + entry.kind);
-            } catch (Exception t) {
-                LOGGER.error("Error creating resource", t);
-                UiUtil.showErrorNotification("Error creating resource", t);
-                dialog.close();
-                return;
-            }
-        }
-
-        dialog.close();
+        return true;
     }
 
     private void fillTemplate() {
         var layout = new VerticalLayout();
-        final var parts = parseContent();
+        final var parts = splitContent();
         for (ContentEntry entry : parts) {
             try {
                 try {
@@ -259,7 +345,7 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
         editor.setValue(out.toString());
     }
 
-    private List<ContentEntry> parseContent() {
+    private List<ContentEntry> splitContent() {
         return Arrays.stream(editor.getValue().split("\n---(w*)\n")).map((e) -> new ContentEntry(e)).toList();
     }
 

@@ -41,4 +41,10 @@ public interface HandlerK8s {
 
     Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException;
 
+    default Object patch(ApiProvider apiProvider, KubernetesObject res, String patchString) throws ApiException {
+        return patch(apiProvider, res.getMetadata().getNamespace(), res.getMetadata().getName(), patchString);
+    }
+
+    Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException;
+
 }

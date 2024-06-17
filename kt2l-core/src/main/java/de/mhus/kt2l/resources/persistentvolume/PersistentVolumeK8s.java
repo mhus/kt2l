@@ -27,9 +27,11 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1PersistentVolume;
 import io.kubernetes.client.openapi.models.V1PersistentVolumeList;
+import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -108,4 +110,25 @@ public class PersistentVolumeK8s implements HandlerK8s {
     public V1PersistentVolumeList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
         return apiProvider.getCoreV1Api().listPersistentVolume(null, null, null, null, null, null, null, null, null, null, null);
     }
+
+    @Override
+    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
+        V1Patch patch = new V1Patch(patchString);
+        return PatchUtils.patch(
+                V1PersistentVolume.class,
+                () -> apiProvider.getCoreV1Api().patchPersistentVolumeCall(
+                        name,
+                        patch,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                ),
+                V1Patch.PATCH_FORMAT_JSON_PATCH,
+                apiProvider.getClient()
+        );
+    }
+
 }

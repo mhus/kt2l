@@ -34,6 +34,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.common.ResourceCreatePanel;
+import de.mhus.kt2l.resources.common.ResourcePatchPanel;
 import de.mhus.kt2l.resources.common.ResourceYamlEditorPanel;
 import de.mhus.kt2l.resources.configmap.EditConfigMapPanel;
 import de.mhus.kt2l.resources.pod.ContainerResource;
@@ -363,6 +364,23 @@ public class PanelService {
                         ))
                 .setHelpContext("create")
                 .setWindowTitle(cluster.getTitle() + " - " + namespace + " - Create");
+    }
+
+    public DeskTab addResourcePatchPanel(DeskTab parentTab, Core core, Cluster cluster, Set<? extends KubernetesObject> selected) {
+        return addPanel(
+                parentTab == null ? core.getMainTab() : parentTab,
+                cluster.getName() + ":" + selected + ":patch",
+                "Patch " + (selected.size() == 1 ? selected.iterator().next().getMetadata().getName() : selected.size() + " Items"),
+                false,
+                VaadinIcon.FILE_REFRESH.create(),
+                () ->
+                        new ResourcePatchPanel(
+                                cluster,
+                                core,
+                                selected
+                        ))
+                .setHelpContext("patch")
+                .setWindowTitle(cluster.getTitle() + " - " + selected.size() + " Items - Patch");
     }
 
     public DeskTab addPodLogsPanel(DeskTab parentTab, Core core, Cluster cluster, Set<? extends KubernetesObject> selected) {
