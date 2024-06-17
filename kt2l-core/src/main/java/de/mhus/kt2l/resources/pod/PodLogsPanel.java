@@ -51,6 +51,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -67,6 +68,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Configurable
 @Slf4j
 public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
 

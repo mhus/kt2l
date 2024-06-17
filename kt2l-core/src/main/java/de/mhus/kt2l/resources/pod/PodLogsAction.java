@@ -20,7 +20,6 @@ package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
@@ -28,64 +27,55 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1Pod;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
-@Slf4j
 @Component
-@WithRole(ROLE.WRITE)
-public class ActionShell implements ResourceAction {
-
-    @Autowired
-    private Configuration configuration;
+@WithRole(ROLE.READ)
+public class PodLogsAction implements ResourceAction {
 
     @Autowired
     private PanelService panelService;
 
-
     @Override
     public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return
-                K8s.POD.equals(resourceType) || K8s.CONTAINER.equals(resourceType);
+        return K8s.POD.equals(resourceType) || K8s.CONTAINER.equals(resourceType);
     }
 
     @Override
     public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(cluster, resourceType) && selected.size() == 1;
+        return canHandleResourceType(cluster, resourceType) && selected.size() > 0;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        var selected = (V1Pod)context.getSelected().iterator().next();
-        panelService.showContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), selected).select();
+        panelService.addPodLogsPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), context.getSelected()).select();
     }
 
     @Override
     public String getTitle() {
-        return "Shell;icon=" + VaadinIcon.TERMINAL;
+        return "Logs;icon=" + VaadinIcon.MODAL_LIST;
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.ACTIONS_PATH;
+        return ResourceAction.VIEW_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.ACTIONS_ORDER+20;
+        return ResourceAction.VIEW_ORDER+10;
     }
 
     @Override
     public String getShortcutKey() {
-        return "s";
+        return "l";
     }
 
     @Override
     public String getDescription() {
-        return "Open shell";
+        return "Show container logs";
     }
 }

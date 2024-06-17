@@ -97,6 +97,18 @@ contexts:
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/
+  patch:
+    - name: Patch
+      action: docs
+      document: usage/patch
+    - name: Snippets
+      action: snippets
+      repo: https://github.com/mhus/kt2l-snippets.git
+      type: yaml
+      path: patch
+    - name: Kubernetes
+      action: link
+      href: https://kubernetes.io/docs/home/
   events:
     - name: Events
       action: docs

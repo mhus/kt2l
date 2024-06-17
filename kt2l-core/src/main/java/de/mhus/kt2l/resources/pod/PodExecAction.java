@@ -16,85 +16,66 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.replicaset;
+package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
-import de.mhus.kt2l.resources.ResourcesFilter;
-import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
-@WithRole(ROLE.READ)
-public class ShowPodsOfReplicaSetAction implements ResourceAction {
+@WithRole(ROLE.WRITE)
+public class PodExecAction implements ResourceAction {
+
+    @Autowired
+    private PanelService panelService;
+
     @Override
     public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.REPLICA_SET.equals(resourceType);
+        return K8s.POD.equals(resourceType) || K8s.CONTAINER.equals(resourceType);
     }
 
     @Override
     public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(cluster, resourceType) && selected.size() == 1;
+        return canHandleResourceType(cluster, resourceType) && selected.size() > 0;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-
-        var parent = context.getSelected().stream().findFirst().get();
-        final String parentName = parent.getMetadata().getName();
-        final String namespace = parent.getMetadata().getNamespace();
-        final var uid = parent.getMetadata().getUid();
-        ((ResourcesGridPanel)context.getSelectedTab().getPanel()).showResources(K8s.POD, namespace, new ResourcesFilter() {
-            @Override
-            public boolean filter(KubernetesObject res) {
-                if (res instanceof io.kubernetes.client.openapi.models.V1Pod pod) {
-                    var ownerReferences = pod.getMetadata().getOwnerReferences();
-                    if (ownerReferences != null) {
-                        for (var ref : ownerReferences)
-                            if (ref.getUid().equals(uid)) return true;
-                    }
-                }
-                return false;
-            }
-
-            @Override
-            public String getDescription() {
-                return "Pods of Replica Set " + parentName;
-            }
-        }, null);
+        panelService.addPodExecPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), context.getSelected()).select();
     }
 
     @Override
     public String getTitle() {
-        return "Pods;icon=" + VaadinIcon.OPEN_BOOK;
+        return "Exec;icon=" + VaadinIcon.FORWARD;
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.VIEW_PATH;
+        return ResourceAction.ACTIONS_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.VIEW_ORDER + 110;
+        return ResourceAction.ACTIONS_ORDER + 10;
     }
 
     @Override
     public String getShortcutKey() {
-        return "CTRL+P";
+        return "e";
     }
 
     @Override
     public String getDescription() {
-        return "Show Pods of the selected Replica Set";
+        return "Execute command in container";
     }
 }

@@ -38,10 +38,12 @@ import io.kubernetes.client.Exec;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+@Configurable
 @Slf4j
 @Uses(XTerm.class)
 public class ContainerShellPanel extends VerticalLayout implements DeskTabListener {

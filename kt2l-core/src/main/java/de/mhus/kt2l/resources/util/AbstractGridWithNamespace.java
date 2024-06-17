@@ -32,12 +32,15 @@ import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.resources.pod.score.PodScorerConfiguration;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.Watch;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.atmosphere.config.service.Get;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -54,6 +57,13 @@ import static de.mhus.commons.tools.MLang.tryThis;
 @Slf4j
 public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamespace.ResourceItem<V>, S extends Component,V extends KubernetesObject, L extends KubernetesListObject> extends AbstractGrid<T, S>{
 
+    @Autowired
+    private PodScorerConfiguration podScorerConfiguration;
+
+    @Getter
+    @Setter
+    private boolean highlightAlerts = false;
+
     protected enum ALERT {
         NONE,
         WARNING,
@@ -66,6 +76,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
     @Override
     protected void init() {
+        highlightAlerts = podScorerConfiguration.getHighlightAlerts();
         resourceHandler = k8sService.getResourceHandler(getManagedResourceType());
         if (getManagedWatchClass() != null)
             eventRegistration = panel.getCore().backgroundJobInstance(panel.getCluster(), getManagedWatchClass()).getEventHandler().registerWeak(this::changeEvent);
@@ -254,10 +265,12 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     }
 
     protected String getGridRowClass(T res) {
-        if (res.alert == ALERT.ALERT)
-            return "bgcolor-alert";
-        if (res.alert == ALERT.WARNING)
-            return "bgcolor-warning";
+        if (highlightAlerts) {
+            if (res.alert == ALERT.ALERT)
+                return "bgcolor-alert";
+            if (res.alert == ALERT.WARNING)
+                return "bgcolor-warning";
+        }
         return res.color != null ? res.color.name().toLowerCase() : "";
     }
 

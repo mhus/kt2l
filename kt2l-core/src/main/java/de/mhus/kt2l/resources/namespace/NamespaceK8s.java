@@ -26,10 +26,12 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1Status;
+import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -123,6 +125,26 @@ public class NamespaceK8s implements HandlerK8s {
     @Override
     public <L extends KubernetesListObject> L createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
         throw new NotImplementedException();
+    }
+
+    @Override
+    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
+        V1Patch patch = new V1Patch(patchString);
+        return PatchUtils.patch(
+                V1Namespace.class,
+                () -> apiProvider.getCoreV1Api().patchNamespaceCall(
+                        name,
+                        patch,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                ),
+                V1Patch.PATCH_FORMAT_JSON_PATCH,
+                apiProvider.getClient()
+        );
     }
 
 }

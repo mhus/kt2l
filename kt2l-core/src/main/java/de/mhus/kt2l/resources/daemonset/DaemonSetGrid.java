@@ -104,30 +104,34 @@ public class DaemonSetGrid extends AbstractGridWithNamespace<DaemonSetGrid.Resou
     @Getter
     public static class Resource extends ResourceItem<V1DaemonSet> {
         String status;
-        String desired;
-        String current;
-        String upToDate;
-        String ready;
-        String available;
+        int desired;
+        int current;
+        int upToDate;
+        int ready;
+        int available;
 
         @Override
         public void updateResource() {
             super.updateResource();
             var ready = resource.getStatus().getNumberReady() == null ? 0 : resource.getStatus().getNumberReady();
-            this.ready = String.valueOf(ready);
-            this.desired = toStringOr0(resource.getStatus().getDesiredNumberScheduled());
-            this.current = toStringOr0(resource.getStatus().getCurrentNumberScheduled());
-            this.upToDate = toStringOr0(resource.getStatus().getUpdatedNumberScheduled());
-            this.available = toStringOr0(resource.getStatus().getNumberAvailable());
-            if (ready == 0)
+            this.ready = toIntOr0(ready);
+            this.desired = toIntOr0(resource.getStatus().getDesiredNumberScheduled());
+            this.current = toIntOr0(resource.getStatus().getCurrentNumberScheduled());
+            this.upToDate = toIntOr0(resource.getStatus().getUpdatedNumberScheduled());
+            this.available = toIntOr0(resource.getStatus().getNumberAvailable());
+            if (desired == 0)
                 setColor(UiUtil.COLOR.GREY);
+            else
+            if (ready != desired)
+                setColor(UiUtil.COLOR.RED);
             else
                 setColor(null);
         }
 
-        private String toStringOr0(Integer integer) {
-            if (integer == null) return "0";
-            return integer.toString();
+        private int toIntOr0(Integer integer) {
+            if (integer == null) return 0;
+            return integer;
         }
+
     }
 }

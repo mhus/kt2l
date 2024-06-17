@@ -30,7 +30,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class NamespacesGrid extends AbstractGridWithoutNamespace<NamespacesGrid.Resource, Component, V1Namespace, V1NamespaceList> {
+public class NamespaceGrid extends AbstractGridWithoutNamespace<NamespaceGrid.Resource, Component, V1Namespace, V1NamespaceList> {
 
     @Override
     protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {

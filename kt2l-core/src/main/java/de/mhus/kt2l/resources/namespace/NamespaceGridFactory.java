@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @WithRole(UsersConfiguration.ROLE.READ)
-public class NamespacesGridFactory implements ResourceGridFactory {
+public class NamespaceGridFactory implements ResourceGridFactory {
     @Override
     public boolean canHandleResourceType(K8s resourceType) {
         return K8s.NAMESPACE.equals(resourceType);
@@ -35,6 +35,6 @@ public class NamespacesGridFactory implements ResourceGridFactory {
 
     @Override
     public ResourcesGrid create(K8s resourcesType) {
-        return new NamespacesGrid();
+        return new NamespaceGrid();
     }
 }

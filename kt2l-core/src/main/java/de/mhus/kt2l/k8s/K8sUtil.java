@@ -69,6 +69,13 @@ public class K8sUtil {
                 .orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resourceType));
     }
 
+    public static K8s toResourceType(KubernetesObject o, Cluster cluster) {
+        if (cluster.getResourceTypes() == null)
+            throw new IllegalArgumentException("ResourceTypes not found in cluster configuration");
+        var resource = Arrays.stream(K8s.values()).filter(r -> r.clazz().equals(o.getClass())).findFirst().orElse(null);
+        return resource;
+    }
+
     public static V1APIResource toResource(KubernetesObject o, Cluster cluster) {
         if (cluster.getResourceTypes() == null)
             throw new IllegalArgumentException("ResourceTypes not found in cluster configuration");

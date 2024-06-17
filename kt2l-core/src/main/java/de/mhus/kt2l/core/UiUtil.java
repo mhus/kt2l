@@ -35,6 +35,7 @@ import com.vaadin.flow.server.Command;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MJson;
 import de.mhus.commons.tools.MSystem;
+import io.kubernetes.client.openapi.ApiException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -90,6 +91,10 @@ public class UiUtil {
         );
         if (e != null) {
             var error = new Div(e.toString());
+            if (e instanceof ApiException apiException) {
+                LOGGER.debug(e + ": " + apiException.getCode() + " " + apiException.getResponseBody());
+                error.setText(apiException.getCode() + " " + apiException.getResponseBody());
+            }
             error.addClassName("error-exception");
             text = new Div(
                     new Div(msg),

@@ -24,6 +24,7 @@ import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.ShortcutRegistration;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.MenuItemBase;
 import com.vaadin.flow.component.grid.Grid;
@@ -136,13 +137,15 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             setShortcuts();
         });
 
+        var menuBarSpace = new Div();
+        menuBarSpace.addClassName("div-space");
         if (detailsComponent != null) {
             detailsSplit = new SplitLayout(resourcesGrid, detailsComponent);
             detailsSplit.setSizeFull();
             detailsSplit.setOrientation(SplitLayout.Orientation.VERTICAL);
-            add(MCollection.notNull(menuBar, detailsSplit, getFooter()));
+            add(MCollection.notNull(menuBar, menuBarSpace, detailsSplit, getFooter()));
         } else {
-            add(MCollection.notNull(menuBar, resourcesGrid, getFooter()));
+            add(MCollection.notNull(menuBar, menuBarSpace, resourcesGrid, getFooter()));
         }
 
         setSizeFull();

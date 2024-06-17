@@ -19,4 +19,8 @@ in the yaml definition. The template definition is a yaml comment.
 
 For the syntax of the template definition see [Create Template](create-template.md).
 
-Use the `Template` menu to manage template values.
+Use the `Template` menu to manage template values. If you have enabled templates then
+the yaml will be substituted with the template values. If you use the Dollar sign `$` in the 
+yaml definition you have to replace it with `$$` to avoid substitution.
+
+The `Delete` button will try to delete the selected resource in reverse order.

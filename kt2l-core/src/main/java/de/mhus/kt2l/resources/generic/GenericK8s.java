@@ -23,6 +23,7 @@ import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Status;
@@ -96,6 +97,11 @@ public class GenericK8s implements HandlerK8s {
     public GenericObjectList createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
         final var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType);
         return genericApi.listNamespacedCustomObject(namespace);
+    }
+
+    @Override
+    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
+        throw new NotSupportedException("Not supported for generic resources");
     }
 
 }

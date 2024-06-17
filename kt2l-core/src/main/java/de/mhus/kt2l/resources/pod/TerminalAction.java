@@ -39,7 +39,7 @@ import java.util.Set;
 @Slf4j
 @Component
 @WithRole({ROLE.WRITE, ROLE.LOCAL})
-public class ActionTerminal implements ResourceAction {
+public class TerminalAction implements ResourceAction {
 
     @Autowired
     private CmdConfiguration cmdConfiguration;
