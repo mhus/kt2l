@@ -1,4 +1,4 @@
-export default function pageLicense() {
+export default function PageLicense() {
 
     return (
         <div className="bg-white py-4 sm:py-8" id="downloads">

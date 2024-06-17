@@ -1,7 +1,7 @@
 import { CloudArrowDownIcon, CloudIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
 import {downloadList as snapshotDownloads} from './downloads/download-snapshot-list';
 
-export default function pageDownloads() {
+export default function PageDownloads() {
 
     return (
         <div className="bg-white py-4 sm:py-8" id="downloads">

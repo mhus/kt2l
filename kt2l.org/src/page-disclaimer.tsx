@@ -1,4 +1,4 @@
-export default function pageDisclaimer() {
+export default function PageDisclaimer() {
 
     return (
         <div className="bg-white py-4 sm:py-8" id="downloads">

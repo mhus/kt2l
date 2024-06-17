@@ -1,4 +1,7 @@
 import {Bars3Icon} from '@heroicons/react/24/outline'
+import {Dialog} from '@headlessui/react'
+import {useState} from 'react'
+import {XMarkIcon} from '@heroicons/react/24/outline'
 
 const navigation = [
     {name: 'Downloads', href: '/#downloads'},
@@ -10,9 +13,9 @@ const navigation = [
 //    {name: 'Contribute', href: '/#contribute'},
 ]
 
-export default function pageHeader() {
+export default function PageHeader() {
 
-//    const [MobileMenuOpen, SetMobileMenuOpen] = useState(false)
+    const [MobileMenuOpen, SetMobileMenuOpen] = useState(false)
 
     return (
         <header className="absolute inset-x-0 top-0 z-50">
@@ -26,7 +29,7 @@ export default function pageHeader() {
                     <button
                         type="button"
                         className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
-                        // onClick={() => SetMobileMenuOpen(true)}
+                        onClick={() => SetMobileMenuOpen(true)}
                     >
                         <span className="sr-only">Open main menu</span>
                         <Bars3Icon className="h-6 w-6" aria-hidden="true"/>
@@ -46,23 +49,17 @@ export default function pageHeader() {
                     </a>
                 </div>
             </nav>
-            {/*}
-      <Dialog as="div" className="lg:hidden" open={mobileMenuOpen} onClose={setMobileMenuOpen}>
+      <Dialog as="div" className="lg:hidden" open={MobileMenuOpen} onClose={SetMobileMenuOpen}>
         <div className="fixed inset-0 z-50" />
         <Dialog.Panel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
           <div className="flex items-center justify-between">
             <a href="#" className="-m-1.5 p-1.5">
-              <span className="sr-only">Your Company</span>
-              <img
-                  className="h-8 w-auto"
-                  src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                  alt=""
-              />
+              <span className="sr-only">KT2L</span>
             </a>
             <button
                 type="button"
                 className="-m-2.5 rounded-md p-2.5 text-gray-700"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => SetMobileMenuOpen(false)}
             >
               <span className="sr-only">Close menu</span>
               <XMarkIcon className="h-6 w-6" aria-hidden="true" />
@@ -81,19 +78,10 @@ export default function pageHeader() {
                     </a>
                 ))}
               </div>
-              <div className="py-6">
-                <a
-                    href="#"
-                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                >
-                  Log in
-                </a>
-              </div>
             </div>
           </div>
         </Dialog.Panel>
       </Dialog>
-        */}
         </header>
 
     );
