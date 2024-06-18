@@ -54,6 +54,7 @@ public abstract class AbstractGitSnippetsHelpPanel extends VerticalLayout {
     }
 
     public void init() {
+        addClassName("snipped-help-panel");
         maxVisibleResults = viewsConfiguration.getConfig("snippets").getInt("maxVisibleResults", 30);
 
         var repo = link.getNode().getString("repo");

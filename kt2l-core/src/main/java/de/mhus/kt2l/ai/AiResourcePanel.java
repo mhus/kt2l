@@ -27,6 +27,7 @@ import de.mhus.commons.yaml.YMap;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.k8s.K8sUtil;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
@@ -66,8 +67,11 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener {
             menu.addItem("Refresh", e -> {
                 if (text.getValue().equals(LOADING)) return;
                 text.setValue(LOADING);
+                var sc = SecurityContext.create();
                 Thread.startVirtualThread(() -> {
-                    processResource(resource, text);
+                    try (var sce = sc.enter()) {
+                        processResource(resource, text);
+                    }
                 });
             });
             menu.addItem("Clear", e -> {
@@ -80,13 +84,19 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener {
                 text.setValue(LOADING);
                 text.addClassName("bgcolor-yellow");
                 text.removeClassName("bgcolor-red");
+                var sc = SecurityContext.create();
                 Thread.startVirtualThread(() -> {
-                    processLanguage(content, text, "german");
+                    try (var sce = sc.enter()) {
+                        processLanguage(content, text, "german");
+                    }
                 });
             });
 
+            var sc = SecurityContext.create();
             Thread.startVirtualThread(() -> {
-                processResource(resource, text);
+                try (var sce = sc.enter()) {
+                    processResource(resource, text);
+                }
             });
         });
 
@@ -116,8 +126,10 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener {
 
     private void processResource(final KubernetesObject resource, final TextArea textArea) {
 
-        textArea.addClassName("bgcolor-yellow");
-        textArea.removeClassName("bgcolor-red");
+        core.ui().access(() -> {
+            textArea.addClassName("bgcolor-yellow");
+            textArea.removeClassName("bgcolor-red");
+        });
         try {
             var content = extractContent(resource);
 

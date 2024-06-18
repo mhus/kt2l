@@ -289,3 +289,9 @@ vaadin-text-area.development-info textarea {
 div.div-space {
     height: 10px;
 }
+
+vaadin-vertical-layout.snipped-help-panel {
+    overflow: scroll;
+    padding-left: 10px;
+    background: #fafafa;
+}
