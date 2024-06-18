@@ -61,10 +61,19 @@ mvn versions:display-plugin-updates
 mvn versions:use-next-releases
 ```
 
-# Recreate custom.css in kt2l-core
+# Recreate vaadin frontend and custom.css in kt2l-core
 
 ```bash
-mvn clean package -Pproduction -Dvaadin.force.production.build=true
+mvn clean vaadin:clean-frontend  -Pintegration_tests
+rm package-lock.json package.json tsconfig.json types.d.ts vite.config.ts vite.generated.ts
+rm kt2l-core/package-lock.json kt2l-core/package.json kt2l-core/tsconfig.json kt2l-core/types.d.ts kt2l-core/vite.config.ts kt2l-core/vite.generated.ts
+rm kt2l-server/package-lock.json kt2l-server/package.json kt2l-server/tsconfig.json kt2l-server/types.d.ts kt2l-server/vite.config.ts kt2l-server/vite.generated.ts
+rm kt2l-desktop/package-lock.json kt2l-desktop/package.json kt2l-desktop/tsconfig.json kt2l-desktop/types.d.ts kt2l-desktop/vite.config.ts kt2l-desktop/vite.generated.ts
+rm kt2l-test/package-lock.json kt2l-test/package.json kt2l-test/tsconfig.json kt2l-test/types.d.ts kt2l-test/vite.config.ts kt2l-test/vite.generated.ts
+mvn -DskipTests -Pintegration_tests install
+mvn vaadin:build-frontend -Pintegration_tests
+
+mvn clean package -Pproduction -Pintegration_tests -Dvaadin.force.production.build=true -DskipTests
 ```
 
 and rerun the application.
