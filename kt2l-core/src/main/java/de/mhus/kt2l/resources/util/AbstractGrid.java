@@ -547,17 +547,22 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             }
         }
         getPanel().getCore().ui().access(() -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append("RES: ");
             if (filteredList != null) {
-                if (filteredList.size() == resourcesList.size())
-                    resourceAmount.setText("RES: " + filteredList.size());
-                else
-                    resourceAmount.setText("RES: " + filteredList.size() + " / " + resourcesList.size());
+                sb.append(filteredList.size());
+                if (filteredList.size() != resourcesList.size())
+                    sb.append(" / ").append(resourcesList.size());
             } else if (resourcesList != null)
-                resourceAmount.setText("RES: " + resourcesList.size());
+                sb.append(resourcesList.size());
             else
-                resourceAmount.setText("RES: -");
+                sb.append("-");
+            fillStatusLine(sb);
+            resourceAmount.setText(sb.toString());
         });
     }
+
+    protected abstract void fillStatusLine(StringBuilder sb);
 
     protected abstract boolean filterByContent(T resource, String filter);
 

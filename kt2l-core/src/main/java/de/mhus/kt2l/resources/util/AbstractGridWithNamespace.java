@@ -203,6 +203,12 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     }
 
     @Override
+    protected void fillStatusLine(StringBuilder sb) {
+        if (highlightAlerts)
+            sb.append(" (HA)");
+    }
+
+    @Override
     public void destroy() {
         if (eventRegistration != null)
             eventRegistration.unregister();
