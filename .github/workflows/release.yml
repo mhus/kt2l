@@ -56,17 +56,17 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-#      - name: mhus-commons
-#        run: |
-#          if [ $(cat pom.xml|grep mhus-common.version|grep -c SNAPSHOT) -eq 1 ]; then
-#            echo "Build mhus-commons"
-#            echo "================"
-#            git clone https://github.com/mhus/mhus-commons.git
-#            cd mhus-commons
-#            mvn clean install -B -U || exit 1
-#            cd ..
-#            rm -rf mhus-commons
-#          fi
+      - name: mhus-commons
+        run: |
+          if [ $(cat pom.xml|grep mhus-common.version|grep -c SNAPSHOT) -eq 1 ]; then
+            echo "Build mhus-commons"
+            echo "================"
+            git clone https://github.com/mhus/mhus-commons.git
+            cd mhus-commons
+            mvn clean install -B -U || exit 1
+            cd ..
+            rm -rf mhus-commons
+          fi
 #      - name: vis-network-vaadin
 #        run: |
 #          echo "Build vis-network-vaadin"
