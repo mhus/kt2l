@@ -246,6 +246,11 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
+                <version>${vaadin.version}</version>
+            </plugin>
         </plugins>
     </build>
 

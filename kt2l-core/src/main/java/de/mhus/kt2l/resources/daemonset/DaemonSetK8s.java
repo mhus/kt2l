@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.daemonset;
 
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.generated.K8sV1DaemonSet;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
@@ -39,15 +40,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class DaemonSetK8s implements HandlerK8s {
-
-    @Autowired
-    private SecurityService securityService;
-
-    @Override
-    public K8s getManagedResourceType() {
-        return K8s.DAEMON_SET;
-    }
+public class DaemonSetK8s extends K8sV1DaemonSet {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
@@ -60,68 +53,6 @@ public class DaemonSetK8s implements HandlerK8s {
         K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
 
-    }
-
-    @Override
-    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1DaemonSet.class);
-        var api = apiProvider.getAppsV1Api();
-        api.replaceNamespacedDaemonSet(
-                name, namespace, body, null, null, null, null
-        );
-    }
-
-    @Override
-    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        K8sUtil.checkDeleteAccess(securityService, K8s.DAEMON_SET);
-        var api = apiProvider.getAppsV1Api();
-        return api.deleteNamespacedDaemonSet(name, namespace, null, null, null, null, null, null);
-    }
-
-    @Override
-    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1DaemonSet.class);
-        var api = apiProvider.getAppsV1Api();
-        return api.createNamespacedDaemonSet(
-                body.getMetadata().getNamespace() == null ? "default" : body.getMetadata().getNamespace(),
-                body, null, null, null, null
-        );
-    }
-
-    @Override
-    public V1DaemonSetList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getAppsV1Api().listDaemonSetForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
-    }
-
-    @Override
-    public V1DaemonSetList createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
-        return apiProvider.getAppsV1Api().listNamespacedDaemonSet(namespace, null, null, null, null, null, null, null, null, null, null, null);
-    }
-
-    @Override
-    public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getAppsV1Api().listDaemonSetForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter(LOGGER));
-    }
-
-    @Override
-    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        V1Patch patch = new V1Patch(patchString);
-        return PatchUtils.patch(
-                V1DaemonSet.class,
-                () -> apiProvider.getAppsV1Api().patchNamespacedDaemonSetCall(
-                        name,
-                        namespace,
-                        patch,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                V1Patch.PATCH_FORMAT_JSON_PATCH,
-                apiProvider.getClient()
-        );
     }
 
 }

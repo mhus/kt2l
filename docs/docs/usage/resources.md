@@ -26,3 +26,9 @@ The pod score is a simple heuristic to give you a hint how healthy a pod is. A h
 ## Duplicate Resources Grid
 
 The duplicate resources grid shows you resources with the same name and namespace. 
+
+## Status Line
+
+The status line shows you the number of resources in the grid and the number of selected resources.
+If resources are filtered the number of filtered resources is shown as well.
+The flag `(HA)` indicates that alerts will be highlighed.

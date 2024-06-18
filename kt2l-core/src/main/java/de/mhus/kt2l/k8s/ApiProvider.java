@@ -35,6 +35,7 @@ public abstract class ApiProvider {
 
     public static final long DEFAULT_TIMEOUT = 1000 * 60 * 5;
     private long refreshAt = 0;
+    private K8sApiClient k8sApiClient;
     private ApiClient client = null;
     private final long timeout;
     private CoreV1Api coreV1Api;
@@ -62,36 +63,6 @@ public abstract class ApiProvider {
             storageV1Api = new StorageV1Api(getClient());
         return storageV1Api;
     }
-
-//
-//    private <T> T createProxy(T api) {
-//        return (T)Proxy.newProxyInstance(api.getClass().getClassLoader(), new Class[]{api.getClass()}, new InvocationHandler() {
-//
-//            private final Map<String, Method> methods = new HashMap<>();
-//            private Object target;
-//
-//            {
-//                target = api;
-//                for(Method method: target.getClass().getDeclaredMethods()) {
-//                    this.methods.put(method.getName(), method);
-//                }
-//            }
-//
-//            @Override
-//            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-//                try {
-//                    Object result = methods.get(method.getName()).invoke(target, args);
-//                    return result;
-//                } catch (InvocationTargetException e) {
-//                    if (e.getCause() != null && e.getCause() instanceof ApiException apiException) {
-//                        LOGGER.warn("ApiException RC {}, Body {}", apiException.getCode(), apiException.getResponseBody());
-//                        invalidate();
-//                    }
-//                    throw e;
-//                }
-//            }
-//        });
-//    }
 
     public RbacAuthorizationV1Api getRbacAuthorizationV1Api() {
         getClient();
@@ -129,6 +100,12 @@ public abstract class ApiProvider {
     }
 
     public synchronized ApiClient getClient() {
+        if (client == null)
+            k8sApiClient = new K8sApiClient(this);
+        return k8sApiClient;
+    }
+
+    public synchronized ApiClient getApiClient() {
         if (client == null || System.currentTimeMillis() > refreshAt) {
             invalidate();
             try {
@@ -139,13 +116,15 @@ public abstract class ApiProvider {
                 LOGGER.error("Can't create client", e);
                 throw new InternalRuntimeException(e);
             }
-            coreV1Api = null;
-            appsV1Api = null;
-            batchV1Api = null;
-            networkingV1Api = null;
-            rbacV1Api = null;
-            autoscalingV1Api = null;
-            storageV1Api = null;
+            if (k8sApiClient != null)
+                k8sApiClient.setClient(client);
+//            coreV1Api = null;
+//            appsV1Api = null;
+//            batchV1Api = null;
+//            networkingV1Api = null;
+//            rbacV1Api = null;
+//            autoscalingV1Api = null;
+//            storageV1Api = null;
         }
         return client;
     }

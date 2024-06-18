@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.ingress;
 
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.generated.K8sV1Ingress;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
@@ -39,15 +40,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class IngressK8s implements HandlerK8s {
-
-    @Autowired
-    private SecurityService securityService;
-
-    @Override
-    public K8s getManagedResourceType() {
-        return K8s.INGRESS;
-    }
+public class IngressK8s extends K8sV1Ingress {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
@@ -67,68 +60,6 @@ public class IngressK8s implements HandlerK8s {
         }
         K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
-    }
-
-    @Override
-    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Ingress.class);
-        var api = apiProvider.getNetworkingV1Api();
-        api.replaceNamespacedIngress(
-                name, namespace, body, null, null, null, null
-        );
-    }
-
-    @Override
-    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        K8sUtil.checkDeleteAccess(securityService, K8s.INGRESS);
-        var api = apiProvider.getNetworkingV1Api();
-        return api.deleteNamespacedIngress(name, namespace, null, null, null, null, null, null);
-    }
-
-    @Override
-    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Ingress.class);
-        var api = apiProvider.getNetworkingV1Api();
-        return api.createNamespacedIngress(
-                body.getMetadata().getNamespace() == null ? "default" : body.getMetadata().getNamespace(),
-                body, null, null, null, null
-        );
-    }
-
-    @Override
-    public V1IngressList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getNetworkingV1Api().listIngressForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
-    }
-
-    @Override
-    public V1IngressList createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
-        return apiProvider.getNetworkingV1Api().listNamespacedIngress(namespace, null, null, null, null, null, null, null, null, null, null, null);
-    }
-
-    @Override
-    public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getNetworkingV1Api().listIngressForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter(LOGGER));
-    }
-
-    @Override
-    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        V1Patch patch = new V1Patch(patchString);
-        return PatchUtils.patch(
-                V1Ingress.class,
-                () -> apiProvider.getNetworkingV1Api().patchNamespacedIngressCall(
-                        name,
-                        namespace,
-                        patch,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                V1Patch.PATCH_FORMAT_JSON_PATCH,
-                apiProvider.getClient()
-        );
     }
 
 }

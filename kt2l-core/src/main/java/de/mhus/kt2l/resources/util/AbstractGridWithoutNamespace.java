@@ -149,6 +149,10 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
     }
 
     @Override
+    protected void fillStatusLine(StringBuilder sb) {
+    }
+
+    @Override
     protected DataProvider<T, ?> createDataProvider() {
         return (DataProvider<T, ?>) new ResourceDataProvider();
     }

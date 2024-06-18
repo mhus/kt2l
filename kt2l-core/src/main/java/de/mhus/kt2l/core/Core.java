@@ -23,6 +23,9 @@ import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
+import com.vaadin.flow.component.Shortcuts;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -362,6 +365,12 @@ public class Core extends AppLayout {
                         helpMenu = new ContextMenu();
                         helpMenu.setTarget(helpToggel);
                         helpMenu.setOpenOnClick(true);
+                        Shortcuts.addShortcutListener(helpToggel, () -> {
+                            if (helpContent.isVisible())
+                                helpContent.setVisible(false);
+                            else
+                                showHelp(true);
+                        }, Key.KEY_H, KeyModifier.CONTROL);
                     }
                     var space = new Span(" ");
 

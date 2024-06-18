@@ -257,12 +257,14 @@ public class K8sService {
         if (contextName.equals(LOCAL_CLUSTER_NAME)) {
             return new FromClusterApiClientProvider(timeout);
         }
-        final var kubeConfig = getKubeContext(contextName);
-        if (!kubeConfig.setContext(contextName)) {
-            throw new RuntimeException("Context not found: " + contextName);
-        }
-        LOGGER.info("load client for {}: {} {}",contextName, kubeConfig.getCurrentContext(), kubeConfig.getServer());
-        return new ClusterApiClientProvider(kubeConfig, timeout);
+        return new ClusterApiClientProvider(() -> {
+            final var kubeConfig = getKubeContext(contextName);
+            if (!kubeConfig.setContext(contextName)) {
+                throw new RuntimeException("Context not found: " + contextName);
+            }
+            LOGGER.info("load client for {}: {} {}", contextName, kubeConfig.getCurrentContext(), kubeConfig.getServer());
+            return kubeConfig;
+        }, timeout);
     }
 
     public HandlerK8s getResourceHandler(V1APIResource resource) {

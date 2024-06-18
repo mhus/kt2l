@@ -1,7 +1,6 @@
 package de.mhus.kt2l.development;
 
 import com.sun.management.UnixOperatingSystemMXBean;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import de.mhus.commons.tools.MCast;
@@ -75,7 +74,15 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
 
     private void updateInfo(long counter) {
         StringBuffer i = new StringBuffer();
+        fillInfo(counter, osBean, deskTab, upTimeService, i);
+        info.setValue(i.toString());
+
+    }
+
+    static void fillInfo(long counter, OperatingSystemMXBean osBean, DeskTab deskTab,  UpTimeService upTimeService, StringBuffer i) {
         i.append("DeployInfo     : " + DeployInfo.VERSION + " " + DeployInfo.CREATED + "\n");
+        i.append("Java VM Version: " + System.getProperty("java.version") + "/" + System.getProperty("java.vm.name") + "/" + System.getProperty("java.vendor") + "\n");
+        i.append("Architecture   : " + System.getProperty("os.arch") + "/" + System.getProperty("os.name") + "/" + System.getProperty("os.version") + "\n");
         i.append("Active Sessions: " + CoreCounterListener.getCounter() + "\n");
         i.append("Local Time     : " + MDate.toIso8601(System.currentTimeMillis()) + "\n");
         i.append("Up Time        : " + upTimeService.getUpTimeFormatted() + "\n");
@@ -102,7 +109,5 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
         var jsUsed = MCast.tolong(parts[2], 0);
         i.append("Browser Memory : " + MString.toByteDisplayString(jsUsed) + " / " + MString.toByteDisplayString(jsLimit) + " / " + MString.toByteDisplayString(jsTotal) + "\n");
         }
-
-        info.setValue(i.toString());
     }
 }

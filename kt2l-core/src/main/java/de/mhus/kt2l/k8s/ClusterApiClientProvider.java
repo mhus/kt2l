@@ -24,15 +24,15 @@ import io.kubernetes.client.util.KubeConfig;
 import java.io.IOException;
 
 public class ClusterApiClientProvider extends ApiProvider {
-    private final KubeConfig kubeConfig;
+    private final KubeConfigProvider kubeConfigProvider;
 
-    public ClusterApiClientProvider(KubeConfig kubeConfig, long timeout) {
+    public ClusterApiClientProvider(KubeConfigProvider kubeConfigProvider, long timeout) {
         super(timeout);
-        this.kubeConfig = kubeConfig;
+        this.kubeConfigProvider = kubeConfigProvider;
     }
 
     @Override
     protected ApiClient createClient() throws IOException {
-        return  Config.fromConfig(kubeConfig);
+        return  Config.fromConfig(kubeConfigProvider.getKubeConfig());
     }
 }

@@ -16,6 +16,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+html, body {
+  overscroll-behavior-x: none;
+}
+
 .hidden-tab {
     display: none;
 }

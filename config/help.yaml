@@ -24,6 +24,9 @@ contexts:
     - name: Documentation
       action: docs
       document: usage/cluster
+    - name: Intro
+      action: docs
+      document: intro
     - name: Chat Agent
       action: ai
     - name: Kubernetes

@@ -115,6 +115,10 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
     }
 
     @Override
+    protected void fillStatusLine(StringBuilder sb) {
+    }
+
+    @Override
     public void refresh(long counter) {
         if (counter % 10 != 0) return;
         resourcesList = null;

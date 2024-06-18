@@ -21,13 +21,13 @@ ollamaUrl: http://localhost:11434
 openAiKey:
 prompts:
   translate:
-    model: ollama:yi
+    model: auto:translate
     template: |
       Translate the following text to {{language}}:
       
       {{content}}
   resource:
-    model: ollama:codellama
+    model: auto:coding
     template: |
       Do you see problems in the following kubernetes resource?
       
