@@ -16,4 +16,4 @@ hash `#` character.
 This is not a chatbot. The AI will not have a memory of previous questions or answers. 
 It will only analyze the content of the resource.
 
-Use `Control+Enter` in the questin text field or the "Ask" button to ask the question.
+Use `Control+Enter` in the question text field or the "Ask" button to ask the question.
