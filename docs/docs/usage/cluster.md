@@ -33,3 +33,9 @@ Some help topics can change the current panel if needed this is active only if y
 - Storage - Open a file browser to see storage.
 - Local Bash - Open a terminal to run commands locally (Administrators only).
 - System Info - Open a panel to see system information (Administrators only).
+
+## General Shortcuts
+
+- `Ctrl+H` - Toggle the help panel.
+
+[List of Shortcuts](shortcuts.md)

@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.service;
 
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.generated.K8sV1Service;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
@@ -38,15 +39,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class ServiceK8s implements HandlerK8s {
-
-    @Autowired
-    private SecurityService securityService;
-
-    @Override
-    public K8s getManagedResourceType() {
-        return K8s.SERVICE;
-    }
+public class ServiceK8s extends K8sV1Service {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
@@ -76,68 +69,5 @@ public class ServiceK8s implements HandlerK8s {
         K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
     }
-
-    @Override
-    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Service.class);
-        var api = apiProvider.getCoreV1Api();
-        api.replaceNamespacedService(
-                name, namespace, body, null, null, null, null
-        );
-    }
-
-    @Override
-    public V1Service delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        K8sUtil.checkDeleteAccess(securityService, K8s.SERVICE);
-        var api = apiProvider.getCoreV1Api();
-        return api.deleteNamespacedService(name, namespace, null, null, null, null, null, null);
-    }
-
-    @Override
-    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Service.class);
-        var api = apiProvider.getCoreV1Api();
-        return api.createNamespacedService(
-                body.getMetadata().getNamespace() == null ? "default" : body.getMetadata().getNamespace(),
-                body, null, null, null, null
-        );
-    }
-
-    @Override
-    public V1ServiceList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listServiceForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
-    }
-
-    @Override
-    public V1ServiceList createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
-        return apiProvider.getCoreV1Api().listNamespacedService(namespace, null, null, null, null, null, null, null, null, null, null, null);
-    }
-
-    @Override
-    public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listServiceForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter(LOGGER));
-    }
-
-    @Override
-    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        V1Patch patch = new V1Patch(patchString);
-        return PatchUtils.patch(
-                V1Service.class,
-                () -> apiProvider.getCoreV1Api().patchNamespacedServiceCall(
-                        name,
-                        namespace,
-                        patch,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                V1Patch.PATCH_FORMAT_JSON_PATCH,
-                apiProvider.getClient()
-        );
-    }
-
 
 }

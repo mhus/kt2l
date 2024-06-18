@@ -36,11 +36,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static de.mhus.commons.tools.MString.isBlank;
+import static java.time.Duration.ofSeconds;
+
 @Component
 public class AiService {
 
-    private static final String OLLAMA = "ollama";
-    private static final String OPENAI = "openai";
+    public static final String OLLAMA = "ollama";
+    public static final String OPENAI = "openai";
+    public static final String AUTO = "auto";
+    public static final String AUTO_CODING = AUTO + ":coding:";
+    public static final String AUTO_TRANSLATE = AUTO + ":translate:";
+
     public static final String MODEL_MISTRAL = OLLAMA + ":mistral:";
     public static final String MODEL_CODELLAMA = OLLAMA + ":codellama:";
     public static final String MODEL_LLAMA2 = OLLAMA + ":llama2:";
@@ -49,6 +56,8 @@ public class AiService {
     public static final String MODEL_STARCODER2 = OLLAMA + ":starcoder2:";
     public static final String MODEL_YI = OLLAMA + ":yi:";
 
+    public static final String MODEL_GPT_3_5_TURBO = OPENAI + ":gpt-3.5-turbo:";
+
     private Map<String, ChatLanguageModel> models = new HashMap<>();
 
     @Autowired
@@ -56,6 +65,35 @@ public class AiService {
 
     public synchronized ChatLanguageModel getModel(String modelName) {
         String[] parts = modelName.split(":");
+        if (parts[0].equals(AUTO)) {
+            if (parts[1].equals(AUTO_CODING)) {
+                if (!isBlank(config.getDefaultCodingModel()))
+                    return getModel(config.getDefaultCodingModel());
+                if (!isBlank(config.getOpenAiKey()))
+                    return getModel(OPENAI);
+                else
+                    return getModel(MODEL_CODELLAMA);
+            } else if (parts[1].equals(AUTO_TRANSLATE)) {
+                if (!isBlank(config.getDefaultTranslateModel()))
+                    return getModel(config.getDefaultTranslateModel());
+                if (!isBlank(config.getOpenAiKey()))
+                    return getModel(MODEL_GPT_3_5_TURBO);
+                else
+                    return getModel(MODEL_YI);
+            }
+        }
+
+        if (parts[0].equals(OPENAI)) {
+            ChatLanguageModel model = OpenAiChatModel.builder()
+                    .apiKey(config.getOpenAiKey())
+                    .modelName(parts[1])
+                    .temperature(0.3)
+                    .timeout(ofSeconds(60))
+                    .logRequests(true)
+                    .logResponses(true)
+                    .build();
+        }
+
         if (parts[0].equals(OLLAMA)) {
             return models.computeIfAbsent(parts[1], name -> {
                 ChatLanguageModel model = OllamaChatModel.builder()

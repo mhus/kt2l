@@ -21,6 +21,7 @@ package de.mhus.kt2l.resources.pod;
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.generated.K8sV1Pod;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
@@ -44,15 +45,7 @@ import java.io.InputStreamReader;
 
 @Slf4j
 @Component
-public class PodK8s implements HandlerK8s {
-
-    @Autowired
-    private SecurityService securityService;
-
-    @Override
-    public K8s getManagedResourceType() {
-        return K8s.POD;
-    }
+public class PodK8s extends K8sV1Pod {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject object) {
@@ -135,86 +128,6 @@ public class PodK8s implements HandlerK8s {
             }
         }
         return sb.toString();
-    }
-
-    @Override
-    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Pod.class);
-        apiProvider.getCoreV1Api().replaceNamespacedPod(
-                name,
-                namespace,
-                body,
-                null, null, null, null
-        );
-    }
-
-    @Override
-    public KubernetesObject delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        K8sUtil.checkDeleteAccess(securityService, K8s.POD);
-        return apiProvider.getCoreV1Api().deleteNamespacedPod(name, namespace, null, null, null, null, null, null);
-    }
-
-    @Override
-    public KubernetesObject create(ApiProvider apiProvider, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Pod.class);
-        if (body.getSpec().getOverhead() != null && body.getSpec().getOverhead().size() == 0) {
-            body.getSpec().setOverhead(null);
-        }
-        return apiProvider.getCoreV1Api().createNamespacedPod(body.getMetadata().getNamespace(), body, null, null, null, null);
-    }
-
-    @Override
-    public V1PodList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
-        try {
-            return apiProvider.getCoreV1Api().listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
-        } catch (ApiException apiException) {
-            LOGGER.warn("ApiException RC {}, Body {}", apiException.getCode(), apiException.getResponseBody());
-            apiProvider.invalidate();
-            return apiProvider.getCoreV1Api().listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
-        }
-    }
-
-    @Override
-    public V1PodList createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
-        try {
-            return apiProvider.getCoreV1Api().listNamespacedPod(namespace, null, null, null, null, null, null, null, null, null, null, null);
-        } catch (ApiException apiException) {
-            LOGGER.warn("ApiException RC {}, Body {}", apiException.getCode(), apiException.getResponseBody());
-            apiProvider.invalidate();
-            return apiProvider.getCoreV1Api().listNamespacedPod(namespace, null, null, null, null, null, null, null, null, null, null, null);
-        }
-    }
-
-    @Override
-    public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
-        try {
-            return apiProvider.getCoreV1Api().listPodForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter<V1Pod>(LOGGER));
-        } catch (ApiException apiException) {
-            LOGGER.warn("ApiException RC {}, Body {}", apiException.getCode(), apiException.getResponseBody());
-            apiProvider.invalidate();
-            return apiProvider.getCoreV1Api().listPodForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter<V1Pod>(LOGGER));
-        }
-    }
-
-    @Override
-    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        V1Patch patch = new V1Patch(patchString);
-        return PatchUtils.patch(
-                V1Pod.class,
-                () -> apiProvider.getCoreV1Api().patchNamespacedPodCall(
-                        name,
-                        namespace,
-                        patch,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                V1Patch.PATCH_FORMAT_JSON_PATCH,
-                apiProvider.getClient()
-        );
     }
 
 }

@@ -20,6 +20,7 @@ package de.mhus.kt2l.resources.node;
 
 import de.mhus.commons.console.ConsoleTable;
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.generated.K8sV1Node;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
@@ -42,15 +43,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class NodeK8s implements HandlerK8s {
-
-    @Autowired
-    private SecurityService securityService;
-
-    @Override
-    public K8s getManagedResourceType() {
-        return K8s.NODE;
-    }
+public class NodeK8s extends K8sV1Node {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
@@ -89,68 +82,6 @@ public class NodeK8s implements HandlerK8s {
         }
         K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
-    }
-
-    @Override
-    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
-        // this is dangerous ... deny like delete!
-        K8sUtil.checkDeleteAccess(securityService, K8s.NODE);
-        var body = Yaml.loadAs(yaml, V1Node.class);
-        apiProvider.getCoreV1Api().replaceNode(
-                name,
-                body,
-                null, null, null, null
-        );
-    }
-
-    @Override
-    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        // this is dangerous ... deny!
-        K8sUtil.checkDeleteAccess(securityService, K8s.NODE);
-        return apiProvider.getCoreV1Api().deleteNode(name, null, null, null, null, null, null );
-    }
-
-    @Override
-    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
-        // this is dangerous ... deny! - or stupid?
-        K8sUtil.checkDeleteAccess(securityService, K8s.NODE);
-        var body = Yaml.loadAs(yaml, V1Node.class);
-        return apiProvider.getCoreV1Api().createNode(body,null, null, null, null);
-    }
-
-    @Override
-    public <L extends KubernetesListObject> L createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listNodeCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter(LOGGER));
-    }
-
-    @Override
-    public V1NodeList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listNode(null, null, null, null, null, null, null, null, null, null, null);
-    }
-
-    @Override
-    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        V1Patch patch = new V1Patch(patchString);
-        return PatchUtils.patch(
-                V1Node.class,
-                () -> apiProvider.getCoreV1Api().patchNodeCall(
-                        name,
-                        patch,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                V1Patch.PATCH_FORMAT_JSON_PATCH,
-                apiProvider.getClient()
-        );
     }
 
 }

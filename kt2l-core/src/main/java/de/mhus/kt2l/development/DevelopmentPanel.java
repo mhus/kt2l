@@ -52,6 +52,8 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         var bar = new MenuBar();
         bar.addItem("TabBarInfo", e -> showTabBarInfo());
         bar.addItem("Core Panels", e -> showCorePanels());
+        bar.addItem("Env", e -> showEnv());
+        bar.addItem("Props", e -> showProps());
         add(bar);
 
         output = new TextArea();
@@ -67,6 +69,26 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
 
         osBean = ManagementFactory.getOperatingSystemMXBean();
         updateInfo(0);
+    }
+
+    private void showProps() {
+        StringBuffer i = new StringBuffer();
+        i.append("Properties\n");
+        i.append("-----------------------\n");
+        System.getProperties().forEach((k, v) -> {
+            i.append(k + "=" + v + "\n");
+        });
+        output.setValue(i.toString());
+    }
+
+    private void showEnv() {
+        StringBuffer i = new StringBuffer();
+        i.append("Environment\n");
+        i.append("-----------------------\n");
+        System.getenv().forEach((k, v) -> {
+            i.append(k + "=" + v + "\n");
+        });
+        output.setValue(i.toString());
     }
 
     private void showCorePanels() {
@@ -130,35 +152,21 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         StringBuffer i = new StringBuffer();
         i.append("KT2L Development Panel\n");
         i.append("-----------------------\n");
+        SystemInfoPanel.fillInfo(counter, osBean, deskTab, upTimeService, i);
+
         i.append("Counter: " + counter + "\n");
-        i.append("Local Time           : " + MDate.toIso8601(System.currentTimeMillis()) + "\n");
         i.append("Core Panels Count    : " + deskTab.getTabBar().getCore().getContent().getChildren().count() + "\n");
         i.append("Core Background Count: " + deskTab.getTabBar().getCore().getBackgroundJobCount() + "\n");
-        i.append("DeployInfo           : " + DeployInfo.VERSION + " " + DeployInfo.CREATED + "\n");
         i.append("UI                   : " + Objects.hashCode(deskTab.getTabBar().getCore().ui()) + "\n");
         i.append("Session Id           : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getSession().getId() ).or("?") + "\n");
         i.append("CumulativeRequestDuration: " + tryThis(() -> String.valueOf(deskTab.getTabBar().getCore().ui().getSession().getCumulativeRequestDuration()) ).or("?") + "\n");
-        i.append("Up Time              : " + upTimeService.getUpTimeFormatted() + "\n");
-
-        i.append("Core instances       : " + CoreCounterListener.getCounter() + "\n");
-
-        i.append("Memory : " + MSystem.freeMemoryAsString() + " / " + MSystem.maxMemoryAsString() + "\n");
-        i.append("Threads: " + Thread.getAllStackTraces().size() + "\n");
-        if (osBean != null) {
-            i.append("OS     : " + osBean.getName() + " " + osBean.getVersion() + " " + osBean.getArch() + "\n");
-            i.append("OS Load: " + osBean.getSystemLoadAverage() + "\n");
-            i.append("CPUs   : " + osBean.getAvailableProcessors() + "\n");
-            if (osBean instanceof UnixOperatingSystemMXBean unixOsBean) {
-                i.append("OS Open File Descriptor Count: " + unixOsBean.getOpenFileDescriptorCount() + " / " + unixOsBean.getMaxFileDescriptorCount() + "\n");
-            }
-        }
 
         if (!isBlank(browserMemoryUsage)) {
             var parts = browserMemoryUsage.split(" ");
             var jsLimit = MCast.tolong(parts[0], 0);
             var jsTotal = MCast.tolong(parts[1], 0);
             var jsUsed = MCast.tolong(parts[2], 0);
-            i.append("Browser Memory: " + MString.toByteDisplayString(jsUsed) + " / " + MString.toByteDisplayString(jsLimit) + " / " + MString.toByteDisplayString(jsTotal) + "\n");
+            i.append("Browser Memory (3sec): " + MString.toByteDisplayString(jsUsed) + " / " + MString.toByteDisplayString(jsLimit) + " / " + MString.toByteDisplayString(jsTotal) + "\n");
         }
 
         info.setValue(i.toString());

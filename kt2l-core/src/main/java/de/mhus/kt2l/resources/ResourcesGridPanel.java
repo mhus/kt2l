@@ -348,7 +348,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                 core.ui().push();
                 if (selectDefault && !MObject.equals(namespaceSelector.getValue(), cluster.getDefaultNamespace())) {
                     Thread.startVirtualThread(() -> {
-                        MThread.sleep(200);
+                        MThread.sleep(600);
                         MLang.await(() -> currentResourceType, 10000);
                         core.ui().access(() -> {
                             namespaceSelector.setValue(cluster.getDefaultNamespace());

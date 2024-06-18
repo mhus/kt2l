@@ -54,7 +54,7 @@ public class AiHelpPanel extends VerticalLayout {
         this.view = view;
         this.link = link;
         this.aiService = aiService;
-        model = aiService.getModel(link.getNode().getString("model").orElse(AiService.MODEL_LLAMA2));
+        model = aiService.getModel(link.getNode().getString("model").orElse(AiService.AUTO_CODING));
         initUi();
     }
 

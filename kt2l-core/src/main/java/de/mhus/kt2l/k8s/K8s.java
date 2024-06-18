@@ -215,4 +215,12 @@ public class K8s {
                 categories.equals(other.categories) &&
                 namespaced == other.namespaced;
     }
+
+    public int hashCode() {
+        return resourceType.hashCode();
+    }
+
+    public String toString() {
+        return resourceType;
+    }
 }

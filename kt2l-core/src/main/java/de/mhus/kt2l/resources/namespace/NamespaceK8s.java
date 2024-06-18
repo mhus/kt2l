@@ -19,6 +19,7 @@
 package de.mhus.kt2l.resources.namespace;
 
 import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.generated.K8sV1Namespace;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
@@ -41,15 +42,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class NamespaceK8s implements HandlerK8s {
-
-    @Autowired
-    private SecurityService securityService;
-
-    @Override
-    public K8s getManagedResourceType() {
-        return K8s.NAMESPACE;
-    }
+public class NamespaceK8s extends K8sV1Namespace {
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
@@ -87,64 +80,6 @@ public class NamespaceK8s implements HandlerK8s {
 
         K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
-    }
-
-    @Override
-    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Namespace.class);
-        apiProvider.getCoreV1Api().replaceNamespace(
-                name,
-                body, null, null, null, null
-        );
-    }
-
-    @Override
-    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        K8sUtil.checkDeleteAccess(securityService, K8s.NAMESPACE);
-        return apiProvider.getCoreV1Api().deleteNamespace(name, null, null, null, null, null, null);
-    }
-
-    @Override
-    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
-        var body = Yaml.loadAs(yaml, V1Namespace.class);
-        return apiProvider.getCoreV1Api().createNamespace(
-                body, null, null, null, null
-        );
-    }
-
-    @Override
-    public V1NamespaceList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listNamespace(null, null, null, null, null, null, null, null, null, null, null);
-    }
-
-    @Override
-    public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listNamespaceCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter<V1Namespace>(LOGGER));
-    }
-
-    @Override
-    public <L extends KubernetesListObject> L createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        V1Patch patch = new V1Patch(patchString);
-        return PatchUtils.patch(
-                V1Namespace.class,
-                () -> apiProvider.getCoreV1Api().patchNamespaceCall(
-                        name,
-                        patch,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                V1Patch.PATCH_FORMAT_JSON_PATCH,
-                apiProvider.getClient()
-        );
     }
 
 }

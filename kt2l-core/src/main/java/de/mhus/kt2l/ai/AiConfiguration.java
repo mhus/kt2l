@@ -51,4 +51,12 @@ public class AiConfiguration extends AbstractUserRelatedConfig {
     public String getOpenAiKey() {
         return config().getString("openAiKey").orElse(null);
     }
+
+    public String getDefaultCodingModel() {
+        return config().getString("codingModel").orElse(null);
+    }
+
+    public String getDefaultTranslateModel() {
+        return config().getString("translateModel").orElse(null);
+    }
 }

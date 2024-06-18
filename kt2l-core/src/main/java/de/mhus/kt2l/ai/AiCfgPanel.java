@@ -26,6 +26,14 @@ public class AiCfgPanel extends CPanelVerticalLayout {
                 .name("openAiKey")
                 .label("Open API Key")
                 .defaultValue(""));
+        add(new YText()
+                .name("codingModel")
+                .label("Model for coding")
+                .defaultValue(""));
+        add(new YText()
+                .name("translateModel")
+                .label("Model for translation")
+                .defaultValue(""));
 
     }
 }
