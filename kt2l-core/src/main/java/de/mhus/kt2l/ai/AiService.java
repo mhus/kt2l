@@ -65,15 +65,15 @@ public class AiService {
 
     public synchronized ChatLanguageModel getModel(String modelName) {
         String[] parts = modelName.split(":");
-        if (parts[0].equals(AUTO)) {
-            if (parts[1].equals(AUTO_CODING)) {
+        if (parts[0].equalsIgnoreCase(AUTO)) {
+            if (parts[1].equalsIgnoreCase("coding")) {
                 if (!isBlank(config.getDefaultCodingModel()))
                     return getModel(config.getDefaultCodingModel());
                 if (!isBlank(config.getOpenAiKey()))
                     return getModel(OPENAI);
                 else
                     return getModel(MODEL_CODELLAMA);
-            } else if (parts[1].equals(AUTO_TRANSLATE)) {
+            } else if (parts[1].equalsIgnoreCase("translate")) {
                 if (!isBlank(config.getDefaultTranslateModel()))
                     return getModel(config.getDefaultTranslateModel());
                 if (!isBlank(config.getOpenAiKey()))
@@ -83,7 +83,7 @@ public class AiService {
             }
         }
 
-        if (parts[0].equals(OPENAI)) {
+        if (parts[0].equalsIgnoreCase(OPENAI)) {
             ChatLanguageModel model = OpenAiChatModel.builder()
                     .apiKey(config.getOpenAiKey())
                     .modelName(parts[1])
@@ -94,7 +94,7 @@ public class AiService {
                     .build();
         }
 
-        if (parts[0].equals(OLLAMA)) {
+        if (parts[0].equalsIgnoreCase(OLLAMA)) {
             return models.computeIfAbsent(parts[1], name -> {
                 ChatLanguageModel model = OllamaChatModel.builder()
                         .baseUrl(config.getOllamaUrl())
@@ -102,7 +102,7 @@ public class AiService {
                         .build();
                 return model;
             });
-        } else if (parts[0].equals(OPENAI)) {
+        } else if (parts[0].equalsIgnoreCase(OPENAI)) {
             return models.computeIfAbsent(parts[1], name -> {
                 var openAiKey = config.getOpenAiKey();
                 if (MString.isEmpty(openAiKey))

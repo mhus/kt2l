@@ -73,6 +73,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static de.mhus.commons.tools.MString.isEmpty;
+
 @Slf4j
 public abstract class AbstractGrid<T, S extends Component> extends VerticalLayout implements ResourcesGrid {
 
@@ -225,7 +227,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         MenuItem current = null;
         for (String part : path.split("/")) {
             part = part.trim();
-            if (MString.isEmpty(part)) continue;
+            if (isEmpty(part)) continue;
             final var partName = MString.beforeIndexOrAll(part, ';');
             final var dress = MString.afterIndex(part, ';');
             if (current == null) {
@@ -267,7 +269,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         GridMenuItem<T> current = null;
         for (String part : path.split("/")) {
             part = part.trim();
-            if (MString.isEmpty(part)) continue;
+            if (isEmpty(part)) continue;
             final var partName = MString.beforeIndexOrAll(part, ';');
             final var dress = MString.afterIndex(part, ';');
             if (current == null) {
@@ -379,7 +381,8 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             });
 
             resourcesGrid.addSortListener(event -> {
-                panel.historyAdd();
+                if (event.isFromClient())
+                    panel.historyAdd();
             });
 
             GridContextMenu<T> menu = resourcesGrid.addContextMenu();
@@ -519,7 +522,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     @Override
     public void setSortOrder(String sortOrder, boolean sortAscending) {
-        if (sortOrder == null || sortOrder.isEmpty()) return;
+        if (isEmpty(sortOrder)) {
+            resourcesGrid.sort(List.of());
+            return;
+        }
         resourcesGrid.sort(List.of( new GridSortOrder<>(resourcesGrid.getColumnByKey(sortOrder), sortAscending ? SortDirection.ASCENDING : SortDirection.DESCENDING)));
     }
 
@@ -567,7 +573,6 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     protected abstract boolean filterByContent(T resource, String filter);
 
     protected abstract boolean filterByRegex(T resource, String filter);
-
 
     @Getter
     @Setter

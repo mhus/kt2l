@@ -22,7 +22,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -145,9 +144,6 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         resourceSelector = new ComboBox<>();
         resourceSelector.setRenderer(new ComponentRenderer<Component, V1APIResource>(item -> {
             Div div = new Div(item.getName() + (item.getShortNames() == null ? "" : " " + item.getShortNames()));
-            if (currentResourceType != null && item.getName().equals(currentResourceType.resourceType()))
-                div.addClassName("color-blue");
-            else
             if (k8s.getResourceHandler(item) instanceof GenericK8s)
                 div.addClassName("color-grey");
             return div;
@@ -233,13 +229,9 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             }
         });
 
-        historyBackButton = new Button(VaadinIcon.ARROW_LEFT.create(), e -> {
-            historyBack();
-        });
+        historyBackButton = new Button(VaadinIcon.ARROW_LEFT.create(), e -> historyBack());
 
-        historyForwardButton = new Button(VaadinIcon.ARROW_RIGHT.create(), e -> {
-            historyForward();
-        });
+        historyForwardButton = new Button(VaadinIcon.ARROW_RIGHT.create(), e -> historyForward());
 
         var cloneButton = new Button(VaadinIcon.COPY_O.create(), e -> clonePanel());
         cloneButton.setTooltipText("Duplicate resource panel");
@@ -260,22 +252,23 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     }
 
     private synchronized void historyUpdate() {
-        historyBackButton.setEnabled(historyPointer > 1);
-        historyForwardButton.setEnabled(historyPointer < history.size());
+        historyBackButton.setEnabled(historyPointer > 0);
+        historyForwardButton.setEnabled(historyPointer < history.size()-1);
     }
 
     private synchronized void historyForward() {
-        if (historyPointer < history.size()) {
-            var item = history.get(historyPointer++);
+        if (historyPointer < history.size()-1) {
+            historyPointer++;
+            var item = history.get(historyPointer);
             showResourcesInternal(item.resourceType, item.namespace, item.filter, item.filterText, item.sortOrder, item.sortAscending, history, historyPointer);
         }
         historyUpdate();
     }
 
     private synchronized void historyBack() {
-        if (historyPointer > 1) {
+        if (historyPointer > 0) {
             historyPointer--;
-            var item = history.get(historyPointer-1);
+            var item = history.get(historyPointer);
             showResourcesInternal(item.resourceType, item.namespace, item.filter, item.filterText, item.sortOrder, item.sortAscending, history, historyPointer);
         }
         historyUpdate();
@@ -297,7 +290,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         if (historyPointer < history.size()) {
             history.subList(historyPointer, history.size()).clear();
         }
-        var entry = new HistoryItem(currentResourceType, namespaceSelector.getValue(), resourcesFilter, filterText, sortOrder, sortAscending);
+        var entry = new HistoryItem(resourceType, namespace, filter, filterText, sortOrder, sortAscending);
         if (history.size() > 0 && history.getLast().equals(entry)) return;
 
         history.add(entry);
@@ -487,9 +480,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         if (filter != null)
             setResourcesFilter(filter);
         setResourceType(resourceType);
-        if (sortOrder != null) {
-            grid.setSortOrder(sortOrder, sortAscending);
-        }
+        grid.setSortOrder(sortOrder, sortAscending);
         if (history != null) {
             this.history = new LinkedList<>(history);
             this.historyPointer = historyPointer;
@@ -537,7 +528,15 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         namespaceSelector.focus();
     }
 
-    private record HistoryItem(K8s resourceType, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending) {
+    public LinkedList<HistoryItem> getHistroy() {
+        return history;
+    }
+
+    public int getHistoryPointer() {
+        return historyPointer;
+    }
+
+    public record HistoryItem(K8s resourceType, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending) {
     }
 
 }

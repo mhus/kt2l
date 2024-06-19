@@ -22,6 +22,7 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import de.mhus.commons.console.ConsoleTable;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MDate;
 import de.mhus.commons.tools.MString;
@@ -30,6 +31,8 @@ import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.generated.DeployInfo;
+import de.mhus.kt2l.resources.ResourcesGridPanel;
+import de.mhus.kt2l.resources.util.AbstractGrid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -45,6 +48,7 @@ import static org.apache.logging.log4j.util.Strings.isBlank;
 @Slf4j
 public class DevelopmentPanel extends VerticalLayout implements DeskTabListener {
 
+    private final boolean evilMode;
     @Autowired
     private Configuration config;
 
@@ -57,6 +61,10 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
     private TextArea output;
     private String browserMemoryUsage;
 
+    public DevelopmentPanel(boolean evilMode) {
+        this.evilMode = evilMode;
+    }
+
     @Override
     public void tabInit(DeskTab deskTab) {
         this.deskTab = deskTab;
@@ -67,10 +75,12 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         add(info);
 
         var bar = new MenuBar();
-        bar.addItem("TabBarInfo", e -> showTabBarInfo());
-        bar.addItem("Core Panels", e -> showCorePanels());
         bar.addItem("Env", e -> showEnv());
         bar.addItem("Props", e -> showProps());
+        bar.addItem("TabBarInfo", e -> showTabBarInfo());
+        bar.addItem("Core Panels", e -> showCorePanels());
+        bar.addItem("Grid History", e -> showGridHistory());
+
         add(bar);
 
         output = new TextArea();
@@ -86,6 +96,25 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
 
         osBean = ManagementFactory.getOperatingSystemMXBean();
         updateInfo(0);
+    }
+
+    private void showGridHistory() {
+        StringBuilder i = new StringBuilder();
+        i.append("Grid History\n");
+        i.append("-----------------------\n");
+        deskTab.getTabBar().getTabs().forEach(tab -> {
+            if (tab.getPanel() instanceof ResourcesGridPanel gridPanel) {
+                i.append("Grid: " + tab.getTabId() + " " + tab.getWindowTitle() + "\n");
+                i.append("  Pointer: ").append(gridPanel.getHistoryPointer()).append("\n");
+                ConsoleTable table = new ConsoleTable();
+                table.setHeaderValues("Namespace", "ResourceType", "Filter Text", "Filter", "Sort Order", "Sort Ascending");
+                gridPanel.getHistroy().forEach(h -> {
+                    table.addRowValues(h.namespace(), h.resourceType(), h.filterText(), h.filter() != null ? h.filter().getDescription() : "", h.sortOrder(), h.sortAscending());
+                });
+                i.append(table).append("\n");
+            }
+        });
+        output.setValue(i.toString());
     }
 
     private void showProps() {

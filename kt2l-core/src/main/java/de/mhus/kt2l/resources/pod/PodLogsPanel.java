@@ -88,6 +88,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     // private boolean showAllMode;
     // private MenuItem menuItemAll;
     private volatile MenuItem menuItemJson;
+    private volatile MenuItem menuItemAnsiCleanup;
     private MenuItem menuItemWrapLines;
     private volatile MenuItem menuItemAutoScroll;
     private volatile MenuItem menuItemWatch;
@@ -106,6 +107,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     private Div menuItemStoreIconDiv;
     private volatile StorageFile captureDirectory;
     private Icon menuItemStoreIconDivIcon;
+    private String[] jsonFields;
 
     public PodLogsPanel(Core core, Cluster cluster, List<ContainerResource> containers) {
         this.cluster = cluster;
@@ -119,6 +121,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         this.tab = deskTab;
 
         maxCachedEntries = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("maxCachedEntries", 1000);
+        jsonFields = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getString("jsonFields", "@timestamp,severity,message").split(",");
 
         logs = new Tail();
         logs.setMaxRows(maxCachedEntries);
@@ -148,15 +151,29 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         menuItemWrapLines.setCheckable(true);
         menuItemJson = viewMenu.addItem("Json", e -> {
             synchronized (logsBuffer) {
-                if (menuItemJson.isChecked())
+                if (menuItemJson.isChecked()) {
+                    menuItemAnsiCleanup.setChecked(false);
                     logsBuffer.forEach(ee -> ee.text = processJson(ee.raw));
-                else
+                } else
                     logsBuffer.forEach(ee -> ee.text = ee.raw);
                 logsCount = 0;
             }
         });
         menuItemJson.setCheckable(true);
         menuItemJson.setChecked(true);
+
+        menuItemAnsiCleanup = viewMenu.addItem("Ansi Cleanup", e -> {
+            synchronized (logsBuffer) {
+                if (menuItemAnsiCleanup.isChecked()) {
+                    menuItemJson.setChecked(false);
+                    logsBuffer.forEach(ee -> ee.text = processAnsiEscCleanup(ee.raw));
+                } else
+                    logsBuffer.forEach(ee -> ee.text = ee.raw);
+                logsCount = 0;
+            }
+        });
+        menuItemAnsiCleanup.setCheckable(true);
+        menuItemAnsiCleanup.setChecked(false);
 
         menuItemShowSource = viewMenu.addItem("Show Source", e -> {
             logsCount = 0;
@@ -462,6 +479,10 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
 
     }
 
+    private String processAnsiEscCleanup(String text) {
+        return text.replaceAll("\\e\\[[\\d;]*[^\\d;]", "");
+    }
+
     private String processJson(String text) {
         if (text == null) return "";
         StringBuilder out = new StringBuilder();
@@ -471,11 +492,15 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
             while ((line = bf.readLine()) != null) {
                 if (line.startsWith("{") && line.endsWith("}")) {
                     var json = MJson.load(line);
-                    var messageJson = json.get("message");
-                    var message = messageJson == null ? "" :messageJson.asText();
-                    var severity = json.get("severity");
-                    var timestamp = json.get("@timestamp");
-                    out.append(timestamp).append(" ").append(severity).append(" ").append(message);
+                    for (var fieldName : jsonFields) {
+                        var value = json.get(fieldName);
+                        if (value != null) {
+                            if (out.length() > 0)
+                                out.append(" ");
+                            out.append(value.asText());
+                            MString.fillUntil(out, out.length() / 10 * 10 + 10, ' ');
+                        }
+                    }
                 } else
                     out.append(line);
             }
@@ -532,7 +557,12 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
                 this.time = "xxxx-xx-xxTxx:xx:xx.xxxxxxxxxZ";
             }
             this.source = source;
-            this.text = menuItemJson.isChecked() ? processJson(this.raw) : this.raw;
+            if (menuItemJson.isChecked())
+                this.text = processJson(this.raw);
+            else if (menuItemAnsiCleanup.isChecked())
+                this.text = processAnsiEscCleanup(this.raw);
+            else
+                this.text = this.raw;
             checkFilter();
         }
 

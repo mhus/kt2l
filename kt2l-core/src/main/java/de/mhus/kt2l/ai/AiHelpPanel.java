@@ -93,7 +93,7 @@ public class AiHelpPanel extends VerticalLayout {
                 if (MString.isEmpty(content)) return;
 
                 PromptTemplate promptTemplate = PromptTemplate.from(
-                        link.getNode().getString("prompt","[resource] {{content}}"));
+                        link.getNode().getString("prompt","{{content}}"));
                 var msg = promptTemplate.apply(Map.of("content", content));
                 LOGGER.debug("Add initial message to conversation: {}", msg);
                 chatMemory.add(msg.toSystemMessage()); //???
@@ -122,7 +122,14 @@ public class AiHelpPanel extends VerticalLayout {
     }
 
     private String extract(String answer) {
-        //TODO extract resource
+        if (answer == null) return "";
+        var pos = answer.indexOf("```");
+        if (pos > 0) {
+            var pos2 = answer.indexOf("```", pos + 3);
+            if (pos2 > 0) {
+                return answer.substring(pos + 3, pos2);
+            }
+        }
         return answer;
     }
 

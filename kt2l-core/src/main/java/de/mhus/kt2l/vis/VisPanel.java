@@ -199,15 +199,9 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
             useSwitch.setValue(handler.isEnabled());
             useSwitch.addValueChangeListener(e -> {
                 if (e.getValue()) {
-                    handler.setEnabled(true);
-                    handler.updateAll();
+                    enableHandler(handler);
                 } else {
-                    handler.setEnabled(false);
-                    new ArrayList<>(nodes.values()).forEach(n -> {
-                        if (n.handler == handler) {
-                                deleteNode(handler, n.k8sObject());
-                        }
-                    });
+                    disableHandler(handler);
                 }
             });
             settings.add(useSwitch);
@@ -221,6 +215,35 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
             setListeners();
         });
 
+    }
+
+    private void disableHandler(VisHandler handler) {
+        handler.setEnabled(false);
+        new ArrayList<>(nodes.values()).forEach(n -> {
+            if (n.handler == handler) {
+                deleteNode(handler, n.k8sObject());
+            }
+        });
+    }
+
+    private void enableHandler(VisHandler handler) {
+        ProgressDialog progress = new ProgressDialog();
+        progress.setHeaderTitle("Update Visualization");
+        progress.setIndeterminate(true);
+        progress.open();
+        nd.setVisible(false);
+        Thread.startVirtualThread(() -> {
+            handler.setEnabled(true);
+            handler.updateAll();
+            core.ui().access(() -> {
+                updateEdges();
+                progress.setProgressDetails("nodes: " + nodes.size() + ", edges: " + deges.size());
+            } );
+            core.ui().access(() -> {
+                nd.setVisible(true);
+                progress.close();
+            } );
+        });
     }
 
     private void setListeners() {

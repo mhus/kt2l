@@ -59,4 +59,8 @@ public class AiConfiguration extends AbstractUserRelatedConfig {
     public String getDefaultTranslateModel() {
         return config().getString("translateModel").orElse(null);
     }
+
+    public String getDefaultLanguage() {
+        return config().getString("defaultLanguage").orElse("german");
+    }
 }

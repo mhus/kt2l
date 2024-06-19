@@ -31,6 +31,7 @@ import de.mhus.kt2l.helm.HelmChartDetailsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
 import de.mhus.kt2l.helm.HelmInstalledChartsPanel;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.common.ResourceCreatePanel;
@@ -103,7 +104,7 @@ public class PanelService {
                         ))
                 .setColor(parentTab.getColor())
                 .setParentTab(parentTab)
-                .setHelpContext("details")
+                .setHelpContext("yaml")
                 .setWindowTitle(cluster.getTitle() + " - " + resourceType + " - " + resource.getMetadata().getName() + " - Details");
     }
 
@@ -246,6 +247,7 @@ public class PanelService {
                 () -> new AiResourcePanel(resources, core)
         )
                 .setHelpContext("ai")
+                .setReproducable(true)
                 .setWindowTitle(cluster.getTitle() + " - " + name + " - AI");
     }
 
@@ -304,26 +306,13 @@ public class PanelService {
 
         selected.forEach(p -> {
             if (p instanceof V1Pod pod) {
-                pod.getStatus().getContainerStatuses().forEach(cs -> {
+                var cs = K8sUtil.findDefaultContainer(pod);
+                if (cs != null) {
                     containers.add(new ContainerResource(new PodGrid.Container(
                             PodGrid.CONTAINER_TYPE.DEFAULT,
                             cs,
                             pod)));
-                });
-                if (pod.getStatus().getEphemeralContainerStatuses() != null)
-                    pod.getStatus().getEphemeralContainerStatuses().forEach(cs -> {
-                        containers.add(new ContainerResource(new PodGrid.Container(
-                                PodGrid.CONTAINER_TYPE.EPHEMERAL,
-                                cs,
-                                pod)));
-                    });
-                if (pod.getStatus().getInitContainerStatuses() != null)
-                    pod.getStatus().getInitContainerStatuses().forEach(cs -> {
-                        containers.add(new ContainerResource(new PodGrid.Container(
-                                PodGrid.CONTAINER_TYPE.INIT,
-                                cs,
-                                pod)));
-                    });
+                }
             }
             else if (p instanceof ContainerResource container) {
                 containers.add(container);
@@ -390,24 +379,27 @@ public class PanelService {
         selected.forEach(p -> {
             if (p instanceof V1Pod pod) {
                 pod.getStatus().getContainerStatuses().forEach(cs -> {
-                    containers.add(new ContainerResource(new PodGrid.Container(
-                            PodGrid.CONTAINER_TYPE.DEFAULT,
-                            cs,
-                            pod)));
+                    if (cs.getState().getTerminated() == null)
+                        containers.add(new ContainerResource(new PodGrid.Container(
+                                PodGrid.CONTAINER_TYPE.DEFAULT,
+                                cs,
+                                pod)));
                 });
                 if (pod.getStatus().getEphemeralContainerStatuses() != null)
                     pod.getStatus().getEphemeralContainerStatuses().forEach(cs -> {
-                        containers.add(new ContainerResource(new PodGrid.Container(
-                                PodGrid.CONTAINER_TYPE.EPHEMERAL,
-                                cs,
-                                pod)));
+                        if (cs.getState().getTerminated() == null)
+                            containers.add(new ContainerResource(new PodGrid.Container(
+                                    PodGrid.CONTAINER_TYPE.EPHEMERAL,
+                                    cs,
+                                    pod)));
                     });
                 if (pod.getStatus().getInitContainerStatuses() != null)
                     pod.getStatus().getInitContainerStatuses().forEach(cs -> {
-                        containers.add(new ContainerResource(new PodGrid.Container(
-                                PodGrid.CONTAINER_TYPE.INIT,
-                                cs,
-                                pod)));
+                        if (cs.getState().getTerminated() == null)
+                            containers.add(new ContainerResource(new PodGrid.Container(
+                                    PodGrid.CONTAINER_TYPE.INIT,
+                                    cs,
+                                    pod)));
                     });
             }
             else if (p instanceof ContainerResource container) {

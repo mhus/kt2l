@@ -32,10 +32,14 @@ contexts:
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/
-  details:
+  yaml:
     - name: Chat Agent
       action: ai
-      prompt: Answer with a new resources example. [resource] {{content}}
+      prompt: |
+        Answer shortly. Answer with a new kubernetes resource surrounded by "```". 
+        ```
+        {{content}}
+        ```
     - name: Details
       action: docs
       document: usage/details
@@ -72,6 +76,12 @@ contexts:
       action: docs
       document: usage/ai
       default: true
+    - name: Snippets
+      action: snippets
+      repo: https://github.com/mhus/kt2l-snippets.git
+      type: text
+      path: ai
+      useStrategy: replace
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/
@@ -85,6 +95,7 @@ contexts:
       repo: https://github.com/mhus/kt2l-snippets.git
       type: bash
       path: exec
+      useStrategy: append
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/
@@ -97,6 +108,7 @@ contexts:
       repo: https://github.com/mhus/kt2l-snippets.git
       type: yaml
       path: create
+      useStrategy: yaml
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/
@@ -109,6 +121,7 @@ contexts:
       repo: https://github.com/mhus/kt2l-snippets.git
       type: yaml
       path: patch
+      useStrategy: replace
     - name: Kubernetes
       action: link
       href: https://kubernetes.io/docs/home/

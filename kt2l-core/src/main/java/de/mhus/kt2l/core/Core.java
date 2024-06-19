@@ -369,7 +369,7 @@ public class Core extends AppLayout {
                             if (helpContent.isVisible())
                                 helpContent.setVisible(false);
                             else
-                                showHelp(true);
+                                showHelp(true); // open the help menu instead, not possible at the moment
                         }, Key.KEY_H, KeyModifier.CONTROL);
                     }
                     var space = new Span(" ");
