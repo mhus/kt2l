@@ -20,6 +20,6 @@ The user can select a cluster by clicking on the cluster name and open a view wi
 The cluster resources view shows lists of resources of a cluster. You can select a resource type,
 namespace, and filters to display the resources.
 
-![Cluster Resources View](screenshots/cluster_resources_pod.png)
+![Cluster Resources View](screenshots/cluster_resources_pods.png)
 
 A list ov available resource actions is displayed in the menu bar and context menu.
