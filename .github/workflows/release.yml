@@ -138,13 +138,16 @@ jobs:
         run: |
           git config --global user.name 'Robot'
           git config --global user.email 'mhus@users.noreply.github.com'
+          git checkout -b build/${{ github.run_id }}
+          git pull
           git add docs/screenshots
           git add kt2l-core/src/main/java
           git add kt2l-desktop/src/main/java
           git add kt2l-server/src/main/java
           git add kt2l-test/src/main/java
           git commit -am "Build ${{ github.run_id }}" || true
-          git push || true
+          git push --set-upstream origin build/${{ github.run_id }} || true
+          gh pr create --title "Release Build ${{ github.run_id }}" --body "Release Build ${{ github.run_id }}" --base main --head build/${{ github.run_id }} || true
       - name: Build Server ZIP
         run: ./kt2l-server/launcher/create-zip.sh
       - name: Build Server Container
