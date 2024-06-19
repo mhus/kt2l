@@ -87,7 +87,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     private KonamiAction konamiAction = new KonamiAction() {
         public void doAction() {
             UiUtil.showSuccessNotification("You found the Konami Code");
-            new DevelopmentAction().execute(panelService, core);
+            new DevelopmentAction().execute(panelService, core, false);
         }
     };
 

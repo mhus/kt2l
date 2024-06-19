@@ -36,4 +36,6 @@ The meaning od `OS` Key is the `Command` key on MacOS and the `Control` key on L
 | `S`              | Deploy Resource Action    | Resize Resources                  |
 | `S`              | ResultSet Resource Action | Resize Resources                  |
 | `Ctrl+H`         | Global                    | Toggle Help Panel                 |
+| `Ctrl+Q`         | Global                    | Close Selected Panel              |
+
 

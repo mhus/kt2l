@@ -44,3 +44,4 @@ Snippet views are used to provide public snippets from a git repository. The `cr
 - `repo` - the git repository url
 - `path` - the path to the snippet directory
 - `branch` - the branch to use (optional, default is main)
+- `useStrategy` - the strategy to use content in a panel (optional, default is `replace`)

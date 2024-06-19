@@ -37,5 +37,6 @@ Some help topics can change the current panel if needed this is active only if y
 ## General Shortcuts
 
 - `Ctrl+H` - Toggle the help panel.
+- `Ctrl+Q` - Close the current panel.
 
 [List of Shortcuts](shortcuts.md)

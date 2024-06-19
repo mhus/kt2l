@@ -19,11 +19,13 @@
 package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
+import com.vaadin.flow.component.Shortcuts;
 import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.lang.Function0;
 import de.mhus.commons.tools.MCollection;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
@@ -61,6 +63,13 @@ public class DeskTabBar extends VerticalLayout {
         content.setSpacing(false);
         core.setContent(content);
         addClassName("desktabview");
+        Shortcuts.addShortcutListener(this, () -> closeSelectedTab(), Key.KEY_Q, KeyModifier.CONTROL);
+    }
+
+    private void closeSelectedTab() {
+        var s = getSelectedTab();
+        if (s == null || !s.isCloseable()) return;
+        s.closeTab();
     }
 
     synchronized DeskTab addTab(String id, String title, boolean closeable, boolean unique, AbstractIcon icon, Function0<Component> panelCreator) {

@@ -19,6 +19,7 @@
 log:
   maxCachedEntries: 1000
   maxCachedCharacters: 30000
+  jsonFields: @timestamp,severity,message
 core:
   idle:
     enabled: true

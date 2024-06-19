@@ -26,12 +26,15 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.resources.generic.GenericObject;
+import de.mhus.kt2l.resources.pod.ContainerResource;
+import de.mhus.kt2l.resources.pod.PodGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1APIResourceList;
+import io.kubernetes.client.openapi.models.V1ContainerStatus;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -367,4 +370,22 @@ public class K8sUtil {
         return a.compareTo(b);
     }
 
+    public static V1ContainerStatus findDefaultContainer(V1Pod pod) {
+        if (pod.getStatus().getContainerStatuses() != null) {
+            for (V1ContainerStatus cs : pod.getStatus().getContainerStatuses()) {
+                if (cs.getState().getTerminated() == null && cs.getState().getRunning() != null) return cs;
+            }
+        }
+        if (pod.getStatus().getEphemeralContainerStatuses() != null) {
+            for (V1ContainerStatus cs : pod.getStatus().getEphemeralContainerStatuses()) {
+                if (cs.getState().getTerminated() == null && cs.getState().getRunning() != null) return cs;
+            }
+        }
+        if (pod.getStatus().getInitContainerStatuses() != null) {
+            for (V1ContainerStatus cs : pod.getStatus().getInitContainerStatuses()) {
+                if (cs.getState().getTerminated() == null && cs.getState().getRunning() != null) return cs;
+            }
+        }
+        return null;
+    }
 }
