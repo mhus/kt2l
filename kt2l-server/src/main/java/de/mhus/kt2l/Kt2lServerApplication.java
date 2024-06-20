@@ -33,6 +33,7 @@
  */
 package de.mhus.kt2l;
 
+import de.mhus.kt2l.generated.DeployInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -41,6 +42,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class Kt2lServerApplication extends Kt2lApplication {
 
     public static void main(String[] args) {
+        LOGGER.info("Start kt2l-server {} {}", DeployInfo.VERSION, DeployInfo.CREATED);
         SpringApplicationBuilder builder = new SpringApplicationBuilder(Kt2lApplication.class);
         builder.headless(true);
         ConfigurableApplicationContext context = builder.run(args);

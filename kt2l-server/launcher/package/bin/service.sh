@@ -75,7 +75,7 @@ case $1 in
         # start in background
         nohup $RUN > $LOG_FILE 2>&1 &
         echo $! > $PID_FILE
-        echo "kt2l-server started on $(cat $PID_FILE)"
+        echo "kt2l-server started on PID $(cat $PID_FILE) and port ${SERVER_PORT:-8080}"
         ;;
     stop)
         if [ -f $PID_FILE ]; then
@@ -96,7 +96,7 @@ case $1 in
         if [ -f $PID_FILE ]; then
             PID=$(cat $PID_FILE)
             if ps -p $PID > /dev/null; then
-                echo "kt2l-server is running on $PID"
+                echo "kt2l-server is running on PID $PID"
             else
                 echo "kt2l-server is not running"
             fi

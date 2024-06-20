@@ -23,7 +23,7 @@ rm -rf kt2l-server
 mkdir kt2l-server
 cd kt2l-server
 cp -r ../../launcher/package/* .
-cp ../kt2l-server-0.0.1-SNAPSHOT.jar bin/
+cp ../kt2l-server-0.0.1-SNAPSHOT.jar lib/kt2l-server.jar
 cp -r ../../../config .
 cd ..
 zip -r kt2l-server.zip kt2l-server

@@ -20,7 +20,7 @@
 
 cd "$(dirname "$0")"
 cd ..
-mvn clean install -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
+#mvn clean install -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
 
 cd kt2l-server
 
@@ -30,5 +30,6 @@ if [ ! -x ~/.kt2l/kt2l-server ]; then
   unzip -u target/kt2l-server.zip -d ~/.kt2l
 fi
 
-cp -v target/kt2l-server-0.0.1-SNAPSHOT.jar ~/.kt2l/kt2l-server/bin
+cp -v launcher/package/bin/* ~/.kt2l/kt2l-server/bin/
+cp -v target/kt2l-server-0.0.1-SNAPSHOT.jar ~/.kt2l/kt2l-server/lib/kt2l-server.jar
 

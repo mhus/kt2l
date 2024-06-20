@@ -15,24 +15,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.development;
+package de.mhus.kt2l.system;
 
-import com.sun.management.UnixOperatingSystemMXBean;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import de.mhus.commons.console.ConsoleTable;
 import de.mhus.commons.tools.MCast;
-import de.mhus.commons.tools.MDate;
 import de.mhus.commons.tools.MString;
-import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.generated.DeployInfo;
+import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
-import de.mhus.kt2l.resources.util.AbstractGrid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -51,9 +47,10 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
     private final boolean evilMode;
     @Autowired
     private Configuration config;
-
     @Autowired
     private UpTimeService upTimeService;
+    @Autowired
+    private PanelService panelService;
 
     private TextArea info;
     private DeskTab deskTab;
@@ -80,6 +77,11 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         bar.addItem("TabBarInfo", e -> showTabBarInfo());
         bar.addItem("Core Panels", e -> showCorePanels());
         bar.addItem("Grid History", e -> showGridHistory());
+        if(evilMode) {
+            bar.addItem("Logs", e -> panelService.showSystemLogPanel(deskTab.getTabBar().getCore()).select());
+        }
+        bar.addItem("EBCM", e -> deskTab.getTabBar().getCore().getDummyContextMenu().setTarget(null));
+//        bar.addItem("Exception", e -> LOGGER.warn("Test", new RuntimeException("Test Exception")));
 
         add(bar);
 

@@ -61,8 +61,8 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
         this.clusterId = clusterId;
-        watchThread = Thread.startVirtualThread(this::watch);
         resourceHandler = k8s.getResourceHandler(getManagedResourceType());
+        watchThread = Thread.startVirtualThread(this::watch);
     }
 
     public abstract K8s getManagedResourceType();
