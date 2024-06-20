@@ -65,7 +65,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-        "kt2l.configuration.localDirectory=local_config",
+        "kt2l.configuration.localDirectory=config_local",
         "kt2l.configuration.usersDirectory=users_nodirectoryset",
         "kt2l.deskTabPreserveMode=false"
         }

@@ -56,7 +56,6 @@ import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
-import de.mhus.commons.util.Base64;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.cfg.CfgService;
 import de.mhus.kt2l.cluster.Cluster;
@@ -179,8 +178,8 @@ public class Core extends AppLayout {
     @Value("${kt2l.deskTabPreserveMode:true}")
     private boolean deskTabPreserveMode;
     @Getter
-    private ContextMenu dummyContextMenu;
-    private boolean uiLostEnabled = true;
+    private ContextMenu generalContextMenu;
+    private boolean uiLostEnabled = false;
 
     public Core(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -194,11 +193,12 @@ public class Core extends AppLayout {
         sessionId = session.getSession().getId();
 
         if (!MSystem.isVmDebug()) {
-            dummyContextMenu = new ContextMenu();
-            dummyContextMenu.setTarget(this);
-            dummyContextMenu.addItem("Reload", e -> ui().getPage().reload());
+            generalContextMenu = new ContextMenu();
+            generalContextMenu.setTarget(this);
+            generalContextMenu.addItem("Reload", e -> ui().getPage().reload());
         }
 
+        uiLostEnabled = viewsConfiguration.getConfig("core").getBoolean("uiLostEnabled", uiLostEnabled);
         uiTemeoutSeconds = viewsConfiguration.getConfig("core").getLong("uiTimeoutSeconds", uiTemeoutSeconds);
         trackBrowserMemoryUsage = viewsConfiguration.getConfig("core").getBoolean("trackBrowserMemoryUsage", trackBrowserMemoryUsage);
 
@@ -281,9 +281,9 @@ public class Core extends AppLayout {
 
         heartbeatRegistration = ui.addHeartbeatListener(event -> {
             LOGGER.debug("♥ {} UI Heartbeat", sessionId);
-            event.getSource().access(() -> {
-                event.getSource().getElement().executeJs("console.log('♥');");
-            });
+//            event.getSource().access(() -> {
+//                event.getSource().getElement().executeJs("console.log('♥');");
+//            });
         });
 
         Thread.startVirtualThread(() -> {
@@ -301,9 +301,10 @@ public class Core extends AppLayout {
             ui().getChildren().filter(c -> c instanceof IdleNotification).forEach(ui()::remove);
             LOGGER.debug("㋡ {} Create Idle Notification for UI {}", sessionId, Objects.hashCode(ui));
             IdleNotification idleNotification = new IdleNotification();
-
-            idleNotification.setSecondsBeforeNotification( idleConf.getInt("notifyBeforeSeconds", 90) );
-//            idleNotification.setSecondsBeforeNotification( 120 );
+            idleNotification.setSecondsBeforeNotification( Math.max( 90, idleConf.getInt("notifyBeforeSeconds", 90)) );
+            var maxInactiveInterval = idleConf.getInt("maxInactiveIntervalSeconds", 120);
+            if (maxInactiveInterval > 0)
+                idleNotification.setMaxInactiveInterval( maxInactiveInterval );
             idleNotification.setMessage("Your session will expire in " +
                     IdleNotification.MessageFormatting.SECS_TO_TIMEOUT
                     + " seconds.");
@@ -317,7 +318,7 @@ public class Core extends AppLayout {
                     idleNotification.getElement().executeJs(
                             "var self=this;setTimeout(() => { try {self.click(); }" +
                                     " catch (error) {console.log(error);} }, " +
-                                    idleConf.getInt("autoExtendWaitSeconds", 5) * 1000 +
+                                    idleConf.getInt("autoExtendWaitSeconds", 1) * 1000 +
                                     ");");
             });
             ui().add(idleNotification);

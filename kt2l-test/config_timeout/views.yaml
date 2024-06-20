@@ -16,30 +16,13 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-log:
-  maxCachedEntries: 1000
-  maxCachedCharacters: 30000
-  jsonFields: "@timestamp,severity,message"
 core:
   idle:
     enabled: true
     autoExtend: true
-    autoExtendWaitSeconds: 1
+    autoExtendWaitSeconds: 10
     notifyBeforeSeconds: 90
     maxInactiveIntervalSeconds: 120
   uiLostEnabled: false
   uiTimeoutSeconds: 60
   trackBrowserMemoryUsage: false
-snippets:
-  maxVisibleResults: 30
-portForward:
-  firstPort: 9000
-resourcesGrid:
-  colors: true
-  showResourceVersion: false
-  historyMaxSize: 50
-localBash:
-  path: /bin/bash
-  argument: -i
-clusterOverview:
-  colors: true

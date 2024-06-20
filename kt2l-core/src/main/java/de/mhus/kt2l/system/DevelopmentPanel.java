@@ -80,7 +80,7 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         if(evilMode) {
             bar.addItem("Logs", e -> panelService.showSystemLogPanel(deskTab.getTabBar().getCore()).select());
         }
-        bar.addItem("EBCM", e -> deskTab.getTabBar().getCore().getDummyContextMenu().setTarget(null));
+        bar.addItem("EBCM", e -> deskTab.getTabBar().getCore().getGeneralContextMenu().setTarget(null));
 //        bar.addItem("Exception", e -> LOGGER.warn("Test", new RuntimeException("Test Exception")));
 
         add(bar);

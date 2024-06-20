@@ -53,7 +53,7 @@ public class DeskTabBar extends VerticalLayout {
 
     public DeskTabBar(Core core, boolean preserveMode) {
         this.preserveMode = preserveMode;
-        LOGGER.info("DeskTabBar preserve mode: {}", preserveMode);
+        LOGGER.debug("DeskTabBar preserve mode: {}", preserveMode);
         setWidthFull();
         this.core = core;
         content = new VerticalLayout();

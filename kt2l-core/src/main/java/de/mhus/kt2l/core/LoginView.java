@@ -87,7 +87,11 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 try {
                     req.login(loginConfig.getAutoLoginUser(), loginConfig.getLocalAutoLoginPassword());
                 } catch (ServletException e) {
-                    LOGGER.warn("Autologin failed for {}",loginConfig.getAutoLoginUser(),e);
+                    if (e.getMessage().contains("already authenticated")) {
+                        LOGGER.info("Already authenticated");
+                    } else {
+                        LOGGER.warn("Autologin failed for {}", loginConfig.getAutoLoginUser(), e);
+                    }
                 }
                 UI.getCurrent().navigate("/");
             }
