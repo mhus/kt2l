@@ -114,6 +114,13 @@ case $1 in
             echo "No logs available"
         fi
         ;;
+    lesslogs)
+        if [ -f $LOG_FILE ]; then
+            less +F $LOG_FILE
+        else
+            echo "No logs available"
+        fi
+        ;;
     *)
         echo "Usage: $0 {start|stop|status|zap|kill|logs}"
         exit 1

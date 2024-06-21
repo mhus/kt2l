@@ -20,7 +20,8 @@
 
 cd "$(dirname "$0")"
 cd ..
-#mvn clean install -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
+./launcher/prepare.sh
+mvn clean install -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
 
 cd kt2l-server
 
