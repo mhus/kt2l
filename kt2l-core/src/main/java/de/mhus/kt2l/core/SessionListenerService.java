@@ -34,7 +34,7 @@ public class SessionListenerService implements VaadinServiceInitListener {
         event.getSource().addSessionInitListener(
                     initEvent -> {
                         LOGGER.debug("◇ {} A new Session has been initialized! {}", tryThis(() -> initEvent.getSession().getSession().getId()).or("?"), initEvent);
-                        initEvent.getSession().getSession().setMaxInactiveInterval(sessionTimeout * 60);
+                        // initEvent.getSession().getSession().setMaxInactiveInterval(sessionTimeout * 60);
                     }
         );
         event.getSource().addSessionDestroyListener(

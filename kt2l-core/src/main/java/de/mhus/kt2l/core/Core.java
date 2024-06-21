@@ -46,6 +46,7 @@ import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.VaadinSessionState;
+import com.vaadin.flow.server.WrappedSession;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoIcon;
@@ -74,6 +75,7 @@ import de.mhus.kt2l.resources.common.ResourceYamlEditorPanel;
 import de.mhus.kt2l.resources.pod.ContainerShellPanel;
 import de.mhus.kt2l.resources.pod.PodLogsPanel;
 import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpSession;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +87,7 @@ import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.olli.FileDownloadWrapper;
 
 import javax.annotation.PostConstruct;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -277,10 +280,11 @@ public class Core extends AppLayout {
         session = ui.getSession();
         sessionId = session.getSession().getId();
         LOGGER.debug("㋡ {} UI attach {}", sessionId, Objects.hashCode(ui));
-        createIdleNotification();
+//        createIdleNotification();
 
         heartbeatRegistration = ui.addHeartbeatListener(event -> {
             LOGGER.debug("♥ {} UI Heartbeat", sessionId);
+//            touchHttpSession(event.getSource().getSession().getSession());
 //            event.getSource().access(() -> {
 //                event.getSource().getElement().executeJs("console.log('♥');");
 //            });
@@ -295,6 +299,18 @@ public class Core extends AppLayout {
 
     }
 
+    public static void touchHttpSession(WrappedSession session) {
+        try {
+            //System.out.println("before="+session.getLastAccessedTime());
+            Field f = session.getClass().getDeclaredField("session");
+            f.setAccessible(true);
+            HttpSession realSess = (HttpSession) f.get(session);
+            realSess.getClass().getMethod("access").invoke(realSess);
+            //System.out.println("after="+session.getLastAccessedTime());
+        } catch (Exception e) {
+            LOGGER.error("Can't access session", e);
+        }
+    }
     private void createIdleNotification() {
         var idleConf = viewsConfiguration.getConfig("core").getObject("idle").orElse(MTree.EMPTY_MAP);
         if (idleConf.getBoolean("enabled", true)) {
@@ -312,15 +328,19 @@ public class Core extends AppLayout {
             idleNotification.addRedirectButton("Logout now", "/reset");
             idleNotification.addCloseButton();
             idleNotification.setExtendSessionOnOutsideClick(true);
-            idleNotification.addOpenListener(event -> {
-                LOGGER.debug("㋡ {} Idle Notification Opened", sessionId);
-                if (idleConf.getBoolean("autoExtend", true))
-                    idleNotification.getElement().executeJs(
-                            "var self=this;setTimeout(() => { try {self.click(); }" +
-                                    " catch (error) {console.log(error);} }, " +
-                                    idleConf.getInt("autoExtendWaitSeconds", 1) * 1000 +
-                                    ");");
+            idleNotification.addExtendSessionListener(event -> {
+                LOGGER.debug("㋡ {} Idle Notification Extend Session", sessionId);
+                touchHttpSession(session.getSession());
             });
+//            idleNotification.addOpenListener(event -> {
+//                LOGGER.debug("㋡ {} Idle Notification Opened", sessionId);
+//                if (idleConf.getBoolean("autoExtend", true))
+//                    idleNotification.getElement().executeJs(
+//                            "var self=this;setTimeout(() => { try {self.click(); }" +
+//                                    " catch (error) {console.log(error);} }, " +
+//                                    idleConf.getInt("autoExtendWaitSeconds", 1) * 1000 +
+//                                    ");");
+//            });
             ui().add(idleNotification);
         }
     }
@@ -331,8 +351,6 @@ public class Core extends AppLayout {
         closeScheduler.cancel(false);
         detached(tabBar.getTabs()).forEach(DeskTab::closeTab);
         clusteredJobsClose();
-        if (heartbeatRegistration != null)
-            heartbeatRegistration.remove();
         if (coreListeners != null)
             coreListeners.forEach(l -> l.onCoreDestroyed(this));
         session = null;
