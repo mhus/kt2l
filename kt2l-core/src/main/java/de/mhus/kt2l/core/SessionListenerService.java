@@ -20,8 +20,8 @@ public class SessionListenerService implements VaadinServiceInitListener {
     It's needed by Idle Notifiation Addon to keep the session alive.
     Set the server.session.timeout in application.properties to minimum 2 minutes, Idle Notifiation will not work with less.
      */
-//    @Value("${server.session.timeout}")
-//    private int sessionTimeout;
+    @Value("${server.session.timeout:5}")
+    private int sessionTimeout;
 
     @PostConstruct
     public void init() {
@@ -34,7 +34,7 @@ public class SessionListenerService implements VaadinServiceInitListener {
         event.getSource().addSessionInitListener(
                     initEvent -> {
                         LOGGER.debug("◇ {} A new Session has been initialized! {}", tryThis(() -> initEvent.getSession().getSession().getId()).or("?"), initEvent);
-                        // initEvent.getSession().getSession().setMaxInactiveInterval(sessionTimeout * 60);
+                        initEvent.getSession().getSession().setMaxInactiveInterval(sessionTimeout * 60);
                     }
         );
         event.getSource().addSessionDestroyListener(

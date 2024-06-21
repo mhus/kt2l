@@ -234,8 +234,6 @@ public class Core extends AppLayout {
         }
         content.add(notNull(contentContainer, helpContent));
 
-        // createIdleNotification();
-
     }
 
     private void createHelpContent() {
@@ -302,7 +300,7 @@ public class Core extends AppLayout {
             LOGGER.debug("㋡ {} Create Idle Notification for UI {}", sessionId, Objects.hashCode(ui));
             IdleNotification idleNotification = new IdleNotification();
             idleNotification.setSecondsBeforeNotification( Math.max( 90, idleConf.getInt("notifyBeforeSeconds", 90)) );
-            var maxInactiveInterval = idleConf.getInt("maxInactiveIntervalSeconds", 120);
+            var maxInactiveInterval = idleConf.getInt("maxInactiveIntervalSeconds", 0);
             if (maxInactiveInterval > 0)
                 idleNotification.setMaxInactiveInterval( maxInactiveInterval );
             idleNotification.setMessage("Your session will expire in " +

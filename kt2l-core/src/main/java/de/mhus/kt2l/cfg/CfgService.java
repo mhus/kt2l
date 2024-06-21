@@ -49,7 +49,7 @@ public class CfgService {
     private Boolean canWriteGlobalCfg = null;
     private Map<String, Boolean> canWriteUserCfg = new HashMap<>();
 
-    public boolean isUserCfgEnabled() {
+    public synchronized boolean isUserCfgEnabled() {
 
         if (!securityService.hasRole(UsersConfiguration.ROLE.SETTINGS.name())) return false;
         var userName = SecurityContext.lookupUserName();

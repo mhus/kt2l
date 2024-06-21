@@ -95,7 +95,7 @@ jobs:
           cd ..
           rm -rf markdown-page-generator-plugin
       - name: Prepare
-        run: ./kt2l-desktop/launcher/prepare.sh
+        run: ./launcher/prepare.sh
       - name: Build maven linux-amd64
         run: mvn clean install -B -Plinux-amd64 -Pdeploy -Pproduction -Ppreview -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
       - name: Build maven macosx-aarch64

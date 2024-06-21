@@ -85,7 +85,7 @@ jobs:
 #        run: |
 #          mvn dependency:purge-local-repository -B -Dinclude:de.mhus.lib:mhus-commons,de.mhus.kt2l:vis-network-vaadin,de.mhus.kt2l:vaadin-raw-xterm-addon
       - name: Prepare
-        run: ./kt2l-desktop/launcher/prepare.sh
+        run: ./launcher/prepare.sh
       - name: Integration Tests
         run: |
           export DISPLAY=:99
