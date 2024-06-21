@@ -81,7 +81,7 @@ public class Kt2lDesktopApplication extends Kt2lApplication {
         display = new Display();
 
         MArgs arguments = new MArgs(args,
-                MArgs.opt("b", "Browser type: NONE, MOZILLA, WEBKIT")
+                MArgs.opt('b', "Browser type: NONE, MOZILLA, WEBKIT")
         );
         BrowserInstance.browserType = arguments.getOption("b");
         new BrowserInstance().setStartupMessage();
