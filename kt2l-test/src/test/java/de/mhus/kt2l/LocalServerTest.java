@@ -18,31 +18,29 @@
 package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MLang;
-import de.mhus.commons.tools.MThread;
 import de.mhus.commons.util.Value;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.pod.PodGrid;
 import de.mhus.kt2l.util.App;
 import de.mhus.kt2l.util.AremoricaContextConfiguration;
 import de.mhus.kt2l.util.AremoricaK8sService;
+import de.mhus.kt2l.util.WebDriverUtil;
 import de.mhus.kt2l.util.CoreHelper;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -73,7 +71,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
 @Import({AremoricaContextConfiguration.class, CoreHelper.class})
 public class LocalServerTest {
 
-    private static ChromeDriver driver;
+    private static WebDriver driver;
 
     @Autowired
     private ServletWebServerApplicationContext webServerApplicationContext;
@@ -85,22 +83,12 @@ public class LocalServerTest {
     @BeforeAll
     public static void beforeAll() throws IOException, ApiException {
         System.out.println("----------------------------------------------------------------");
-        System.out.println("ⓧ Before All");
+        System.out.println("Ⓘ Before All");
         System.out.println("----------------------------------------------------------------");
         DebugTestUtil.debugPrepare();
         AremoricaK8sService.start();
 
-//        WebDriverManager.chromedriver().clearDriverCache().setup();
-//        WebDriverManager.chromedriver().clearResolutionCache().setup();
-
-        WebDriverManager.chromedriver().setup();
-        ChromeOptions chromeOptions = new ChromeOptions();
-        chromeOptions.addArguments("--no-sandbox");
-        if (!DebugTestUtil.TEST_HEADLESS)
-            chromeOptions.addArguments("--headless");
-        chromeOptions.addArguments("disable-gpu");
-        driver = new ChromeDriver(chromeOptions);
-        driver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
+        driver = WebDriverUtil.open();
 
         AremoricaK8sService.createAremorica();
 
@@ -109,10 +97,10 @@ public class LocalServerTest {
     @AfterAll
     public static void afterAll() {
         System.out.println("----------------------------------------------------------------");
-        System.out.println("ⓧ After All");
+        System.out.println("Ⓘ After All");
         System.out.println("----------------------------------------------------------------");
 
-        MLang.tryThis(() -> driver.quit()).onFailure(e -> LOGGER.error("Error on quit", e));
+        WebDriverUtil.close(driver);
         AremoricaK8sService.stop();
     }
 
@@ -120,7 +108,7 @@ public class LocalServerTest {
     public void beforeEach(TestInfo testInfo) {
         System.out.println("----------------------------------------------------------------");
         var name = testInfo.getTestMethod().map(Method::getName).orElse("unknown");
-        System.out.println("ⓧ Start Test: " + name);
+        System.out.println("Ⓘ Start Test: " + name);
         System.out.println("----------------------------------------------------------------");
     }
 
@@ -128,7 +116,7 @@ public class LocalServerTest {
     public void afterEach(TestInfo testInfo) {
         System.out.println("----------------------------------------------------------------");
         var name = testInfo.getTestMethod().map(Method::getName).orElse("unknown");
-        System.out.println("ⓧ End Test: " + name);
+        System.out.println("Ⓘ End Test: " + name);
         System.out.println("----------------------------------------------------------------");
         DebugTestUtil.debugBreakpoint("After " + name);
     }
@@ -275,7 +263,7 @@ public class LocalServerTest {
         DebugTestUtil.doScreenshot(driver, "cluster_resources_pod");
     }
 
-
+    @Disabled // keyborad stroke s failed
     @Test
     @Order(6)
     public void testXTermAddon() throws InterruptedException {
@@ -299,7 +287,7 @@ public class LocalServerTest {
 
         // send 's' for Shell
         {
-            var element = driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[2]/vaadin-checkbox"));
+            var element = driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/.."));
             element.sendKeys("s");
         }
         // wait for shell

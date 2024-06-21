@@ -53,7 +53,7 @@
         <pattern>%date %highlight(%-5level) %msg %cyan(%logger@[%-4.30thread]) %mdc{trace_id}%n</pattern>
       </encoder>
     </appender>
-<!--
+
     <logger name="com.vaadin.flow.server.communication" level="INFO" />
     <logger name="org.springframework.web.servlet" level="INFO" />
     <logger name="org.springframework.context" level="INFO" />
@@ -64,7 +64,7 @@
     <logger name="com.vaadin.flow.spring" level="INFO" />
     <logger name="com.github.dockerjava.zerodep.shaded.org.apache.hc.client5.http.wire" level="INFO" />
     <logger name="org.apache.hc.client5.http.wire" level="INFO" />
--->
+
     <root level="DEBUG">
       <appender-ref ref="STDOUT" />
     </root>

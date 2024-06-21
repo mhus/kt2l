@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l;
 
+import de.mhus.commons.tools.MArgs;
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MThread;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ import java.io.InputStream;
 @Slf4j
 public class BrowserInstance {
 
+    public static MArgs.Option browserType;
     private Shell shell;
     private Browser browser;
     private int tabIndex;
@@ -113,7 +115,12 @@ public class BrowserInstance {
         item.setControl(c);
         c.setLayout(new FillLayout());
 
-        Browser browser = new Browser(c, SWT.NONE);
+        Browser browser = new Browser(c, switch(browserType.getValue("none").toLowerCase()) {
+            case "mozilla" -> SWT.MOZILLA;
+            case "webkit" -> SWT.WEBKIT;
+            case "chromium" -> SWT.CHROMIUM;
+            default -> SWT.NONE;
+        });
 
         item.setText(title);
 

@@ -21,7 +21,7 @@ core:
     enabled: true
     autoExtend: true
     autoExtendWaitSeconds: 10
-    notifyBeforeSeconds: 90
+    notifyBeforeSeconds: 115
     maxInactiveIntervalSeconds: 120
   uiLostEnabled: false
   uiTimeoutSeconds: 60

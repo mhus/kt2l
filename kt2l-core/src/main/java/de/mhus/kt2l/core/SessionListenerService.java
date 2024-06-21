@@ -20,8 +20,8 @@ public class SessionListenerService implements VaadinServiceInitListener {
     It's needed by Idle Notifiation Addon to keep the session alive.
     Set the server.session.timeout in application.properties to minimum 2 minutes, Idle Notifiation will not work with less.
      */
-    @Value("${server.session.timeout}")
-    private int sessionTimeout;
+//    @Value("${server.session.timeout}")
+//    private int sessionTimeout;
 
     @PostConstruct
     public void init() {

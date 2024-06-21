@@ -17,16 +17,12 @@
  */
 package de.mhus.kt2l;
 
-import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MThread;
-import de.mhus.commons.util.Value;
-import de.mhus.kt2l.resources.ResourcesGridPanel;
-import de.mhus.kt2l.resources.pod.PodGrid;
 import de.mhus.kt2l.util.App;
 import de.mhus.kt2l.util.AremoricaContextConfiguration;
 import de.mhus.kt2l.util.AremoricaK8sService;
+import de.mhus.kt2l.util.WebDriverUtil;
 import de.mhus.kt2l.util.CoreHelper;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
@@ -40,9 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,31 +45,26 @@ import org.springframework.context.annotation.Import;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Set;
 
 import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
-import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
-import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
 
-@Disabled
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
         "kt2l.configuration.localDirectory=config_timeout",
         "kt2l.configuration.usersDirectory=users_nodirectoryset",
-        "kt2l.deskTabPreserveMode=false",
-        "server.session.timeout=2"
+        "kt2l.deskTabPreserveMode=false"
+//        "server.session.timeout=2"
         }
 )
 @Import({AremoricaContextConfiguration.class, CoreHelper.class})
 public class LocalServerTimeoutTest {
 
-    private static ChromeDriver driver;
+    private static WebDriver driver;
 
     @Autowired
     private ServletWebServerApplicationContext webServerApplicationContext;
@@ -91,14 +80,7 @@ public class LocalServerTimeoutTest {
         System.out.println("----------------------------------------------------------------");
         DebugTestUtil.debugPrepare();
 
-        WebDriverManager.chromedriver().setup();
-        ChromeOptions chromeOptions = new ChromeOptions();
-        chromeOptions.addArguments("--no-sandbox");
-        if (!DebugTestUtil.TEST_HEADLESS)
-            chromeOptions.addArguments("--headless");
-        chromeOptions.addArguments("disable-gpu");
-        driver = new ChromeDriver(chromeOptions);
-        driver.manage().window().setSize(new org.openqa.selenium.Dimension(1920, 1080));
+        driver = WebDriverUtil.open();
 
     }
 
@@ -108,7 +90,7 @@ public class LocalServerTimeoutTest {
         System.out.println("ⓧ After All");
         System.out.println("----------------------------------------------------------------");
 
-        MLang.tryThis(() -> driver.quit()).onFailure(e -> LOGGER.error("Error on quit", e));
+        WebDriverUtil.close(driver);
         AremoricaK8sService.stop();
     }
 
@@ -131,16 +113,16 @@ public class LocalServerTimeoutTest {
 
     @Test
     @Order(2)
-    public void testIdleNotification() {
+    public void testExtendSession() {
         App.resetUi(driver, webServerApplicationContext);
         LOGGER.info("Wait for timeout time");
-        MThread.sleep(20 * 1000);
+        MThread.sleep(5 * 1000);
         LOGGER.info("Wait for Idle Notification Dialog");
 
+        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                .until(presenceOfElementLocated(By.id("extend-session")));
 
-
-
-        DebugTestUtil.doScreenshot(driver, "cluster_select");
+        DebugTestUtil.doScreenshot(driver, "extend_session");
 
     }
 

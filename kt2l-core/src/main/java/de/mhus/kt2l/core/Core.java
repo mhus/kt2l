@@ -280,14 +280,10 @@ public class Core extends AppLayout {
         session = ui.getSession();
         sessionId = session.getSession().getId();
         LOGGER.debug("㋡ {} UI attach {}", sessionId, Objects.hashCode(ui));
-//        createIdleNotification();
+        createIdleNotification();
 
         heartbeatRegistration = ui.addHeartbeatListener(event -> {
-            LOGGER.debug("♥ {} UI Heartbeat", sessionId);
-//            touchHttpSession(event.getSource().getSession().getSession());
-//            event.getSource().access(() -> {
-//                event.getSource().getElement().executeJs("console.log('♥');");
-//            });
+            LOGGER.debug("♥ {} UI Heartbeat ({})", event.getSource().getSession().getSession().getId(), event.getSource().getSession().getBrowser().getBrowserApplication());
         });
 
         Thread.startVirtualThread(() -> {
@@ -299,18 +295,6 @@ public class Core extends AppLayout {
 
     }
 
-    public static void touchHttpSession(WrappedSession session) {
-        try {
-            //System.out.println("before="+session.getLastAccessedTime());
-            Field f = session.getClass().getDeclaredField("session");
-            f.setAccessible(true);
-            HttpSession realSess = (HttpSession) f.get(session);
-            realSess.getClass().getMethod("access").invoke(realSess);
-            //System.out.println("after="+session.getLastAccessedTime());
-        } catch (Exception e) {
-            LOGGER.error("Can't access session", e);
-        }
-    }
     private void createIdleNotification() {
         var idleConf = viewsConfiguration.getConfig("core").getObject("idle").orElse(MTree.EMPTY_MAP);
         if (idleConf.getBoolean("enabled", true)) {
@@ -330,17 +314,16 @@ public class Core extends AppLayout {
             idleNotification.setExtendSessionOnOutsideClick(true);
             idleNotification.addExtendSessionListener(event -> {
                 LOGGER.debug("㋡ {} Idle Notification Extend Session", sessionId);
-                touchHttpSession(session.getSession());
             });
-//            idleNotification.addOpenListener(event -> {
-//                LOGGER.debug("㋡ {} Idle Notification Opened", sessionId);
-//                if (idleConf.getBoolean("autoExtend", true))
-//                    idleNotification.getElement().executeJs(
-//                            "var self=this;setTimeout(() => { try {self.click(); }" +
-//                                    " catch (error) {console.log(error);} }, " +
-//                                    idleConf.getInt("autoExtendWaitSeconds", 1) * 1000 +
-//                                    ");");
-//            });
+            idleNotification.addOpenListener(event -> {
+                LOGGER.debug("㋡ {} Idle Notification Opened", sessionId);
+                if (idleConf.getBoolean("autoExtend", true))
+                    idleNotification.getElement().executeJs(
+                            "var self=this;setTimeout(() => { try {self.click(); }" +
+                                    " catch (error) {console.log(error);} }, " +
+                                    idleConf.getInt("autoExtendWaitSeconds", 1) * 1000 +
+                                    ");");
+            });
             ui().add(idleNotification);
         }
     }
