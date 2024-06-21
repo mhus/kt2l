@@ -370,7 +370,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     private class ContainerProvider extends CallbackDataProvider<Container, Void> {
         public ContainerProvider() {
             super(query -> {
-                        LOGGER.debug("◌ Cont: Do the query {}",query);
+                        LOGGER.debug("◌ Cont: Do the query {} {}", K8s.CONTAINER, queryToString(query));
                         for(QuerySortOrder queryOrder :
                                 query.getSortOrders()) {
                             Collections.sort(containerList, (a, b) -> switch (queryOrder.getSorted()) {
@@ -404,7 +404,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                         }
                         return containerList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
-                        LOGGER.debug("◌ Cont: Do the size query {}",query);
+                        LOGGER.debug("◌ Cont: Do the size query {} {}",K8s.CONTAINER, queryToString(query));
                         if (containerList == null) {
                             containerList = new ArrayList<>();
 

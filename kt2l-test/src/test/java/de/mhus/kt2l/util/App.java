@@ -88,7 +88,8 @@ public class App {
         {
             var input = driver.findElement(By.xpath("//vaadin-combo-box[@placeholder=\"Namespace\"]/input"));
             input.clear();
-            input.sendKeys("indomitable-village");
+            MThread.sleep(1000);  // timing shit
+            input.sendKeys(namespace + " ");
             MThread.sleep(1000);  // timing shit
             input.sendKeys(Keys.DOWN, Keys.RETURN);
         }
@@ -98,7 +99,8 @@ public class App {
         {
             var input = driver.findElement(By.xpath("//vaadin-combo-box[@placeholder=\"Resource\"]/input"));
             input.clear();
-            input.sendKeys(resource);
+            MThread.sleep(1000);  // timing shit
+            input.sendKeys(resource + " ");
             MThread.sleep(1000);  // timing shit
             input.sendKeys(Keys.DOWN, Keys.RETURN);
         }

@@ -76,7 +76,7 @@ public class LocalServerTimeoutTest {
     @BeforeAll
     public static void beforeAll() throws IOException, ApiException {
         System.out.println("----------------------------------------------------------------");
-        System.out.println("ⓧ Before All");
+        System.out.println("Ⓘ Before All");
         System.out.println("----------------------------------------------------------------");
         DebugTestUtil.debugPrepare();
 
@@ -87,7 +87,7 @@ public class LocalServerTimeoutTest {
     @AfterAll
     public static void afterAll() {
         System.out.println("----------------------------------------------------------------");
-        System.out.println("ⓧ After All");
+        System.out.println("Ⓘ After All");
         System.out.println("----------------------------------------------------------------");
 
         WebDriverUtil.close(driver);
@@ -98,7 +98,7 @@ public class LocalServerTimeoutTest {
     public void beforeEach(TestInfo testInfo) {
         System.out.println("----------------------------------------------------------------");
         var name = testInfo.getTestMethod().map(Method::getName).orElse("unknown");
-        System.out.println("ⓧ Start Test: " + name);
+        System.out.println("Ⓘ Start Test: " + name);
         System.out.println("----------------------------------------------------------------");
     }
 
@@ -106,7 +106,7 @@ public class LocalServerTimeoutTest {
     public void afterEach(TestInfo testInfo) {
         System.out.println("----------------------------------------------------------------");
         var name = testInfo.getTestMethod().map(Method::getName).orElse("unknown");
-        System.out.println("ⓧ End Test: " + name);
+        System.out.println("Ⓘ End Test: " + name);
         System.out.println("----------------------------------------------------------------");
         DebugTestUtil.debugBreakpoint("After " + name);
     }

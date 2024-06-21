@@ -21,6 +21,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.lang.IRegistration;
@@ -219,7 +220,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         public ResourceDataProvider() {
             super(query -> {
                 synchronized (AbstractGridWithNamespace.this) {
-                    LOGGER.debug("◌ Do the query {}", query);
+                    LOGGER.debug("◌ Do the query {} {}", getManagedResourceType(), queryToString(query));
                     if (filteredList == null) return Stream.empty();
                     for (QuerySortOrder queryOrder :
                             query.getSortOrders()) {
@@ -247,7 +248,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                     return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                 }
             }, query -> {
-                        LOGGER.debug("◌ Do the size query {}",query);
+                        LOGGER.debug("◌ Do the size query {} {}", getManagedResourceType(), queryToString(query));
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
                             synchronized (resourcesList) {
