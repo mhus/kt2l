@@ -4,7 +4,7 @@ export let download : DownloadFile = {
     description: "Can be executed directly in Mac OS X M1. Java JDK 21 is included.",
     href: "https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/kt2l-desktop-macosx-aarch64-2024-06-21.dmg",
     href_help: "/docs/installation/desktop#mac-osx-bundle",
-    size: "355MB",
+    size: "369MB",
     enabled: true,
     created: "2024-06-21"
 }
