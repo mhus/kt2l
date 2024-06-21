@@ -21,6 +21,10 @@ import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MSystem;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.HasFullPageScreenshot;
 
 import javax.swing.*;
 import java.io.File;
@@ -32,6 +36,7 @@ public class DebugTestUtil {
     public static final boolean TEST_HEADLESS = MCast.toboolean(System.getenv("TEST_HEADLESS"), TEST_DEBUG);
     public static final boolean TEST_SCREENSHOTS = MCast.toboolean(System.getenv("TEST_SCREENSHOTS"), false);
     private static JFrame frame;
+    private static JLabel frameLabel;
 
     public static void debugPrepare() {
         if (TEST_DEBUG) {
@@ -39,8 +44,10 @@ public class DebugTestUtil {
             System.setProperty("java.awt.headless", String.valueOf(!TEST_DEBUG));
             frame = new JFrame();
             frame.setSize(200,50);
-            frame.getContentPane().add(new JLabel("Test in debug mode"));
+            frameLabel = new JLabel("Running in debug mode");
+            frame.getContentPane().add(frameLabel);
             frame.setVisible(true);
+            frame.setAlwaysOnTop(true);
         }
         if (TEST_SCREENSHOTS) {
             File dir = new File("target/screenshots");
@@ -51,17 +58,24 @@ public class DebugTestUtil {
     public static void debugBreakpoint(String msg) {
         if (!TEST_DEBUG) return;
 
+        frame.toFront();
+        frameLabel.setText("Waiting for user input");
+
         JOptionPane.showConfirmDialog(null,
                 msg, "Breakpoint", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE);
 
+        frameLabel.setText("Running in debug mode");
+
     }
 
-    public static void doScreenshot(org.openqa.selenium.chrome.ChromeDriver driver, String name) {
+    public static void doScreenshot(WebDriver driver, String name) {
         if (!TEST_SCREENSHOTS) return;
 
-        var screenshot = driver.getScreenshotAs(OutputType.FILE);
-        screenshot.renameTo(new File("target/screenshots/" + name + ".png"));
-        LOGGER.info("Screenshot {} at {}", name, screenshot.getAbsolutePath());
-
+        if (driver instanceof TakesScreenshot screenshotDriver) {
+            var screenshot = screenshotDriver.getScreenshotAs(OutputType.FILE);
+            screenshot.renameTo(new File("target/screenshots/" + name + ".png"));
+            LOGGER.info("Screenshot {} at {}", name, screenshot.getAbsolutePath());
+        } else
+            LOGGER.error("Screenshot not supported by driver");
     }
 }

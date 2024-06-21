@@ -22,6 +22,10 @@ have focus in the grid. Moreover there are the following shortkeys available:
 ## Pod Score
 
 The pod score is a simple heuristic to give you a hint how healthy a pod is. A higher score is more problematic.
+You can toggle scorer alert highlighting in the `View' menu `Highlight Alerts`. You can see the flag `(HA)` in the
+status bar if highlighting is enabled.
+
+For more details see the [Pod Score Comnfiguration](../configuration/config-pod_-scorer.md) section.
 
 ## Duplicate Resources Grid
 

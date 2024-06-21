@@ -15,9 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.development;
+package de.mhus.kt2l.system;
 
 import com.sun.management.UnixOperatingSystemMXBean;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import de.mhus.commons.tools.MCast;
@@ -27,6 +28,7 @@ import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
+import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.generated.DeployInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -42,10 +44,10 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
     private Configuration config;
-
     @Autowired
     private UpTimeService upTimeService;
-
+    @Autowired
+    private PanelService panelService;
     private TextArea info;
     private DeskTab deskTab;
     private OperatingSystemMXBean osBean;
@@ -58,6 +60,10 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
         info.setReadOnly(true);
         info.setWidth("100%");
         add(info);
+
+        var menuBar = new MenuBar();
+        menuBar.addItem("KT2L Logs", e -> panelService.showSystemLogPanel(deskTab.getTabBar().getCore()).select());
+        add(menuBar);
 
         osBean = ManagementFactory.getOperatingSystemMXBean();
         updateInfo(0);

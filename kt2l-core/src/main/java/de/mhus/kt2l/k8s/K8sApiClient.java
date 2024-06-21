@@ -61,6 +61,10 @@ import java.util.Map;
     tags={class java.lang.Object=de.mhus.kt2l.k8s.K8sUtil$1@299ce708}}
     with 401 and {"kind":"Status","apiVersion":"v1","metadata":{},"status":"Failure","message":"Unauthorized",
     "reason":"Unauthorized","code":401}
+
+    503 is only thrown if a service is not available, e.g. metrics server is not running
+    401 is thrown if the token is not valid anymore, in this case the client should refresh the token and retry the request
+
  */
 
 @Slf4j
@@ -77,7 +81,7 @@ public class K8sApiClient extends ApiClient {
     }
 
     private boolean canRetry(ApiException e) {
-        return e.getCode() == 401 || e.getCode() == 503;
+        return e.getCode() == 401;
     }
 
     private void refreshClient() {

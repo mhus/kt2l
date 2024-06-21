@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-# JAVA_HOME=
-# SERVER_PORT=
-# CONFIGURATION_DIRECTORY=
-# JAVA_VM_OPTS=
+# export JAVA_HOME=
+# export SERVER_PORT=
+# export CONFIGURATION_DIRECTORY=
+# export JAVA_VM_OPTS=

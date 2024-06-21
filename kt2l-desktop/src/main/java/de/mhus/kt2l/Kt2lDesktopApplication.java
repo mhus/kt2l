@@ -34,6 +34,7 @@
 package de.mhus.kt2l;
 
 import com.github.javaparser.JavaToken;
+import de.mhus.commons.tools.MArgs;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
@@ -79,6 +80,10 @@ public class Kt2lDesktopApplication extends Kt2lApplication {
         Display.setAppName("KT2L");
         display = new Display();
 
+        MArgs arguments = new MArgs(args,
+                MArgs.opt("b", "Browser type: NONE, MOZILLA, WEBKIT")
+        );
+        BrowserInstance.browserType = arguments.getOption("b");
         new BrowserInstance().setStartupMessage();
         
         Thread.startVirtualThread(() -> {

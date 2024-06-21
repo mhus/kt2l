@@ -22,14 +22,21 @@ cd ..
 
 . ./env.sh
 
-JAVA_BIN=$JAVA_HOME/bin/java
-APP_JAR=bin/kt2l-server-0.0.1-SNAPSHOT.jar
+JAVA_CP=
+for i in lib/*.jar; do
+  if [ "x$JAVA_CP" != "x" ]; then
+    JAVA_CP=$JAVA_CP:
+  fi
+  JAVA_CP=$JAVA_CP$i
+done
+MAIN_CLASS=org.springframework.boot.loader.launch.JarLauncher
 KT2L_TMP_DIRECTORY=${KT2L_TMP_DIRECTORY:-var/tmp}
+JAVA_BIN=${JAVA_BIN:-java}
 
 KT2L_RESTART=1
 export KT2L_RESTART_POSSIBLE=true
 while [ $KT2L_RESTART -eq 1 ]; do
-  exec $JAVA_BIN -Dspring.profiles.active=prod $JAVA_VM_OPTS -jar $APP_JAR
+  exec $JAVA_BIN -Dspring.profiles.active=prod $JAVA_VM_OPTS -cp $JAVA_CP $MAIN_CLASS $@
   RC=$?
   KT2L_RESTART=0
   if [ $RC -eq 101 ]; then

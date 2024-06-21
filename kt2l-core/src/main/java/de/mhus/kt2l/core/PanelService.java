@@ -25,7 +25,7 @@ import de.mhus.kt2l.ai.AiResourcePanel;
 import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.development.SystemInfoPanel;
+import de.mhus.kt2l.system.SystemInfoPanel;
 import de.mhus.kt2l.events.EventPanel;
 import de.mhus.kt2l.helm.HelmChartDetailsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
@@ -46,6 +46,7 @@ import de.mhus.kt2l.resources.pod.PodLogsPanel;
 import de.mhus.kt2l.resources.secret.EditSecretPanel;
 import de.mhus.kt2l.storage.StorageFile;
 import de.mhus.kt2l.storage.StoragePanel;
+import de.mhus.kt2l.system.SystemLogPanel;
 import de.mhus.kt2l.vis.VisPanel;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -72,7 +73,7 @@ public class PanelService {
                 icon,
                 panelCreator)
         .setColor(parentTab.getColor())
-                .setParentTab(parentTab);
+        .setParentTab(parentTab);
     }
 
     public DeskTab addPanel(
@@ -102,6 +103,7 @@ public class PanelService {
                                 resourceType,
                                 resource
                         ))
+                .setReproducable(true)
                 .setColor(parentTab.getColor())
                 .setParentTab(parentTab)
                 .setHelpContext("yaml")
@@ -145,6 +147,7 @@ public class PanelService {
                 VaadinIcon.MODAL.create(),
                 () -> new LocalBashPanel(core)
         )
+                .setReproducable(false)
                 .setHelpContext("localbash")
                 .setWindowTitle("Local Bash");
     }
@@ -161,6 +164,7 @@ public class PanelService {
                         core,
                         selected
                 ))
+                .setReproducable(false)
                 .setHelpContext("shell")
                 .setWindowTitle(cluster.getTitle() + " - " + selected.getMetadata().getName() + " - Shell");
     }
@@ -174,6 +178,7 @@ public class PanelService {
                 true,
                 VaadinIcon.STORAGE.create(),
                 () -> new StoragePanel())
+                .setReproducable(true)
                 .setHelpContext("storage")
                 .setWindowTitle("Storage");
     }
@@ -191,6 +196,7 @@ public class PanelService {
                                 core,
                                 cluster
                         )).setHelpContext("vis")
+                .setReproducable(false)
                 .setColor(cluster.getColor())
                 .setWindowTitle(cluster.getTitle() + " - Visulization");
     }
@@ -204,7 +210,9 @@ public class PanelService {
                 false,
                 VaadinIcon.CALENDAR_CLOCK.create(),
                 () -> new EventPanel(core, cluster, selected)
-        ).setHelpContext("events")
+        )
+                .setReproducable(true)
+                .setHelpContext("events")
                 .setWindowTitle(cluster.getName() + " - " + name + " - Events");
     }
 
@@ -218,6 +226,7 @@ public class PanelService {
                 VaadinIcon.CALENDAR_CLOCK.create(),
                 () -> new EventPanel(core, cluster)
         )
+                .setReproducable(true)
                 .setColor(cluster.getColor())
                 .setHelpContext("events")
                 .setWindowTitle(cluster.getTitle() + " Events");
@@ -232,6 +241,7 @@ public class PanelService {
                 VaadinIcon.INPUT.create(),
                 () -> new EditConfigMapPanel(core, cluster, configMap)
         )
+                .setReproducable(true)
                 .setHelpContext("edit_configmap")
                 .setWindowTitle(cluster.getTitle() + " - Edit ConfigMap " + configMap.getMetadata().getName());
     }
@@ -260,6 +270,7 @@ public class PanelService {
                 VaadinIcon.PASSWORD.create(),
                 () -> new EditSecretPanel(core, cluster, secret)
         )
+                .setReproducable(true)
                 .setHelpContext("edit_secret")
                 .setWindowTitle(cluster.getTitle() + " - Edit Secret " + secret.getMetadata().getName());
     }
@@ -278,6 +289,7 @@ public class PanelService {
                         globalFactories,
                         configDir,
                         fallbackDirs))
+                .setReproducable(true)
                 .setHelpContext("global_cfg")
                 .setWindowTitle("Global Settings");
     }
@@ -296,6 +308,7 @@ public class PanelService {
                         factories,
                         configDir,
                         fallbackDirs))
+                .setReproducable(true)
                 .setHelpContext("user_cfg")
                 .setWindowTitle("User Settings");
     }
@@ -334,6 +347,7 @@ public class PanelService {
                                 core,
                                 containers
                         ))
+                .setReproducable(true)
                 .setHelpContext("exec")
                 .setWindowTitle(cluster.getTitle() + " - " + (containers.size() == 1 ? firstSelectedPod.getMetadata().getName() : containers.size() + " Items") + " - Exec");
     }
@@ -351,6 +365,7 @@ public class PanelService {
                                 core,
                                 namespace
                         ))
+                .setReproducable(true)
                 .setHelpContext("create")
                 .setWindowTitle(cluster.getTitle() + " - " + namespace + " - Create");
     }
@@ -368,6 +383,7 @@ public class PanelService {
                                 core,
                                 selected
                         ))
+                .setReproducable(true)
                 .setHelpContext("patch")
                 .setWindowTitle(cluster.getTitle() + " - " + selected.size() + " Items - Patch");
     }
@@ -422,6 +438,7 @@ public class PanelService {
                                 cluster,
                                 containers
                         ))
+                .setReproducable(true)
                 .setHelpContext("logs")
                 .setWindowTitle(cluster.getTitle() + " - " + (containers.size() == 1 ? firstSelectedPod.getMetadata().getName() : containers.size() + " Items" ) + " - Logs");
     }
@@ -436,6 +453,7 @@ public class PanelService {
                 VaadinIcon.CLOUD_UPLOAD_O.create(),
                 () -> new PortForwardingPanel(core, cluster)
         )
+                .setReproducable(true)
                 .setColor(cluster.getColor())
                 .setHelpContext("portforward")
                 .setWindowTitle(cluster.getTitle() + " - Port Forward");
@@ -451,6 +469,7 @@ public class PanelService {
                 HelmClusterAction.getHelmIcon(),
                 () -> new HelmInstalledChartsPanel(core, cluster)
         )
+                .setReproducable(true)
                 .setColor(cluster.getColor())
                 .setHelpContext("helm_installed_charts")
                 .setWindowTitle(cluster.getTitle() + " - Helm Charts");
@@ -466,6 +485,7 @@ public class PanelService {
                 HelmClusterAction.getHelmIcon(),
                 () -> new HelmChartDetailsPanel(parentTab.getTabBar().getCore(), cluster, resource)
         )
+                .setReproducable(true)
                 .setHelpContext("helm_details")
                 .setWindowTitle(cluster.getTitle() + " - " + resource.getMetadata().getName() + " - Helm Details");
     }
@@ -484,4 +504,17 @@ public class PanelService {
                 .setHelpContext("system_info");
     }
 
+    public DeskTab showSystemLogPanel(Core core) {
+        return addPanel(
+                core,
+                null,
+                "system-log",
+                "System Logs",
+                true,
+                VaadinIcon.INFO_CIRCLE_O.create(),
+                () -> new SystemLogPanel()
+        )
+                .setReproducable(true)
+                .setHelpContext("system_logs");
+    }
 }

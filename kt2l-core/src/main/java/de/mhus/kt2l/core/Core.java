@@ -46,6 +46,7 @@ import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.VaadinSessionState;
+import com.vaadin.flow.server.WrappedSession;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.LumoIcon;
@@ -53,9 +54,9 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
+import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
-import de.mhus.commons.util.Base64;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.cfg.CfgService;
 import de.mhus.kt2l.cluster.Cluster;
@@ -74,6 +75,7 @@ import de.mhus.kt2l.resources.common.ResourceYamlEditorPanel;
 import de.mhus.kt2l.resources.pod.ContainerShellPanel;
 import de.mhus.kt2l.resources.pod.PodLogsPanel;
 import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpSession;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +87,7 @@ import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.olli.FileDownloadWrapper;
 
 import javax.annotation.PostConstruct;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -177,6 +180,9 @@ public class Core extends AppLayout {
     private String browserMemoryUsage;
     @Value("${kt2l.deskTabPreserveMode:true}")
     private boolean deskTabPreserveMode;
+    @Getter
+    private ContextMenu generalContextMenu;
+    private boolean uiLostEnabled = false;
 
     public Core(AuthenticationContext authContext) {
         this.authContext = authContext;
@@ -189,6 +195,13 @@ public class Core extends AppLayout {
         session = UI.getCurrent().getSession();
         sessionId = session.getSession().getId();
 
+        if (!MSystem.isVmDebug()) {
+            generalContextMenu = new ContextMenu();
+            generalContextMenu.setTarget(this);
+            generalContextMenu.addItem("Reload", e -> ui().getPage().reload());
+        }
+
+        uiLostEnabled = viewsConfiguration.getConfig("core").getBoolean("uiLostEnabled", uiLostEnabled);
         uiTemeoutSeconds = viewsConfiguration.getConfig("core").getLong("uiTimeoutSeconds", uiTemeoutSeconds);
         trackBrowserMemoryUsage = viewsConfiguration.getConfig("core").getBoolean("trackBrowserMemoryUsage", trackBrowserMemoryUsage);
 
@@ -220,6 +233,8 @@ public class Core extends AppLayout {
             createHelpContent();
         }
         content.add(notNull(contentContainer, helpContent));
+
+        // createIdleNotification();
 
     }
 
@@ -268,7 +283,7 @@ public class Core extends AppLayout {
         createIdleNotification();
 
         heartbeatRegistration = ui.addHeartbeatListener(event -> {
-            LOGGER.debug("♥ {} UI Heartbeat", sessionId);
+            LOGGER.debug("♥ {} UI Heartbeat ({})", event.getSource().getSession().getSession().getId(), event.getSource().getSession().getBrowser().getBrowserApplication());
         });
 
         Thread.startVirtualThread(() -> {
@@ -283,9 +298,13 @@ public class Core extends AppLayout {
     private void createIdleNotification() {
         var idleConf = viewsConfiguration.getConfig("core").getObject("idle").orElse(MTree.EMPTY_MAP);
         if (idleConf.getBoolean("enabled", true)) {
+            ui().getChildren().filter(c -> c instanceof IdleNotification).forEach(ui()::remove);
+            LOGGER.debug("㋡ {} Create Idle Notification for UI {}", sessionId, Objects.hashCode(ui));
             IdleNotification idleNotification = new IdleNotification();
-
-            idleNotification.setSecondsBeforeNotification( idleConf.getInt("notifyBeforeSeconds", 90) );
+            idleNotification.setSecondsBeforeNotification( Math.max( 90, idleConf.getInt("notifyBeforeSeconds", 90)) );
+            var maxInactiveInterval = idleConf.getInt("maxInactiveIntervalSeconds", 120);
+            if (maxInactiveInterval > 0)
+                idleNotification.setMaxInactiveInterval( maxInactiveInterval );
             idleNotification.setMessage("Your session will expire in " +
                     IdleNotification.MessageFormatting.SECS_TO_TIMEOUT
                     + " seconds.");
@@ -293,16 +312,19 @@ public class Core extends AppLayout {
             idleNotification.addRedirectButton("Logout now", "/reset");
             idleNotification.addCloseButton();
             idleNotification.setExtendSessionOnOutsideClick(true);
+            idleNotification.addExtendSessionListener(event -> {
+                LOGGER.debug("㋡ {} Idle Notification Extend Session", sessionId);
+            });
             idleNotification.addOpenListener(event -> {
                 LOGGER.debug("㋡ {} Idle Notification Opened", sessionId);
                 if (idleConf.getBoolean("autoExtend", true))
                     idleNotification.getElement().executeJs(
                             "var self=this;setTimeout(() => { try {self.click(); }" +
                                     " catch (error) {console.log(error);} }, " +
-                                    idleConf.getInt("autoExtendWaitSeconds", 5) * 1000 +
+                                    idleConf.getInt("autoExtendWaitSeconds", 1) * 1000 +
                                     ");");
             });
-            ui.add(idleNotification);
+            ui().add(idleNotification);
         }
     }
 
@@ -312,8 +334,6 @@ public class Core extends AppLayout {
         closeScheduler.cancel(false);
         detached(tabBar.getTabs()).forEach(DeskTab::closeTab);
         clusteredJobsClose();
-        if (heartbeatRegistration != null)
-            heartbeatRegistration.remove();
         if (coreListeners != null)
             coreListeners.forEach(l -> l.onCoreDestroyed(this));
         session = null;
@@ -528,7 +548,7 @@ public class Core extends AppLayout {
         if (session == null) return;
         try {
             LOGGER.trace("㋡ {} Refresh for session {}", sessionId, session);
-            if (ui == null && uiLost > 0) {
+            if (uiLostEnabled && ui == null && uiLost > 0) {
                 if (System.currentTimeMillis() - uiLost > uiTemeoutSeconds*1000) {
                     LOGGER.error("㋡ {} UI lost, try to close session", sessionId);
                     closeSession();

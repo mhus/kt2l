@@ -19,15 +19,17 @@
 log:
   maxCachedEntries: 1000
   maxCachedCharacters: 30000
-  jsonFields: @timestamp,severity,message
+  jsonFields: "@timestamp,severity,message"
 core:
   idle:
     enabled: true
     autoExtend: true
-    autoExtendWaitSeconds: 5
+    autoExtendWaitSeconds: 1
     notifyBeforeSeconds: 90
+    maxInactiveIntervalSeconds: 0
+  uiLostEnabled: false
   uiTimeoutSeconds: 60
-  trackBrowserMemoryUsage: true
+  trackBrowserMemoryUsage: false
 snippets:
   maxVisibleResults: 30
 portForward:

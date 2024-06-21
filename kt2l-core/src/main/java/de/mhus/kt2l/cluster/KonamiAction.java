@@ -39,7 +39,7 @@ public class KonamiAction {
     private List<ShortcutRegistration> shortcutRegistrations = Collections.synchronizedList(new ArrayList<>());
 
     public void attach(Component component) {
-        LOGGER.debug("Attach Konami: {}", component);
+        //LOGGER.debug("Attach Konami: {}", component);
         component.addAttachListener(e -> {
             shortcutRegistrations.forEach(ShortcutRegistration::remove);
             addShortcutRegistration(Shortcuts.addShortcutListener(component, this::konami, Key.ARROW_UP, KeyModifier.ALT));

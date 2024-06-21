@@ -43,6 +43,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MString;
@@ -645,6 +646,15 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     }
 
     protected abstract KubernetesObject getSelectedKubernetesObject(T resource);
+
+    protected <T, F> String queryToString(Query<T, F> query) {
+        return "QUERY" +
+                        (query.getOffset() == 0 && query.getLimit() == Integer.MAX_VALUE ?
+                                "" : (" OFFSET " + query.getOffset() + " LIMIT " + query.getLimit())) +
+                        (query.getSortOrders() == null || query.getSortOrders().isEmpty() ?
+                                "" : (" ORDER " + query.getSortOrders().stream().map(s -> s.getSorted() + " " + s.getDirection()).collect(Collectors.joining(","))));
+    }
+
 }
 
 

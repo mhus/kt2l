@@ -14,3 +14,4 @@ it is for from being feature complete. Here are some of the known issues:
 * Restart is only working for the server. All other bundles will stop working after a restart and need to be restarted manually. 
 * Downloading files from the server is not working properly. The downloaded zip file is corrupted.
 * AI is not tested with OpenAI. It is only tested with ollama.
+* Problems with some versions of Chrome browser. The session will reset after a few minutes. Shown in Browser console with `Received xhr message: for(;;);[{"meta":{"sessionExpired":true}}]`.

@@ -149,7 +149,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 
         public ResourcesProvider() {
             super(query -> {
-                        LOGGER.debug("Do the query {}",query);
+                        LOGGER.debug("Do the query {}",queryToString(query));
                         if (filteredList == null) return Stream.empty();
                         for(QuerySortOrder queryOrder :
                                 query.getSortOrders()) {
@@ -168,7 +168,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                         }
                         return filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
-                        LOGGER.debug("Do the size query {}",query);
+                        LOGGER.debug("Do the size query {}",queryToString(query));
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
                             final var namespaceName = namespace ==  null || namespace.equals("all") ? null : (String) namespace;

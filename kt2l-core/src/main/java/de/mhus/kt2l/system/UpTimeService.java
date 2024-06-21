@@ -15,31 +15,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.development;
+package de.mhus.kt2l.system;
 
-import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.core.CoreListener;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 @Component
-public class CoreCounterListener implements CoreListener {
+public class UpTimeService {
 
-    private static AtomicInteger counter = new AtomicInteger(0);
+        private long startTime = System.currentTimeMillis();
 
-    @Override
-    public void onCoreCreated(Core core) {
-        counter.incrementAndGet();
-    }
+        public long getUpTime() {
+            return System.currentTimeMillis() - startTime;
+        }
 
-    @Override
-    public void onCoreDestroyed(Core core) {
-        counter.decrementAndGet();
-    }
-
-    public static int getCounter() {
-        return counter.get();
-    }
+        public String getUpTimeFormatted() {
+            long time = getUpTime();
+            long sec = time / 1000;
+            long min = sec / 60;
+            long hour = min / 60;
+            long day = hour / 24;
+            return String.format("%d days %02d:%02d:%02d", day, hour % 24, min % 60, sec % 60);
+        }
 
 }

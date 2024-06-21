@@ -22,6 +22,7 @@ import de.mhus.kt2l.DebugTestUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
@@ -33,7 +34,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
 @Slf4j
 public class App {
 
-    public static void resetUi(ChromeDriver driver, ServletWebServerApplicationContext webServerApplicationContext) {
+    public static void resetUi(WebDriver driver, ServletWebServerApplicationContext webServerApplicationContext) {
         LOGGER.info("Reset test on port {}", webServerApplicationContext.getWebServer().getPort());
 
         boolean done = false;
@@ -74,7 +75,7 @@ public class App {
     }
 
     // Open the cluster resources view from main view
-    public static void clusterOpenResources(ChromeDriver driver) {
+    public static void clusterOpenResources(WebDriver driver) {
         // click on Resources on Main
         driver.findElement(By.xpath("//vaadin-menu-bar-item[contains(.,\"Resources\")]")).click();
         // wait for the view menu
@@ -82,22 +83,24 @@ public class App {
                 .until(presenceOfElementLocated(By.xpath("//vaadin-menu-bar-item[contains(.,\"View\")]")));
     }
 
-    public static void resourcesSelectNamespace(ChromeDriver driver, String namespace) {
+    public static void resourcesSelectNamespace(WebDriver driver, String namespace) {
         // select namespace
         {
             var input = driver.findElement(By.xpath("//vaadin-combo-box[@placeholder=\"Namespace\"]/input"));
             input.clear();
-            input.sendKeys("indomitable-village");
+            MThread.sleep(1000);  // timing shit
+            input.sendKeys(namespace + " ");
             MThread.sleep(1000);  // timing shit
             input.sendKeys(Keys.DOWN, Keys.RETURN);
         }
     }
 
-    public static void resourcesSelectResource(ChromeDriver driver, String resource) {
+    public static void resourcesSelectResource(WebDriver driver, String resource) {
         {
             var input = driver.findElement(By.xpath("//vaadin-combo-box[@placeholder=\"Resource\"]/input"));
             input.clear();
-            input.sendKeys(resource);
+            MThread.sleep(1000);  // timing shit
+            input.sendKeys(resource + " ");
             MThread.sleep(1000);  // timing shit
             input.sendKeys(Keys.DOWN, Keys.RETURN);
         }
