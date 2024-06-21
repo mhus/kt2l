@@ -89,7 +89,10 @@ public class App {
             var input = driver.findElement(By.xpath("//vaadin-combo-box[@placeholder=\"Namespace\"]/input"));
             input.clear();
             MThread.sleep(1000);  // timing shit
-            input.sendKeys(namespace + " ");
+            for (int i = 0; i < 20; i++)
+                input.sendKeys(Keys.DELETE);
+            MThread.sleep(1000);  // timing shit
+            input.sendKeys(namespace);
             MThread.sleep(1000);  // timing shit
             input.sendKeys(Keys.DOWN, Keys.RETURN);
         }
@@ -100,7 +103,10 @@ public class App {
             var input = driver.findElement(By.xpath("//vaadin-combo-box[@placeholder=\"Resource\"]/input"));
             input.clear();
             MThread.sleep(1000);  // timing shit
-            input.sendKeys(resource + " ");
+            for (int i = 0; i < 20; i++)
+                input.sendKeys(Keys.DELETE);
+            MThread.sleep(1000);  // timing shit
+            input.sendKeys(resource);
             MThread.sleep(1000);  // timing shit
             input.sendKeys(Keys.DOWN, Keys.RETURN);
         }
