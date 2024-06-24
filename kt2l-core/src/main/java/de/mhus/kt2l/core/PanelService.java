@@ -47,6 +47,7 @@ import de.mhus.kt2l.resources.secret.EditSecretPanel;
 import de.mhus.kt2l.storage.StorageFile;
 import de.mhus.kt2l.storage.StoragePanel;
 import de.mhus.kt2l.system.SystemLogPanel;
+import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.vis.VisPanel;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1ConfigMap;

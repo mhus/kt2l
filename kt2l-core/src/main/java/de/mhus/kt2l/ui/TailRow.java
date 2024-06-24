@@ -15,9 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.core;
+package de.mhus.kt2l.ui;
 
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Paragraph;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

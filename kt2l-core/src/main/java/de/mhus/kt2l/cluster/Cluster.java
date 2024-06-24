@@ -19,7 +19,7 @@ package de.mhus.kt2l.cluster;
 
 import de.mhus.commons.tools.MPeriod;
 import de.mhus.commons.tree.ITreeNode;
-import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;

@@ -20,10 +20,13 @@
 cd "$(dirname "$0")"
 cd ..
 
-PID_FILE=var/kt2l-server.pid
-LOG_FILE=var/logs/kt2l-server.log
+PID_FILE=var/run/kt2l-server.pid
+export KT2L_LOG_DIRECTORY=var/logs
 RUN=./bin/run.sh
+
 . ./env.sh
+
+LOG_FILE=${LOG_FILE:-$KT2L_LOG_DIRECTORY/stdout.log}
 
 function wait_for_pid {
     PID=$1
@@ -51,7 +54,6 @@ case $1 in
         done
         ;;
     start)
-
         if [ -f $PID_FILE ]; then
             PID=$(cat $PID_FILE)
             if ps -p $PID > /dev/null; then
@@ -60,7 +62,7 @@ case $1 in
             fi
         fi
         # rotate log file
-        if [ "x$KT2L_ROTATE_LOG" == "xtrue" ]; then
+        if [ "x$KT2L_ROTATE_STDOUT" == "xtrue" ]; then
             for i in $(seq 8 -1 1); do
                 if [ -f $LOG_FILE.$i ]; then
                     rm $LOG_FILE.$((i+1)) || true
@@ -73,9 +75,10 @@ case $1 in
             fi
         fi
         # start in background
+        export KT2L_SPRING_PROFILES=logtofile
         nohup $RUN > $LOG_FILE 2>&1 &
         echo $! > $PID_FILE
-        echo "kt2l-server started on PID $(cat $PID_FILE) and port ${SERVER_PORT:-8080}"
+        echo "kt2l-server started on PID $(cat $PID_FILE) and PORT ${SERVER_PORT:-9080}"
         ;;
     stop)
         if [ -f $PID_FILE ]; then
@@ -107,16 +110,25 @@ case $1 in
           echo "server running on $i"
         done
         ;;
-    logs)
+    stdout)
         if [ -f $LOG_FILE ]; then
-            tail -f $LOG_FILE
+            less +F $LOG_FILE
+        else
+            echo "No stdout log available"
+        fi
+        ;;
+    log)
+        F=$(ls -v $KT2L_LOG_DIRECTORY/server_*|tail -1)
+        if [ -f $F ]; then
+            tail -f $F
         else
             echo "No logs available"
         fi
         ;;
-    lesslogs)
-        if [ -f $LOG_FILE ]; then
-            less +F $LOG_FILE
+    lesslog)
+        F=$(ls -v $KT2L_LOG_DIRECTORY/server_*|tail -1)
+        if [ -f $F ]; then
+            less +F $F
         else
             echo "No logs available"
         fi

@@ -26,6 +26,7 @@ import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.lang.Function0;
 import de.mhus.commons.tools.MCollection;
+import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;

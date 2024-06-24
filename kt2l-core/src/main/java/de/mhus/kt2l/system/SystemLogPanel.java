@@ -9,14 +9,13 @@ import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.core.Tail;
-import de.mhus.kt2l.core.TailRow;
-import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.ui.Tail;
+import de.mhus.kt2l.ui.TailRow;
+import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 @Slf4j

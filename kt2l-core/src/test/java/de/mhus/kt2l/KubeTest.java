@@ -30,6 +30,8 @@ import de.mhus.kt2l.resources.generic.APIGroupDiscoveryList;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
+import io.kubernetes.client.extended.kubectl.Kubectl;
+import io.kubernetes.client.extended.kubectl.exception.KubectlException;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
@@ -596,6 +598,24 @@ public class KubeTest {
                 apiProvider.getCoreV1Api().listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
         for (V1Pod item : list.getItems()) {
             System.out.println(item.getMetadata().getName());
-        }    }
+        }
+    }
+
+    @Test
+    public void testKubectl() throws KubectlException, IOException {
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        final var service = new K8sService();
+        ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
+        var resources = Kubectl.apiResources().apiClient(apiProvider.getClient()).execute();
+
+        resources.forEach(resource -> {
+            System.out.println(resource.getResourceSingular() + " " + resource.getKind() + " " + resource.getGroup() + " " + resource.getVersions() + " " + resource.getNamespaced());
+        });
+
+
+    }
 
 }
