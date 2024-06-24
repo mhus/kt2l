@@ -27,7 +27,7 @@ import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;

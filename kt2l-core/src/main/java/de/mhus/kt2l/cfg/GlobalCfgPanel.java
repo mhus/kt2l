@@ -25,7 +25,7 @@ import com.vaadin.flow.component.tabs.TabSheet;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;

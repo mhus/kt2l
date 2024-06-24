@@ -22,7 +22,7 @@ import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tree.MProperties;
 import de.mhus.commons.tree.MTree;
-import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

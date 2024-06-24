@@ -38,7 +38,7 @@ import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.core.SecurityUtils;
-import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.system.DevelopmentAction;
 import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;

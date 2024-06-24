@@ -25,6 +25,7 @@ import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import de.mhus.kt2l.ui.UiUtil;
 import lombok.Getter;
 
 import java.util.Arrays;

@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.core;
+package de.mhus.kt2l.ui;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;

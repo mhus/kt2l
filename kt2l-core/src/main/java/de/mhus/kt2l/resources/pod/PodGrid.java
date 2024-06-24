@@ -30,7 +30,7 @@ import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;

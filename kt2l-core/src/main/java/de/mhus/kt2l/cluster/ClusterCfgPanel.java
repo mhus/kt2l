@@ -24,7 +24,7 @@ import de.mhus.kt2l.cfg.panel.YBoolean;
 import de.mhus.kt2l.cfg.panel.YCombobox;
 import de.mhus.kt2l.cfg.panel.YComponent;
 import de.mhus.kt2l.cfg.panel.YText;
-import de.mhus.kt2l.core.UiUtil;
+import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import org.springframework.beans.factory.annotation.Autowired;

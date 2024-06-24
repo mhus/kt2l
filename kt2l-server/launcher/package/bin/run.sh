@@ -20,7 +20,14 @@
 cd "$(dirname "$0")"
 cd ..
 
+# logtofile must be the last activated profile (if set) to trigger logback logging
 . ./env.sh
+
+if [ -z "$KT2L_SPRING_PROFILES" ]; then
+    KT2L_SPRING_PROFILES=prod
+  else
+    KT2L_SPRING_PROFILES=prod,$KT2L_SPRING_PROFILES
+fi
 
 JAVA_CP=
 for i in lib/*.jar; do
@@ -35,8 +42,10 @@ JAVA_BIN=${JAVA_BIN:-java}
 
 KT2L_RESTART=1
 export KT2L_RESTART_POSSIBLE=true
+
 while [ $KT2L_RESTART -eq 1 ]; do
-  exec $JAVA_BIN -Dspring.profiles.active=prod $JAVA_VM_OPTS -cp $JAVA_CP $MAIN_CLASS $@
+  echo $JAVA_BIN -Dspring.profiles.active=$KT2L_SPRING_PROFILES $JAVA_VM_OPTS -cp $JAVA_CP $MAIN_CLASS $@
+  exec $JAVA_BIN -Dspring.profiles.active=$KT2L_SPRING_PROFILES $JAVA_VM_OPTS -cp $JAVA_CP $MAIN_CLASS $@
   RC=$?
   KT2L_RESTART=0
   if [ $RC -eq 101 ]; then
