@@ -216,4 +216,7 @@ public class K8s {
         return Optional.ofNullable(classToResource.get(clazz));
     }
 
+    public static Class<? extends KubernetesObject> toClass(V1APIResource resource) {
+        return classToResource.entrySet().stream().filter(e -> e.getValue().equals(resource)).map(Map.Entry::getKey).findFirst().orElse(null);
+    }
 }

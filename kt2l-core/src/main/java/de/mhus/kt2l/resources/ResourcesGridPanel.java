@@ -65,8 +65,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import static de.mhus.commons.tools.MString.isEmpty;
-
 @Configurable
 @Slf4j
 public class ResourcesGridPanel extends VerticalLayout implements DeskTabListener {

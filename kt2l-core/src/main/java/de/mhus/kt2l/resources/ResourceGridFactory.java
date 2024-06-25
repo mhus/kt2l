@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.resources;
 
-import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.openapi.models.V1APIResource;
 
 public interface ResourceGridFactory {

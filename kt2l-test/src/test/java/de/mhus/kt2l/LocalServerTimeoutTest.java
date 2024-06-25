@@ -21,15 +21,14 @@ import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.util.App;
 import de.mhus.kt2l.util.AremoricaContextConfiguration;
 import de.mhus.kt2l.util.AremoricaK8sService;
-import de.mhus.kt2l.util.WebDriverUtil;
 import de.mhus.kt2l.util.CoreHelper;
+import de.mhus.kt2l.util.WebDriverUtil;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -47,8 +46,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 
 import static java.time.Duration.ofSeconds;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
 
 @Slf4j

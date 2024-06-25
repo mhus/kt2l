@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l.vis;
 
-import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import org.vaadin.addons.visjs.network.main.Edge;

@@ -22,7 +22,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.openapi.models.V1APIResource;
 
 import java.util.List;

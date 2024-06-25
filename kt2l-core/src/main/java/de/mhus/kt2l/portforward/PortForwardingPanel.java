@@ -31,8 +31,8 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.help.HelpResourceConnector;
+import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import static net.logstash.logback.util.StringUtils.isEmpty;

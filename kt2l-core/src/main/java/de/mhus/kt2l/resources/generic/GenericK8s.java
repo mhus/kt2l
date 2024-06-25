@@ -23,7 +23,6 @@ import de.mhus.commons.tools.MJson;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
-import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.V1Patch;

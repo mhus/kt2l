@@ -18,24 +18,12 @@
 
 package de.mhus.kt2l.resources.ingress;
 
-import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.generated.K8sV1Ingress;
 import de.mhus.kt2l.k8s.ApiProvider;
-import de.mhus.kt2l.k8s.CallBackAdapter;
-import de.mhus.kt2l.k8s.HandlerK8s;
-import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.custom.V1Patch;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1IngressList;
-import io.kubernetes.client.openapi.models.V1Status;
-import io.kubernetes.client.util.PatchUtils;
-import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Slf4j
