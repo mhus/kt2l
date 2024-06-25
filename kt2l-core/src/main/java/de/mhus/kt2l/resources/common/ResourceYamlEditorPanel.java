@@ -56,7 +56,7 @@ import java.util.Map;
 public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
 
     private final ApiProvider apiProvider;
-    private final K8s type;
+    private final V1APIResource type;
     private final KubernetesObject resource;
     private final Core core;
     private final Cluster cluster;
@@ -79,7 +79,7 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
     @Autowired
     private SecurityService securityService;
 
-    public ResourceYamlEditorPanel(Cluster cluster, Core core, K8s type, KubernetesObject resource) {
+    public ResourceYamlEditorPanel(Cluster cluster, Core core, V1APIResource type, KubernetesObject resource) {
         this.apiProvider = cluster.getApiProvider();
         this.type = type;
         this.resource = resource;

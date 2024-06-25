@@ -22,6 +22,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 
 import java.util.Set;
 
@@ -33,8 +34,8 @@ public interface ResourceAction {
     int TOOLS_ORDER = 5000;
     String TOOLS_PATH = "Tools;icon=" + VaadinIcon.TOOLS;
 
-    boolean canHandleType(Cluster cluster, K8s type);
-    boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected);
+    boolean canHandleType(Cluster cluster, V1APIResource type);
+    boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected);
     void execute(ExecutionContext context);
     String getTitle();
     String getMenuPath();

@@ -21,6 +21,7 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,7 @@ import org.vaadin.addons.visjs.network.main.Node;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class NamespaceVis extends AbstractVisHandler {
     @Override
-    public K8s[] getConnectedTypes() {
+    public V1APIResource[] getConnectedTypes() {
         return null;
     }
 
@@ -49,7 +50,7 @@ public class NamespaceVis extends AbstractVisHandler {
     }
 
     @Override
-    public K8s getType() {
+    public V1APIResource getType() {
         return K8s.NAMESPACE;
     }
 

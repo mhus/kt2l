@@ -69,48 +69,45 @@ public class K8sService {
     @Autowired
     private Configuration configuration;
 
-    public V1APIResource findResource(K8s type, ApiProvider apiProvider) {
+    public V1APIResource findResource(V1APIResource type, ApiProvider apiProvider) {
         return findResource(type, apiProvider, null);
     }
 
-    public V1APIResource findResource(K8s type, ApiProvider apiProvider, Principal principal) {
+    public V1APIResource findResource(V1APIResource type, ApiProvider apiProvider, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
-        var types = K8sUtil.getResourceTypes(apiProvider.getCoreV1Api());
-        var resType = K8s.toResource(type);
-
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
-        return securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, resType.getName(), defaultRole, principalFinal ) ? resType : null;
+        return securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, type.getName(), defaultRole, principalFinal ) ? type : null;
 
     }
 
-    public CompletableFuture<List<K8s>> getTypesAsync(ApiProvider apiProvider) {
+    public CompletableFuture<List<V1APIResource>> getTypesAsync(ApiProvider apiProvider) {
         return getTypesAsync(apiProvider, null);
     }
 
-    public CompletableFuture<List<K8s>> getTypesAsync(ApiProvider apiProvider, Principal principal) {
+    public CompletableFuture<List<V1APIResource>> getTypesAsync(ApiProvider apiProvider, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
         SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
-        CompletableFuture<List<K8s>> future = new CompletableFuture<>();
+        CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
 
         Thread.startVirtualThread(() -> {
                     try (var cce = cc.enter()) {
                         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE);
                         final var rawResources = Kubectl.apiResources().apiClient(apiProvider.getApiClient()).execute();
-                        List<K8s> results = new ArrayList<>();
+                        List<V1APIResource> results = new ArrayList<>();
                         for (Discovery.APIResource r : rawResources) {
                             if (isEmpty(r.getResourceSingular()))
                                 continue;
                             for (String v : r.getVersions()) {
                                 // find K8s
-                                K8s res = K8s.toResource(r, v);
+                                V1APIResource res = K8s.toType(r, v);
                                 // check access
-                                if (securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.displayName(), defaultRole, principalFinal)) {
+                                if (securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, K8s.displayName(res), defaultRole, principalFinal)) {
                                     results.add(res);
                                 }
 
@@ -277,29 +274,17 @@ public class K8sService {
         }, timeout);
     }
 
-    public HandlerK8s getTypeHandler(KubernetesObject object, Cluster cluster, K8s fallback) {
+    public HandlerK8s getTypeHandler(KubernetesObject object, Cluster cluster, V1APIResource fallback) {
         var clazz = object.getClass();
         return resourceHandlers.stream().filter(h -> h.getManagedType().equals(clazz)).findFirst().orElseGet(() -> new GenericK8s(fallback));
     }
 
-    public HandlerK8s getTypeHandler(K8s resource) {
-        return resourceHandlers.stream().filter(h -> h.getManagedType().equals(resource)).findFirst().orElseGet(() -> new GenericK8s(resource));
-    }
+//    public HandlerK8s getTypeHandler(V1APIResource resource) {
+//        return resourceHandlers.stream().filter(h -> h.getManagedType().equals(resource)).findFirst().orElseGet(() -> new GenericK8s(resource));
+//    }
 
-    public K8s findResource(V1APIResource value) {
-        if (value == null)
-            return null;
-        if (value.getKind() != null)
-            return Arrays.stream(K8s.values()).filter(r -> r.kind().equalsIgnoreCase(value.getKind())).findFirst()
-                    .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
-        if (value.getName() != null)
-            return Arrays.stream(K8s.values()).filter(r -> r.plural().equalsIgnoreCase(value.getName())).findFirst()
-                    .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
-        throw new NotFoundRuntimeException("Resource not found: " + value.getName());
-    }
-
-    public CompletableFuture<List<K8s>> fillTypes(Cluster cluster) {
-        CompletableFuture<List<K8s>> future = new CompletableFuture<>();
+    public CompletableFuture<List<V1APIResource>> fillTypes(Cluster cluster) {
+        CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
         if (cluster.getTypes() != null) {
             future.complete(cluster.getTypes());
             return future;
@@ -319,7 +304,7 @@ public class K8sService {
     }
 
     public HandlerK8s getTypeHandler(V1APIResource resType) {
-        return getTypeHandler(findResource(resType));
+        return resourceHandlers.stream().filter(h -> h.getManagedType().equals(resType)).findFirst().orElseGet(() -> new GenericK8s(resType));
     }
 
 //    public Path getKubeConfigPath(Cluster cluster) {

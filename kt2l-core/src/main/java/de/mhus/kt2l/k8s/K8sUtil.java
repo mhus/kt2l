@@ -64,17 +64,17 @@ public class K8sUtil {
     public static final String NAMESPACE_ALL_LABEL = "[all]";
     public static final String NAMESPACE_ALL = "*";
 
-    public static K8s toType(String resourceType) {
+    public static V1APIResource toType(String resourceType) {
         if (isEmpty(resourceType))
             throw new NullPointerException("Resource type is empty");
-        return Arrays.stream(K8s.values()).filter(r -> r.plural().equals(resourceType) || r.kind().equals(resourceType)).findFirst()
+        return K8s.resources().stream().filter(r -> r.getName().equals(resourceType) || r.getKind().equals(resourceType)).findFirst()
                 .orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resourceType));
     }
 
-    public static K8s toType(KubernetesObject o, Cluster cluster) {
+    public static V1APIResource toType(KubernetesObject o, Cluster cluster) {
         if (cluster.getTypes() == null)
             throw new IllegalArgumentException("Types not found in cluster configuration");
-        var resource = Arrays.stream(K8s.values()).filter(r -> r.clazz().equals(o.getClass())).findFirst().orElse(null);
+        var resource = K8s.toResource(o.getClass()).orElse(null);
         return resource;
     }
 
@@ -294,9 +294,9 @@ public class K8sUtil {
         return service.getMetadata().getName() + "." + service.getMetadata().getNamespace() + ".svc.cluster.local";
     }
 
-    public static void checkDeleteAccess(SecurityService securityService, K8s resource) throws ApiException {
+    public static void checkDeleteAccess(SecurityService securityService, V1APIResource resource) throws ApiException {
         var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE_DELETE);
-        if (!securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_DELETE, resource.plural(), defaultRole))
+        if (!securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_DELETE, resource.getName(), defaultRole))
             throw new ApiException(403, "Access denied for non admin users");
     }
 

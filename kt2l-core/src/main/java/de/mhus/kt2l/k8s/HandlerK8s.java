@@ -21,11 +21,12 @@ package de.mhus.kt2l.k8s;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import okhttp3.Call;
 
 public interface HandlerK8s {
 
-    K8s getManagedType();
+    V1APIResource getManagedType();
 
     String getDescribe(ApiProvider apiProvider, KubernetesObject res);
 

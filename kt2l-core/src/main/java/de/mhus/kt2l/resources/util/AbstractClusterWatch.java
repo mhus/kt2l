@@ -28,6 +28,7 @@ import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.Watch;
 import lombok.Getter;
@@ -65,7 +66,7 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
         watchThread = Thread.startVirtualThread(this::watch);
     }
 
-    public abstract K8s getManagedType();
+    public abstract V1APIResource getManagedType();
 
     private void watch() {
 

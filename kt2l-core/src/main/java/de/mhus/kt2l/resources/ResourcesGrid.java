@@ -23,6 +23,7 @@ import com.vaadin.flow.component.ShortcutEvent;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.k8s.K8s;
+import io.kubernetes.client.openapi.models.V1APIResource;
 
 import java.util.List;
 
@@ -40,7 +41,7 @@ public interface ResourcesGrid {
 
     String getNamespace();
 
-    void setType(K8s type);
+    void setType(V1APIResource type);
 
     void handleShortcut(ShortcutEvent event);
 

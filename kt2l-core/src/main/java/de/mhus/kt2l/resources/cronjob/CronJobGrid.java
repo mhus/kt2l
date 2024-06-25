@@ -26,6 +26,7 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1CronJob;
 import io.kubernetes.client.openapi.models.V1CronJobList;
 import lombok.Getter;
@@ -85,7 +86,7 @@ public class CronJobGrid extends AbstractGridWithNamespace<CronJobGrid.Resource,
     }
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return K8s.CRON_JOB;
     }
 

@@ -25,6 +25,7 @@ import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceList;
 import lombok.Getter;
@@ -73,7 +74,7 @@ public class ServiceGrid extends AbstractGridWithNamespace<ServiceGrid.Resource,
     }
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return K8s.SERVICE;
     }
 

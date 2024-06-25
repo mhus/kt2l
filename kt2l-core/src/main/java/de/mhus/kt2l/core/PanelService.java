@@ -50,6 +50,7 @@ import de.mhus.kt2l.system.SystemLogPanel;
 import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.vis.VisPanel;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1Secret;
@@ -90,7 +91,7 @@ public class PanelService {
                 .setColor(cluster == null ? UiUtil.COLOR.NONE : cluster.getColor());
     }
 
-    public DeskTab showYamlPanel(DeskTab parentTab, Cluster cluster, K8s type, KubernetesObject resource) {
+    public DeskTab showYamlPanel(DeskTab parentTab, Cluster cluster, V1APIResource type, KubernetesObject resource) {
         return parentTab.getTabBar().addTab(
                 cluster.getName() + ":" + type + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),

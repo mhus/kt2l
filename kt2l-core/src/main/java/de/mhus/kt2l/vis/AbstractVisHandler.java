@@ -23,6 +23,7 @@ import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
 import org.vaadin.addons.visjs.network.main.Node;
@@ -62,7 +63,7 @@ public abstract class AbstractVisHandler implements VisHandler {
     }
 
     protected boolean isInNamespace(KubernetesObject res) {
-        return getType().isNamespaced() && namespace != null && !namespace.equals(res.getMetadata().getNamespace());
+        return getType().getNamespaced() && namespace != null && !namespace.equals(res.getMetadata().getNamespace());
     }
 
     public void destroy() {
@@ -72,7 +73,7 @@ public abstract class AbstractVisHandler implements VisHandler {
 
     protected void changeEvent(Watch.Response<KubernetesObject> event) {
         if (!autoUpdate || !enabled) return;
-        if (getType().isNamespaced() && namespace != null && !namespace.equals(event.object.getMetadata().getNamespace())) return;
+        if (getType().getNamespaced() && namespace != null && !namespace.equals(event.object.getMetadata().getNamespace())) return;
 
         if (K8sUtil.WATCH_EVENT_DELETED.equals(event.type))
             panel.deleteNode(this, event.object);
@@ -82,7 +83,7 @@ public abstract class AbstractVisHandler implements VisHandler {
 
     public void updateEdges(String k1, VisPanel.NodeStore v1) {
 
-        var connectedKinds = getConnectedTypes() == null ? null : Arrays.stream(getConnectedTypes()).map(t -> t.kind() ).collect(Collectors.toSet());
+        var connectedKinds = getConnectedTypes() == null ? null : Arrays.stream(getConnectedTypes()).map(t -> t.getKind() ).collect(Collectors.toSet());
         panel.getNodes().forEach((k2, v2) -> {
             var kind = VisPanel.getKindOfNodId(k2);
             if (kind == null) return;
@@ -112,7 +113,7 @@ public abstract class AbstractVisHandler implements VisHandler {
         }
     }
 
-    public abstract K8s[] getConnectedTypes();
+    public abstract V1APIResource[] getConnectedTypes();
 
     protected abstract Class<? extends ClusterBackgroundJob> getManagedWatchClass();
 

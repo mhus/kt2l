@@ -22,6 +22,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.service.ServiceWatch;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -35,8 +36,8 @@ import org.vaadin.addons.visjs.network.options.edges.Arrows;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ServiceVis extends AbstractVisHandler {
     @Override
-    public K8s[] getConnectedTypes() {
-        return new K8s[] {K8s.POD};
+    public V1APIResource[] getConnectedTypes() {
+        return new V1APIResource[] {K8s.POD};
     }
 
     @Override
@@ -51,7 +52,7 @@ public class ServiceVis extends AbstractVisHandler {
     }
 
     @Override
-    public K8s getType() {
+    public V1APIResource getType() {
         return K8s.SERVICE;
     }
 

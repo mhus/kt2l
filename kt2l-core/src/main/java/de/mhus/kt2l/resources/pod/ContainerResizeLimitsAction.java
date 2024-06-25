@@ -33,6 +33,7 @@ import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.PatchUtils;
@@ -46,12 +47,12 @@ import java.util.Set;
 @WithRole(UsersConfiguration.ROLE.WRITE)
 public class ContainerResizeLimitsAction implements ResourceAction {
     @Override
-    public boolean canHandleType(Cluster cluster, K8s type) {
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return K8s.POD.equals(type) || K8s.CONTAINER.equals(type);
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
         return canHandleType(cluster, type) && selected.size() > 0;
     }
 

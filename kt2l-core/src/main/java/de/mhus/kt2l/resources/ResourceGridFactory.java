@@ -19,16 +19,17 @@
 package de.mhus.kt2l.resources;
 
 import de.mhus.kt2l.k8s.K8s;
+import io.kubernetes.client.openapi.models.V1APIResource;
 
 public interface ResourceGridFactory {
 
     int DEFAULT_PRIORITY = 100;
 
-    boolean canHandleType(K8s type);
+    boolean canHandleType(V1APIResource type);
 
-    ResourcesGrid create(K8s type);
+    ResourcesGrid create(V1APIResource type);
 
-    default int getPriority(K8s type) {
+    default int getPriority(V1APIResource type) {
         return DEFAULT_PRIORITY;
     }
 }

@@ -28,6 +28,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.util.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,7 +40,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 
-    private K8s type;
+    private V1APIResource type;
     private GenericK8s handler;
 
     @Override
@@ -48,7 +49,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
     }
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return type;
     }
 
@@ -127,7 +128,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
     }
 
     @Override
-    public void setType(K8s type) {
+    public void setType(V1APIResource type) {
         LOGGER.debug("Set resource type {}", type);
         this.type = type;
         this.handler = new GenericK8s(type);
@@ -136,7 +137,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 
     @Override
     public boolean isNamespaced() {
-        return type.isNamespaced();
+        return type.getNamespaced();
     }
 
     private class ResourcesProvider extends CallbackDataProvider<Resource, Void> {

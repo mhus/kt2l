@@ -21,6 +21,7 @@ package de.mhus.kt2l.resources.pod;
 import com.google.gson.reflect.TypeToken;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ import java.lang.reflect.Type;
 public class PodWatch extends AbstractClusterWatch<V1Pod> {
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return K8s.POD;
     }
 

@@ -29,6 +29,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,13 +49,13 @@ public class TerminalAction implements ResourceAction {
 
 
     @Override
-    public boolean canHandleType(Cluster cluster, K8s type) {
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return
                 K8s.POD.equals(type) || K8s.CONTAINER.equals(type);
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
         return canHandleType(cluster, type) && selected.size() == 1;
     }
 
@@ -64,7 +65,7 @@ public class TerminalAction implements ResourceAction {
         V1Pod pod = null;
         String container = null;
         String containerImage = null;
-        if (K8s.POD.equals(context.getK8s())) {
+        if (K8s.POD.equals(context.getType())) {
             pod = (V1Pod) context.getSelected().iterator().next();
             container = pod.getStatus().getContainerStatuses().get(0).getName();
             containerImage = pod.getStatus().getContainerStatuses().get(0).getImage();

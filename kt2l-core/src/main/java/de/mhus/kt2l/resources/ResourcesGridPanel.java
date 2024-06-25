@@ -54,6 +54,7 @@ import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.generic.GenericGrid;
 import de.mhus.kt2l.resources.generic.GenericK8s;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,12 +101,12 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     private ResourcesGrid grid;
     private TextField filterText;
     private ComboBox<String> namespaceSelector;
-    private ComboBox<K8s> typeSelector;
+    private ComboBox<V1APIResource> typeSelector;
     @Getter
     private Cluster cluster;
     private VerticalLayout gridContainer;
     @Getter
-    private K8s currentType;
+    private V1APIResource currentType;
     @Getter
     private DeskTab tab;
     private ResourcesFilter resourcesFilter;
@@ -140,8 +141,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         namespaceSelector = new ComboBox<>();
         namespaceSelector.addFocusListener(e -> namespaceSelector.getElement().executeJs("this.querySelector(\"input\").select()") );
         typeSelector = new ComboBox<>();
-        typeSelector.setRenderer(new ComponentRenderer<Component, K8s>(item -> {
-            Div div = new Div(item.displayName() + (isEmpty(item.shortNames()) ? "" : " " + item.shortNames()));
+        typeSelector.setRenderer(new ComponentRenderer<Component, V1APIResource>(item -> {
+            Div div = new Div(K8s.displayName(item) + (MCollection.isEmpty(item.getShortNames()) ? "" : " " + item.getShortNames()));
             if (k8s.getTypeHandler(item) instanceof GenericK8s)
                 div.addClassName("color-grey");
             return div;
@@ -182,10 +183,10 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         // resource type selector
         typeSelector.setPlaceholder("Resource");
         typeSelector.getStyle().set("--vaadin-combo-box-overlay-width", "350px");
-        typeSelector.setItemLabelGenerator((ItemLabelGenerator<K8s>) item -> {
-            var shortNames = item.shortNames();
-            var name = item.displayName();
-            return name + (isEmpty(shortNames) ? "" : " " + shortNames);
+        typeSelector.setItemLabelGenerator((ItemLabelGenerator<V1APIResource>) item -> {
+            var shortNames = item.getShortNames();
+            var name = K8s.displayName(item);
+            return name + (MCollection.isEmpty(shortNames) ? "" : " " + shortNames);
         });
         typeSelector.addValueChangeListener(e -> {
             typeChanged();
@@ -203,11 +204,11 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             LOGGER.debug("Resource types: {}",types.stream().map(K8s::displayName).toList());
             core.ui().access(() -> {
                 typeSelector.setItems(cluster.getTypes().stream().sorted((a, b) -> {
-                    var av = a.displayName().contains("_");
-                    var bv = b.displayName().contains("_");
+                    var av = K8s.displayName(a).contains("_");
+                    var bv = K8s.displayName(b).contains("_");
                     if (av && !bv) return 1;
                     if (!av && bv) return -1;
-                    return a.displayName().compareTo(b.displayName());
+                    return K8s.displayName(a).compareTo(K8s.displayName(b));
                 } ).toList());
                 typeSelector.setValue(currentType);
             });
@@ -282,7 +283,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         historyAdd(currentType, namespaceSelector.getValue(), resourcesFilter, filterText.getValue(), sortOrder, orderAsc);
     }
 
-    protected synchronized void historyAdd(K8s type, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending) {
+    protected synchronized void historyAdd(V1APIResource type, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending) {
         if (historyPointer < history.size()) {
             history.subList(historyPointer, history.size()).clear();
         }
@@ -369,7 +370,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         return g;
     }
 
-    private ResourcesGrid createGrid(K8s type) {
+    private ResourcesGrid createGrid(V1APIResource type) {
         ResourceGridFactory foundFactory = null;
         if (type != null) {
             for (ResourceGridFactory factory : resourceGridFactories)
@@ -465,12 +466,12 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         }
     }
 
-    public void showResources(K8s type, String namespace, ResourcesFilter filter, String filterText) {
+    public void showResources(V1APIResource type, String namespace, ResourcesFilter filter, String filterText) {
         historyAdd(type, namespace, filter, filterText, null, true);
         showResourcesInternal(type, namespace, filter, filterText, null, true, history, historyPointer);
     }
 
-    private void showResourcesInternal(K8s type, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending, LinkedList<HistoryItem> history, int historyPointer) {
+    private void showResourcesInternal(V1APIResource type, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending, LinkedList<HistoryItem> history, int historyPointer) {
         if (filterText != null)
             this.filterText.setValue(filterText);
         setNamespace(namespace);
@@ -485,7 +486,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         }
     }
 
-    public void setType(K8s type) {
+    public void setType(V1APIResource type) {
         if (type != null) {
             typeSelector.setValue(type);
             typeChanged();
@@ -533,7 +534,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         return historyPointer;
     }
 
-    public record HistoryItem(K8s type, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending) {
+    public record HistoryItem(V1APIResource type, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending) {
     }
 
 }

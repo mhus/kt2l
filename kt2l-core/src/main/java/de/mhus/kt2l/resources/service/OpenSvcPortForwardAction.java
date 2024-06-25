@@ -28,6 +28,7 @@ import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,12 +47,12 @@ public class OpenSvcPortForwardAction implements ResourceAction {
     private ViewsConfiguration viewsConfiguration;
 
     @Override
-    public boolean canHandleType(Cluster cluster, K8s type) {
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return K8s.SERVICE.equals(type);
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
         if (!canHandleType(cluster, type))
             return false;
         if (selected.isEmpty()) return false;

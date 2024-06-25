@@ -24,6 +24,7 @@ import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithoutNamespace;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ClusterRole;
 import io.kubernetes.client.openapi.models.V1ClusterRoleList;
 import lombok.Getter;
@@ -60,7 +61,7 @@ public class ClusterRoleGrid extends AbstractGridWithoutNamespace<ClusterRoleGri
     }
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return K8s.CLUSTER_ROLE;
     }
 

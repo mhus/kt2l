@@ -36,6 +36,7 @@ import de.mhus.kt2l.resources.pod.score.PodScorerConfiguration;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.Watch;
 import lombok.Getter;
 import lombok.Setter;
@@ -134,7 +135,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     protected abstract T createResourceItem();
 
     @Override
-    public abstract K8s getManagedType();
+    public abstract V1APIResource getManagedType();
 
     @Override
     protected void createDetailsComponent() {

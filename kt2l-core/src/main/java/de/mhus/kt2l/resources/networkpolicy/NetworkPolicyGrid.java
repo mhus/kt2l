@@ -24,6 +24,7 @@ import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1NetworkPolicy;
 import io.kubernetes.client.openapi.models.V1NetworkPolicyList;
 import lombok.Getter;
@@ -63,7 +64,7 @@ public class NetworkPolicyGrid extends AbstractGridWithNamespace<NetworkPolicyGr
     }
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return K8s.NETWORK_POLICY;
     }
 

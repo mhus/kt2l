@@ -23,25 +23,26 @@ import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourceGridFactory;
 import de.mhus.kt2l.resources.ResourcesGrid;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import org.springframework.stereotype.Component;
 
 @Component
 @WithRole(UsersConfiguration.ROLE.READ)
 public class GenericGridFactory implements ResourceGridFactory {
     @Override
-    public boolean canHandleType(K8s type) {
+    public boolean canHandleType(V1APIResource type) {
         return true;
     }
 
     @Override
-    public ResourcesGrid create(K8s type) {
+    public ResourcesGrid create(V1APIResource type) {
         var grid = new GenericGrid();
         grid.setType(type);
         return grid;
     }
 
     @Override
-    public int getPriority(K8s type) {
+    public int getPriority(V1APIResource type) {
         return Integer.MAX_VALUE;
     }
 

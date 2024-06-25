@@ -27,6 +27,7 @@ import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.resources.pod.score.PodScorerConfiguration;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,12 +41,12 @@ public class HighlightAlertsToggelAction implements ResourceAction {
     private PodScorerConfiguration podScorerConfiguration;
 
     @Override
-    public boolean canHandleType(Cluster cluster, K8s type) {
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return K8s.POD.equals(type) && podScorerConfiguration.isEnabled();
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
         return canHandleType(cluster, type);
     }
 

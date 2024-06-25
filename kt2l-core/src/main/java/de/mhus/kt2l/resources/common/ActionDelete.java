@@ -32,6 +32,7 @@ import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -50,12 +51,12 @@ public class ActionDelete implements ResourceAction {
     private K8sService k8s;
 
     @Override
-    public boolean canHandleType(Cluster cluster, K8s type) {
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 
@@ -105,7 +106,7 @@ public class ActionDelete implements ResourceAction {
                     context.getUi().access(() -> {
                         dialog.setProgress(dialog.getProgress()+1, o.getMetadata().getNamespace() + "." + o.getMetadata().getName());
                     });
-                    var handler = k8s.getTypeHandler(o, context.getCluster(), context.getK8s());
+                    var handler = k8s.getTypeHandler(o, context.getCluster(), context.getType());
                     handler.delete(context.getCluster().getApiProvider(), o.getMetadata().getName(), o.getMetadata().getNamespace());
                 } catch (Exception e) {
                     LOGGER.error("delete resource {}", o, e);

@@ -21,6 +21,7 @@ package de.mhus.kt2l.resources.serviceaccount;
 import com.google.gson.reflect.TypeToken;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1DaemonSet;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import io.kubernetes.client.util.Watch;
@@ -32,7 +33,7 @@ import java.lang.reflect.Type;
 public class ServiceAccountWatch extends AbstractClusterWatch<V1ServiceAccount> {
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return K8s.SERVICE_ACCOUNT;
     }
 

@@ -35,6 +35,7 @@ import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.Watch;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -118,7 +119,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
     protected abstract T createResourceItem();
 
     @Override
-    public abstract K8s getManagedType();
+    public abstract V1APIResource getManagedType();
 
     @Override
     protected void createDetailsComponent() {

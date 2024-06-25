@@ -63,7 +63,7 @@ public class ClusterCfgPanel extends CPanelVerticalLayout {
                 .label("Default Namespace")
                 .defaultValue(""));
         add(new YCombobox()
-                .values(Arrays.stream(K8s.values()).map(v -> v.kind()).toList())
+                .values(K8s.resources().stream().map(v -> v.getKind()).toList())
                 .name("defaultResourceType")
                 .label("Default Resource Type").defaultValue("pod"));
         add(new YArray()

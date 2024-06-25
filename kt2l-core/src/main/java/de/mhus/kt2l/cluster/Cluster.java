@@ -24,6 +24,7 @@ import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -41,14 +42,14 @@ public class Cluster {
     private final String title;
     private final boolean enabled;
     private final String defaultNamespace;
-    private final K8s defaultType;
+    private final V1APIResource defaultType;
     private final UiUtil.COLOR color;
     private final ITreeNode config;
     private final long apiProviderTimeout;
     @Setter
     private List<String> currentNamespaces;
     @Setter
-    private List<K8s> types;
+    private List<V1APIResource> types;
 
     private K8sService k8sService;
     private ApiProvider apiProvider;

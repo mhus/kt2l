@@ -23,18 +23,19 @@ import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourceGridFactory;
 import de.mhus.kt2l.resources.ResourcesGrid;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import org.springframework.stereotype.Component;
 
 @Component
 @WithRole(UsersConfiguration.ROLE.READ)
 public class ReplicaSetGridFactory implements ResourceGridFactory {
     @Override
-    public boolean canHandleType(K8s type) {
+    public boolean canHandleType(V1APIResource type) {
         return K8s.REPLICA_SET.equals(type);
     }
 
     @Override
-    public ResourcesGrid create(K8s type) {
+    public ResourcesGrid create(V1APIResource type) {
         return new ReplicaSetGrid();
     }
 

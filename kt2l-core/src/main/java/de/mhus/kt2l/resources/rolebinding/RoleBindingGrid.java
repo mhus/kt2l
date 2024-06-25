@@ -25,6 +25,7 @@ import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1RoleBinding;
 import io.kubernetes.client.openapi.models.V1RoleBindingList;
 import lombok.Getter;
@@ -75,7 +76,7 @@ public class RoleBindingGrid extends AbstractGridWithNamespace<RoleBindingGrid.R
     }
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return K8s.ROLE_BINDING;
     }
 

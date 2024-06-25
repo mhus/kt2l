@@ -27,6 +27,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,12 +41,12 @@ public class ActionYamlEditor implements ResourceAction {
     private PanelService panelService;
 
     @Override
-    public boolean canHandleType(Cluster cluster, K8s type) {
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
         return selected.size() == 1;
     }
 
@@ -53,7 +54,7 @@ public class ActionYamlEditor implements ResourceAction {
     public void execute(ExecutionContext context) {
 
         var selected = context.getSelected().iterator().next();
-        panelService.showYamlPanel(context.getSelectedTab(), context.getCluster(), context.getK8s(), selected).select();
+        panelService.showYamlPanel(context.getSelectedTab(), context.getCluster(), context.getType(), selected).select();
 
     }
 

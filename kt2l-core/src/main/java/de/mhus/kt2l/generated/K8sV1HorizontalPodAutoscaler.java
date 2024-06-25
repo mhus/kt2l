@@ -10,6 +10,7 @@ import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ public abstract class K8sV1HorizontalPodAutoscaler implements HandlerK8s {
     private SecurityService securityService;
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return K8s.HPA;
     }
 

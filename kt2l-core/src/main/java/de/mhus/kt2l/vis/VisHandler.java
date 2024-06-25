@@ -19,6 +19,7 @@ package de.mhus.kt2l.vis;
 
 import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import org.vaadin.addons.visjs.network.main.Edge;
 import org.vaadin.addons.visjs.network.main.Node;
 
@@ -31,7 +32,7 @@ public interface VisHandler {
 
     void prepareNode(Node node, KubernetesObject res);
 
-    K8s getType();
+    V1APIResource getType();
 
     void updateEdges(String k1, VisPanel.NodeStore v1);
 

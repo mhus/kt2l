@@ -59,6 +59,7 @@ import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.ResourcesGrid;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -187,7 +188,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     protected abstract void init();
 
-    public abstract K8s getManagedType();
+    public abstract V1APIResource getManagedType();
 
     private void createActions() {
         try {
@@ -479,7 +480,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     }
 
     @Override
-    public void setType(K8s type) {
+    public void setType(V1APIResource type) {
 
     }
 
@@ -618,7 +619,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
                     return;
                 }
                 context = ExecutionContext.builder()
-                        .k8s(getManagedType())
+                        .type(getManagedType())
                         .selected(selected)
                         .namespace(namespace)
                         .cluster(cluster)

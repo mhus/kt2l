@@ -21,6 +21,7 @@ package de.mhus.kt2l.resources.statefulset;
 import com.google.gson.reflect.TypeToken;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1StatefulSet;
 import io.kubernetes.client.util.Watch;
@@ -32,7 +33,7 @@ import java.lang.reflect.Type;
 public class StatefulSetWatch extends AbstractClusterWatch<V1Deployment> {
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return K8s.STATEFUL_SET;
     }
 

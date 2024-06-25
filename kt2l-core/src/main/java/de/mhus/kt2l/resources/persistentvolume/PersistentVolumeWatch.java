@@ -21,6 +21,7 @@ package de.mhus.kt2l.resources.persistentvolume;
 import com.google.gson.reflect.TypeToken;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1PersistentVolume;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ import java.lang.reflect.Type;
 public class PersistentVolumeWatch extends AbstractClusterWatch<V1PersistentVolume> {
 
     @Override
-    public K8s getManagedType() {
+    public V1APIResource getManagedType() {
         return K8s.PERSISTENT_VOLUME;
     }
 

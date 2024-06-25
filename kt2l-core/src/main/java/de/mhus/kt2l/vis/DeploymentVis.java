@@ -21,6 +21,7 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.deployment.DeploymentWatch;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -33,8 +34,8 @@ import org.vaadin.addons.visjs.network.options.edges.Arrows;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class DeploymentVis extends AbstractVisHandler {
     @Override
-    public K8s[] getConnectedTypes() {
-        return new K8s[] {K8s.REPLICA_SET};
+    public V1APIResource[] getConnectedTypes() {
+        return new V1APIResource[] {K8s.REPLICA_SET};
     }
 
     @Override
@@ -49,7 +50,7 @@ public class DeploymentVis extends AbstractVisHandler {
     }
 
     @Override
-    public K8s getType() {
+    public V1APIResource getType() {
         return K8s.DEPLOYMENT;
     }
 

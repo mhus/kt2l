@@ -31,6 +31,7 @@ import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,7 +45,7 @@ import static de.mhus.commons.tools.MLang.tryThis;
 @WithRole(UsersConfiguration.ROLE.READ)
 public class DescribeAction implements ResourceAction {
     @Override
-    public boolean canHandleType(Cluster cluster, K8s type) {
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return true;
     }
 
@@ -52,16 +53,16 @@ public class DescribeAction implements ResourceAction {
     private K8sService k8sService;
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        showPreview(context.getCore(), context.getCluster(), context.getK8s(), context.getSelected());
+        showPreview(context.getCore(), context.getCluster(), context.getType(), context.getSelected());
     }
 
-    public void showPreview(Core core, Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+    public void showPreview(Core core, Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
 
         // prepare preview
         StringBuilder sb = new StringBuilder();
@@ -70,7 +71,7 @@ public class DescribeAction implements ResourceAction {
                     final var handler = k8sService.getTypeHandler(type /*K8sUtil.toResource(res, cluster) */);
                     final var previewText = handler.getDescribe(cluster.getApiProvider(), res);
                     sb.append(">>> ")
-                            .append( tryThis(() -> res.getKind()).or(null) == null ? type.kind() : res.getKind())
+                            .append( tryThis(() -> res.getKind()).or(null) == null ? type.getKind() : res.getKind())
                             .append(" ").append(tryThis(() -> res.getMetadata().getName()).or("?")).append('\n');
                     sb.append(previewText).append('\n');
                 }
