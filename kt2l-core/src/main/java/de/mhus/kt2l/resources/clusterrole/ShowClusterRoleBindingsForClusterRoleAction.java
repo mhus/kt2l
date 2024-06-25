@@ -27,7 +27,6 @@ import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1Role;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -37,13 +36,13 @@ import java.util.Set;
 public class ShowClusterRoleBindingsForClusterRoleAction implements ResourceAction {
 
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.CLUSTER_ROLE.equals(resourceType);
+    public boolean canHandleType(Cluster cluster, K8s type) {
+        return K8s.CLUSTER_ROLE.equals(type);
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(cluster, resourceType) && selected.size() == 1;
+    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+        return canHandleType(cluster, type) && selected.size() == 1;
     }
 
     @Override

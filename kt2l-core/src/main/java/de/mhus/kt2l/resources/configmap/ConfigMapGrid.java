@@ -77,7 +77,7 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.CONFIG_MAP;
     }
 

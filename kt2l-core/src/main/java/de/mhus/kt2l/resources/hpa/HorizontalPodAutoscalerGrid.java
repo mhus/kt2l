@@ -70,7 +70,7 @@ public class HorizontalPodAutoscalerGrid extends AbstractGridWithNamespace<Horiz
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.HPA;
     }
 

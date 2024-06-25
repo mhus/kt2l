@@ -72,7 +72,7 @@ public class StatefulSetGrid extends AbstractGridWithNamespace<StatefulSetGrid.R
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.STATEFUL_SET;
     }
 

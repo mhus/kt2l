@@ -47,7 +47,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     }
 
     public String defaultResourceType() {
-        return config().getString("defaultResourceType", K8s.POD.resourceType());
+        return config().getString("defaultType", K8s.POD.plural());
     }
 
     public String defaultNamespace() {

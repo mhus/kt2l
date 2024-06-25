@@ -32,7 +32,7 @@ import java.lang.reflect.Type;
 public class ServiceAccountWatch extends AbstractClusterWatch<V1ServiceAccount> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.SERVICE_ACCOUNT;
     }
 

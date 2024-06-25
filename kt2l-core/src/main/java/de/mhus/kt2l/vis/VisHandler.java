@@ -31,7 +31,7 @@ public interface VisHandler {
 
     void prepareNode(Node node, KubernetesObject res);
 
-    K8s getManagedResourceType();
+    K8s getType();
 
     void updateEdges(String k1, VisPanel.NodeStore v1);
 

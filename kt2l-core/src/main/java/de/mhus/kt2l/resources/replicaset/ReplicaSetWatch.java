@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 public class ReplicaSetWatch extends AbstractClusterWatch<V1ReplicaSet> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.REPLICA_SET;
     }
 

@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 public class DaemonSetWatch extends AbstractClusterWatch<V1DaemonSet> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.DAEMON_SET;
     }
 

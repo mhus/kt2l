@@ -62,7 +62,7 @@ public class ClusterRoleBindingGrid extends AbstractGridWithoutNamespace<Cluster
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.CLUSTER_ROLE_BINDING;
     }
 

@@ -32,7 +32,7 @@ import java.lang.reflect.Type;
 public class StatefulSetWatch extends AbstractClusterWatch<V1Deployment> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.STATEFUL_SET;
     }
 

@@ -38,7 +38,7 @@ import java.util.Set;
 @Builder
 public class ExecutionContext {
     private UI ui;
-    private K8s resourceType;
+    private K8s k8s;
     private Set<? extends KubernetesObject> selected;
     private String namespace;
     private Cluster cluster;

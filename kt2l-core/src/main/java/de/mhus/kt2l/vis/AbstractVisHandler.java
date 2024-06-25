@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.vaadin.addons.visjs.network.main.Node;
 
 import java.util.Arrays;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -43,7 +42,7 @@ public abstract class AbstractVisHandler implements VisHandler {
 
     public void init(VisPanel visPanel) {
         this.panel = visPanel;
-        k8sHandler = visPanel.getK8sHandler(getManagedResourceType());
+        k8sHandler = visPanel.getK8sHandler(getType());
 
         updateAll();
     }
@@ -63,7 +62,7 @@ public abstract class AbstractVisHandler implements VisHandler {
     }
 
     protected boolean isInNamespace(KubernetesObject res) {
-        return getManagedResourceType().isNamespaced() && namespace != null && !namespace.equals(res.getMetadata().getNamespace());
+        return getType().isNamespaced() && namespace != null && !namespace.equals(res.getMetadata().getNamespace());
     }
 
     public void destroy() {
@@ -73,7 +72,7 @@ public abstract class AbstractVisHandler implements VisHandler {
 
     protected void changeEvent(Watch.Response<KubernetesObject> event) {
         if (!autoUpdate || !enabled) return;
-        if (getManagedResourceType().isNamespaced() && namespace != null && !namespace.equals(event.object.getMetadata().getNamespace())) return;
+        if (getType().isNamespaced() && namespace != null && !namespace.equals(event.object.getMetadata().getNamespace())) return;
 
         if (K8sUtil.WATCH_EVENT_DELETED.equals(event.type))
             panel.deleteNode(this, event.object);
@@ -83,7 +82,7 @@ public abstract class AbstractVisHandler implements VisHandler {
 
     public void updateEdges(String k1, VisPanel.NodeStore v1) {
 
-        var connectedKinds = getConnectedResourceTypes() == null ? null : Arrays.stream(getConnectedResourceTypes()).map(t -> t.kind() ).collect(Collectors.toSet());
+        var connectedKinds = getConnectedTypes() == null ? null : Arrays.stream(getConnectedTypes()).map(t -> t.kind() ).collect(Collectors.toSet());
         panel.getNodes().forEach((k2, v2) -> {
             var kind = VisPanel.getKindOfNodId(k2);
             if (kind == null) return;
@@ -113,7 +112,7 @@ public abstract class AbstractVisHandler implements VisHandler {
         }
     }
 
-    public abstract K8s[] getConnectedResourceTypes();
+    public abstract K8s[] getConnectedTypes();
 
     protected abstract Class<? extends ClusterBackgroundJob> getManagedWatchClass();
 

@@ -88,7 +88,7 @@ public class PersistentVolumeClaimGrid extends AbstractGridWithNamespace<Persist
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.PERSISTENT_VOLUME_CLAIM;
     }
 

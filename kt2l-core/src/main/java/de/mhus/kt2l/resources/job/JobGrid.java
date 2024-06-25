@@ -93,7 +93,7 @@ public class JobGrid extends AbstractGridWithNamespace<JobGrid.Resource, Compone
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.JOB;
     }
 

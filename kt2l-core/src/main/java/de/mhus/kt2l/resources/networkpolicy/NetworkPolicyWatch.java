@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 public class NetworkPolicyWatch extends AbstractClusterWatch<V1NetworkPolicy> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.NETWORK_POLICY;
     }
 

@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 public class IngressWatch extends AbstractClusterWatch<V1Ingress> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.INGRESS;
     }
 

@@ -60,7 +60,7 @@ public class RoleGrid extends AbstractGridWithNamespace<RoleGrid.Resource, Compo
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.ROLE;
     }
 

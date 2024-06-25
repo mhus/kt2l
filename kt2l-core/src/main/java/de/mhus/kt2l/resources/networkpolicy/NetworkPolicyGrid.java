@@ -63,7 +63,7 @@ public class NetworkPolicyGrid extends AbstractGridWithNamespace<NetworkPolicyGr
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.NETWORK_POLICY;
     }
 

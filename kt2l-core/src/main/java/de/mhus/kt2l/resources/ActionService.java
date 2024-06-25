@@ -43,8 +43,8 @@ public class ActionService {
         return actions.stream().filter(a -> hasAccess(a) && canHandle(cluster, resourceType, a)).toList();
     }
 
-    private boolean canHandle(Cluster cluster, K8s resourceType, ResourceAction a) {
-        return a.canHandleResourceType(cluster, resourceType);
+    private boolean canHandle(Cluster cluster, K8s type, ResourceAction a) {
+        return a.canHandleType(cluster, type);
     }
 
     private boolean hasAccess(ResourceAction a) {

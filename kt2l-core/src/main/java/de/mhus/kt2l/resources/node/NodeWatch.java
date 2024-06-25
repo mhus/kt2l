@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 public class NodeWatch extends AbstractClusterWatch<V1Node> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.NODE;
     }
 

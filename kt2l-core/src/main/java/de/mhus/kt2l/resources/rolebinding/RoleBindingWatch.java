@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 public class RoleBindingWatch extends AbstractClusterWatch<V1RoleBinding> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.ROLE_BINDING;
     }
 

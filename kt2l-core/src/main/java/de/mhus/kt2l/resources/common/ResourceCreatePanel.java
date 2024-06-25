@@ -198,7 +198,7 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
                         properties.setString(template.name, template.value);
                     }
                     entry.preparedContent = MString.substitute(entry.content, properties);
-                    entry.handler = k8s.getResourceHandler(K8sUtil.toResourceType(entry.kind));
+                    entry.handler = k8s.getTypeHandler(K8sUtil.toType(entry.kind));
                     if (entry.handler == null) {
                         UiUtil.showErrorNotification("Resource not supported: " + entry.kind);
                         return false;

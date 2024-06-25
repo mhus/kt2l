@@ -86,7 +86,7 @@ public class SecretGrid extends AbstractGridWithNamespace<SecretGrid.Resource, C
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.SECRET;
     }
 

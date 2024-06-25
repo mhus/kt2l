@@ -29,7 +29,6 @@ import de.mhus.kt2l.ui.ProgressDialog;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
-import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
@@ -40,6 +39,8 @@ import org.springframework.stereotype.Component;
 import java.util.LinkedList;
 import java.util.Set;
 
+import static de.mhus.commons.tools.MLang.tryThis;
+
 @Component
 @Slf4j
 @WithRole(ROLE.WRITE)
@@ -49,12 +50,12 @@ public class ActionDelete implements ResourceAction {
     private K8sService k8s;
 
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
+    public boolean canHandleType(Cluster cluster, K8s type) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 
@@ -104,7 +105,7 @@ public class ActionDelete implements ResourceAction {
                     context.getUi().access(() -> {
                         dialog.setProgress(dialog.getProgress()+1, o.getMetadata().getNamespace() + "." + o.getMetadata().getName());
                     });
-                    var handler = k8s.getResourceHandler(K8sUtil.toResource(o, context.getCluster()));
+                    var handler = k8s.getTypeHandler(o, context.getCluster(), context.getK8s());
                     handler.delete(context.getCluster().getApiProvider(), o.getMetadata().getName(), o.getMetadata().getNamespace());
                 } catch (Exception e) {
                     LOGGER.error("delete resource {}", o, e);
@@ -146,7 +147,7 @@ public class ActionDelete implements ResourceAction {
     private String getColumnValue(KubernetesObject v) {
         var name = v.getMetadata().getName();
         var ns = v.getMetadata().getNamespace();
-        var kind = v.getKind();
+        var kind = tryThis(() -> v.getKind() ).or(null);
         if (kind == null)
             kind = v.getClass().getSimpleName();
         return kind + ": " + (ns == null ? "" : ns + ".") + (name == null ? v.toString() : name);

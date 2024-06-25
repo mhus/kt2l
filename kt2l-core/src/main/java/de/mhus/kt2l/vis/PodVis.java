@@ -32,7 +32,7 @@ import org.vaadin.addons.visjs.network.main.Node;
 public class PodVis extends AbstractVisHandler {
 
     @Override
-    public K8s[] getConnectedResourceTypes() {
+    public K8s[] getConnectedTypes() {
         return new K8s[0];
     }
 
@@ -48,7 +48,7 @@ public class PodVis extends AbstractVisHandler {
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getType() {
         return K8s.POD;
     }
 

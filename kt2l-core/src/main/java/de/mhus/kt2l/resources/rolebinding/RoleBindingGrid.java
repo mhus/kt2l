@@ -75,7 +75,7 @@ public class RoleBindingGrid extends AbstractGridWithNamespace<RoleBindingGrid.R
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.ROLE_BINDING;
     }
 

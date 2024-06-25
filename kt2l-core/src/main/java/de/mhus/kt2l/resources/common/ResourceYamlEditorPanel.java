@@ -56,7 +56,7 @@ import java.util.Map;
 public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabListener, HelpResourceConnector {
 
     private final ApiProvider apiProvider;
-    private final K8s resourceType;
+    private final K8s type;
     private final KubernetesObject resource;
     private final Core core;
     private final Cluster cluster;
@@ -79,9 +79,9 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
     @Autowired
     private SecurityService securityService;
 
-    public ResourceYamlEditorPanel(Cluster cluster, Core core, K8s resourceType, KubernetesObject resource) {
+    public ResourceYamlEditorPanel(Cluster cluster, Core core, K8s type, KubernetesObject resource) {
         this.apiProvider = cluster.getApiProvider();
-        this.resourceType = resourceType;
+        this.type = type;
         this.resource = resource;
         this.core = core;
         this.cluster = cluster;
@@ -92,7 +92,7 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
     public void tabInit(DeskTab deskTab) {
         this.tab = deskTab;
 
-        resType = k8s.findResource(resourceType, apiProvider);
+        resType = k8s.findResource(type, apiProvider);
         if (resType == null) {
             UiUtil.showErrorNotification("Unknown resource type");
             return;
@@ -230,7 +230,7 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
 
         yaml = "apiVersion: " + toApiVersion(resType) + "\nkind: " + resType.getKind() + "\n" + yaml;
 
-        var handler = k8s.getResourceHandler(resType);
+        var handler = k8s.getTypeHandler(resType);
 
         if (handler == null) {
 //XXX

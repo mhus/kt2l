@@ -25,11 +25,11 @@ import okhttp3.Call;
 
 public interface HandlerK8s {
 
-    K8s getManagedResourceType();
+    K8s getManagedType();
 
     String getDescribe(ApiProvider apiProvider, KubernetesObject res);
 
-    void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException;
+    Object replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException;
 
     Object delete(ApiProvider apiProvider, String name, String namespace) throws ApiException;
 

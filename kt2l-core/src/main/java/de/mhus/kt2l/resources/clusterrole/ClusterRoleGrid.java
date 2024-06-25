@@ -60,7 +60,7 @@ public class ClusterRoleGrid extends AbstractGridWithoutNamespace<ClusterRoleGri
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.CLUSTER_ROLE;
     }
 

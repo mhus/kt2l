@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 public class JobWatch extends AbstractClusterWatch<V1Job> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.JOB;
     }
 

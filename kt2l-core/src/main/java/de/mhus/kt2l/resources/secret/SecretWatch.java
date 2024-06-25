@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 public class SecretWatch extends AbstractClusterWatch<V1Secret> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.SECRET;
     }
 

@@ -123,6 +123,8 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         this.panel = panel;
         this.cluster = cluster;
         this.viewConfig = viewsConfiguration.getConfig("resourcesGrid");
+//        if (namespace == null)
+//            namespace = cluster.getDefaultNamespace();
 
         createActions();
         createGrid();
@@ -185,11 +187,11 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     protected abstract void init();
 
-    public abstract K8s getManagedResourceType();
+    public abstract K8s getManagedType();
 
     private void createActions() {
         try {
-            actionService.findActionsForResource(cluster, getManagedResourceType()).forEach(action -> {
+            actionService.findActionsForResource(cluster, getManagedType()).forEach(action -> {
                 final MenuAction menuAction = new MenuAction();
                 menuAction.setAction(action);
                 actions.add(menuAction);
@@ -477,7 +479,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     }
 
     @Override
-    public void setResourceType(K8s resourceType) {
+    public void setType(K8s type) {
 
     }
 
@@ -600,7 +602,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 //                containerContextMenuItem.setEnabled(enabled);
 //        }
         public void updateWithResources(Set<T> selected) {
-            var enabled = action.canHandleResource(cluster, getManagedResourceType(),
+            var enabled = action.canHandleResource(cluster, getManagedType(),
                     selected == null ? Collections.emptySet() : selected.stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet()));
             if (menuItem != null)
                 menuItem.setEnabled(enabled);
@@ -611,12 +613,12 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             ExecutionContext context = null;
 
                 final var selected = resourcesGrid.getSelectedItems().stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet());
-                if (!action.canHandleResource(cluster, getManagedResourceType(), selected )) {
+                if (!action.canHandleResource(cluster, getManagedType(), selected )) {
                     UiUtil.showErrorNotification("Can't execute action");
                     return;
                 }
                 context = ExecutionContext.builder()
-                        .resourceType(getManagedResourceType())
+                        .k8s(getManagedType())
                         .selected(selected)
                         .namespace(namespace)
                         .cluster(cluster)

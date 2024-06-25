@@ -97,7 +97,7 @@ public class DaemonSetGrid extends AbstractGridWithNamespace<DaemonSetGrid.Resou
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.DAEMON_SET;
     }
 

@@ -111,7 +111,7 @@ public class PersistentVolumeGrid extends AbstractGridWithoutNamespace<Persisten
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.PERSISTENT_VOLUME;
     }
 

@@ -40,7 +40,7 @@ public interface ResourcesGrid {
 
     String getNamespace();
 
-    void setResourceType(K8s resourceType);
+    void setType(K8s type);
 
     void handleShortcut(ShortcutEvent event);
 

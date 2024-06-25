@@ -33,8 +33,8 @@ public interface ResourceAction {
     int TOOLS_ORDER = 5000;
     String TOOLS_PATH = "Tools;icon=" + VaadinIcon.TOOLS;
 
-    boolean canHandleResourceType(Cluster cluster, K8s resourceType);
-    boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected);
+    boolean canHandleType(Cluster cluster, K8s type);
+    boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected);
     void execute(ExecutionContext context);
     String getTitle();
     String getMenuPath();

@@ -48,15 +48,15 @@ public class GenerateK8sHandlers {
         targetDir = new File(root, "src/main/java/de/mhus/kt2l/generated");
 
         resources = Arrays.stream(K8s.values()).filter(r ->
-                        (!testGenerator || r.resourceType().equals("pods") || r.resourceType().equals("nodes"))
+                        (!testGenerator || r.plural().equals("pods") || r.plural().equals("nodes"))
                         &&
-                        !r.resourceType().equals("CUSTOM")
+                        !r.plural().equals("CUSTOM")
                         &&
-                        !r.resourceType().equals("GENERIC")
+                        !r.plural().equals("GENERIC")
                         &&
-                        !r.resourceType().equals("customresourcedefinitions")
+                        !r.plural().equals("customresourcedefinitions")
                         &&
-                        !r.resourceType().equals("containers")
+                        !r.plural().equals("containers")
                     ).toList();
     }
 
@@ -311,9 +311,9 @@ public class GenerateK8sHandlers {
      */
     private void replaceResourceType(StringBuffer o, K8s k8s) {
         o.append("    @Override\n");
-        o.append("    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {\n");
+        o.append("    public Object replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {\n");
         o.append("        var body = Yaml.loadAs(yaml, ").append(resourceClassName(k8s)).append(".class);\n");
-        o.append("        apiProvider.").append(apiFunction(k8s)).append(".replace").append(methodName(k8s)).append("(\n");
+        o.append("        return apiProvider.").append(apiFunction(k8s)).append(".replace").append(methodName(k8s)).append("(\n");
         o.append("            name,\n");
         if (k8s.isNamespaced())
             o.append("            namespace,\n");

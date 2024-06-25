@@ -71,7 +71,7 @@ public class ReplicaSetGrid extends AbstractGridWithNamespace<ReplicaSetGrid.Res
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.REPLICA_SET;
     }
 

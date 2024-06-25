@@ -17,7 +17,10 @@
  */
 package de.mhus.kt2l.resources.generic;
 
+import com.google.gson.JsonObject;
 import de.mhus.commons.errors.NotSupportedException;
+import de.mhus.commons.tools.MJson;
+import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
@@ -25,67 +28,67 @@ import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.models.V1APIResource;
-import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.Yaml;
+import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesApi;
+import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesListObject;
+import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 
+@Slf4j
 public class GenericK8s implements HandlerK8s {
 
-    private final V1APIResource resourceType;
+    private final K8s type;
 
-    public GenericK8s(K8s resourceType) {
-        this(K8s.toResource(resourceType));
+    public GenericK8s(K8s type) {
+        this.type = type;
     }
 
-    public GenericK8s(V1APIResource resourceType) {
-        this.resourceType = resourceType;
-    }
     @Override
-    public K8s getManagedResourceType() {
-        return K8s.GENERIC;
+    public K8s getManagedType() {
+        return type;
     }
 
     @Override
     public String getDescribe(ApiProvider apiProvider, KubernetesObject res) {
         var sb = new StringBuilder();
         K8sUtil.describeHeader(apiProvider, this, res, sb);
-        sb.append(Yaml.dump(res));
+        try {
+            if (res instanceof DynamicKubernetesObject dynamicKubernetesObject) {
+                sb.append(MYaml.toYaml(MJson.load(dynamicKubernetesObject.getRaw().toString()) ));
+            } else {
+                sb.append(Yaml.dump(res));
+            }
+        } catch (Exception e) {
+            LOGGER.debug("Error dumping object", e);
+        }
         K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
     }
 
     @Override
-    public void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
-        throw new NotSupportedException("Not supported for generic resources");
-//        var y = MYaml.loadFromString(yaml);
-////        var kind = y.asMap().getString("Kind");
-////        var resource = Arrays.stream(K8s.RESOURCE.values()).filter(r -> r.kind().equalsIgnoreCase(kind)).findFirst().orElse(null);
-////        if (resource == null) throw new ApiException("Kind not found: " + kind);
-////        var v1Resource = K8s.toResource(resource);
-//        var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
-//        genericApi.replace(name, namespace, yaml);
+    public Object replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
+        final var genericApi = new DynamicKubernetesApi(type.group(), type.version(), type.plural(), apiProvider.getClient());
+        JsonObject jsonObject = Yaml.loadAs(yaml, JsonObject.class);
+        DynamicKubernetesObject object = new DynamicKubernetesObject(jsonObject);
+        return genericApi.update(object);
     }
 
     @Override
-    public V1Status delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
-        throw new NotSupportedException("Not supported for generic resources");
-//        var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
-//        genericApi.delete(name, namespace);
-//        return new V1Status(); //XXX
+    public Object delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
+        final var genericApi = new DynamicKubernetesApi(type.group(), type.version(), type.plural(), apiProvider.getClient());
+        if (type.isNamespaced())
+            return genericApi.delete(namespace, name);
+        else
+            return genericApi.delete(name);
     }
 
     @Override
     public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
-        throw new NotSupportedException("Not supported for generic resources");
-//        var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType );
-//        return genericApi.create(yaml);
-    }
-
-    @Override
-    public GenericObjectList createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
-        final var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType);
-        return genericApi.listNamespacedCustomObject(null);
+        final var genericApi = new DynamicKubernetesApi(type.group(), type.version(), type.plural(), apiProvider.getClient());
+        JsonObject jsonObject = Yaml.loadAs(yaml, JsonObject.class);
+        DynamicKubernetesObject object = new DynamicKubernetesObject(jsonObject);
+        return genericApi.create(object);
     }
 
     @Override
@@ -94,14 +97,27 @@ public class GenericK8s implements HandlerK8s {
     }
 
     @Override
-    public GenericObjectList createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
-        final var genericApi = new GenericObjectsApi(apiProvider.getClient(), resourceType);
-        return genericApi.listNamespacedCustomObject(namespace);
+    public DynamicKubernetesListObject createResourceListWithNamespace(ApiProvider apiProvider, String namespace) throws ApiException {
+        final var genericApi = new DynamicKubernetesApi(type.group(), type.version(), type.plural(), apiProvider.getClient());
+        return genericApi.list(namespace).getObject();
+    }
+
+    @Override
+    public DynamicKubernetesListObject createResourceListWithoutNamespace(ApiProvider apiProvider) throws ApiException {
+        final var genericApi = new DynamicKubernetesApi(type.group(), type.version(), type.plural(), apiProvider.getClient());
+        return genericApi.list().getObject();
     }
 
     @Override
     public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        throw new NotSupportedException("Not supported for generic resources");
+        final var genericApi = new DynamicKubernetesApi(type.group(), type.version(), type.plural(), apiProvider.getClient());
+
+        var patch = new V1Patch(patchString);
+        var patchType = "application/merge-patch+json"; // ???
+        if (type.isNamespaced())
+            return genericApi.patch(namespace, name, patchType, patch);
+        else
+            return genericApi.patch(name, patchType, patch);
     }
 
 }

@@ -76,7 +76,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     @Override
     protected void init() {
         highlightAlerts = podScorerConfiguration.getHighlightAlerts();
-        resourceHandler = k8sService.getResourceHandler(getManagedResourceType());
+        resourceHandler = k8sService.getTypeHandler(getManagedType());
         if (getManagedWatchClass() != null)
             eventRegistration = panel.getCore().backgroundJobInstance(panel.getCluster(), getManagedWatchClass()).getEventHandler().registerWeak(this::changeEvent);
     }
@@ -84,9 +84,9 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     protected abstract Class<? extends ClusterBackgroundJob> getManagedWatchClass();
 
     private void changeEvent(Watch.Response<KubernetesObject> event) {
-        if (resourcesList == null) return;
+        if (resourcesList == null || namespace == null) return;
 
-        if (namespace != null && !namespace.equals(K8sUtil.NAMESPACE_ALL_LABEL) && !namespace.equals(event.object.getMetadata().getNamespace()))
+        if (!namespace.equals(K8sUtil.NAMESPACE_ALL_LABEL) && !namespace.equals(event.object.getMetadata().getNamespace()))
             return;
 
         if (event.type.equals(K8sUtil.WATCH_EVENT_ADDED) || event.type.equals(K8sUtil.WATCH_EVENT_MODIFIED)) {
@@ -134,7 +134,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     protected abstract T createResourceItem();
 
     @Override
-    public abstract K8s getManagedResourceType();
+    public abstract K8s getManagedType();
 
     @Override
     protected void createDetailsComponent() {
@@ -218,7 +218,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         public ResourceDataProvider() {
             super(query -> {
                 synchronized (AbstractGridWithNamespace.this) {
-                    LOGGER.debug("◌ Do the query {} {}", getManagedResourceType(), queryToString(query));
+                    LOGGER.debug("◌ Do the query {} {}", getManagedType(), queryToString(query));
                     if (filteredList == null) return Stream.empty();
                     for (QuerySortOrder queryOrder :
                             query.getSortOrders()) {
@@ -246,20 +246,25 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                     return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                 }
             }, query -> {
-                        LOGGER.debug("◌ Do the size query {} {}", getManagedResourceType(), queryToString(query));
+                        LOGGER.debug("◌ Do the size query {} {}", getManagedType(), queryToString(query));
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            synchronized (resourcesList) {
-                                tryThis(() -> namespace == null || namespace.equals(K8sUtil.NAMESPACE_ALL_LABEL) ? createRawResourceListForAllNamespaces() : createRawResourceListForNamespace(namespace) )
-                                        .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
-                                        .onSuccess(list -> {
-                                            list.getItems().forEach(res -> {
-                                                var newRes = createResourceItem();
-                                                newRes.initResource((V) res, false);
-                                                newRes.updateResource();
-                                                resourcesList.add(newRes);
+                            if (namespace != null) {
+                                synchronized (resourcesList) {
+                                    tryThis(() -> namespace.equals(K8sUtil.NAMESPACE_ALL_LABEL) ?
+                                            createRawResourceListForAllNamespaces() :
+                                            createRawResourceListForNamespace(namespace)
+                                    )
+                                            .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
+                                            .onSuccess(list -> {
+                                                list.getItems().forEach(res -> {
+                                                    var newRes = createResourceItem();
+                                                    newRes.initResource((V) res, false);
+                                                    newRes.updateResource();
+                                                    resourcesList.add(newRes);
+                                                });
                                             });
-                                        });
+                                }
                             }
                         }
                         filterList();

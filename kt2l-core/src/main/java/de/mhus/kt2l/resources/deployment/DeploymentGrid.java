@@ -71,7 +71,7 @@ public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Res
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.DEPLOYMENT;
     }
 

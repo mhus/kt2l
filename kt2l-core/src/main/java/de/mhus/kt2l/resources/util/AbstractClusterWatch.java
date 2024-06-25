@@ -61,11 +61,11 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
         this.clusterId = clusterId;
-        resourceHandler = k8s.getResourceHandler(getManagedResourceType());
+        resourceHandler = k8s.getTypeHandler(getManagedType());
         watchThread = Thread.startVirtualThread(this::watch);
     }
 
-    public abstract K8s getManagedResourceType();
+    public abstract K8s getManagedType();
 
     private void watch() {
 

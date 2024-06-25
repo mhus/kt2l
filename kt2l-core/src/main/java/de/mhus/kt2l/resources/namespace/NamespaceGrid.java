@@ -43,7 +43,7 @@ public class NamespaceGrid extends AbstractGridWithoutNamespace<NamespaceGrid.Re
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.NAMESPACE;
     }
 

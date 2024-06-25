@@ -34,7 +34,7 @@ import org.vaadin.addons.visjs.network.main.Node;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ClusterRoleBindingVis extends AbstractVisHandler {
     @Override
-    public K8s[] getConnectedResourceTypes() {
+    public K8s[] getConnectedTypes() {
         return new K8s[] {K8s.SERVICE_ACCOUNT};
     }
 
@@ -51,7 +51,7 @@ public class ClusterRoleBindingVis extends AbstractVisHandler {
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getType() {
         return K8s.CLUSTER_ROLE_BINDING;
     }
 

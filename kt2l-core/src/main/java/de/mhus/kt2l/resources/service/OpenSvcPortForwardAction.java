@@ -46,13 +46,13 @@ public class OpenSvcPortForwardAction implements ResourceAction {
     private ViewsConfiguration viewsConfiguration;
 
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.SERVICE.equals(resourceType);
+    public boolean canHandleType(Cluster cluster, K8s type) {
+        return K8s.SERVICE.equals(type);
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        if (!canHandleResourceType(cluster, resourceType))
+    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+        if (!canHandleType(cluster, type))
             return false;
         if (selected.isEmpty()) return false;
 

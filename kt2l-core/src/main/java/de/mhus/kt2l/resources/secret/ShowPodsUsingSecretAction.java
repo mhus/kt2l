@@ -37,13 +37,13 @@ import java.util.Set;
 @WithRole(ROLE.READ)
 public class ShowPodsUsingSecretAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.SECRET.equals(resourceType);
+    public boolean canHandleType(Cluster cluster, K8s type) {
+        return K8s.SECRET.equals(type);
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(cluster, resourceType) && selected.size() == 1;
+    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+        return canHandleType(cluster, type) && selected.size() == 1;
     }
 
     @Override

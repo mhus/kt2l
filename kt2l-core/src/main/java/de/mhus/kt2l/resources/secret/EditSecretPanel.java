@@ -136,7 +136,7 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
 
         try {
             var yaml = Yaml.dump(selected);
-            k8sService.getResourceHandler(K8s.SECRET).replace(cluster.getApiProvider(), selected.getMetadata().getName(), selected.getMetadata().getNamespace(), yaml);
+            k8sService.getTypeHandler(K8s.SECRET).replace(cluster.getApiProvider(), selected.getMetadata().getName(), selected.getMetadata().getNamespace(), yaml);
         } catch (Exception e) {
             UiUtil.showErrorNotification("Error saving Secret", e);
             return;

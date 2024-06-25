@@ -87,7 +87,7 @@ public class IngressGrid extends AbstractGridWithNamespace<IngressGrid.Resource,
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.INGRESS;
     }
 

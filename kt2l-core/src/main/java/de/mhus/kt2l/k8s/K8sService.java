@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.k8s;
 
-import ch.qos.logback.core.model.processor.ModelHandlerBase;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
@@ -26,6 +25,9 @@ import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.resources.generic.GenericK8s;
+import io.kubernetes.client.Discovery;
+import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.extended.kubectl.Kubectl;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.KubeConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -46,6 +49,7 @@ import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static de.mhus.commons.tools.MString.isEmpty;
 import static io.kubernetes.client.util.Config.ENV_KUBECONFIG;
 import static io.kubernetes.client.util.Config.SERVICEACCOUNT_CA_PATH;
 
@@ -65,54 +69,60 @@ public class K8sService {
     @Autowired
     private Configuration configuration;
 
-    public V1APIResource findResource(K8s resourceType, ApiProvider apiProvider) {
-        return findResource(resourceType, apiProvider, null);
+    public V1APIResource findResource(K8s type, ApiProvider apiProvider) {
+        return findResource(type, apiProvider, null);
     }
 
-    public V1APIResource findResource(K8s resourceType, ApiProvider apiProvider, Principal principal) {
+    public V1APIResource findResource(K8s type, ApiProvider apiProvider, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
         var types = K8sUtil.getResourceTypes(apiProvider.getCoreV1Api());
-        var resType = K8s.toResource(resourceType);
+        var resType = K8s.toResource(type);
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
         return securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, resType.getName(), defaultRole, principalFinal ) ? resType : null;
 
     }
 
-    public CompletableFuture<List<V1APIResource>> getResourceTypesAsync(ApiProvider apiProvider) {
-        return getResourceTypesAsync(apiProvider, null);
+    public CompletableFuture<List<K8s>> getTypesAsync(ApiProvider apiProvider) {
+        return getTypesAsync(apiProvider, null);
     }
 
-    public CompletableFuture<List<V1APIResource>> getResourceTypesAsync(ApiProvider apiProvider, Principal principal) {
+    public CompletableFuture<List<K8s>> getTypesAsync(ApiProvider apiProvider, Principal principal) {
         if (principal == null)
             principal = securityService.getPrincipal();
         final var principalFinal = principal;
 
         SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
+        CompletableFuture<List<K8s>> future = new CompletableFuture<>();
 
-        CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
-        K8sUtil.getResourceTypesAsync(apiProvider.getCoreV1Api()).handle((resources, t) -> {
-            if (t != null) {
-                future.completeExceptionally(t);
-                return Collections.emptyList();
-            }
-            try (SecurityContext.Environment cce = cc.enter()) {
-                final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE);
-                resources = resources.stream().filter(
-                        res ->
-                            !res.getName().equals("GENERIC") &&
-                            !res.getName().equals("CUSTOM") &&
-                            !res.getName().equals("containers") &&
-                            res.getName().indexOf('/') < 0 &&
-                            securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal)
-                ).toList();
-                future.complete(resources);
-                return resources;
-            }
-        });
+        Thread.startVirtualThread(() -> {
+                    try (var cce = cc.enter()) {
+                        final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE);
+                        final var rawResources = Kubectl.apiResources().apiClient(apiProvider.getApiClient()).execute();
+                        List<K8s> results = new ArrayList<>();
+                        for (Discovery.APIResource r : rawResources) {
+                            if (isEmpty(r.getResourceSingular()))
+                                continue;
+                            for (String v : r.getVersions()) {
+                                // find K8s
+                                K8s res = K8s.toResource(r, v);
+                                // check access
+                                if (securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.displayName(), defaultRole, principalFinal)) {
+                                    results.add(res);
+                                }
+
+                            }
+                        }
+                        future.complete(results);
+                    } catch (Exception e) {
+                        LOGGER.error("Can't load resource types", e);
+                        future.completeExceptionally(e);
+                    }
+                });
+
         return future;
     }
 
@@ -267,12 +277,13 @@ public class K8sService {
         }, timeout);
     }
 
-    public HandlerK8s getResourceHandler(V1APIResource resource) {
-        return resourceHandlers.stream().filter(h -> h.getManagedResourceType().kind().equals(resource.getKind())).findFirst().orElseGet(() -> new GenericK8s(resource));
+    public HandlerK8s getTypeHandler(KubernetesObject object, Cluster cluster, K8s fallback) {
+        var clazz = object.getClass();
+        return resourceHandlers.stream().filter(h -> h.getManagedType().equals(clazz)).findFirst().orElseGet(() -> new GenericK8s(fallback));
     }
 
-    public HandlerK8s getResourceHandler(K8s resource) {
-        return resourceHandlers.stream().filter(h -> h.getManagedResourceType().equals(resource)).findFirst().orElseGet(() -> new GenericK8s(resource));
+    public HandlerK8s getTypeHandler(K8s resource) {
+        return resourceHandlers.stream().filter(h -> h.getManagedType().equals(resource)).findFirst().orElseGet(() -> new GenericK8s(resource));
     }
 
     public K8s findResource(V1APIResource value) {
@@ -282,29 +293,33 @@ public class K8sService {
             return Arrays.stream(K8s.values()).filter(r -> r.kind().equalsIgnoreCase(value.getKind())).findFirst()
                     .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
         if (value.getName() != null)
-            return Arrays.stream(K8s.values()).filter(r -> r.resourceType().equalsIgnoreCase(value.getName())).findFirst()
+            return Arrays.stream(K8s.values()).filter(r -> r.plural().equalsIgnoreCase(value.getName())).findFirst()
                     .orElseThrow(() -> new NotFoundRuntimeException("Resource not found: " + value.getName()));
         throw new NotFoundRuntimeException("Resource not found: " + value.getName());
     }
 
-    public CompletableFuture<List<V1APIResource>> fillResourceTypes(Cluster cluster) {
-        CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
-        if (cluster.getResourceTypes() != null) {
-            future.complete(cluster.getResourceTypes());
+    public CompletableFuture<List<K8s>> fillTypes(Cluster cluster) {
+        CompletableFuture<List<K8s>> future = new CompletableFuture<>();
+        if (cluster.getTypes() != null) {
+            future.complete(cluster.getTypes());
             return future;
         }
 
-        getResourceTypesAsync(cluster.getApiProvider()).handle((types, t) -> {
+        getTypesAsync(cluster.getApiProvider()).handle((types, t) -> {
             if (t != null) {
                 LOGGER.error("Can't load resource types", t);
                 future.completeExceptionally(t);
                 return Collections.emptyList();
             }
-            cluster.setResourceTypes(types);
+            cluster.setTypes(types);
             future.complete(types);
             return types;
         });
         return future;
+    }
+
+    public HandlerK8s getTypeHandler(V1APIResource resType) {
+        return getTypeHandler(findResource(resType));
     }
 
 //    public Path getKubeConfigPath(Cluster cluster) {

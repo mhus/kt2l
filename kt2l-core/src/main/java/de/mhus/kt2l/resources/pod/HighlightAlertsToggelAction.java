@@ -40,13 +40,13 @@ public class HighlightAlertsToggelAction implements ResourceAction {
     private PodScorerConfiguration podScorerConfiguration;
 
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.POD.equals(resourceType) && podScorerConfiguration.isEnabled();
+    public boolean canHandleType(Cluster cluster, K8s type) {
+        return K8s.POD.equals(type) && podScorerConfiguration.isEnabled();
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(cluster, resourceType);
+    public boolean canHandleResource(Cluster cluster, K8s type, Set<? extends KubernetesObject> selected) {
+        return canHandleType(cluster, type);
     }
 
     @Override

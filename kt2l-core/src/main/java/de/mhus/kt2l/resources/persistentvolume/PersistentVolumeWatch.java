@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 public class PersistentVolumeWatch extends AbstractClusterWatch<V1PersistentVolume> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.PERSISTENT_VOLUME;
     }
 

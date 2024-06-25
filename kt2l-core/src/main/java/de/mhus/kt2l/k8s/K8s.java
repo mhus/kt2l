@@ -18,8 +18,9 @@
 package de.mhus.kt2l.k8s;
 
 import de.mhus.commons.errors.NotFoundRuntimeException;
-import de.mhus.kt2l.resources.generic.GenericObject;
+import de.mhus.commons.tools.MCollection;
 import de.mhus.kt2l.resources.pod.ContainerResource;
+import io.kubernetes.client.Discovery;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ClusterRole;
@@ -48,12 +49,46 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import io.kubernetes.client.openapi.models.V1StatefulSet;
 import io.kubernetes.client.openapi.models.V1StorageClass;
+import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 
 import static de.mhus.commons.tools.MString.isEmpty;
 
 public class K8s {
+
+    private static final Map<String,String> DISPLAY_MAPPER = Collections.synchronizedMap(
+            MCollection.asMap(
+                    "pod_v1", "pod",
+                    "node_v1", "node",
+                    "namespace_v1", "namespace",
+                    "container_v1", "container",
+                    "configmap_v1", "configmap",
+                    "apps.deployment_v1", "deployment",
+                    "apps.statefulset_v1", "statefulset",
+                    "apps.daemonset_v1", "daemonset",
+                    "apps.replicaset_v1", "replicaset",
+                    "batch.job_v1", "job",
+                    "batch.cronjob_v1", "cronjob",
+                    "rbac.authorization.k8s.io.role_v1", "role",
+                    "rbac.authorization.k8s.io.rolebinding_v1", "rolebinding",
+                    "rbac.authorization.k8s.io.clusterrole_v1", "clusterrole",
+                    "rbac.authorization.k8s.io.clusterrolebinding_v1", "clusterrolebinding",
+                    "serviceaccount_v1", "serviceaccount",
+                    "secret_v1", "secret",
+                    "service_v1", "service",
+                    "networking.k8s.io.ingress_v1", "ingress",
+                    "networking.k8s.io.networkpolicy_v1", "networkpolicy",
+                    "persistentvolume_v1", "persistentvolume",
+                    "persistentvolumeclaim_v1", "persistentvolumeclaim",
+                    "storage.k8s.io.storageclass_v1", "storageclass",
+                    "autoscaling.horizontalpodautoscaler_v1", "horizontalpodautoscaler",
+                    "limitrange", "limitrange",
+                    "endpoints_v1", "endpoints"
+            ));
 
     public final static K8s POD = new K8s("pods", "Pod", null, "v1", "pod", "po", "", true, V1Pod.class);
     public final static K8s NODE = new K8s("nodes", "Node", null, "v1", "node", "no", "", false, V1Node.class);
@@ -79,11 +114,10 @@ public class K8s {
     public final static K8s CLUSTER_ROLE = new K8s("clusterroles", "ClusterRole", "rbac.authorization.k8s.io", "v1", "clusterrole", "cr", "", false, V1ClusterRole.class);
     public final static K8s CLUSTER_ROLE_BINDING = new K8s("clusterrolebindings", "ClusterRoleBinding", "rbac.authorization.k8s.io", "v1", "clusterrolebinding", "crb", "", false, V1ClusterRoleBinding.class);
     public final static K8s CUSTOM_RESOURCE_DEFINITION = new K8s("customresourcedefinitions", "CustomResourceDefinition", "apiextensions.k8s.io", "", "v1", "crd", "", false, V1CustomResourceDefinition.class);
-    public final static K8s HPA = new K8s("horizontalpodautoscalers", "HorizontalPodAutoscaler", "autoscaling", "", "v1", "hpa", "", true, V1HorizontalPodAutoscaler.class);
+    public final static K8s HPA = new K8s("horizontalpodautoscalers", "HorizontalPodAutoscaler", "autoscaling", "v1", "horizontalpodautoscaler", "hpa", "", true, V1HorizontalPodAutoscaler.class);
     public final static K8s LIMIT_RANGE = new K8s("limitranges", "LimitRange", null, "v1", "limitrange", "lr", "", true, V1LimitRange.class);
     public final static K8s ENDPOINTS = new K8s("endpoints", "Endpoints", null, "v1", "endpoints", "ep", "", true, V1Endpoints.class);
-    public final static K8s GENERIC = new K8s("GENERIC", "GENERIC", "", "", "", "", "", false, GenericObject.class);
-    public final static K8s CUSTOM = new K8s("CUSTOM", "CUSTOM", "", "", "", "", "", false, KubernetesObject.class);
+    public final static K8s GENERIC = new K8s("GENERIC", "GENERIC", "", "", "", "", "", false, DynamicKubernetesObject.class);
 
     public final static K8s[] values() {
         return new K8s[] {
@@ -114,12 +148,10 @@ public class K8s {
             HPA,
             LIMIT_RANGE,
             ENDPOINTS,
-            GENERIC,
-            CUSTOM
         };
     }
 
-    private final String resourceType;
+    private final String plural;
     private final String kind;
     private final String group;
     private final String version;
@@ -128,12 +160,13 @@ public class K8s {
     private final String categories;
     private final boolean namespaced;
     private final Class<? extends KubernetesObject> clazz;
+    private final String displayName;
 
     public static V1APIResource toResource(K8s resource) {
-        return new V1APIResource().kind(resource.kind()).name(resource.resourceType()).version(resource.version()).group(resource.group());
+        return new V1APIResource().kind(resource.kind()).name(resource.plural()).version(resource.version()).group(resource.group());
     }
 
-    public static K8s toResourceType(V1APIResource resource) {
+    public static K8s toType(V1APIResource resource) {
         if (resource == null)
             return null;
         return Arrays.stream(values()).filter(r -> r.kind().equals(resource.getKind())).findFirst().orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resource.getKind()));
@@ -147,12 +180,18 @@ public class K8s {
         return group + "/" + apiVersion + "/" + plural;
     }
 
+    public static K8s toResource(Discovery.APIResource r, String version) {
+        return Arrays.stream(values()).filter(res -> res.equals(r.getResourceSingular(), version)).findFirst().orElseGet(
+                () -> new K8s(r.getResourcePlural(), r.getKind(), r.getGroup(), version, r.getResourceSingular(), "", "", r.getNamespaced(), KubernetesObject.class)
+        );
+    }
+
     public boolean isNamespaced() {
         return namespaced;
     }
 
-    public String resourceType() {
-        return resourceType;
+    public String plural() {
+        return plural;
     }
 
     public String kind() {
@@ -184,8 +223,8 @@ public class K8s {
     }
 
 
-    private K8s(String resourceType, String kind, String group, String version, String singular, String shortNames, String categories, boolean namespaced, Class<? extends KubernetesObject> clazz) {
-        this.resourceType = resourceType;
+    private K8s(String plural, String kind, String group, String version, String singular, String shortNames, String categories, boolean namespaced, Class<? extends KubernetesObject> clazz) {
+        this.plural = plural;
         this.kind = kind;
         this.group = group;
         this.version = version;
@@ -194,6 +233,8 @@ public class K8s {
         this.categories = categories;
         this.namespaced = namespaced;
         this.clazz = clazz;
+        var ds = (isEmpty(group) ? "" : group + ".") + singular + (version == null ? "" : "_" + version);
+        this.displayName = DISPLAY_MAPPER.getOrDefault(ds, ds);
     }
 
     public boolean equals(Object obj) {
@@ -206,21 +247,27 @@ public class K8s {
             return false;
         }
         K8s other = (K8s) obj;
-        return resourceType.equals(other.resourceType) &&
+        return plural.equals(other.plural) &&
                 kind.equals(other.kind) &&
                 group.equals(other.group) &&
                 version.equals(other.version) &&
                 singular.equals(other.singular) &&
-                shortNames.equals(other.shortNames) &&
-                categories.equals(other.categories) &&
                 namespaced == other.namespaced;
     }
 
     public int hashCode() {
-        return resourceType.hashCode();
+        return Objects.hash(plural, version);
     }
 
     public String toString() {
-        return resourceType;
+        return plural;
+    }
+
+    public boolean equals(String name, String version) {
+        return singular.equals(name) && this.version.equals(version);
+    }
+
+    public String displayName() {
+        return displayName;
     }
 }

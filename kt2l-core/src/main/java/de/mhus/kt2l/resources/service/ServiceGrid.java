@@ -73,7 +73,7 @@ public class ServiceGrid extends AbstractGridWithNamespace<ServiceGrid.Resource,
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.SERVICE;
     }
 

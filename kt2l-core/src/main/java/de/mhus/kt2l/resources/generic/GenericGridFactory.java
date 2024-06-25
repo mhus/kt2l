@@ -29,19 +29,19 @@ import org.springframework.stereotype.Component;
 @WithRole(UsersConfiguration.ROLE.READ)
 public class GenericGridFactory implements ResourceGridFactory {
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
+    public boolean canHandleType(K8s type) {
         return true;
     }
 
     @Override
-    public ResourcesGrid create(K8s resourcesType) {
+    public ResourcesGrid create(K8s type) {
         var grid = new GenericGrid();
-        grid.setResourceType(resourcesType);
+        grid.setType(type);
         return grid;
     }
 
     @Override
-    public int getPriority(K8s resourcesType) {
+    public int getPriority(K8s type) {
         return Integer.MAX_VALUE;
     }
 

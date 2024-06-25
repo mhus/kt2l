@@ -97,7 +97,7 @@ public class ResourcePatchPanel extends VerticalLayout implements DeskTabListene
                     try {
                         dialog.next(res.getMetadata().getName());
                         var content = editor.getValue();
-                        var handler = k8s.getResourceHandler(K8sUtil.toResourceType(res, cluster));
+                        var handler = k8s.getTypeHandler(K8sUtil.toType(res, cluster));
                         handler.patch(cluster.getApiProvider(), res, content);
                         UiUtil.showSuccessNotification("Resource patched: " + res.getMetadata().getNamespace() + "." + res.getMetadata().getName());
                     } catch (Exception t) {

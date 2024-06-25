@@ -85,7 +85,7 @@ public class CronJobGrid extends AbstractGridWithNamespace<CronJobGrid.Resource,
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.CRON_JOB;
     }
 

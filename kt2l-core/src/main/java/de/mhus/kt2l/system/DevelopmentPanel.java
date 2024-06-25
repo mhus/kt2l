@@ -111,7 +111,7 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
                 ConsoleTable table = new ConsoleTable();
                 table.setHeaderValues("Namespace", "ResourceType", "Filter Text", "Filter", "Sort Order", "Sort Ascending");
                 gridPanel.getHistroy().forEach(h -> {
-                    table.addRowValues(h.namespace(), h.resourceType(), h.filterText(), h.filter() != null ? h.filter().getDescription() : "", h.sortOrder(), h.sortAscending());
+                    table.addRowValues(h.namespace(), h.type(), h.filterText(), h.filter() != null ? h.filter().getDescription() : "", h.sortOrder(), h.sortAscending());
                 });
                 i.append(table).append("\n");
             }

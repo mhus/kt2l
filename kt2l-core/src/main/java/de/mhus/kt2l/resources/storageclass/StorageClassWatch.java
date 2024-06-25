@@ -32,7 +32,7 @@ import java.lang.reflect.Type;
 public class StorageClassWatch extends AbstractClusterWatch<V1StorageClass> {
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.STORAGE_CLASS;
     }
 

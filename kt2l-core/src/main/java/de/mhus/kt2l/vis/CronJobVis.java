@@ -33,7 +33,7 @@ import org.vaadin.addons.visjs.network.options.edges.Arrows;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CronJobVis extends  AbstractVisHandler {
     @Override
-    public K8s[] getConnectedResourceTypes() {
+    public K8s[] getConnectedTypes() {
         return new K8s[] {K8s.JOB};
     }
 
@@ -49,7 +49,7 @@ public class CronJobVis extends  AbstractVisHandler {
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getType() {
         return K8s.CRON_JOB;
     }
 

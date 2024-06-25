@@ -29,12 +29,12 @@ import org.springframework.stereotype.Component;
 @WithRole(UsersConfiguration.ROLE.READ)
 public class StorageClassGridFactory implements ResourceGridFactory {
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
-        return K8s.STORAGE_CLASS.equals(resourceType);
+    public boolean canHandleType(K8s type) {
+        return K8s.STORAGE_CLASS.equals(type);
     }
 
     @Override
-    public ResourcesGrid create(K8s resourcesType) {
+    public ResourcesGrid create(K8s type) {
         return new StorageClassGrid();
     }
 

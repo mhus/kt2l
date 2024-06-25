@@ -90,9 +90,9 @@ public class PanelService {
                 .setColor(cluster == null ? UiUtil.COLOR.NONE : cluster.getColor());
     }
 
-    public DeskTab showYamlPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {
+    public DeskTab showYamlPanel(DeskTab parentTab, Cluster cluster, K8s type, KubernetesObject resource) {
         return parentTab.getTabBar().addTab(
-                cluster.getName() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
+                cluster.getName() + ":" + type + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),
                 true,
                 true,
@@ -101,14 +101,14 @@ public class PanelService {
                         new ResourceYamlEditorPanel(
                                 cluster,
                                 parentTab.getTabBar().getCore(),
-                                resourceType,
+                                type,
                                 resource
                         ))
                 .setReproducable(true)
                 .setColor(parentTab.getColor())
                 .setParentTab(parentTab)
                 .setHelpContext("yaml")
-                .setWindowTitle(cluster.getTitle() + " - " + resourceType + " - " + resource.getMetadata().getName() + " - Details");
+                .setWindowTitle(cluster.getTitle() + " - " + type + " - " + resource.getMetadata().getName() + " - Details");
     }
 
     public DeskTab addResourcesGrid(Core core, Cluster cluster) {

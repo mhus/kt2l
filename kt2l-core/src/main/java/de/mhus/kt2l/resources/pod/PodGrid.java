@@ -141,7 +141,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                         }
 
                         var context = ExecutionContext.builder()
-                                .resourceType(K8s.CONTAINER)
+                                .k8s(K8s.CONTAINER)
                                 .selected(selected)
                                 .namespace(namespace)
                                 .cluster(cluster)
@@ -292,7 +292,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public K8s getManagedType() {
         return K8s.POD;
     }
 
