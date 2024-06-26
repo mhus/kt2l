@@ -148,7 +148,7 @@ public class LocalServerTest {
         App.clusterOpenResources(driver);
 
         // select namespace
-        App.resourcesSelectResource(driver, "namespace");
+        App.resourcesSelectResource(driver, "namespace ");
         // wait for the namespace grid
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
                 .until(presenceOfElementLocated(By.xpath("//vaadin-grid-cell-content[contains(.,\"indomitable-village\")]")));
@@ -190,7 +190,7 @@ public class LocalServerTest {
         App.clusterOpenResources(driver);
 
         // select pods
-        App.resourcesSelectResource(driver, "pods");
+        App.resourcesSelectResource(driver, "pod ");
         // select namespace
         App.resourcesSelectNamespace(driver, "indomitable-village");
         // wait for the namespace grid
@@ -235,6 +235,8 @@ public class LocalServerTest {
         App.clusterOpenResources(driver);
 
         // click on pod asterix
+        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                .until(presenceOfElementLocated(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]")));
         driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]")).click();
 
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1)).until((d) ->
