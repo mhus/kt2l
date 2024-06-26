@@ -24,8 +24,8 @@
     "react-dom": "18.3.1",
     "react-router-dom": "6.23.1",
     "vis-network": "9.1.9",
-    "xterm": "5.1.0",
-    "xterm-addon-fit": "0.7.0"
+    "xterm": "5.3.0",
+    "xterm-addon-fit": "0.8.0"
   },
   "devDependencies": {
     "@babel/preset-react": "7.24.7",
@@ -41,7 +41,7 @@
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "5.4.5",
-    "vite": "5.3.1",
+    "vite": "5.2.13",
     "vite-plugin-checker": "0.6.4",
     "workbox-build": "7.1.1",
     "workbox-core": "7.1.0",
@@ -70,8 +70,8 @@
       "react-dom": "18.3.1",
       "react-router-dom": "6.23.1",
       "vis-network": "9.1.9",
-      "xterm": "5.1.0",
-      "xterm-addon-fit": "0.7.0"
+      "xterm": "5.3.0",
+      "xterm-addon-fit": "0.8.0"
     },
     "devDependencies": {
       "@babel/preset-react": "7.24.7",
@@ -87,13 +87,13 @@
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "5.4.5",
-      "vite": "5.3.1",
+      "vite": "5.2.13",
       "vite-plugin-checker": "0.6.4",
       "workbox-build": "7.1.1",
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "8342869b8c6882bcd8ad15fe284e0b62f445094a329d7b2033bca2b54b2ae778"
+    "hash": "5f453a49b63cfa1c2e35b2667074ed383442aed37b1ef28e6afcbea882917ca2"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",

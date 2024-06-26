@@ -25,6 +25,7 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import de.mhus.commons.tools.MJson;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.cluster.Cluster;
@@ -94,6 +95,20 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
                 closeTerminal();
             }
         });
+        xterm.addPasteListener(e -> {
+            try {
+                var json = MJson.load(e.getText());
+                var text = json.get("text").asText();
+                proc.getOutputStream().write(text.getBytes());
+                proc.getOutputStream().flush();
+            } catch (IOException ex) {
+                LOGGER.error("Write error", ex);
+                closeTerminal();
+            }
+        });
+        xterm.addActionListener(e -> {
+            UiUtil.showSuccessNotification(e.getEvent());
+        });
 
         xTermMenuBar = new MenuBar();
         xTermMenuBar.addItem("ESC", e -> {
@@ -157,7 +172,7 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
                 }
                 // System.out.println("ERead: " + len);
                 String line = new String(buffer, 0, len);
-                core.ui().access(() -> xterm.write(line));
+                core.ui().access(() -> xterm.write(UiUtil.xtermPrepareEsc(line)));
             }
         } catch (Exception e) {
             LOGGER.error("Loop", e);
