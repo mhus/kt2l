@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.gson.reflect.TypeToken;
 import de.mhus.commons.io.Zip;
 import de.mhus.commons.tools.MJson;
@@ -26,7 +25,6 @@ import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8sService;
-import de.mhus.kt2l.resources.generic.APIGroupDiscoveryList;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
@@ -35,7 +33,6 @@ import io.kubernetes.client.extended.kubectl.exception.KubectlException;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.ApiResponse;
 import io.kubernetes.client.openapi.Pair;
 import io.kubernetes.client.openapi.apis.ApiextensionsV1Api;
 import io.kubernetes.client.openapi.apis.ApisApi;
@@ -43,7 +40,6 @@ import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1Event;
 import io.kubernetes.client.openapi.models.V1APIResource;
-import io.kubernetes.client.openapi.models.V1APIResourceList;
 import io.kubernetes.client.openapi.models.V1EphemeralContainer;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -60,7 +56,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -400,42 +395,6 @@ public class KubeTest {
 
     }
 
-    @Test
-    public void testAPIGroupDiscoveryList() throws IOException, ApiException {
-
-        if (CLUSTER_NAME == null) {
-            LOGGER.error("Local properties not found");
-            return;
-        }
-        System.out.println("CLUSTER_NAME: " + CLUSTER_NAME);
-        final var service = new K8sService();
-        ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
-        apiProvider.getClient().setDebugging(true);
-
-        {
-            var getAPIResourcesCall = getAPIResourcesCall((ApiCallback) null, apiProvider.getClient());
-            Type localVarReturnType = (new TypeToken<APIGroupDiscoveryList>() {
-            }).getType();
-            var res = apiProvider.getClient().execute(getAPIResourcesCall, localVarReturnType);
-        }
-        var getAPIResourcesCall = getAPIResourcesCall((ApiCallback)null, apiProvider.getClient()  );
-        Type localVarReturnType = (new TypeToken<APIGroupDiscoveryList>() {}).getType();
-        var res = apiProvider.getClient().execute(getAPIResourcesCall, localVarReturnType);
-
-        ((APIGroupDiscoveryList)res.getData()).getItems().forEach(v -> {
-            try {
-                System.out.println(v.getVersions());
-                MJson.load(v.getVersions()).get(0).withArray("resources").forEach(item -> {
-                    System.out.println(item.get("singularResource").asText());
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-
-    }
-
     public Call getAPIResourcesCall(ApiCallback _callback, ApiClient client) throws ApiException {
         Object localVarPostBody = null;
         String localVarPath = "/api";
@@ -504,14 +463,14 @@ public class KubeTest {
 //        AppsV1Api api = new AppsV1Api(client);
 //        GenericObjectsApi genericApi = new GenericObjectsApi(client);
 //
-////        String resourceType = "apps/v1/daemonsets";
-////        String resourceType = "pods";
-//        String resourceType = "storage.k8s.io/v1/csidrivers";
+////        String type = "apps/v1/daemonsets";
+////        String type = "pods";
+//        String type = "storage.k8s.io/v1/csidrivers";
 //
 //        // v1/pods
 //        // apps/v1/daemonsets
 //        // storage.k8s.io/v1/csidrivers
-//        final var parts = resourceType.split("/");
+//        final var parts = type.split("/");
 //        String group = null;
 //        String version = "v1";
 //        String plural = null;

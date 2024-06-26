@@ -47,7 +47,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     }
 
     public String defaultResourceType() {
-        return config().getString("defaultResourceType", K8s.POD.resourceType());
+        return config().getString("defaultType", K8s.POD.getName());
     }
 
     public String defaultNamespace() {
@@ -93,6 +93,10 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     private synchronized Cluster getDefault(String name) {
         var clusterInfo = getClusterInfo();
         return clusterInfo.defaultClusters.computeIfAbsent(name, (n) -> new Cluster(this, SecurityContext.lookupUserName(), n, MTree.EMPTY_MAP));
+    }
+
+    public void clearClusterCache() {
+        clusterInfos.clear();
     }
 
     private class ClusterInfo {

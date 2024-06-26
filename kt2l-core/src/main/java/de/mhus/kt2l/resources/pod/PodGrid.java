@@ -30,17 +30,18 @@ import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.pod.score.PodScorer;
 import de.mhus.kt2l.resources.pod.score.PodScorerConfiguration;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
+import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1ContainerStatus;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -141,7 +142,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                         }
 
                         var context = ExecutionContext.builder()
-                                .resourceType(K8s.CONTAINER)
+                                .type(K8s.CONTAINER)
                                 .selected(selected)
                                 .namespace(namespace)
                                 .cluster(cluster)
@@ -292,7 +293,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public V1APIResource getManagedType() {
         return K8s.POD;
     }
 

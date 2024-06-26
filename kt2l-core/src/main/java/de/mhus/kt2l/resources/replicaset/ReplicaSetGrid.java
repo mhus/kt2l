@@ -23,9 +23,10 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
+import de.mhus.kt2l.ui.UiUtil;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ReplicaSet;
 import io.kubernetes.client.openapi.models.V1ReplicaSetList;
 import lombok.Getter;
@@ -71,7 +72,7 @@ public class ReplicaSetGrid extends AbstractGridWithNamespace<ReplicaSetGrid.Res
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public V1APIResource getManagedType() {
         return K8s.REPLICA_SET;
     }
 

@@ -25,6 +25,7 @@ import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1HorizontalPodAutoscaler;
 import io.kubernetes.client.openapi.models.V1HorizontalPodAutoscalerList;
 import lombok.Getter;
@@ -70,7 +71,7 @@ public class HorizontalPodAutoscalerGrid extends AbstractGridWithNamespace<Horiz
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public V1APIResource getManagedType() {
         return K8s.HPA;
     }
 

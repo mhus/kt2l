@@ -28,6 +28,7 @@ import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Pod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,13 +47,13 @@ public class OpenPodPortForwardAction implements ResourceAction {
     private ViewsConfiguration viewsConfiguration;
 
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.POD.equals(resourceType);
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
+        return K8s.POD.equals(type);
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        if (!canHandleResourceType(cluster, resourceType))
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
+        if (!canHandleType(cluster, type))
             return false;
         if (selected.isEmpty()) return false;
 

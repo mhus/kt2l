@@ -25,34 +25,29 @@ import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.core.SecurityService;
-import de.mhus.kt2l.resources.generic.GenericObject;
-import de.mhus.kt2l.resources.pod.ContainerResource;
-import de.mhus.kt2l.resources.pod.PodGrid;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1APIResource;
-import io.kubernetes.client.openapi.models.V1APIResourceList;
 import io.kubernetes.client.openapi.models.V1ContainerStatus;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.util.Yaml;
+import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static de.mhus.commons.tools.MLang.tryThis;
 import static de.mhus.commons.tools.MString.isEmpty;
 
 @Slf4j
@@ -65,36 +60,56 @@ public class K8sUtil {
     public static final String NAMESPACE_ALL_LABEL = "[all]";
     public static final String NAMESPACE_ALL = "*";
 
-    public static K8s toResourceType(String resourceType) {
+    public static V1APIResource toType(String resourceType) {
         if (isEmpty(resourceType))
             throw new NullPointerException("Resource type is empty");
-        return Arrays.stream(K8s.values()).filter(r -> r.resourceType().equals(resourceType) || r.kind().equals(resourceType)).findFirst()
+        return K8s.resources().stream().filter(r -> r.getName().equals(resourceType) || r.getKind().equals(resourceType)).findFirst()
                 .orElseThrow(() -> new NotFoundRuntimeException("Unknown resource type: " + resourceType));
     }
 
-    public static K8s toResourceType(KubernetesObject o, Cluster cluster) {
-        if (cluster.getResourceTypes() == null)
-            throw new IllegalArgumentException("ResourceTypes not found in cluster configuration");
-        var resource = Arrays.stream(K8s.values()).filter(r -> r.clazz().equals(o.getClass())).findFirst().orElse(null);
+    public static V1APIResource toType(KubernetesObject o, Cluster cluster) {
+        if (cluster.getTypes() == null)
+            throw new IllegalArgumentException("Types not found in cluster configuration");
+        var resource = K8s.toResource(o.getClass()).orElse(null);
         return resource;
     }
 
-    public static V1APIResource toResource(KubernetesObject o, Cluster cluster) {
-        if (cluster.getResourceTypes() == null)
-            throw new IllegalArgumentException("ResourceTypes not found in cluster configuration");
-        var kind = o.getKind();
-        if (kind != null) {
-            var resourceType = cluster.getResourceTypes().stream().filter(r -> r.getKind().equalsIgnoreCase(kind)).findFirst().orElse(null);
-            if (resourceType != null) return resourceType;
-        }
-        var resource = Arrays.stream(K8s.values()).filter(r -> r.clazz().equals(o.getClass())).findFirst().orElse(null);
-        if (resource != null) return K8s.toResource(resource);
-
-        throw new IllegalArgumentException("Kind not found in cluster: " + kind);
-    }
+    // This is not possible in any cases
+//    public static V1APIResource toResource(KubernetesObject o, Cluster cluster) {
+//        if (cluster.getResourceTypes() == null)
+//            throw new IllegalArgumentException("ResourceTypes not found in cluster configuration");
+//
+//        try {
+//            var kind = o.getKind();
+//            if (kind != null) {
+//                var resource = cluster.getResourceTypes().stream().filter(r -> r.clazz().equals(o.getClass())).findFirst().orElse(null);
+//                if (resource != null) return K8s.toResource(resource);
+//            }
+//        } catch (Exception e) {
+//            LOGGER.debug("Error getting resource type for {} {}", o.getClass(), e.getMessage());
+//        }
+//
+//        if (o instanceof DynamicKubernetesObject dynamicKubernetesObject) {
+//            var kind = dynamicKubernetesObject.getRaw().get("kind");
+//            if (kind != null && cluster != null) {
+//                var resource = cluster.getResourceTypes().stream().filter(r -> r.kind().equals(kind)).findFirst().orElse(null);
+//                if (resource != null) return K8s.toResource(resource);
+//            }
+//        }
+//
+//        if (cluster == null) {
+//            var resource = Arrays.stream(K8s.values()).filter(r -> r.clazz().equals(o.getClass())).findFirst().orElse(null);
+//            if (resource != null) return K8s.toResource(resource);
+//        } else {
+//            var resource = cluster.getResourceTypes().stream().filter(r -> r.clazz().equals(o.getClass())).findFirst().orElse(null);
+//            if (resource != null) return K8s.toResource(resource);
+//        }
+//
+//        throw new IllegalArgumentException("Kind not found in cluster for " + o.getClass().getSimpleName());
+//    }
 
     public static void describeHeader(ApiProvider apiProvider, HandlerK8s handler, KubernetesObject res, StringBuilder sb) {
-        var kind = res.getKind();
+        var kind = tryThis(() -> res.getKind()).or(null);
         if (kind != null) {
             sb.append("Kind:          ").append(kind).append("\n");
         }
@@ -229,74 +244,21 @@ public class K8sUtil {
         return types;
     }
 
-    /**
-     * not public to force security checks, use K8sService instead.
-     */
-    static CompletableFuture<List<V1APIResource>> getResourceTypesAsync(CoreV1Api coreApi) {
-
-        CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
-        try {
-            coreApi.getAPIResourcesAsync(new ApiCallback<V1APIResourceList>() {
-                @Override
-                public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) { }
-
-                @Override
-                public void onSuccess(V1APIResourceList result, int statusCode, Map<String, List<String>> responseHeaders) {
-                    LinkedList<V1APIResource> types = new LinkedList<>();
-                    types.addAll(result.getResources().stream().collect(Collectors.toList()));
-                    // add static resources
-                    for (K8s r : K8s.values()) {
-                        try {
-                            types.stream().filter(t -> Objects.equals(t.getKind(), r.kind())).findFirst().or(() -> {
-                                types.add(K8s.toResource(r));
-                                return Optional.empty();
-                            });
-                        } catch (Exception e) {
-                            LOGGER.error("Error adding resource type", e);
-                        }
-                    }
-
-                    types.removeIf(t -> t.getKind().equals("Event")); // no usage for this
-
-                    future.complete(types);
-                }
-
-                @Override
-                public void onUploadProgress(long bytesWritten, long contentLength, boolean done) {}
-                @Override
-                public void onDownloadProgress(long bytesRead, long contentLength, boolean done) {}
-            });
-        } catch (ApiException e) {
-            LOGGER.error("Error getting resource types", e);
-        }
-        return future;
-    }
-
-    public static String toResourceTypeString(V1APIResource r) {
-        if (r == null) return null;
-        if (isEmpty(r.getGroup()) && isEmpty(r.getVersion()))
-            return r.getName();
-        if (isEmpty(r.getGroup()))
-            return r.getVersion() + "/" + r.getName();
-        return r.getGroup() + "/" + r.getVersion() + "/" + r.getName();
-    }
-
     public static String toYamlString(KubernetesObject resource) {
 
         if (resource == null) return "";
-        if (resource instanceof GenericObject) {
-            try {
-                String jsonTxt = ((GenericObject) resource).toJson();
-                return MYaml.toYaml(MJson.load(jsonTxt)).toString();
-            } catch (Exception e) {
-                LOGGER.error("Error converting to yaml", e);
-                return "ERROR: " + e.getMessage() + "\n" + resource.toString();
-            }
-        }
         // get yaml
-
-        var resContent = Yaml.dump(resource);
-        return resContent;
+        try {
+            if (resource instanceof DynamicKubernetesObject dynamicKubernetesObject) {
+                String jsonTxt = dynamicKubernetesObject.getRaw().toString();
+                return MYaml.toYaml(MJson.load(jsonTxt)).toString();
+            }
+            var resContent = Yaml.dump(resource);
+            return resContent;
+        } catch (Exception e) {
+            LOGGER.debug("Error converting to yaml", e);
+            return "ERROR: " + e.getMessage() + "\n" + resource.toString();
+        }
     }
 
     public static String getAge(OffsetDateTime creationTimestamp) {
@@ -328,9 +290,9 @@ public class K8sUtil {
         return service.getMetadata().getName() + "." + service.getMetadata().getNamespace() + ".svc.cluster.local";
     }
 
-    public static void checkDeleteAccess(SecurityService securityService, K8s resource) throws ApiException {
+    public static void checkDeleteAccess(SecurityService securityService, V1APIResource resource) throws ApiException {
         var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_RESOURCE_DELETE);
-        if (!securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_DELETE, resource.resourceType(), defaultRole))
+        if (!securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE_DELETE, resource.getName(), defaultRole))
             throw new ApiException(403, "Access denied for non admin users");
     }
 

@@ -27,12 +27,12 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.ui.ProgressDialog;
-import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.help.HelpResourceConnector;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.util.ResourceSelector;
+import de.mhus.kt2l.ui.ProgressDialog;
+import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,7 +97,7 @@ public class ResourcePatchPanel extends VerticalLayout implements DeskTabListene
                     try {
                         dialog.next(res.getMetadata().getName());
                         var content = editor.getValue();
-                        var handler = k8s.getResourceHandler(K8sUtil.toResourceType(res, cluster));
+                        var handler = k8s.getTypeHandler(K8sUtil.toType(res, cluster));
                         handler.patch(cluster.getApiProvider(), res, content);
                         UiUtil.showSuccessNotification("Resource patched: " + res.getMetadata().getNamespace() + "." + res.getMetadata().getName());
                     } catch (Exception t) {

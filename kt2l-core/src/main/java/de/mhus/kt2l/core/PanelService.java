@@ -25,12 +25,10 @@ import de.mhus.kt2l.ai.AiResourcePanel;
 import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.system.SystemInfoPanel;
 import de.mhus.kt2l.events.EventPanel;
 import de.mhus.kt2l.helm.HelmChartDetailsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
 import de.mhus.kt2l.helm.HelmInstalledChartsPanel;
-import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
@@ -46,10 +44,12 @@ import de.mhus.kt2l.resources.pod.PodLogsPanel;
 import de.mhus.kt2l.resources.secret.EditSecretPanel;
 import de.mhus.kt2l.storage.StorageFile;
 import de.mhus.kt2l.storage.StoragePanel;
+import de.mhus.kt2l.system.SystemInfoPanel;
 import de.mhus.kt2l.system.SystemLogPanel;
 import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.vis.VisPanel;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1Secret;
@@ -90,9 +90,9 @@ public class PanelService {
                 .setColor(cluster == null ? UiUtil.COLOR.NONE : cluster.getColor());
     }
 
-    public DeskTab showYamlPanel(DeskTab parentTab, Cluster cluster, K8s resourceType, KubernetesObject resource) {
+    public DeskTab showYamlPanel(DeskTab parentTab, Cluster cluster, V1APIResource type, KubernetesObject resource) {
         return parentTab.getTabBar().addTab(
-                cluster.getName() + ":" + resourceType + ":" + resource.getMetadata().getName() + ":details",
+                cluster.getName() + ":" + type + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),
                 true,
                 true,
@@ -101,14 +101,14 @@ public class PanelService {
                         new ResourceYamlEditorPanel(
                                 cluster,
                                 parentTab.getTabBar().getCore(),
-                                resourceType,
+                                type,
                                 resource
                         ))
                 .setReproducable(true)
                 .setColor(parentTab.getColor())
                 .setParentTab(parentTab)
                 .setHelpContext("yaml")
-                .setWindowTitle(cluster.getTitle() + " - " + resourceType + " - " + resource.getMetadata().getName() + " - Details");
+                .setWindowTitle(cluster.getTitle() + " - " + type + " - " + resource.getMetadata().getName() + " - Details");
     }
 
     public DeskTab addResourcesGrid(Core core, Cluster cluster) {

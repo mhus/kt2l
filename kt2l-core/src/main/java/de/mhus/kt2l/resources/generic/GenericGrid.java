@@ -24,7 +24,6 @@ import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import de.mhus.commons.tools.MObject;
-import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.util.AbstractGrid;
 import io.kubernetes.client.common.KubernetesObject;
@@ -40,14 +39,17 @@ import java.util.stream.Stream;
 @Slf4j
 public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
 
+    private V1APIResource type;
+    private GenericK8s handler;
+
     @Override
     protected void init() {
 
     }
 
     @Override
-    public K8s getManagedResourceType() {
-        return K8s.GENERIC;
+    public V1APIResource getManagedType() {
+        return type;
     }
 
     @Override
@@ -106,9 +108,7 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
     protected KubernetesObject getSelectedKubernetesObject(Resource resource) {
         return resource.getResource();
     }
-
-    private V1APIResource resourceType;
-
+    
     @Override
     public Component getComponent() {
         return this;
@@ -126,23 +126,17 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
         getPanel().getCore().ui().push();
     }
 
-    public void setResourceType(V1APIResource resourceType) {
-        LOGGER.debug("Set resource type {}",resourceType);
-        if (resourceType == null) return;
-        this.resourceType = resourceType;
-        super.setResourceType(K8s.CUSTOM);
-    }
-
     @Override
-    public void setResourceType(K8s resourceType) {
-        LOGGER.debug("Set resource type {}",resourceType);
-        this.resourceType = K8s.toResource(resourceType);
-        super.setResourceType(K8s.CUSTOM);
+    public void setType(V1APIResource type) {
+        LOGGER.debug("Set resource type {}", type);
+        this.type = type;
+        this.handler = new GenericK8s(type);
+        super.setType(type);
     }
 
     @Override
     public boolean isNamespaced() {
-        return resourceType != null && resourceType.getNamespaced() != null && resourceType.getNamespaced();
+        return type.getNamespaced();
     }
 
     private class ResourcesProvider extends CallbackDataProvider<Resource, Void> {
@@ -171,29 +165,29 @@ public class GenericGrid extends AbstractGrid<GenericGrid.Resource, Component> {
                         LOGGER.debug("Do the size query {}",queryToString(query));
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
-                            final var namespaceName = namespace ==  null || namespace.equals("all") ? null : (String) namespace;
-                            final var genericApi = new GenericObjectsApi(cluster.getApiProvider().getClient(), resourceType);
-
+                            final var namespaceName = namespace ==  null || namespace.equals(K8sUtil.NAMESPACE_ALL_LABEL) || namespace.equals(K8sUtil.NAMESPACE_ALL) ? null : (String) namespace;
                             try {
 
-                                final var list = genericApi.listNamespacedCustomObject(namespaceName);
-
-                                list.getItems().forEach(item -> {
-//                                    final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
-//                                    final var name = (String) metadata.get("name");
-//                                    final var creationTimestamp = (String) metadata.get("creationTimestamp");
-                                    final var name = item.getMetadata().getName();
-                                    final var creationTimestamp = item.getMetadata().getCreationTimestamp();
-                                    resourcesList.add(new Resource(
-                                            name,
-                                            item.toJson().replace("\n", ""),
-//                                            getAge(OffsetDateTime.parse(creationTimestamp)),
-                                            creationTimestamp,
-                                            item
-                                            )
-                                    );
-                                });
-
+                                final var list =  namespaceName == null ?
+                                        handler.createResourceListWithoutNamespace(cluster.getApiProvider()) :
+                                        handler.createResourceListWithNamespace(cluster.getApiProvider(), namespaceName);
+                                if (list != null) {
+                                    list.getItems().forEach(item -> {
+                                        //                                    final var metadata = (Map<String, Object>)((Map<String, Object>) item).get("metadata");
+                                        //                                    final var name = (String) metadata.get("name");
+                                        //                                    final var creationTimestamp = (String) metadata.get("creationTimestamp");
+                                        final var name = item.getMetadata().getName();
+                                        final var creationTimestamp = item.getMetadata().getCreationTimestamp();
+                                        resourcesList.add(new Resource(
+                                                        name,
+                                                        item.getRaw().toString().replace("\n", ""),
+                                                        //                                            getAge(OffsetDateTime.parse(creationTimestamp)),
+                                                        creationTimestamp,
+                                                        item
+                                                )
+                                        );
+                                    });
+                                }
                             } catch (Exception e) {
                                 LOGGER.error("Can't fetch resource from cluster",e);
                             }

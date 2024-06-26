@@ -24,15 +24,16 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.textfield.TextField;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
-import de.mhus.kt2l.ui.ProgressDialog;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
+import de.mhus.kt2l.ui.ProgressDialog;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.PatchUtils;
@@ -46,13 +47,13 @@ import java.util.Set;
 @WithRole(UsersConfiguration.ROLE.WRITE)
 public class ContainerResizeLimitsAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.POD.equals(resourceType) || K8s.CONTAINER.equals(resourceType);
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
+        return K8s.POD.equals(type) || K8s.CONTAINER.equals(type);
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(cluster, resourceType) && selected.size() > 0;
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
+        return canHandleType(cluster, type) && selected.size() > 0;
     }
 
     @Override

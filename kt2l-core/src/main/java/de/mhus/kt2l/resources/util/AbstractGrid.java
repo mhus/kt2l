@@ -50,15 +50,15 @@ import de.mhus.commons.tree.IProperties;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.ViewsConfiguration;
-import de.mhus.kt2l.ui.UiUtil;
-import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ActionService;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.ResourcesGrid;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
+import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -123,6 +123,8 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         this.panel = panel;
         this.cluster = cluster;
         this.viewConfig = viewsConfiguration.getConfig("resourcesGrid");
+//        if (namespace == null)
+//            namespace = cluster.getDefaultNamespace();
 
         createActions();
         createGrid();
@@ -185,11 +187,11 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     protected abstract void init();
 
-    public abstract K8s getManagedResourceType();
+    public abstract V1APIResource getManagedType();
 
     private void createActions() {
         try {
-            actionService.findActionsForResource(cluster, getManagedResourceType()).forEach(action -> {
+            actionService.findActionsForResource(cluster, getManagedType()).forEach(action -> {
                 final MenuAction menuAction = new MenuAction();
                 menuAction.setAction(action);
                 actions.add(menuAction);
@@ -477,7 +479,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     }
 
     @Override
-    public void setResourceType(K8s resourceType) {
+    public void setType(V1APIResource type) {
 
     }
 
@@ -600,7 +602,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 //                containerContextMenuItem.setEnabled(enabled);
 //        }
         public void updateWithResources(Set<T> selected) {
-            var enabled = action.canHandleResource(cluster, getManagedResourceType(),
+            var enabled = action.canHandleResource(cluster, getManagedType(),
                     selected == null ? Collections.emptySet() : selected.stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet()));
             if (menuItem != null)
                 menuItem.setEnabled(enabled);
@@ -611,12 +613,12 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             ExecutionContext context = null;
 
                 final var selected = resourcesGrid.getSelectedItems().stream().map(p -> getSelectedKubernetesObject(p)).collect(Collectors.toSet());
-                if (!action.canHandleResource(cluster, getManagedResourceType(), selected )) {
+                if (!action.canHandleResource(cluster, getManagedType(), selected )) {
                     UiUtil.showErrorNotification("Can't execute action");
                     return;
                 }
                 context = ExecutionContext.builder()
-                        .resourceType(getManagedResourceType())
+                        .type(getManagedType())
                         .selected(selected)
                         .namespace(namespace)
                         .cluster(cluster)

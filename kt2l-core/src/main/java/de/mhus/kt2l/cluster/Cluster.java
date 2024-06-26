@@ -19,11 +19,10 @@ package de.mhus.kt2l.cluster;
 
 import de.mhus.commons.tools.MPeriod;
 import de.mhus.commons.tree.ITreeNode;
-import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.ApiProvider;
-import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,14 +41,14 @@ public class Cluster {
     private final String title;
     private final boolean enabled;
     private final String defaultNamespace;
-    private final K8s defaultResourceType;
+    private final V1APIResource defaultType;
     private final UiUtil.COLOR color;
     private final ITreeNode config;
     private final long apiProviderTimeout;
     @Setter
     private List<String> currentNamespaces;
     @Setter
-    private List<V1APIResource> resourceTypes;
+    private List<V1APIResource> types;
 
     private K8sService k8sService;
     private ApiProvider apiProvider;
@@ -60,7 +59,7 @@ public class Cluster {
         this.title = config.getString("title", name);
         this.enabled = config.getBoolean("enabled", true);
         this.defaultNamespace = config.getString("defaultNamespace", cc.defaultNamespace());
-        this.defaultResourceType = K8sUtil.toResourceType(config.getString("defaultResourceType", cc.defaultResourceType()));
+        this.defaultType = K8sUtil.toType(config.getString("defaultResourceType", cc.defaultResourceType()));
         this.color = UiUtil.toColor(config.getString("color", null));
         this.config = config;
         this.apiProviderTimeout = MPeriod.parseInterval(config.getString( "apiProviderTimeout"), ApiProvider.DEFAULT_TIMEOUT);

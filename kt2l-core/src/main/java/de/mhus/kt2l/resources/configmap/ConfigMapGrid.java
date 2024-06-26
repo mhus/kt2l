@@ -26,6 +26,7 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import lombok.Getter;
@@ -77,7 +78,7 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public V1APIResource getManagedType() {
         return K8s.CONFIG_MAP;
     }
 

@@ -21,15 +21,16 @@ package de.mhus.kt2l.k8s;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import okhttp3.Call;
 
 public interface HandlerK8s {
 
-    K8s getManagedResourceType();
+    V1APIResource getManagedType();
 
     String getDescribe(ApiProvider apiProvider, KubernetesObject res);
 
-    void replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException;
+    Object replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException;
 
     Object delete(ApiProvider apiProvider, String name, String namespace) throws ApiException;
 

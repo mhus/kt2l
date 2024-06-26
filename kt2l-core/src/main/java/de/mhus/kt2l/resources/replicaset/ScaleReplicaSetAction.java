@@ -25,15 +25,15 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.IntegerField;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
-import de.mhus.kt2l.ui.ProgressDialog;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
+import de.mhus.kt2l.ui.ProgressDialog;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.custom.V1Patch;
+import io.kubernetes.client.extended.kubectl.Kubectl;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ReplicaSet;
-import io.kubernetes.client.util.PatchUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -42,13 +42,13 @@ import java.util.Set;
 @WithRole(UsersConfiguration.ROLE.WRITE)
 public class ScaleReplicaSetAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.REPLICA_SET.equals(resourceType);
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
+        return K8s.REPLICA_SET.equals(type);
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(cluster, resourceType) && selected.size() > 0;
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
+        return canHandleType(cluster, type) && selected.size() > 0;
     }
 
     @Override
@@ -86,8 +86,8 @@ public class ScaleReplicaSetAction implements ResourceAction {
         final var progress = new ProgressDialog();
         progress.setMax(context.getSelected().size());
         progress.setHeaderTitle("Scale Replica Set");
-        final var jsonPatchStr =
-                "[{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":" + value +"}]";
+//        final var jsonPatchStr =
+//                "[{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":" + value +"}]";
 
         context.getUi().access(() -> {
             progress.open();
@@ -95,22 +95,28 @@ public class ScaleReplicaSetAction implements ResourceAction {
             context.getSelected().forEach(obj -> {
                 progress.setProgress(progress.getProgress() + 1, obj.getMetadata().getName());
                 try {
-                    PatchUtils.patch(
-                            V1ReplicaSet.class,
-                            () -> context.getCluster().getApiProvider().getAppsV1Api().patchNamespacedReplicaSetCall(
-                                    obj.getMetadata().getName(),
-                                    obj.getMetadata().getNamespace(),
-                                    new V1Patch(jsonPatchStr),
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    null
-                            ),
-                            V1Patch.PATCH_FORMAT_JSON_PATCH,
-                            context.getCluster().getApiProvider().getClient()
-                    );
+                    Kubectl.scale(V1ReplicaSet.class).apiClient(context.getCluster().getApiProvider().getClient())
+                            .namespace(obj.getMetadata().getNamespace())
+                            .name(obj.getMetadata().getName())
+                            .replicas(value)
+                            .execute();
+
+//                    PatchUtils.patch(
+//                            V1ReplicaSet.class,
+//                            () -> context.getCluster().getApiProvider().getAppsV1Api().patchNamespacedReplicaSetCall(
+//                                    obj.getMetadata().getName(),
+//                                    obj.getMetadata().getNamespace(),
+//                                    new V1Patch(jsonPatchStr),
+//                                    null,
+//                                    null,
+//                                    null,
+//                                    null,
+//                                    null,
+//                                    null
+//                            ),
+//                            V1Patch.PATCH_FORMAT_JSON_PATCH,
+//                            context.getCluster().getApiProvider().getClient()
+//                    );
 
                 } catch (Exception e) {
                     context.getErrors().add(e);

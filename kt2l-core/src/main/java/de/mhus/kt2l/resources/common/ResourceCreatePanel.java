@@ -40,12 +40,12 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.ui.ProgressDialog;
-import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.help.HelpResourceConnector;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.ui.ProgressDialog;
+import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -198,7 +198,7 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
                         properties.setString(template.name, template.value);
                     }
                     entry.preparedContent = MString.substitute(entry.content, properties);
-                    entry.handler = k8s.getResourceHandler(K8sUtil.toResourceType(entry.kind));
+                    entry.handler = k8s.getTypeHandler(K8sUtil.toType(entry.kind));
                     if (entry.handler == null) {
                         UiUtil.showErrorNotification("Resource not supported: " + entry.kind);
                         return false;

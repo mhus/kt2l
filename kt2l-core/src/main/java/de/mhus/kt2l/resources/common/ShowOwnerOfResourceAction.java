@@ -28,6 +28,7 @@ import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,13 +42,13 @@ public class ShowOwnerOfResourceAction implements ResourceAction {
     private PanelService panelService;
 
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return true;
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        if (!canHandleResourceType(cluster, resourceType) || selected.size() != 1) return false;
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
+        if (!canHandleType(cluster, type) || selected.size() != 1) return false;
         var res = selected.iterator().next();
         var ownerReference = res.getMetadata().getOwnerReferences();
         if (ownerReference == null || ownerReference.isEmpty()) return false;
@@ -62,7 +63,7 @@ public class ShowOwnerOfResourceAction implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
-        if (!canHandleResource(context.getCluster(), context.getResourceType(), context.getSelected())) return;
+        if (!canHandleResource(context.getCluster(), context.getType(), context.getSelected())) return;
         var res = context.getSelected().iterator().next();
         var ownerReference = res.getMetadata().getOwnerReferences();
         var kind = ownerReference.get(0).getKind();

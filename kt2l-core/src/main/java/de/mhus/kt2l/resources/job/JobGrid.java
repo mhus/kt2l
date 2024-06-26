@@ -22,10 +22,11 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
+import de.mhus.kt2l.ui.UiUtil;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Job;
 import io.kubernetes.client.openapi.models.V1JobList;
 import lombok.Getter;
@@ -93,7 +94,7 @@ public class JobGrid extends AbstractGridWithNamespace<JobGrid.Resource, Compone
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public V1APIResource getManagedType() {
         return K8s.JOB;
     }
 

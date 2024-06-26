@@ -22,12 +22,19 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import de.mhus.kt2l.cluster.ClusterConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.PostConstruct;
 
 @AnonymousAllowed
 @Route(value = "/reset")
 @Slf4j
 public class UiReset extends VerticalLayout {
+
+    @Autowired
+    private ClusterConfiguration clusterConfiguration;
 
     public UiReset() {
         LOGGER.info("UiReset");
@@ -36,6 +43,11 @@ public class UiReset extends VerticalLayout {
         backButton.setAutofocus(true);
         backButton.setWidthFull();
         add(backButton);
+    }
+
+    @PostConstruct
+    public void init() {
+        clusterConfiguration.clearClusterCache(); // XXX is this session thread save ?
     }
 
 }

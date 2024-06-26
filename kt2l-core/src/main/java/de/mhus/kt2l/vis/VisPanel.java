@@ -29,13 +29,14 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.PanelService;
-import de.mhus.kt2l.ui.ProgressDialog;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.common.DescribeAction;
+import de.mhus.kt2l.ui.ProgressDialog;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,7 +119,7 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
                         .build()
         );
 
-        k8sService.fillResourceTypes(cluster); // prepare cluster
+        k8sService.fillTypes(cluster); // prepare cluster
 
         content = new VerticalLayout();
         content.setSizeFull();
@@ -146,14 +147,14 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
         content.setMargin(false);
 
         k8sMap = Collections.synchronizedMap(new HashMap<>());
-        k8sHandler.forEach(handler -> k8sMap.put(handler.getManagedResourceType().kind(), handler));
+        k8sHandler.forEach(handler -> k8sMap.put(handler.getManagedType().getKind(), handler));
 
         var contextMenu = new ContextMenu(nd);
         contextMenu.addItem("Yaml", e -> {
             if (selectedNode == null) return;
             var nodeStore = nodes.get(selectedNode);
             if (nodeStore == null) return;
-            panelService.showYamlPanel(deskTab, cluster, nodeStore.handler.getManagedResourceType(), nodeStore.k8sObject).select();
+            panelService.showYamlPanel(deskTab, cluster, nodeStore.handler.getType(), nodeStore.k8sObject).select();
         });
         contextMenu.addItem("Refresh", e -> updateAll());
 
@@ -172,7 +173,7 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
             handler.setAutoUpdate(false);
             handler.setEnabled(false);
         });
-        visHandlers.stream().filter(h -> h.getManagedResourceType() == K8s.NAMESPACE).findFirst().ifPresent(h -> h.setEnabled(true));
+        visHandlers.stream().filter(h -> h.getType() == K8s.NAMESPACE).findFirst().ifPresent(h -> h.setEnabled(true));
 
         namespaceSelector = new ComboBox<String>();
         namespaceSelector.setItems(k8sService.getNamespaces(true,cluster.getApiProvider()));
@@ -187,15 +188,15 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
 
         final AtomicBoolean isNamespacedHandler = new AtomicBoolean(true);
         for (VisHandler handler : visHandlers.stream().sorted((a,b) -> {
-            if (a.getManagedResourceType().isNamespaced() != b.getManagedResourceType().isNamespaced())
-                return a.getManagedResourceType().isNamespaced() ? -1 : 1;
-            return a.getManagedResourceType().kind().compareTo(b.getManagedResourceType().kind());
+            if (a.getType().getNamespaced() != b.getType().getNamespaced())
+                return a.getType().getNamespaced() ? -1 : 1;
+            return a.getType().getKind().compareTo(b.getType().getKind());
         } ).toList()) {
-            if (isNamespacedHandler.get() && !handler.getManagedResourceType().isNamespaced()) {
+            if (isNamespacedHandler.get() && !handler.getType().getNamespaced()) {
                 isNamespacedHandler.set(false);
                 settings.add(new Hr());
             }
-            var useSwitch = new Checkbox(handler.getManagedResourceType().kind());
+            var useSwitch = new Checkbox(handler.getType().getKind());
             useSwitch.setValue(handler.isEnabled());
             useSwitch.addValueChangeListener(e -> {
                 if (e.getValue()) {
@@ -261,7 +262,7 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
             if (selectedNode == null) return;
             var nodeStore = nodes.get(selectedNode);
             if (nodeStore == null) return;
-            describeAction.showPreview(core, cluster, nodeStore.handler.getManagedResourceType(), Set.of(nodeStore.k8sObject));
+            describeAction.showPreview(core, cluster, nodeStore.handler.getType(), Set.of(nodeStore.k8sObject));
         });
 //        if (nd.isVisible())
 //            nd.diagamRedraw();
@@ -281,7 +282,7 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
         Thread.startVirtualThread(() -> {
             try {
                 visHandlers.forEach(handler -> {
-                    core.ui().access(() -> progress.next(handler.getManagedResourceType().resourceType()));
+                    core.ui().access(() -> progress.next(handler.getType().getName()));
                     handler.init(this);
                 });
             } catch (Exception e) {
@@ -316,8 +317,8 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
         nodeProvider.refreshAll();
     }
 
-    public HandlerK8s getK8sHandler(K8s resourceType) {
-        return k8sMap.get(resourceType.kind());
+    public HandlerK8s getK8sHandler(V1APIResource type) {
+        return k8sMap.get(type.getKind());
     }
 
     private synchronized void updateEdges() {
@@ -365,11 +366,11 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
     }
 
     public void processNode(VisHandler handler, KubernetesObject res) {
-        var id = handler.getManagedResourceType().kind() + "-" + res.getMetadata().getUid();
+        var id = handler.getType().getKind() + "-" + res.getMetadata().getUid();
         var no = nodes.computeIfAbsent(id, n -> {
             var node = new Node();
-            node.setLabel(handler.getManagedResourceType().kind() + "\n" + res.getMetadata().getName());
-            node.setTitle(handler.getManagedResourceType().kind());
+            node.setLabel(handler.getType().getKind() + "\n" + res.getMetadata().getName());
+            node.setTitle(handler.getType().getKind());
             if (res.getMetadata().getNamespace() != null)
                 node.setGroup(res.getMetadata().getNamespace());
             handler.prepareNode(node, res);

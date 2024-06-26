@@ -25,6 +25,7 @@ import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim;
 import io.kubernetes.client.openapi.models.V1PersistentVolumeClaimList;
 import lombok.Getter;
@@ -88,7 +89,7 @@ public class PersistentVolumeClaimGrid extends AbstractGridWithNamespace<Persist
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public V1APIResource getManagedType() {
         return K8s.PERSISTENT_VOLUME_CLAIM;
     }
 

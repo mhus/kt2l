@@ -26,24 +26,25 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.WithRole;
-import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
-import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
+import static de.mhus.commons.tools.MLang.tryThis;
+
 @Component
 @Slf4j
 @WithRole(UsersConfiguration.ROLE.READ)
 public class DescribeAction implements ResourceAction {
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return true;
     }
 
@@ -51,26 +52,26 @@ public class DescribeAction implements ResourceAction {
     private K8sService k8sService;
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
         return selected.size() > 0;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        showPreview(context.getCore(), context.getCluster(), context.getResourceType(), context.getSelected());
+        showPreview(context.getCore(), context.getCluster(), context.getType(), context.getSelected());
     }
 
-    public void showPreview(Core core, Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
+    public void showPreview(Core core, Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
 
         // prepare preview
         StringBuilder sb = new StringBuilder();
         selected.forEach(
                 res -> {
-                    final var handler = k8sService.getResourceHandler(K8sUtil.toResource(res, cluster));
+                    final var handler = k8sService.getTypeHandler(type /*K8sUtil.toResource(res, cluster) */);
                     final var previewText = handler.getDescribe(cluster.getApiProvider(), res);
                     sb.append(">>> ")
-                            .append(res.getKind() == null ? resourceType : res.getKind())
-                            .append(" ").append(res.getMetadata().getName()).append('\n');
+                            .append( tryThis(() -> res.getKind()).or(null) == null ? type.getKind() : res.getKind())
+                            .append(" ").append(tryThis(() -> res.getMetadata().getName()).or("?")).append('\n');
                     sb.append(previewText).append('\n');
                 }
         );

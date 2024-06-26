@@ -23,18 +23,19 @@ import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourceGridFactory;
 import de.mhus.kt2l.resources.ResourcesGrid;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import org.springframework.stereotype.Component;
 
 @Component
 @WithRole(UsersConfiguration.ROLE.READ)
 public class HorizontalPodAutoscalerGridFactory implements ResourceGridFactory {
     @Override
-    public boolean canHandleResourceType(K8s resourceType) {
-        return K8s.HPA.equals(resourceType);
+    public boolean canHandleType(V1APIResource type) {
+        return K8s.HPA.equals(type);
     }
 
     @Override
-    public ResourcesGrid create(K8s resourcesType) {
+    public ResourcesGrid create(V1APIResource type) {
         return new HorizontalPodAutoscalerGrid();
     }
 

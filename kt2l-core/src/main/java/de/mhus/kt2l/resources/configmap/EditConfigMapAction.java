@@ -26,6 +26,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,13 +41,13 @@ public class EditConfigMapAction implements ResourceAction {
     private PanelService panelService;
 
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.CONFIG_MAP.equals(resourceType);
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
+        return K8s.CONFIG_MAP.equals(type);
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(cluster, resourceType) && selected.size() == 1;
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
+        return canHandleType(cluster, type) && selected.size() == 1;
     }
 
     @Override

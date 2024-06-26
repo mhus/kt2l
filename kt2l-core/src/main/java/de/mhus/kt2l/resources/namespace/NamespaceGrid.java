@@ -24,6 +24,7 @@ import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithoutNamespace;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import lombok.Getter;
@@ -43,7 +44,7 @@ public class NamespaceGrid extends AbstractGridWithoutNamespace<NamespaceGrid.Re
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public V1APIResource getManagedType() {
         return K8s.NAMESPACE;
     }
 

@@ -33,10 +33,10 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.util.Watch;
 import io.kubernetes.client.util.Yaml;
@@ -136,7 +136,7 @@ public class EditConfigMapPanel extends VerticalLayout implements DeskTabListene
 
         try {
             var yaml = Yaml.dump(selected);
-            k8sService.getResourceHandler(K8s.CONFIG_MAP).replace(cluster.getApiProvider(), selected.getMetadata().getName(), selected.getMetadata().getNamespace(), yaml);
+            k8sService.getTypeHandler(K8s.CONFIG_MAP).replace(cluster.getApiProvider(), selected.getMetadata().getName(), selected.getMetadata().getNamespace(), yaml);
         } catch (Exception e) {
             UiUtil.showErrorNotification("Error saving ConfigMap", e);
             return;

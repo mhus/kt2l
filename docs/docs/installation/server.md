@@ -55,7 +55,7 @@ You can set environment variables for the server in this file.
 - CONFIGURATION_USER_DIRECTORY - the path to the user configuration directory (to overwrite the default configuration for each user)
 - KT2L_TMP_DIRECTORY - the path to the temporary directory (default is the java system temporary directory)
 - KT2L_STORAGE_DIRECTORY - the path to the storage directory (default is `var/storage` in the server directory)
-- KT2L_SPRING_PROFILE - additional spring profiles of the server (default is `prod`)
+- (KT2L_SPRING_PROFILE - additional spring profiles of the server (default is `prod`) - bin/run.sh only)
 
 ## Update the server
 

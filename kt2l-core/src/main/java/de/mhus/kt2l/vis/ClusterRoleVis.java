@@ -21,10 +21,9 @@ package de.mhus.kt2l.vis;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.clusterrole.ClusterRoleWatch;
-import de.mhus.kt2l.resources.role.RoleWatch;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
-import io.kubernetes.client.openapi.models.V1RoleBinding;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -35,8 +34,8 @@ import org.vaadin.addons.visjs.network.main.Node;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ClusterRoleVis extends AbstractVisHandler {
     @Override
-    public K8s[] getConnectedResourceTypes() {
-        return new K8s[] {K8s.CLUSTER_ROLE_BINDING};
+    public V1APIResource[] getConnectedTypes() {
+        return new V1APIResource[] {K8s.CLUSTER_ROLE_BINDING};
     }
 
     @Override
@@ -51,7 +50,7 @@ public class ClusterRoleVis extends AbstractVisHandler {
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public V1APIResource getType() {
         return K8s.CLUSTER_ROLE;
     }
 

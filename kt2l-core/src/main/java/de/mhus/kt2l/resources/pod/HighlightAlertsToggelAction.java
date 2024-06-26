@@ -20,13 +20,14 @@ package de.mhus.kt2l.resources.pod;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.UsersConfiguration;
-import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.core.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.resources.pod.score.PodScorerConfiguration;
+import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,13 +41,13 @@ public class HighlightAlertsToggelAction implements ResourceAction {
     private PodScorerConfiguration podScorerConfiguration;
 
     @Override
-    public boolean canHandleResourceType(Cluster cluster, K8s resourceType) {
-        return K8s.POD.equals(resourceType) && podScorerConfiguration.isEnabled();
+    public boolean canHandleType(Cluster cluster, V1APIResource type) {
+        return K8s.POD.equals(type) && podScorerConfiguration.isEnabled();
     }
 
     @Override
-    public boolean canHandleResource(Cluster cluster, K8s resourceType, Set<? extends KubernetesObject> selected) {
-        return canHandleResourceType(cluster, resourceType);
+    public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
+        return canHandleType(cluster, type);
     }
 
     @Override

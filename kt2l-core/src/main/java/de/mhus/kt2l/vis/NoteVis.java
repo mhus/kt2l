@@ -21,6 +21,7 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.node.NodeWatch;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Pod;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -32,8 +33,8 @@ import org.vaadin.addons.visjs.network.main.Node;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class NoteVis extends AbstractVisHandler {
     @Override
-    public K8s[] getConnectedResourceTypes() {
-        return new K8s[] {K8s.POD};
+    public V1APIResource[] getConnectedTypes() {
+        return new V1APIResource[] {K8s.POD};
     }
 
     @Override
@@ -50,7 +51,7 @@ public class NoteVis extends AbstractVisHandler {
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public V1APIResource getType() {
         return K8s.NODE;
     }
 

@@ -25,8 +25,8 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.SecurityContext;
-import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -38,7 +38,7 @@ import java.util.Set;
 @Builder
 public class ExecutionContext {
     private UI ui;
-    private K8s resourceType;
+    private V1APIResource type;
     private Set<? extends KubernetesObject> selected;
     private String namespace;
     private Cluster cluster;

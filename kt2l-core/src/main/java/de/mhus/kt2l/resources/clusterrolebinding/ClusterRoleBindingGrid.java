@@ -24,6 +24,7 @@ import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.util.AbstractGridWithoutNamespace;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1ClusterRoleBindingList;
 import lombok.Getter;
@@ -62,7 +63,7 @@ public class ClusterRoleBindingGrid extends AbstractGridWithoutNamespace<Cluster
     }
 
     @Override
-    public K8s getManagedResourceType() {
+    public V1APIResource getManagedType() {
         return K8s.CLUSTER_ROLE_BINDING;
     }
 

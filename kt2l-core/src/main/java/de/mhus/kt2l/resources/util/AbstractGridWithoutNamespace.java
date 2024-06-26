@@ -27,14 +27,14 @@ import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
-import de.mhus.kt2l.ui.UiUtil;
 import de.mhus.kt2l.k8s.HandlerK8s;
-import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.Watch;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +65,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
                 panel.getCluster(),
                 getManagedWatchClass()
         ).getEventHandler().registerWeak(this::changeEvent);
-        this.resourceHandler = k8sService.getResourceHandler(getManagedResourceType());
+        this.resourceHandler = k8sService.getTypeHandler(getManagedType());
     }
 
     protected abstract Class<? extends ClusterBackgroundJob> getManagedWatchClass();
@@ -118,7 +118,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
     protected abstract T createResourceItem();
 
     @Override
-    public abstract K8s getManagedResourceType();
+    public abstract V1APIResource getManagedType();
 
     @Override
     protected void createDetailsComponent() {
@@ -204,7 +204,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
         public ResourceDataProvider() {
             super(query -> {
                 synchronized (AbstractGridWithoutNamespace.this) {
-                    LOGGER.debug("◌ Do the query {} {}", getManagedResourceType(), queryToString(query));
+                    LOGGER.debug("◌ Do the query {} {}", getManagedType(), queryToString(query));
                     if (filteredList == null) return Stream.empty();
                     for (QuerySortOrder queryOrder :
                             query.getSortOrders()) {
@@ -228,7 +228,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
                     return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                 }
             }, query -> {
-                LOGGER.debug("◌ Do the size query {} {}", getManagedResourceType(), queryToString(query));
+                LOGGER.debug("◌ Do the size query {} {}", getManagedType(), queryToString(query));
                 if (resourcesList == null) {
                     resourcesList = new ArrayList<>();
                     synchronized (resourcesList) {
