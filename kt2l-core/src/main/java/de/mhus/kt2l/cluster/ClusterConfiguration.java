@@ -95,6 +95,10 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
         return clusterInfo.defaultClusters.computeIfAbsent(name, (n) -> new Cluster(this, SecurityContext.lookupUserName(), n, MTree.EMPTY_MAP));
     }
 
+    public void clearClusterCache() {
+        clusterInfos.clear();
+    }
+
     private class ClusterInfo {
         private final String name;
         private final Map<String, Cluster> defaultClusters = Collections.synchronizedMap(new HashMap<>());

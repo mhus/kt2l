@@ -18,6 +18,7 @@
 package de.mhus.kt2l.k8s;
 
 import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.util.SoftHashMap;
 import de.mhus.kt2l.resources.pod.ContainerResource;
 import io.kubernetes.client.Discovery;
 import io.kubernetes.client.common.KubernetesObject;
@@ -117,20 +118,6 @@ public class K8s {
     public final static V1APIResource LIMIT_RANGE = new V1APIResource().kind("LimitRange").name("limitranges").version("v1").singularName("limitrange").namespaced(true).shortNames(List.of("lr"));
     public final static V1APIResource ENDPOINTS = new V1APIResource().kind("Endpoints").name("endpoints").version("v1").singularName("endpoints").namespaced(true).shortNames(List.of("ep"));
 
-    public static V1APIResource toResource(Discovery.APIResource r, String version) {
-        return resources.stream().filter(res -> equalsResource(res, r.getResourceSingular(), version)).findFirst().orElseGet(
-                () -> new V1APIResource()
-                        .kind(r.getKind())
-                        .name(r.getResourcePlural())
-                        .version(version)
-                        .namespaced(r.getNamespaced())
-        );
-    }
-
-    private static boolean equalsResource(V1APIResource res, String resourceSingular, String version) {
-        return res.getSingularName().equals(resourceSingular) && res.getVersion().equals(version);
-    }
-
     private final static List<V1APIResource> resources = List.of(
             POD,
             NODE,
@@ -159,23 +146,33 @@ public class K8s {
             HPA,
             LIMIT_RANGE,
             ENDPOINTS
-            );
+    );
 
-        public static V1APIResource toType(Discovery.APIResource r, String version) {
-            return resources.stream().filter(res -> equalsResource(res, r.getResourceSingular(), version)).findFirst().orElseGet(
-                    () -> new V1APIResource()
-                            .kind(r.getKind())
-                            .name(r.getResourcePlural())
-                            .version(version)
-                            .namespaced(r.getNamespaced())
-                            .singularName(r.getResourceSingular())
-                            .group(r.getGroup())
+    private static SoftHashMap<V1APIResource, String> DISPLAY_NAME_CACHE = new SoftHashMap<>();
+
+    private static boolean equalsResource(V1APIResource res, String resourcePlural, String version) {
+        return res.getName().equals(resourcePlural) && res.getVersion().equals(version);
+    }
+
+    public static V1APIResource toType(Discovery.APIResource r, String version) {
+        return resources.stream().filter(res -> equalsResource(res, r.getResourcePlural(), version)).findFirst().orElseGet(
+            () -> new V1APIResource()
+                    .kind(r.getKind())
+                    .name(r.getResourcePlural())
+                    .version(version)
+                    .namespaced(r.getNamespaced())
+                    .singularName(r.getResourceSingular())
+                    .group(r.getGroup())
         );
     }
 
     public static String displayName(V1APIResource res) {
-        var ds = (isEmpty(res.getGroup()) ? "" : res.getGroup() + ".") + res.getSingularName() + (res.getVersion() == null ? "" : "_" + res.getVersion());
-        return DISPLAY_MAPPER.getOrDefault(ds, ds);
+        return DISPLAY_NAME_CACHE.getOrCreate(res, k -> {
+            var ds = (isEmpty(k.getGroup()) ? "" : k.getGroup() + ".") +
+                     (isEmpty(k.getSingularName()) ? k.getName() : k.getSingularName()) +
+                     (k.getVersion() == null ? "" : "_" + k.getVersion());
+            return DISPLAY_MAPPER.getOrDefault(ds, ds);
+        });
     }
 
     public static List<V1APIResource> resources() {

@@ -99,7 +99,7 @@ public class K8sService {
                         final var rawResources = Kubectl.apiResources().apiClient(apiProvider.getApiClient()).execute();
                         List<V1APIResource> results = new ArrayList<>();
                         for (Discovery.APIResource r : rawResources) {
-                            if (isEmpty(r.getResourceSingular()))
+                            if (isEmpty(r.getResourcePlural()))
                                 continue;
                             for (String v : r.getVersions()) {
                                 // find K8s
@@ -108,7 +108,6 @@ public class K8sService {
                                 if (securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, K8s.displayName(res), defaultRole, principalFinal)) {
                                     results.add(res);
                                 }
-
                             }
                         }
                         future.complete(results);
