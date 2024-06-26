@@ -26,6 +26,7 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.openapi.models.V1NamespaceBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodBuilder;
@@ -84,10 +85,12 @@ public class AremoricaK8sService extends K8sService {
 
     public static V1Namespace createNamespace(String name) throws ApiException {
         LOGGER.info("Create namespace: {}", name);
-        V1Namespace namespace = new V1Namespace();
-        V1ObjectMeta meta = new V1ObjectMeta();
-        meta.name(name);
-        namespace.metadata(meta);
+
+        V1Namespace namespace = new V1NamespaceBuilder()
+                .withNewMetadata()
+                    .withName(name)
+                .endMetadata()
+                .build();
         return api.createNamespace(namespace, null, null, null, null);
     }
 
@@ -116,6 +119,7 @@ public class AremoricaK8sService extends K8sService {
                         .withEnv(envList)
                         .withImagePullPolicy("IfNotPresent")
                     .endContainer()
+                .withTerminationGracePeriodSeconds(2L)
                 .endSpec()
                 .build();
 
