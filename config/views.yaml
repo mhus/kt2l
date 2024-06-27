@@ -43,3 +43,45 @@ localBash:
   argument: -i
 clusterOverview:
   colors: true
+vis:
+  presets:
+    - name: Apps
+      types:
+        - pod
+        - deployment
+        - statefulset
+        - daemonset
+        - replicaset
+        - job
+        - cronjob
+        - service
+        - namespace
+        - ingress
+    - name: Config
+      types:
+        - pod
+        - configmap
+        - secret
+    - name: Volumes
+      types:
+        - persistentvolume
+        - persistentvolumeclaim
+        - storageclass
+        - pod
+        - namespace
+    - name: Network
+      types:
+        - service
+        - ingress
+        - networkpolicy
+        - pod
+        - namespace
+    - name: Nodes
+      namespace: '[all]'
+      types:
+        - node
+        - pod
+    - name: All
+      regex: '.*'
+    - name: None
+      types:

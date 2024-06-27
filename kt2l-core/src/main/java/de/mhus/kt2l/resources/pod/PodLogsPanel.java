@@ -45,6 +45,7 @@ import de.mhus.kt2l.ui.ProgressDialog;
 import de.mhus.kt2l.ui.Tail;
 import de.mhus.kt2l.ui.TailRow;
 import de.mhus.kt2l.ui.UiUtil;
+import de.mhus.kt2l.ui.VaadinThread;
 import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.Getter;
@@ -93,9 +94,8 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     private volatile MenuItem menuItemAutoScroll;
     private volatile MenuItem menuItemWatch;
     private int maxCachedEntries = 1000;
-    private long logsCount = 0;
     private ArrayList<Thread> streamLoopThreads = new ArrayList<>();
-    private Thread showResultsThread;
+//    private Thread showResultsThread;
     private volatile MenuItem menuItemShowSource;
     private volatile MenuItem menuItemShowTime;
     private volatile MenuItem menuItemShowColors;
@@ -143,10 +143,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         logs.setAutoScroll(true);
 
         menuItemWrapLines = viewMenu.addItem("Wrap lines", e -> {
-            if (menuItemWrapLines.isChecked())
-                logs.addClassNames("log-view-nowrap");
-            else
-                logs.removeClassNames("log-view-nowrap");
+            logs.setScrollDirection(menuItemWrapLines.isChecked() ? Tail.ScrollDirection.VERTICAL : Tail.ScrollDirection.HORIZONTAL);
         });
         menuItemWrapLines.setCheckable(true);
         menuItemJson = viewMenu.addItem("Json", e -> {
@@ -156,8 +153,8 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
                     logsBuffer.forEach(ee -> ee.text = processJson(ee.raw));
                 } else
                     logsBuffer.forEach(ee -> ee.text = ee.raw);
-                logsCount = 0;
             }
+            resetTail();
         });
         menuItemJson.setCheckable(true);
         menuItemJson.setChecked(true);
@@ -169,20 +166,20 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
                     logsBuffer.forEach(ee -> ee.text = processAnsiEscCleanup(ee.raw));
                 } else
                     logsBuffer.forEach(ee -> ee.text = ee.raw);
-                logsCount = 0;
             }
+            resetTail();
         });
         menuItemAnsiCleanup.setCheckable(true);
         menuItemAnsiCleanup.setChecked(false);
 
         menuItemShowSource = viewMenu.addItem("Show Source", e -> {
-            logsCount = 0;
+            resetTail();
         });
         menuItemShowSource.setCheckable(true);
         menuItemShowSource.setChecked(containers.size() > 1);
 
         menuItemShowTime = viewMenu.addItem("Show Time", e -> {
-            logsCount = 0;
+            resetTail();
         });
         menuItemShowTime.setCheckable(true);
         menuItemShowTime.setChecked(false);
@@ -215,10 +212,9 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
             filter = MString.isEmpty(e.getValue()) ? null : e.getValue();
             synchronized (logsBuffer) {
                 logsBuffer.forEach(ee -> ee.checkFilter());
-                logsCount = 0;
             }
+            resetTail();
         });
-
 
         final var menuBarHorizontal = new HorizontalLayout();
         menuBarHorizontal.setWidthFull();
@@ -228,7 +224,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
 
         logs.setWidth("100%");
         logs.setHeight("90%");
-        logs.addClassNames("no-word-wrap");
+        // logs.addClassNames("no-word-wrap");
 
         add(logs);
         setMargin(false);
@@ -239,7 +235,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         containers.forEach(c -> {
             streamLoopThreads.add(Thread.startVirtualThread(() -> streamLoop(c, sc)));
         });
-        showResultsThread = Thread.startVirtualThread(this::showResults);
+//        showResultsThread = Thread.startVirtualThread(this::showResults);
     }
 
     private void captureLogs() {
@@ -260,36 +256,18 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         }
     }
 
-    private void showResults() {
+    @VaadinThread
+    private void resetTail() {
         try {
-            long lastCount = 0;
-            while(true) {
-                if (menuItemWatch.isChecked() && lastCount != logsCount) {
-                    lastCount = logsCount;
-                    core.ui().access(() -> {
-                        logs.clear();
-                        synchronized (logsBuffer) {
-                            logsBuffer.forEach(e -> {
-                                if (!e.visible) return;
-                                var out = new StringBuilder();
-                                if (menuItemShowSource.isChecked())
-                                    out.append(e.source).append(": ");
-                                if (menuItemShowTime.isChecked())
-                                    out.append(e.time).append(" ");
-                                out.append(e.text);
-                                var row = TailRow.builder().text(out.toString());
-                                if (menuItemShowColors.isChecked())
-                                    row.color(e.color);
-                                logs.addRow(row.build());
-                            });
-                        }
-                        core.ui().push();
-                    });
-                }
-                MThread.sleep(100);
+            logs.clear();
+            synchronized (logsBuffer) {
+                logsBuffer.forEach(e -> {
+                    appendToTail(e);
+                });
             }
+            core.ui().push();
         } catch (Exception e) {
-            LOGGER.error("Interrupted", e);
+            LOGGER.error("Error in tail", e);
         }
     }
 
@@ -474,9 +452,26 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
             while (logsBuffer.size() > maxCachedEntries) {
                 logsBuffer.removeFirst();
             }
-            logsCount++;
         }
+        core.ui().access(() -> {
+            appendToTail(logEntry);
+        });
 
+    }
+
+    @VaadinThread
+    private void appendToTail(LogEntry e) {
+        if (!e.visible || !menuItemWatch.isChecked()) return;
+        var out = new StringBuilder();
+        if (menuItemShowSource.isChecked())
+            out.append(e.source).append(": ");
+        if (menuItemShowTime.isChecked())
+            out.append(e.time).append(" ");
+        out.append(e.text);
+        var row = TailRow.builder().text(out.toString());
+        if (menuItemShowColors.isChecked())
+            row.color(e.color);
+        logs.addRow(row.build());
     }
 
     private String processAnsiEscCleanup(String text) {
@@ -527,8 +522,8 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
             streamLoopThreads.forEach(Thread::interrupt);
         streamLoopThreads = null;
 
-        if (showResultsThread != null)
-            showResultsThread.interrupt();
+//        if (showResultsThread != null)
+//            showResultsThread.interrupt();
         streamLoopThreads = null;
     }
 

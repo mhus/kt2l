@@ -2,6 +2,8 @@ package de.mhus.kt2l.system;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MDate;
@@ -29,11 +31,45 @@ public class SystemLogPanel extends VerticalLayout implements DeskTabListener, C
     private IRegistration registration;
     private DeskTab deskTab;
     private Core core;
+    private Level level = Level.DEBUG;
+    private MenuItem debugItem;
+    private MenuItem infoItem;
+    private MenuItem warnItem;
+    private MenuItem errorItem;
 
     @Override
     public void tabInit(DeskTab deskTab) {
         this.deskTab = deskTab;
         this.core = deskTab.getTabBar().getCore();
+
+        var menuBar = new MenuBar();
+        menuBar.addItem("Clear", e -> logs.clear());
+        var levelItem = menuBar.addItem("Level");
+        var levelMenu = levelItem.getSubMenu();
+        debugItem = levelMenu.addItem("Debug", e -> {
+            level = Level.DEBUG;
+            updateLevelMenu();
+        });
+        debugItem.setCheckable(true);
+        infoItem = levelMenu.addItem("Info", e -> {
+            level = Level.INFO;
+            updateLevelMenu();
+        });
+        infoItem.setCheckable(true);
+        warnItem = levelMenu.addItem("Warn", e -> {
+            level = Level.WARN;
+            updateLevelMenu();
+        });
+        warnItem.setCheckable(true);
+        errorItem = levelMenu.addItem("Error", e -> {
+            level = Level.ERROR;
+            updateLevelMenu();
+        });
+        errorItem.setCheckable(true);
+        updateLevelMenu();
+
+        add(menuBar);
+
         logs = new Tail();
         logs.setMaxRows(1000);
         logs.addClassName("log-view");
@@ -46,6 +82,13 @@ public class SystemLogPanel extends VerticalLayout implements DeskTabListener, C
 
         registration = logbackConfiguration.getEventHandler().registerWeak(this);
         LOGGER.info("Logging Panel Started");
+    }
+
+    private void updateLevelMenu() {
+        debugItem.setChecked(level == Level.DEBUG);
+        infoItem.setChecked(level == Level.INFO);
+        warnItem.setChecked(level == Level.WARN);
+        errorItem.setChecked(level == Level.ERROR);
     }
 
     @Override
@@ -71,6 +114,9 @@ public class SystemLogPanel extends VerticalLayout implements DeskTabListener, C
 
     @Override
     public void accept(ILoggingEvent event) {
+
+        if (event.getLevel().toInt() < level.toInt()) return;
+
         core.ui().access(() -> {
             StringBuilder sb = new StringBuilder();
             sb.append(MDate.toIsoDateTime(event.getTimeStamp())).append(" ");

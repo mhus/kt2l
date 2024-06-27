@@ -187,6 +187,7 @@ vaadin-scroller.log-view p {
     font-size: 14px;
     min-height: 1em;
     margin: 0;
+    overscroll-behavior-x: none;
 }
 
 vaadin-scroller.log-view-nowrap {
@@ -210,6 +211,7 @@ vaadin-scroller.events-view p {
     font-size: 14px;
     min-height: 1em;
     margin: 0;
+    overscroll-behavior-x: none;
 }
 
 vaadin-text-area.preview textarea {
