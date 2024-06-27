@@ -1,5 +1,5 @@
 /*
- * kt2l-test - kt2l integration tests
+ * kt2l - KT2L (ktool) is a web based tool to manage your kubernetes clusters.
  * Copyright © 2024 Mike Hummel (mh@mhus.de)
  *
  * This program is free software: you can redistribute it and/or modify
