@@ -28,6 +28,7 @@ import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.PanelService;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +81,9 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         if(evilMode) {
             bar.addItem("Logs", e -> panelService.showSystemLogPanel(deskTab.getTabBar().getCore()).select());
         }
-        bar.addItem("EBCM", e -> deskTab.getTabBar().getCore().getGeneralContextMenu().setTarget(null));
+        var ebcmItem = bar.addItem("EBCM", e -> deskTab.getTabBar().getCore().getGeneralContextMenu().setTarget(null));
+        ebcmItem.getElement().setAttribute("title", "Enable Browser Context Menu");
+        ebcmItem.setEnabled(deskTab.getTabBar().getCore().getGeneralContextMenu() != null);
 //        bar.addItem("Exception", e -> LOGGER.warn("Test", new RuntimeException("Test Exception")));
 
         add(bar);
@@ -92,7 +95,7 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         add(output);
 
 
-        var about = new Anchor("https://mhus.de", "The project was created by Mike Hummel in 2024.");
+        var about = new Anchor("https://mhus.de", "The project KT2L was created by Mike Hummel in 2024. Aloha!");
         about.setTarget("_blank");
         add(about);
 
@@ -111,7 +114,7 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
                 ConsoleTable table = new ConsoleTable();
                 table.setHeaderValues("Namespace", "ResourceType", "Filter Text", "Filter", "Sort Order", "Sort Ascending");
                 gridPanel.getHistroy().forEach(h -> {
-                    table.addRowValues(h.namespace(), h.type(), h.filterText(), h.filter() != null ? h.filter().getDescription() : "", h.sortOrder(), h.sortAscending());
+                    table.addRowValues(h.namespace(), K8s.displayName(h.type()), h.filterText(), h.filter() != null ? h.filter().getDescription() : "", h.sortOrder(), h.sortAscending());
                 });
                 i.append(table).append("\n");
             }
