@@ -95,8 +95,8 @@ public class ConfigMapGrid extends AbstractGridWithNamespace<ConfigMapGrid.Resou
         @Override
         public void updateResource() {
             super.updateResource();
-            dataCnt = tryThis(() -> resource.getData().size()).or(0);
-            dataSize = tryThis(() -> resource.getData().values().stream().mapToLong(String::length).sum()).or(0L);
+            dataCnt = tryThis(() -> resource.getData().size()).orElse(0);
+            dataSize = tryThis(() -> resource.getData().values().stream().mapToLong(String::length).sum()).orElse(0L);
             setColor(null);
         }
 

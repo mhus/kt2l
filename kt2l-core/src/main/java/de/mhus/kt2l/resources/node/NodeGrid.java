@@ -109,13 +109,13 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         public void updateResource() {
             super.updateResource();
             this.status = resource.getStatus().getPhase();
-            this.taintCnt = tryThis(() -> resource.getSpec().getTaints().size()).or(0);
+            this.taintCnt = tryThis(() -> resource.getSpec().getTaints().size()).orElse(0);
             this.ip = resource.getStatus().getAddresses().stream()
                     .filter(a -> "InternalIP".equals(a.getType()))
                     .findFirst()
                     .map(a -> a.getAddress())
                     .orElse(null);
-            this.version = tryThis(() -> resource.getStatus().getNodeInfo().getKubeletVersion()).or("");
+            this.version = tryThis(() -> resource.getStatus().getNodeInfo().getKubeletVersion()).orElse("");
         }
     }
 }

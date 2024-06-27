@@ -249,7 +249,7 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
 
     private void setListeners() {
         nd.addSelectListener(e -> {
-            var nodeId = tryThis(() -> e.getParams().getArray("nodes").get(0).asString()).or(null);
+            var nodeId = tryThis(() -> e.getParams().getArray("nodes").get(0).asString()).orElse(null);
             if (nodeId == null) {
                 selectedNode = null;
             } else {

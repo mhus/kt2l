@@ -147,7 +147,7 @@ public class ActionDelete implements ResourceAction {
     private String getColumnValue(KubernetesObject v) {
         var name = v.getMetadata().getName();
         var ns = v.getMetadata().getNamespace();
-        var kind = tryThis(() -> v.getKind() ).or(null);
+        var kind = tryThis(() -> v.getKind() ).orElse(null);
         if (kind == null)
             kind = v.getClass().getSimpleName();
         return kind + ": " + (ns == null ? "" : ns + ".") + (name == null ? v.toString() : name);

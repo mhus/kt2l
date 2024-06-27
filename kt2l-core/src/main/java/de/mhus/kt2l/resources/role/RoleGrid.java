@@ -72,7 +72,7 @@ public class RoleGrid extends AbstractGridWithNamespace<RoleGrid.Resource, Compo
         @Override
         public void updateResource() {
             super.updateResource();
-            resources = tryThis(()-> resource.getRules().stream().map(rule -> rule.getResources().toString()).reduce("", (a, b) -> a + b)).or("");
+            resources = tryThis(()-> resource.getRules().stream().map(rule -> rule.getResources().toString()).reduce("", (a, b) -> a + b)).orElse("");
         }
 
         private String toStringOr0(Integer integer) {

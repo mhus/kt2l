@@ -33,21 +33,21 @@ public class SessionListenerService implements VaadinServiceInitListener {
         LOGGER.debug("◇ SessionListener.serviceInit {}", event);
         event.getSource().addSessionInitListener(
                     initEvent -> {
-                        LOGGER.debug("◇ {} A new Session has been initialized! {}", tryThis(() -> initEvent.getSession().getSession().getId()).or("?"), initEvent);
+                        LOGGER.debug("◇ {} A new Session has been initialized! {}", tryThis(() -> initEvent.getSession().getSession().getId()).orElse("?"), initEvent);
                         initEvent.getSession().getSession().setMaxInactiveInterval(sessionTimeout * 60);
                     }
         );
         event.getSource().addSessionDestroyListener(
-                destroyEvent -> LOGGER.debug("◇ {} A Session has been destroyed! {}", tryThis(() -> destroyEvent.getSession().getSession().getId()).or("?"), destroyEvent)
+                destroyEvent -> LOGGER.debug("◇ {} A Session has been destroyed! {}", tryThis(() -> destroyEvent.getSession().getSession().getId()).orElse("?"), destroyEvent)
         );
         event.getSource().addUIInitListener(
                 initEvent -> {
-                    LOGGER.debug("◇ {} A new UI has been initialized! {}", tryThis(() -> initEvent.getUI().getSession().getSession().getId()).or("?"), initEvent);
+                    LOGGER.debug("◇ {} A new UI has been initialized! {}", tryThis(() -> initEvent.getUI().getSession().getSession().getId()).orElse("?"), initEvent);
                     initEvent.getUI().addAttachListener(
-                            attachEvent -> LOGGER.debug("◇ {} A UI has been attached! {}", tryThis(() -> attachEvent.getSession().getSession().getId()).or("?"), attachEvent)
+                            attachEvent -> LOGGER.debug("◇ {} A UI has been attached! {}", tryThis(() -> attachEvent.getSession().getSession().getId()).orElse("?"), attachEvent)
                     );
                     initEvent.getUI().addDetachListener(
-                            detachEvent -> LOGGER.debug("◇ {} A UI has been detached! {}", tryThis(() -> detachEvent.getSession().getSession().getId()).or("?"), detachEvent)
+                            detachEvent -> LOGGER.debug("◇ {} A UI has been detached! {}", tryThis(() -> detachEvent.getSession().getSession().getId()).orElse("?"), detachEvent)
                     );
                 }
         );

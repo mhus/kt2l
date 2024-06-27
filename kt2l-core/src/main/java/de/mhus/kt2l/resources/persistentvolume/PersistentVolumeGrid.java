@@ -31,8 +31,6 @@ import io.kubernetes.client.openapi.models.V1PersistentVolumeList;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Objects;
-
 import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
@@ -130,7 +128,7 @@ public class PersistentVolumeGrid extends AbstractGridWithoutNamespace<Persisten
         public void updateResource() {
             super.updateResource();
             this.status = resource.getStatus().getPhase();
-            this.capacity = tryThis(() -> MString.toByteDisplayString(resource.getSpec().getCapacity().get("storage").getNumber().longValue())).or("");
+            this.capacity = tryThis(() -> MString.toByteDisplayString(resource.getSpec().getCapacity().get("storage").getNumber().longValue())).orElse("");
             this.accessModes = String.join(", ", resource.getSpec().getAccessModes());
             this.storageClass = resource.getSpec().getStorageClassName();
             this.reclaimPolicy = resource.getSpec().getPersistentVolumeReclaimPolicy();

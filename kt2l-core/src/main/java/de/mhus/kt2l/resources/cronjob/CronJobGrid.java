@@ -102,7 +102,7 @@ public class CronJobGrid extends AbstractGridWithNamespace<CronJobGrid.Resource,
             super.updateResource();
             this.scheduled = resource.getSpec().getSchedule();
             this.suspend = resource.getSpec().getSuspend();
-            this.active = tryThis(() -> resource.getStatus().getActive().size()).or(0);
+            this.active = tryThis(() -> resource.getStatus().getActive().size()).orElse(0);
             this.lastSchedule = resource.getStatus().getLastScheduleTime();
 
             if (suspend != null && suspend) {

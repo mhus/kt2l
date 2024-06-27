@@ -206,8 +206,8 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         i.append("Core Panels Count    : " + deskTab.getTabBar().getCore().getContent().getChildren().count() + "\n");
         i.append("Core Background Count: " + deskTab.getTabBar().getCore().getBackgroundJobCount() + "\n");
         i.append("UI                   : " + Objects.hashCode(deskTab.getTabBar().getCore().ui()) + "\n");
-        i.append("Session Id           : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getSession().getId() ).or("?") + "\n");
-        i.append("CumulativeRequestDuration: " + tryThis(() -> String.valueOf(deskTab.getTabBar().getCore().ui().getSession().getCumulativeRequestDuration()) ).or("?") + "\n");
+        i.append("Session Id           : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getSession().getId() ).orElse("?") + "\n");
+        i.append("CumulativeRequestDuration: " + tryThis(() -> String.valueOf(deskTab.getTabBar().getCore().ui().getSession().getCumulativeRequestDuration()) ).orElse("?") + "\n");
 
         if (!isBlank(browserMemoryUsage)) {
             var parts = browserMemoryUsage.split(" ");

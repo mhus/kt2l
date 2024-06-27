@@ -78,10 +78,10 @@ public class NetworkPolicyGrid extends AbstractGridWithNamespace<NetworkPolicyGr
         @Override
         public void updateResource() {
             super.updateResource();
-            ingPorts = tryThis(() -> getResource().getSpec().getIngress().stream().map(i -> i.getPorts().toString()).reduce("", (a, b) -> a + ", " + b)).or("");
-            ingBlock = tryThis(() -> getResource().getSpec().getIngress().stream().map(i -> i.getFrom().toString()).reduce("", (a, b) -> a + ", " + b)).or("");
-            egrPorts = tryThis(() -> getResource().getSpec().getEgress().stream().map(i -> i.getPorts().toString()).reduce("", (a, b) -> a + ", " + b)).or("");
-            egrBlock = tryThis(() -> getResource().getSpec().getEgress().stream().map(i -> i.getTo().toString()).reduce("", (a, b) -> a + ", " + b)).or("");
+            ingPorts = tryThis(() -> getResource().getSpec().getIngress().stream().map(i -> i.getPorts().toString()).reduce("", (a, b) -> a + ", " + b)).orElse("");
+            ingBlock = tryThis(() -> getResource().getSpec().getIngress().stream().map(i -> i.getFrom().toString()).reduce("", (a, b) -> a + ", " + b)).orElse("");
+            egrPorts = tryThis(() -> getResource().getSpec().getEgress().stream().map(i -> i.getPorts().toString()).reduce("", (a, b) -> a + ", " + b)).orElse("");
+            egrBlock = tryThis(() -> getResource().getSpec().getEgress().stream().map(i -> i.getTo().toString()).reduce("", (a, b) -> a + ", " + b)).orElse("");
         }
 
     }

@@ -70,8 +70,8 @@ public class DescribeAction implements ResourceAction {
                     final var handler = k8sService.getTypeHandler(type /*K8sUtil.toResource(res, cluster) */);
                     final var previewText = handler.getDescribe(cluster.getApiProvider(), res);
                     sb.append(">>> ")
-                            .append( tryThis(() -> res.getKind()).or(null) == null ? type.getKind() : res.getKind())
-                            .append(" ").append(tryThis(() -> res.getMetadata().getName()).or("?")).append('\n');
+                            .append( tryThis(() -> res.getKind()).orElse(null) == null ? type.getKind() : res.getKind())
+                            .append(" ").append(tryThis(() -> res.getMetadata().getName()).orElse("?")).append('\n');
                     sb.append(previewText).append('\n');
                 }
         );

@@ -109,7 +109,7 @@ public class K8sUtil {
 //    }
 
     public static void describeHeader(ApiProvider apiProvider, HandlerK8s handler, KubernetesObject res, StringBuilder sb) {
-        var kind = tryThis(() -> res.getKind()).or(null);
+        var kind = tryThis(() -> res.getKind()).orElse(null);
         if (kind != null) {
             sb.append("Kind:          ").append(kind).append("\n");
         }

@@ -106,7 +106,7 @@ public class PersistentVolumeClaimGrid extends AbstractGridWithNamespace<Persist
             this.status = resource.getStatus().getPhase();
             this.accessModes = String.join(", ", resource.getSpec().getAccessModes());
             this.storageClass = resource.getSpec().getStorageClassName();
-            this.capacity = tryThis(() -> MString.toByteDisplayString(resource.getSpec().getResources().getRequests().get("storage").getNumber().longValue())).or("");
+            this.capacity = tryThis(() -> MString.toByteDisplayString(resource.getSpec().getResources().getRequests().get("storage").getNumber().longValue())).orElse("");
         }
     }
 }
