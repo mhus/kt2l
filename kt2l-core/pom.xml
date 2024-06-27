@@ -86,7 +86,7 @@
 		<dependency>
 			<groupId>de.mhus.kt2l</groupId>
 			<artifactId>vaadin-raw-xterm-addon</artifactId>
-			<version>${project.version}</version>
+			<version>${vaadin-raw-xterm-addon.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.mhus.kt2l</groupId>

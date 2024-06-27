@@ -128,6 +128,13 @@ public class UiUtil {
         return MSystem.isMac() ? "META" : "CONTROL";
     }
 
+    public static String xtermPrepareEsc(String line) {
+        if (line.contains("\b [1Ps\b")) {
+            line = line.replaceAll("\b \\[1Ps\b", "\b\u001b[P");
+        }
+        return line;
+    }
+
     public static byte[] xtermKeyToBytes(String xtermKey) {
         try {
                 /*

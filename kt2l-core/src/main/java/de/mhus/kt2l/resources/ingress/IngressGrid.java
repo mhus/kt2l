@@ -107,9 +107,9 @@ public class IngressGrid extends AbstractGridWithNamespace<IngressGrid.Resource,
         public void updateResource() {
             super.updateResource();
             clazz = resource.getSpec().getIngressClassName();
-            hosts = tryThis(() -> resource.getSpec().getRules().stream().map(r -> r.getHost()).reduce((a, b) -> a + ", " + b).orElse("")).or("");
-            address = tryThis(() -> resource.getStatus().getLoadBalancer().getIngress().stream().map(r -> r.getHostname()).reduce((a,b) -> a + "," + b).orElse("") ).or("");
-            ports = tryThis(() -> resource.getSpec().getRules().stream().map(r -> r.getHttp().getPaths().stream().map(p -> String.valueOf(p.getBackend().getService().getPort().getNumber())).reduce((a, b) -> a + ", " + b).orElse("")).reduce((a, b) -> a + ", " + b).orElse("")).or("");
+            hosts = tryThis(() -> resource.getSpec().getRules().stream().map(r -> r.getHost()).reduce((a, b) -> a + ", " + b).orElse("")).orElse("");
+            address = tryThis(() -> resource.getStatus().getLoadBalancer().getIngress().stream().map(r -> r.getHostname()).reduce((a,b) -> a + "," + b).orElse("") ).orElse("");
+            ports = tryThis(() -> resource.getSpec().getRules().stream().map(r -> r.getHttp().getPaths().stream().map(p -> String.valueOf(p.getBackend().getService().getPort().getNumber())).reduce((a, b) -> a + ", " + b).orElse("")).reduce((a, b) -> a + ", " + b).orElse("")).orElse("");
             setColor(null);
         }
 

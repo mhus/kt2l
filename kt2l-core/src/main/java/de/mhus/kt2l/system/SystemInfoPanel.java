@@ -121,9 +121,9 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
         }
         }
         i.append("\n");
-        i.append("Browser App    : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getBrowserApplication()).or("?") + "\n");
-        i.append("Browser Locale : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getLocale().toString()).or("?") + "\n");
-        i.append("Browser Address: " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getAddress()).or("?") + "\n");
+        i.append("Browser App    : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getBrowserApplication()).orElse("?") + "\n");
+        i.append("Browser Locale : " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getLocale().toString()).orElse("?") + "\n");
+        i.append("Browser Address: " + tryThis(() -> deskTab.getTabBar().getCore().ui().getSession().getBrowser().getAddress()).orElse("?") + "\n");
         var browserMemoryUsage = deskTab.getTabBar().getCore().getBrowserMemoryUsage();
         if (!isBlank(browserMemoryUsage)) {
         var parts = browserMemoryUsage.split(" ");

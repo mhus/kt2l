@@ -129,7 +129,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
         });
 
         if (storageService.isEnabled()) {
-            captureDirectory = tryThis(() -> storageService.getStorage().createDirectory("exec")).or(null);
+            captureDirectory = tryThis(() -> storageService.getStorage().createDirectory("exec")).orElse(null);
             if (captureDirectory != null) {
                 menuItemStoreIconDivIcon = VaadinIcon.BULLSEYE.create();
                 menuItemStoreIconDivIcon.setVisible(false);
@@ -144,7 +144,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
                     menuItemStoreIconDivIcon.setVisible(menuItemCapture.isChecked());
                 });
                 menuItemCapture.setCheckable(true);
-                captureDirectory = tryThis(() -> storageService.getStorage().createDirectory("exec")).or(null);
+                captureDirectory = tryThis(() -> storageService.getStorage().createDirectory("exec")).orElse(null);
 
                 storeMenu.addItem(captureDirectory.getName(), e -> {
                     storageService.showStoragePanel(core, captureDirectory);

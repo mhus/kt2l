@@ -56,7 +56,7 @@ public class RunContext implements ICloseable {
     private List<Error> errors = new ArrayList<>();
     private StringBuffer content = new StringBuffer();
     @Getter
-    private SecurityContext securityContext = MLang.tryThis(() -> SecurityContext.create()).or(null);
+    private SecurityContext securityContext = MLang.tryThis(() -> SecurityContext.create()).orElse(null);
 
     @Setter
     private StorageFile storage;

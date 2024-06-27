@@ -51,7 +51,7 @@ public class HelpUtil {
                     return null;
                 })
                 .onFailure(e -> LOGGER.debug("Failed to get HelpResourceConnector from selected panel", e))
-                .or(null)
+                .orElse(null)
         );
     }
 

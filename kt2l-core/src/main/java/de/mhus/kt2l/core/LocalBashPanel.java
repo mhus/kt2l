@@ -23,6 +23,7 @@ import com.flowingcode.vaadin.addons.xterm.XTerm;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MJson;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.config.ViewsConfiguration;
@@ -73,6 +74,20 @@ public class LocalBashPanel extends VerticalLayout implements DeskTabListener {
                 LOGGER.error("Write error", ex);
                 closeTerminal();
             }
+        });
+        xterm.addPasteListener(e -> {
+            try {
+                var json = MJson.load(e.getText());
+                var text = json.get("text").asText();
+                proc.getOutputStream().write(text.getBytes());
+                proc.getOutputStream().flush();
+            } catch (IOException ex) {
+                LOGGER.error("Write error", ex);
+                closeTerminal();
+            }
+        });
+        xterm.addActionListener(e -> {
+            UiUtil.showSuccessNotification(e.getEvent());
         });
 
         var xTermMenuBar = new MenuBar();
@@ -125,7 +140,7 @@ public class LocalBashPanel extends VerticalLayout implements DeskTabListener {
                 }
                 // System.out.println("SH Read: " + len);
                 String line = new String(buffer, 0, len);
-                core.ui().access(() -> xterm.write(line));
+                core.ui().access(() -> xterm.write(UiUtil.xtermPrepareEsc(line)));
             }
         } catch (Exception e) {
             LOGGER.error("Loop", e);

@@ -18,6 +18,7 @@
 package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MLang;
+import de.mhus.commons.tools.MThread;
 import de.mhus.commons.util.Value;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.pod.PodGrid;
@@ -32,7 +33,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -228,7 +228,7 @@ public class LocalServerTest {
 
     @Test
     @Order(5)
-    public void testPodDetails() throws InterruptedException {
+    public void testAceEditor() throws InterruptedException {
         App.resetUi(driver, webServerApplicationContext);
 
         // click on Resources on Main
@@ -262,10 +262,26 @@ public class LocalServerTest {
         assertThat(selected.value).isNotNull();
         assertThat(selected.value.size()).isEqualTo(1);
 
-        DebugTestUtil.doScreenshot(driver, "cluster_resources_pod");
+        // send 'y' for Yaml Editor
+        {
+            var element = driver.findElement(By.xpath("//body"));
+            element.sendKeys("y");
+        }
+        // wait for editor
+        //  driver.findElement(By.cssSelector("lit-ace")).getShadowRoot().findElement(
+        //        By.cssSelector("span.ace_tag")).getText()
+        MThread.sleep(1000);
+        var element = new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                .until(
+                        presenceOfElementLocated(By.cssSelector("lit-ace"))
+                );
+
+        var textElement = element.getShadowRoot().findElement(By.cssSelector("span.ace_tag"));
+        assertThat(textElement.getText()).isEqualTo("metadata");
+
+        DebugTestUtil.doScreenshot(driver, "pod_yaml_editor");
     }
 
-    @Disabled // keyborad stroke s failed
     @Test
     @Order(6)
     public void testXTermAddon() throws InterruptedException {
@@ -275,6 +291,8 @@ public class LocalServerTest {
         App.clusterOpenResources(driver);
 
         // click on pod asterix
+        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
+                .until(presenceOfElementLocated(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]")));
         driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]")).click();
 
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1)).until((d) ->
@@ -289,16 +307,16 @@ public class LocalServerTest {
 
         // send 's' for Shell
         {
-            var element = driver.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/.."));
+            var element = driver.findElement(By.xpath("//body"));
             element.sendKeys("s");
         }
         // wait for shell
         {
             var element = new WebDriverWait(driver, ofSeconds(10), ofSeconds(1))
                     .until(visibilityOfElementLocated(By.xpath("//vaadin-vertical-layout[@id=\"aremoricaindomitable-villageasterixshell\"]/fc-xterm/div/div/div[2]/div[2]/div[1]/span[1]")));
-            assertThat(element.getText()).isEqualTo("S");
+            MLang.awaitTrue(() -> element.getText().trim().length() > 0, 5000);
+            assertThat(element.getText()).isEqualTo("Start console");
         }
-
         DebugTestUtil.doScreenshot(driver, "pod_xterm");
     }
 

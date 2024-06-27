@@ -165,7 +165,7 @@ public class Configuration {
             LOGGER.info("Load configuration {} from {}", sectionName, file.getAbsolutePath());
             section = tryThis(() -> MTree.load(finalFile)).onFailure(
                     e -> LOGGER.error("Can't load configuration {} from {}", sectionName, finalFile.getAbsolutePath(), e)
-            ).or(new TreeNode());
+            ).orElse(new TreeNode());
         } else {
             LOGGER.info("Configuration {} not found", file.getAbsolutePath());
             section = new TreeNode();

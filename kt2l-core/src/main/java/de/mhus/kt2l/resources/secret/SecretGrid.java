@@ -106,8 +106,8 @@ public class SecretGrid extends AbstractGridWithNamespace<SecretGrid.Resource, C
         public void updateResource() {
             super.updateResource();
             type = resource.getType();
-            dataCnt = tryThis(() -> resource.getData().size()).or(0);
-            dataSize = tryThis(() -> resource.getData().values().stream().mapToLong(b -> b.length).sum()).or(0L);
+            dataCnt = tryThis(() -> resource.getData().size()).orElse(0);
+            dataSize = tryThis(() -> resource.getData().values().stream().mapToLong(b -> b.length).sum()).orElse(0L);
             setColor(null);
         }
 

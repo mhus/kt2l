@@ -81,7 +81,7 @@ public class EndpointGrid extends AbstractGridWithNamespace<EndpointGrid.Resourc
         @Override
         public void updateResource() {
             super.updateResource();
-            endpoints = tryThis(() -> resource.getSubsets().stream().map(V1EndpointSubset::getAddresses).map(addresses -> addresses.stream().map(address -> address.getIp()).reduce((a, b) -> a + "," + b).orElse("")).reduce((a, b) -> a + "," + b).orElse("")).or("");
+            endpoints = tryThis(() -> resource.getSubsets().stream().map(V1EndpointSubset::getAddresses).map(addresses -> addresses.stream().map(address -> address.getIp()).reduce((a, b) -> a + "," + b).orElse("")).reduce((a, b) -> a + "," + b).orElse("")).orElse("");
         }
 
         private String toStringOr0(Integer integer) {

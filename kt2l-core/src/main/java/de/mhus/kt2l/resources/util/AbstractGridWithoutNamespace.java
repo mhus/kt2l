@@ -300,7 +300,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
 
         public void updateResource() {
             this.created = resource.getMetadata().getCreationTimestamp();
-            this.resourceVersion = tryThis(() -> resource.getMetadata().getResourceVersion()).or("");
+            this.resourceVersion = tryThis(() -> resource.getMetadata().getResourceVersion()).orElse("");
         }
 
         public String getAge() {

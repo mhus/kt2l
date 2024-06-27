@@ -100,7 +100,7 @@ public abstract class ApiProvider {
     }
 
     public synchronized ApiClient getClient() {
-        if (client == null)
+        if (k8sApiClient == null)
             k8sApiClient = new K8sApiClient(this);
         return k8sApiClient;
     }

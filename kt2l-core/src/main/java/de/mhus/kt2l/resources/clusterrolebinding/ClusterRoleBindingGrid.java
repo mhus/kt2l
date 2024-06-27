@@ -76,9 +76,9 @@ public class ClusterRoleBindingGrid extends AbstractGridWithoutNamespace<Cluster
         @Override
         public void updateResource() {
             super.updateResource();
-            clusterRole = tryThis(() -> resource.getRoleRef().getName()).or("");
-            subjectKind = tryThis(() -> resource.getSubjects().get(0).getKind()).or("");
-            subjects = tryThis(() -> resource.getSubjects().stream().map(s -> s.getName()).reduce((a, b) -> a + ", " + b).get()).or("");
+            clusterRole = tryThis(() -> resource.getRoleRef().getName()).orElse("");
+            subjectKind = tryThis(() -> resource.getSubjects().get(0).getKind()).orElse("");
+            subjects = tryThis(() -> resource.getSubjects().stream().map(s -> s.getName()).reduce((a, b) -> a + ", " + b).get()).orElse("");
         }
     }
 }

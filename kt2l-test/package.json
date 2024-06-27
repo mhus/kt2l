@@ -24,8 +24,8 @@
     "react-dom": "18.3.1",
     "react-router-dom": "6.23.1",
     "vis-network": "9.1.9",
-    "xterm": "5.1.0",
-    "xterm-addon-fit": "0.7.0"
+    "xterm": "5.3.0",
+    "xterm-addon-fit": "0.8.0"
   },
   "devDependencies": {
     "@babel/preset-react": "7.24.7",
@@ -70,8 +70,8 @@
       "react-dom": "18.3.1",
       "react-router-dom": "6.23.1",
       "vis-network": "9.1.9",
-      "xterm": "5.1.0",
-      "xterm-addon-fit": "0.7.0"
+      "xterm": "5.3.0",
+      "xterm-addon-fit": "0.8.0"
     },
     "devDependencies": {
       "@babel/preset-react": "7.24.7",
@@ -93,7 +93,7 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "8342869b8c6882bcd8ad15fe284e0b62f445094a329d7b2033bca2b54b2ae778"
+    "hash": "bb8bd49e5faf812e57d7787c61f1774088045fdb4b200c1f6d1557e1608f1d31"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",

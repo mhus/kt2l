@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.vis;
 
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
@@ -24,7 +25,9 @@ import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.data.provider.ListDataProvider;
+import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
@@ -49,6 +52,7 @@ import org.vaadin.addons.visjs.network.options.Options;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -56,10 +60,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static de.mhus.commons.tools.MLang.tryThis;
+import static de.mhus.commons.tools.MString.isSet;
 
 @Configurable
 @Slf4j
 public class VisPanel extends SplitLayout implements DeskTabListener {
+
 
     @Autowired
     private List<VisHandler> visHandlers;
@@ -72,6 +78,8 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
     private PanelService panelService;
     @Autowired
     private DescribeAction describeAction;
+    @Autowired
+    private ViewsConfiguration viewsConfig;
 
     @Getter
     private final Core core;
@@ -91,6 +99,7 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
 
     private volatile boolean needEdgeUpdate = false;
     private volatile boolean isUpdaing = false;
+    private Map<String, Checkbox> useSwitches = new HashMap<>();
 
 //    private IRegistration registrationNs;
 //    private IRegistration registrationPod;
@@ -127,6 +136,8 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
 
         settings = new VerticalLayout();
         settings.setSizeFull();
+        settings.setMargin(false);
+        settings.setSpacing(false);
         addToSecondary(settings);
 
         setOrientation(Orientation.HORIZONTAL);
@@ -162,6 +173,34 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
 
         // ---
 
+        viewsConfig.getConfig("vis").getArray("presets").ifPresent(presets -> {
+            Button presetBtn = new Button("Presets");
+            presetBtn.setWidthFull();
+            ContextMenu presetMenu = new ContextMenu(presetBtn);
+            presetMenu.setOpenOnClick(true);
+            presets.forEach(preset -> {
+                presetMenu.addItem(preset.getString("name", "?"), e -> {
+                    var ns = preset.getString("namespace");
+                    if (ns.isPresent()) {
+                        namespaceSelector.setValue(ns.get());
+                    }
+                    var regex = preset.getString("regex").orElse(null);
+                    if (isSet(regex)) {
+                        useSwitches.forEach((k,v) -> {
+                            v.setValue(k.matches(regex));
+                        });
+                    } else {
+                        Set<String> enabledSwitches = new HashSet(MTree.getArrayValueStringList(preset.getArray("types").orElse(MTree.EMPTY_LIST)));
+                        useSwitches.forEach((k, v) -> {
+                            v.setValue(enabledSwitches.contains(k));
+                        });
+                    }
+                });
+            });
+
+            settings.add(presetBtn);
+        });
+
         var updateSwitch = new Checkbox("Auto Update");
         updateSwitch.addValueChangeListener(e -> {
             visHandlers.forEach(handler -> handler.setAutoUpdate(e.getValue()));
@@ -173,11 +212,12 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
             handler.setAutoUpdate(false);
             handler.setEnabled(false);
         });
-        visHandlers.stream().filter(h -> h.getType() == K8s.NAMESPACE).findFirst().ifPresent(h -> h.setEnabled(true));
+        visHandlers.stream().filter(h -> K8s.NAMESPACE.equals(h.getType())).findFirst().ifPresent(h -> h.setEnabled(true));
 
         namespaceSelector = new ComboBox<String>();
         namespaceSelector.setItems(k8sService.getNamespaces(true,cluster.getApiProvider()));
         namespaceSelector.setValue(K8sUtil.NAMESPACE_DEFAULT);
+        namespaceSelector.setWidthFull();
         namespaceSelector.addValueChangeListener(e -> {
             var ns = e.getValue().equals(K8sUtil.NAMESPACE_ALL_LABEL) ? null : e.getValue();
             visHandlers.forEach(handler -> handler.setNamespace(ns));
@@ -198,6 +238,7 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
             }
             var useSwitch = new Checkbox(handler.getType().getKind());
             useSwitch.setValue(handler.isEnabled());
+            useSwitch.setTooltipText(K8s.displayName(handler.getType()));
             useSwitch.addValueChangeListener(e -> {
                 if (e.getValue()) {
                     enableHandler(handler);
@@ -206,6 +247,7 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
                 }
             });
             settings.add(useSwitch);
+            useSwitches.put(K8s.displayName(handler.getType()) , useSwitch);
         }
 
         // ---
@@ -249,7 +291,7 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
 
     private void setListeners() {
         nd.addSelectListener(e -> {
-            var nodeId = tryThis(() -> e.getParams().getArray("nodes").get(0).asString()).or(null);
+            var nodeId = tryThis(() -> e.getParams().getArray("nodes").get(0).asString()).orElse(null);
             if (nodeId == null) {
                 selectedNode = null;
             } else {

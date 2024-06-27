@@ -89,9 +89,9 @@ public class RoleBindingGrid extends AbstractGridWithNamespace<RoleBindingGrid.R
         @Override
         public void updateResource() {
             super.updateResource();
-            role = tryThis(() -> resource.getRoleRef().getName()).or("");
-            kind = tryThis(() -> resource.getRoleRef().getKind()).or("");
-            subjects = tryThis(() -> resource.getSubjects().stream().map(s -> s.getName()).reduce((a, b) -> a + ", " + b).orElse("")).or("");
+            role = tryThis(() -> resource.getRoleRef().getName()).orElse("");
+            kind = tryThis(() -> resource.getRoleRef().getKind()).orElse("");
+            subjects = tryThis(() -> resource.getSubjects().stream().map(s -> s.getName()).reduce((a, b) -> a + ", " + b).orElse("")).orElse("");
         }
 
         private String toStringOr0(Integer integer) {

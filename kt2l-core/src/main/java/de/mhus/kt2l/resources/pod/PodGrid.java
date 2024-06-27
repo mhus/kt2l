@@ -627,10 +627,10 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
 
         public boolean equals(Object obj) {
             if (obj instanceof Resource other) {
-                return MLang.tryThis(() -> other.getName().equals(name) && other.getNamespace().equals(namespace)).or(false);
+                return MLang.tryThis(() -> other.getName().equals(name) && other.getNamespace().equals(namespace)).orElse(false);
             }
             if (obj instanceof V1Pod other) {
-                return MLang.tryThis(() -> other.getMetadata().getName().equals(name) && other.getMetadata().getNamespace().equals(namespace)).or(false);
+                return MLang.tryThis(() -> other.getMetadata().getName().equals(name) && other.getMetadata().getNamespace().equals(namespace)).orElse(false);
             }
             return false;
         }
@@ -698,7 +698,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 return MLang.tryThis(() -> other.getName().equals(name) &&
                         other.getPod().getMetadata().getName().equals(pod.getMetadata().getName()) &&
                         other.getNamespace().equals(namespace)
-                    ).or(false);
+                    ).orElse(false);
             }
             return false;
         }

@@ -359,7 +359,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
 
         public void updateResource() {
             this.created = resource.getMetadata().getCreationTimestamp();
-            this.resourceVersion = tryThis(() -> resource.getMetadata().getResourceVersion()).or("");
+            this.resourceVersion = tryThis(() -> resource.getMetadata().getResourceVersion()).orElse("");
         }
 
         void setResource(V object) {

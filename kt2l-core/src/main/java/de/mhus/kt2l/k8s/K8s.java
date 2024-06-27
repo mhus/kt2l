@@ -167,6 +167,7 @@ public class K8s {
     }
 
     public static String displayName(V1APIResource res) {
+        if (res == null) return "";
         return DISPLAY_NAME_CACHE.getOrCreate(res, k -> {
             var ds = (isEmpty(k.getGroup()) ? "" : k.getGroup() + ".") +
                      (isEmpty(k.getSingularName()) ? k.getName() : k.getSingularName()) +
