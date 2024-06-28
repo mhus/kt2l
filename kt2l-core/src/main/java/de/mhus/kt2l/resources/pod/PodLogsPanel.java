@@ -36,7 +36,7 @@ import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.core.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.storage.OutputFile;
 import de.mhus.kt2l.storage.StorageFile;

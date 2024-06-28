@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.core;
+package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
@@ -25,6 +25,7 @@ import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.core.ResourceId;
 import jakarta.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.realm.GenericPrincipal;

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.core;
+package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.component.UI;
 import de.mhus.commons.errors.AuthorizationException;

@@ -36,7 +36,7 @@ import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.core.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.ui.ProgressDialog;
 import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;

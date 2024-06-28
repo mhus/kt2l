@@ -23,7 +23,7 @@ import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.config.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.PanelService;
-import de.mhus.kt2l.core.WithRole;
+import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;

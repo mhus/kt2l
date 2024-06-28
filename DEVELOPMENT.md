@@ -20,6 +20,7 @@
 * [https://vaadin.com/directory/component/vis-network-vaadin]
 * [https://visjs.github.io/vis-network/docs/network/]
 * [https://incubator.app.fi/togglebutton-demo/togglebutton]
+* Google SSO [https://vaadin.com/blog/oauth-2-and-google-sign-in-for-a-vaadin-application]
 
 ## Kubernetes
 

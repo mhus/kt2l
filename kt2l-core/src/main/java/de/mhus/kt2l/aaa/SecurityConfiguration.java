@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.core;
+package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import de.mhus.kt2l.config.LoginConfiguration;
@@ -25,11 +25,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
@@ -40,6 +38,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -57,9 +58,12 @@ public class SecurityConfiguration
 
     @Autowired
     private LoginConfiguration loginConfig;
-
     @Autowired
     private UsersConfiguration usersConfig;
+//    @Autowired
+    private OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
+
+    private boolean oauth2Enabled = false;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -80,19 +84,19 @@ public class SecurityConfiguration
         http.authorizeHttpRequests(auth -> auth.requestMatchers(new AntPathRequestMatcher("/public/**"))
                 .permitAll());
 
-        http.headers(new Customizer<HeadersConfigurer<HttpSecurity>>() {
-            @Override
-            public void customize(HeadersConfigurer<HttpSecurity> httpSecurityHeadersConfigurer) {
-                httpSecurityHeadersConfigurer.frameOptions(new Customizer<HeadersConfigurer<org.springframework.security.config.annotation.web.builders.HttpSecurity>.FrameOptionsConfig>() {
-                    @Override
-                    public void customize(HeadersConfigurer<HttpSecurity>.FrameOptionsConfig frameOptionsConfig) {
-                        frameOptionsConfig.disable();
-                    }
-                });
-            }
-        });
+        http.headers(httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer.frameOptions(frameOptionsConfig -> frameOptionsConfig.disable()));
         super.configure(http);
 
+        if (oauth2Enabled) {
+            http.oauth2Login(oauth2Login ->
+                oauth2Login.loginPage("/login")
+                    .permitAll()
+                    .defaultSuccessUrl("/", true)
+                    .userInfoEndpoint(userInfoEndpoint ->
+                            userInfoEndpoint.userService(customOAuth2UserService)
+                    )
+            );
+        }
         // This is important to register your login view to the
         // navigation access control mechanism:
         setLoginView(http, LoginView.class);
@@ -104,11 +108,6 @@ public class SecurityConfiguration
         super.configure(web);
     }
 
-    /**
-     * Demo UserDetailsManager which only provides two hardcoded
-     * in memory users and their roles.
-     * NOTE: This shouldn't be used in real world applications.
-     */
     @Bean
     public UserDetailsManager userDetailsService() {
         final var userDetails = new ArrayList<UserDetails>();

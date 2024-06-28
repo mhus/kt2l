@@ -17,7 +17,7 @@
  */
 package de.mhus.kt2l.generated;
 
-import de.mhus.kt2l.core.SecurityService;
+import de.mhus.kt2l.aaa.SecurityService;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;

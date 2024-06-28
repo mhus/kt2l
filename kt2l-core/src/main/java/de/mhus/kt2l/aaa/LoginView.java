@@ -16,10 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.core;
+package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -45,6 +46,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
     private LoginForm login = new LoginForm();
+    private static final String OAUTH_URL = "/oauth2/authorization/google";
 
     @Autowired
     private LoginConfiguration loginConfig;
@@ -61,7 +63,10 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
         add(new H1("KT2L"), login);
 
-
+        Anchor loginLink = new Anchor(OAUTH_URL, "Login with Google");
+        // Instruct Vaadin Router to ignore doing SPA handling
+        loginLink.setRouterIgnore(true);
+        add(loginLink);
 
     }
 

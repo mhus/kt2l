@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.core;
+package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
@@ -40,7 +40,7 @@ public class SecurityService {
     private static final String LOGOUT_SUCCESS_URL = "/";
 
     public Principal getPrincipal() {
-        return de.mhus.kt2l.core.SecurityContext.lookupPrincipal();
+        return de.mhus.kt2l.aaa.SecurityContext.lookupPrincipal();
     }
 
     public Set<String> getRolesForResource(String resourceScope, String resourceName) {

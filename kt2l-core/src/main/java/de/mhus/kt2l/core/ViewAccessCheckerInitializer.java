@@ -21,6 +21,7 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
+import de.mhus.kt2l.aaa.LoginView;
 
 public class ViewAccessCheckerInitializer implements VaadinServiceInitListener {
 

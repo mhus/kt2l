@@ -21,9 +21,13 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
+import de.mhus.kt2l.aaa.LoginView;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
 public class NavigationControlAccessCheckerInitializer implements VaadinServiceInitListener {
 
     private NavigationAccessControl accessControl;
@@ -34,6 +38,7 @@ public class NavigationControlAccessCheckerInitializer implements VaadinServiceI
         accessControl.setLoginView(LoginView.class);
     }
 
+    @EventListener
     @Override
     public void serviceInit(ServiceInitEvent serviceInitEvent) {
         serviceInitEvent.getSource().addUIInitListener(uiInitEvent -> {

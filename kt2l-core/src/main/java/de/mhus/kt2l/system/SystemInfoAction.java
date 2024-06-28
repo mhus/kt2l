@@ -23,7 +23,7 @@ import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.CoreAction;
 import de.mhus.kt2l.core.PanelService;
-import de.mhus.kt2l.core.WithRole;
+import de.mhus.kt2l.aaa.WithRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

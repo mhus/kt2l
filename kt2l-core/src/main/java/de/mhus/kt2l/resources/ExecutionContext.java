@@ -24,7 +24,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
-import de.mhus.kt2l.core.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityContext;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Builder;

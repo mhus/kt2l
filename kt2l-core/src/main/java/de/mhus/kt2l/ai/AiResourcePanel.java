@@ -34,7 +34,7 @@ import de.mhus.commons.yaml.YMap;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
-import de.mhus.kt2l.core.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.help.HelpResourceConnector;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.util.ResourceSelector;
