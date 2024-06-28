@@ -29,7 +29,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.StreamResource;
 import de.mhus.commons.tools.MString;
-import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.aaa.AaaConfiguration;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.CoreAction;

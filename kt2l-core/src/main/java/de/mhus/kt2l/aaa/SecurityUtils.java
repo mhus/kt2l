@@ -24,7 +24,7 @@ import com.vaadin.flow.server.VaadinSession;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MSystem;
-import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.ResourceId;
 import jakarta.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;

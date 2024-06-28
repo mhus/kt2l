@@ -18,7 +18,7 @@
 
 package de.mhus.kt2l.resources.networkpolicy;
 
-import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourceGridFactory;

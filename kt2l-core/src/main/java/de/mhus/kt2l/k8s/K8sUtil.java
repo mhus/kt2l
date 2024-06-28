@@ -23,7 +23,7 @@ import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.tools.MJson;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.aaa.AaaConfiguration;
 import de.mhus.kt2l.aaa.SecurityService;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiCallback;

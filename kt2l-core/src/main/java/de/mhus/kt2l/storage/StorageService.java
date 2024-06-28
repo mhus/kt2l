@@ -20,7 +20,7 @@ package de.mhus.kt2l.storage;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.util.SoftHashMap;
 import de.mhus.kt2l.config.CmdConfiguration;
-import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.aaa.SecurityContext;

@@ -19,7 +19,7 @@ package de.mhus.kt2l.cfg;
 
 import de.mhus.commons.tools.MFile;
 import de.mhus.kt2l.config.Configuration;
-import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.aaa.SecurityContext;

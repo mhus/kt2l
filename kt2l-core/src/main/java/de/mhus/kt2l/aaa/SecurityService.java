@@ -20,7 +20,6 @@ package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
-import de.mhus.kt2l.config.AaaConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;

@@ -16,10 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.config;
+package de.mhus.kt2l.aaa;
 
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNodeList;
+import de.mhus.kt2l.config.AbstractSingleConfig;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ public class UsersConfiguration extends AbstractSingleConfig {
         return users;
     }
 
-    public static record User(String name, String password, Collection<String> roles) {
+
+    public record User (String name, String password, List<String> roles) {
     }
 }

@@ -20,7 +20,7 @@ package de.mhus.kt2l.core;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.WithRole;
-import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

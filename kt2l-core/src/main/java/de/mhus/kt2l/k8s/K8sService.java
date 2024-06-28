@@ -19,7 +19,7 @@
 package de.mhus.kt2l.k8s;
 
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.aaa.AaaConfiguration;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.aaa.SecurityService;

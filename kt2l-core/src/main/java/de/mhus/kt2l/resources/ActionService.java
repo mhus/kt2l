@@ -19,7 +19,7 @@
 package de.mhus.kt2l.resources;
 
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.aaa.AaaConfiguration;
 import de.mhus.kt2l.aaa.SecurityService;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import org.springframework.beans.factory.annotation.Autowired;

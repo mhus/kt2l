@@ -31,7 +31,7 @@ import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
 import de.mhus.commons.yaml.YMap;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.aaa.AaaConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;

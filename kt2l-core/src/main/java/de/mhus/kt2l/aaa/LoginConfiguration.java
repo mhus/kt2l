@@ -16,9 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.config;
+package de.mhus.kt2l.aaa;
 
 import de.mhus.commons.tools.MString;
+import de.mhus.kt2l.config.AbstractSingleConfig;
+import de.mhus.kt2l.config.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,12 +42,13 @@ public class LoginConfiguration extends AbstractSingleConfig {
     @PostConstruct
     public void init() {
         super.init();
-        config().getString("protectedConfigurations").ifPresent(protectedConfigurations -> {
-            for (String protectedConfiguration : protectedConfigurations.split(",")) {
-                if (MString.isSetTrim(protectedConfiguration))
-                    configuration.addProtectedConfiguration(protectedConfiguration.trim());
-            }
-        });
+// is done by configuration objects intselves now
+//        config().getString("protectedConfigurations").ifPresent(protectedConfigurations -> {
+//            for (String protectedConfiguration : protectedConfigurations.split(",")) {
+//                if (MString.isSetTrim(protectedConfiguration))
+//                    configuration.addProtectedConfiguration(protectedConfiguration.trim());
+//            }
+//        });
     }
 
     public boolean isAutoLogin() {

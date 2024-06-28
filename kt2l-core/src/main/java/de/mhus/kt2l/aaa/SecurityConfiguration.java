@@ -19,8 +19,6 @@
 package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
-import de.mhus.kt2l.config.LoginConfiguration;
-import de.mhus.kt2l.config.UsersConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -58,8 +56,6 @@ public class SecurityConfiguration
 
     @Autowired
     private LoginConfiguration loginConfig;
-    @Autowired
-    private UsersConfiguration usersConfig;
 //    @Autowired
     private OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
 
@@ -108,57 +104,4 @@ public class SecurityConfiguration
         super.configure(web);
     }
 
-    @Bean
-    public UserDetailsManager userDetailsService() {
-        final var userDetails = new ArrayList<UserDetails>();
-        usersConfig.getUsers().forEach(u -> {
-            LOGGER.info("Add user {} with roles {}", u.name(), u.roles());
-            var password = u.password();
-            if (loginConfig.isAutoLogin() && u.name().equals(loginConfig.getAutoLoginUser())) {
-                var p = loginConfig.getLocalAutoLoginPassword();
-                password = passwordEncoder().encode(p);
-                if (SecurityUtils.isUnsecure())
-                    LOGGER.info("Set autologin password for user {} to {}", u.name(), p);
-            } else
-            if (password == null || "{generate}".equals(password)) {
-                var p = UUID.randomUUID().toString();
-                password = passwordEncoder().encode(p);
-                if (SecurityUtils.isUnsecure())
-                    LOGGER.info("Set login password for user {} to {}", u.name(), p);
-            } else
-            if (password.startsWith("{env}")) {
-//                password = passwordEncoder().encode(System.getenv(password.substring(5)));
-                final var envValue = System.getenv(password.substring(5)).trim();
-                if (envValue == null || envValue.length() == 0)
-                    throw new IllegalArgumentException("Environment variable not found: " + password.substring(5));
-                if (envValue.startsWith("{"))
-                    password = envValue;
-                else
-                    password = "{noop}" + envValue;
-            }
-            userDetails.add(User.withUsername(u.name())
-                    .password(password)
-                    .roles(u.roles().toArray(new String[0]))
-                    .build());
-        });
-        return new InMemoryUserDetailsManager(userDetails);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        Map encoders = new HashMap();
-        encoders.put("bcrypt", new BCryptPasswordEncoder());
-        encoders.put("noop", NoOpPasswordEncoder.getInstance());
-        encoders.put("pbkdf2", Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_5());
-        encoders.put("pbkdf2@SpringSecurity_v5_8", Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8());
-        encoders.put("scrypt", SCryptPasswordEncoder.defaultsForSpringSecurity_v4_1());
-        encoders.put("scrypt@SpringSecurity_v5_8", SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8());
-        encoders.put("argon2", Argon2PasswordEncoder.defaultsForSpringSecurity_v5_2());
-        encoders.put("argon2@SpringSecurity_v5_8", Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8());
-        encoders.put("sha256", new StandardPasswordEncoder());
-
-        PasswordEncoder passwordEncoder =
-                new DelegatingPasswordEncoder("sha256",encoders);
-        return passwordEncoder;
-    }
 }

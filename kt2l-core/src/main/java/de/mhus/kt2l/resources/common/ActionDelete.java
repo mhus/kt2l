@@ -24,7 +24,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.config.UsersConfiguration.ROLE;
+import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.resources.ExecutionContext;
