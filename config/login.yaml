@@ -16,6 +16,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-autoLogin: true
+#autoLogin: true
+autoLogin: false
 autoLoginUser: autologin
 protectedConfigurations:
+localAuthEnabled: true
+authProviders:
+  - google

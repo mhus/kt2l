@@ -21,6 +21,7 @@ public class LoginOAuth2UserService extends DefaultOAuth2UserService {
 
     @Autowired
     private AaaUserRepository userRepository;
+    private AuthProvider authProvider;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) throws OAuth2AuthenticationException {
@@ -38,7 +39,10 @@ public class LoginOAuth2UserService extends DefaultOAuth2UserService {
 
     private OAuth2User processOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
 
-        OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(oAuth2UserRequest.getClientRegistration().getRegistrationId(), oAuth2User.getAttributes());
+        OAuth2UserInfo oAuth2UserInfo = authProvider.getProvider(oAuth2UserRequest.getClientRegistration().getRegistrationId()).orElseThrow(
+                () -> new OAuth2AuthenticationProcessingException("Sorry! Login with " + oAuth2UserRequest.getClientRegistration().getRegistrationId() + " is not supported yet.")
+        ).createOAuth2UserInfo(oAuth2User.getAttributes());
+
         if(StringUtils.isEmpty(oAuth2UserInfo.getEmail())) {
             throw new OAuth2AuthenticationProcessingException("Email not found from OAuth2 provider");
         }

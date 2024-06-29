@@ -19,12 +19,15 @@
 package de.mhus.kt2l.aaa;
 
 import de.mhus.commons.tools.MString;
+import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.AbstractSingleConfig;
 import de.mhus.kt2l.config.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -67,5 +70,17 @@ public class LoginConfiguration extends AbstractSingleConfig {
         if (autoLoginPassword == null)
             autoLoginPassword = UUID.randomUUID().toString();
         return autoLoginPassword;
+    }
+
+    public boolean isLocalAutoEnabled() {
+        return config().getBoolean("localAutoEnabled", true);
+    }
+
+    public List<String> getAuthProviders() {
+        return MTree.getArrayValueStringList(config().getArray("authProviders").orElse(MTree.EMPTY_LIST));
+    }
+
+    public String getRedirectUrl() {
+        return config().getString("redirectUrl", null);
     }
 }

@@ -30,6 +30,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import de.mhus.commons.net.MNet;
+import de.mhus.kt2l.aaa.oauth2.AuthProvider;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -45,28 +47,34 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
     private LoginForm login = new LoginForm();
-    private static final String OAUTH_URL = "/oauth2/authorization/google";
 
     @Autowired
     private LoginConfiguration loginConfig;
+    @Autowired
+    private AuthProvider authProvider;
 
-    public LoginView() {
+    @PostConstruct
+    public void init() {
         addClassName("login-view");
         setSizeFull();
 
         setJustifyContentMode(JustifyContentMode.CENTER);
         setAlignItems(Alignment.CENTER);
 
-        login.setForgotPasswordButtonVisible(false);
-        login.setAction("login");
+        add(new H1("KT2L"));
+        if (loginConfig.isLocalAutoEnabled()) {
+            login.setForgotPasswordButtonVisible(false);
+            login.setAction("login");
+            add(login);
+        }
 
-        add(new H1("KT2L"), login);
-
-        Anchor loginLink = new Anchor(OAUTH_URL, "Login with Google");
-        // Instruct Vaadin Router to ignore doing SPA handling
-        loginLink.setRouterIgnore(true);
-        add(loginLink);
-
+        for (var provider : authProvider.getAuthProviders()) {
+            Anchor loginLink = new Anchor(provider.getLink(), "Login with " + provider.getTitle());
+            loginLink.addClassName("login-link");
+            // Instruct Vaadin Router to ignore doing SPA handling
+            loginLink.setRouterIgnore(true);
+            add(loginLink);
+        }
     }
 
     public static HttpServletRequest getCurrentHttpRequest(){

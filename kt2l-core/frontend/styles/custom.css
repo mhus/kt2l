@@ -24,6 +24,16 @@ html, body {
     display: none;
 }
 
+
+a.login-link {
+    width: 360px;
+    height: 36px;
+    border: 1px solid #f2f2f2;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+}
+
 .desktabview .tabitem:hover {
     background-color: #f2f2f2;
 }
