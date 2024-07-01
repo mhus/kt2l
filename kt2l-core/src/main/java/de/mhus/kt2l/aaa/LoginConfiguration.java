@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.aaa;
 
-import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.AbstractSingleConfig;
 import de.mhus.kt2l.config.Configuration;
@@ -27,7 +26,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -72,12 +70,16 @@ public class LoginConfiguration extends AbstractSingleConfig {
         return autoLoginPassword;
     }
 
-    public boolean isLocalAutoEnabled() {
-        return config().getBoolean("localAutoEnabled", true);
+    public boolean isLocalAuthEnabled() {
+        return config().getBoolean("localAuthEnabled", true);
     }
 
-    public List<String> getAuthProviders() {
-        return MTree.getArrayValueStringList(config().getArray("authProviders").orElse(MTree.EMPTY_LIST));
+    public boolean isOAuth2Enabled() {
+        return config().getBoolean("oauth2Enabled", false);
+    }
+
+    public List<String> getOAuth2Providers() {
+        return MTree.getArrayValueStringList(config().getArray("oauth2Providers").orElse(MTree.EMPTY_LIST));
     }
 
     public String getRedirectUrl() {

@@ -32,11 +32,11 @@ users:
     - "WRITE"
     - "SETTINGS"
   - name: "viewer"
-    password: "{noop}viewer"
+    password: "{generate}"
     roles:
       - "READ"
   - name: "dummy"
-    password: "{noop}dummy"
+    password: "{generate}"
     roles:
   - name: "autologin"
     password: "{generate}"

@@ -14,7 +14,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
+// https://www.baeldung.com/spring-security-5-oauth2-login
 // https://github.com/callicoder/spring-boot-react-oauth2-social-login-demo/blob/master/spring-social/src/main/java/com/example/springsocial/security/oauth2/CustomOAuth2UserService.java
+// !!! https://vaadin.com/blog/oauth-2-and-google-sign-in-for-a-vaadin-application
 
 @Component
 public class LoginOAuth2UserService extends DefaultOAuth2UserService {

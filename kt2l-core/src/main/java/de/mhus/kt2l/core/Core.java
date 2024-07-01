@@ -83,12 +83,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.olli.FileDownloadWrapper;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +103,7 @@ import java.util.function.Supplier;
 
 import static de.mhus.commons.tools.MCollection.detached;
 import static de.mhus.commons.tools.MCollection.notNull;
+import static de.mhus.commons.tools.MLang.tryThis;
 import static org.apache.logging.log4j.util.Strings.isBlank;
 
 @PermitAll
@@ -369,8 +373,14 @@ public class Core extends AppLayout {
 
     private void createHeader() {
 
+        var authUser = tryThis(() -> authContext.getAuthenticatedUser(UserDetails.class))
+                .onException(
+                    ClassCastException.class,
+                    e -> Optional.of(new UserDetailsWrapper(authContext.getAuthenticatedUser(DefaultOidcUser.class))) )
+                .get();
+
         final var header =
-                authContext.getAuthenticatedUser(UserDetails.class).map(userDetails -> {
+                authUser.map(userDetails -> {
 
                     if (userDetails == null) return null;
 
@@ -446,6 +456,57 @@ public class Core extends AppLayout {
 
         addToNavbar(header);
 
+    }
+
+    private static class UserDetailsWrapper implements UserDetails {
+
+        @Getter
+        private final DefaultOidcUser user;
+/*
+this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Authorities: [[OIDC_USER, SCOPE_https://www.googleapis.com/auth/userinfo.email, SCOPE_https://www.googleapis.com/auth/userinfo.profile, SCOPE_openid]], User Attributes: [{at_hash=dwsxDC1GSQ2yWQxEy3EOmQ, sub=114434824555433513888, email_verified=true, iss=https://accounts.google.com, given_name=Mike, nonce=TZA-A3dRDcpdiGYaPt0noCu9CGv-ifOqj8ioOycdsV0, picture=https://lh3.googleusercontent.com/a/ACg8ocJJcjb6TPxBkOBJikqFpm2vOlWP_k66m5DLC8R3cppTgDfZRknp=s96-c, aud=[958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com], azp=958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com, name=Mike Hummel (Jesus), exp=2024-07-01T22:03:54Z, family_name=Hummel, iat=2024-07-01T21:03:54Z, email=msgformike@gmail.com}]"
+ idToken = {OidcIdToken@12964}
+ userInfo = null
+ authorities = {Collections$UnmodifiableSet@12965}  size = 4
+  0 = {OidcUserAuthority@12969} "OIDC_USER"
+  1 = {SimpleGrantedAuthority@12970} "SCOPE_https://www.googleapis.com/auth/userinfo.email"
+  2 = {SimpleGrantedAuthority@12971} "SCOPE_https://www.googleapis.com/auth/userinfo.profile"
+  3 = {SimpleGrantedAuthority@12972} "SCOPE_openid"
+ attributes = {Collections$UnmodifiableMap@12966}  size = 14
+  "at_hash" -> "dwsxDC1GSQ2yWQxEy3EOmQ"
+  "sub" -> "114434824555433513888"
+  "email_verified" -> {Boolean@12996} true
+  "iss" -> {URL@12998} "https://accounts.google.com"
+  "given_name" -> "Mike"
+  "nonce" -> "TZA-A3dRDcpdiGYaPt0noCu9CGv-ifOqj8ioOycdsV0"
+  "picture" -> "https://lh3.googleusercontent.com/a/ACg8ocJJcjb6TPxBkOBJikqFpm2vOlWP_k66m5DLC8R3cppTgDfZRknp=s96-c"
+  "aud" -> {ArrayList@13006}  size = 1
+  "azp" -> "958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com"
+  "name" -> "Mike Hummel (Jesus)"
+  "exp" -> {Instant@13012} "2024-07-01T22:03:54Z"
+  "family_name" -> "Hummel"
+  "iat" -> {Instant@13016} "2024-07-01T21:03:54Z"
+  "email" -> "msgformike@gmail.com"
+ nameAttributeKey = "sub"
+ */
+        public <U> UserDetailsWrapper(Optional<DefaultOidcUser> user) {
+            LOGGER.debug("Create User Wrapper {}", user.get() );
+            this.user = user.get();
+        }
+
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+            return user.getAuthorities();
+        }
+
+        @Override
+        public String getPassword() {
+            return "{none}";
+        }
+
+        @Override
+        public String getUsername() {
+            return user.getName();
+        }
     }
 
     protected void updateHelpMenu(boolean setDefaultDocu) {

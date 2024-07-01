@@ -2,12 +2,14 @@ package de.mhus.kt2l.aaa;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 
 @Builder
+@ToString
 public class AaaUser {
 
     @Getter

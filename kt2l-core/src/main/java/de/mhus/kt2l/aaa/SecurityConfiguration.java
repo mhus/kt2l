@@ -21,32 +21,14 @@ package de.mhus.kt2l.aaa;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-import org.springframework.security.crypto.password.StandardPasswordEncoder;
-import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 @EnableWebSecurity
 @Configuration
@@ -56,10 +38,8 @@ public class SecurityConfiguration
 
     @Autowired
     private LoginConfiguration loginConfig;
-//    @Autowired
+    @Autowired
     private OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
-
-    private boolean oauth2Enabled = false;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -80,19 +60,22 @@ public class SecurityConfiguration
         http.authorizeHttpRequests(auth -> auth.requestMatchers(new AntPathRequestMatcher("/public/**"))
                 .permitAll());
 
+        if (loginConfig.isOAuth2Enabled()) {
+            LOGGER.info("OAuth2 enabled");
+            http.oauth2Login(oauth2Login ->
+                    oauth2Login.loginPage("/login")
+                            .permitAll()
+                            .defaultSuccessUrl("/", true)
+                            .failureUrl("/public/sso-failed.html")
+                            .userInfoEndpoint(userInfoEndpoint ->
+                                    userInfoEndpoint.userService(customOAuth2UserService)
+                            )
+            );
+        }
+
         http.headers(httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer.frameOptions(frameOptionsConfig -> frameOptionsConfig.disable()));
         super.configure(http);
 
-        if (oauth2Enabled) {
-            http.oauth2Login(oauth2Login ->
-                oauth2Login.loginPage("/login")
-                    .permitAll()
-                    .defaultSuccessUrl("/", true)
-                    .userInfoEndpoint(userInfoEndpoint ->
-                            userInfoEndpoint.userService(customOAuth2UserService)
-                    )
-            );
-        }
         // This is important to register your login view to the
         // navigation access control mechanism:
         setLoginView(http, LoginView.class);

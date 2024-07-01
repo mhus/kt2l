@@ -62,14 +62,14 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         setAlignItems(Alignment.CENTER);
 
         add(new H1("KT2L"));
-        if (loginConfig.isLocalAutoEnabled()) {
+        if (loginConfig.isLocalAuthEnabled()) {
             login.setForgotPasswordButtonVisible(false);
             login.setAction("login");
             add(login);
         }
 
         for (var provider : authProvider.getAuthProviders()) {
-            Anchor loginLink = new Anchor(provider.getLink(), "Login with " + provider.getTitle());
+            Anchor loginLink = new Anchor(authProvider.getProividerLoginUrl(provider), "Login with " + provider.getTitle());
             loginLink.addClassName("login-link");
             // Instruct Vaadin Router to ignore doing SPA handling
             loginLink.setRouterIgnore(true);

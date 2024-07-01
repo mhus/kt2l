@@ -4,103 +4,91 @@ import com.vaadin.flow.server.VaadinServletRequest;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.aaa.LoginConfiguration;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
 @Component
 public class AuthProvider {
 
+    public static final String LOCAL_AUTH_PROVIDER_ID = "local";
     @Autowired
     private LoginConfiguration loginConfiguration;
+    @Autowired
+    private List<OAuth2AuthProvider> providerList;
     private String redirectUrl;
+    private Map<String,OAuth2AuthProvider> providers;
 
-    public Optional<Provider> getProvider(String registrationId) {
-        return tryThis(() -> new Provider(SUPPORTED_AUTH_PROVIDERS.valueOf(registrationId))).toOptional();
+    @PostConstruct
+    public void init() {
+        providers = providerList.stream()
+                .collect(Collectors.toMap(OAuth2AuthProvider::getRegistrationId, p -> p));
+        providers.put(LOCAL_AUTH_PROVIDER_ID, new LocalAuthProvider());
     }
 
-    private enum SUPPORTED_AUTH_PROVIDERS {
-        local("Local", null, null, null),
-        facebook("Facebook","${baseUrl}/oauth2/authorize/facebook?redirect_uri=${redirectUrl}", "/images/facebook-logo.svg", FacebookOAuth2UserInfo.class),
-        google("Google", "${baseUrl}/oauth2/authorize/google?redirect_uri=${redirectUrl}", "/images/google-logo.svg", GoogleOAuth2UserInfo.class),
-        github("Github", "${baseUrl}/oauth2/authorize/github?redirect_uri=${redirectUrl}", "/images/github-logo.svg", GithubOAuth2UserInfo.class);
-
-        @Getter
-        private final String title;
-        @Getter
-        private final String authUrl;
-        @Getter
-        private final String iconPath;
-        @Getter
-        private final Class<? extends OAuth2UserInfo> userInfoClass;
-
-        private SUPPORTED_AUTH_PROVIDERS(String title, String authUrl, String iconPath, Class<? extends OAuth2UserInfo> userInfoClass ) {
-            this.title = title;
-            this.authUrl = authUrl;
-            this.iconPath = iconPath;
-            this.userInfoClass = userInfoClass;
-        }
+    public Optional<OAuth2AuthProvider> getProvider(String providerId) {
+        return Optional.ofNullable(providers.get(providerId));
     }
 
-    public List<Provider> getAuthProviders() {
-        return loginConfiguration.getAuthProviders()
+    public List<OAuth2AuthProvider> getAuthProviders() {
+        return loginConfiguration.getOAuth2Providers()
                 .stream()
-                .filter(p -> tryThis(() -> SUPPORTED_AUTH_PROVIDERS.valueOf(p)).isSuccess())
-                .filter(p -> SUPPORTED_AUTH_PROVIDERS.valueOf(p) != SUPPORTED_AUTH_PROVIDERS.local)
-                .map(p -> new Provider(SUPPORTED_AUTH_PROVIDERS.valueOf(p)))
+                .filter(p -> providers.containsKey(p))
+                .filter(p -> !p.equals(LOCAL_AUTH_PROVIDER_ID))
+                .map(p -> providers.get(p))
                 .toList();
     }
 
-    public class Provider {
-        private final SUPPORTED_AUTH_PROVIDERS provider;
-
-        public Provider(SUPPORTED_AUTH_PROVIDERS provider) {
-            this.provider = provider;
-        }
-
-        public String getTitle() {
-            return provider.getTitle();
-        }
-
-        public String getLink() {
-            return MString.substitute(
-                    provider.getAuthUrl(),
-                    "baseUrl", "",
-                    "redirectUrl", getRedirectUrl());
-        }
-
-        public OAuth2UserInfo createOAuth2UserInfo(Map<String, Object> attributes) {
-            try {
-                return provider.userInfoClass.getConstructor(Map.class).newInstance(attributes);
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    public String getProividerLoginUrl(OAuth2AuthProvider provider) {
+        return MString.substitute(
+                provider.getLoginUrlTemplate(),
+                "baseUrl", "",
+                "redirectUrl", getRedirectUrl());
     }
 
     public String getRedirectUrl() {
         if (redirectUrl == null) {
-            redirectUrl = loginConfiguration.getRedirectUrl();
-            if (redirectUrl == null) {
+            redirectUrl = tryThis(() -> {
                 VaadinServletRequest request = VaadinServletRequest.getCurrent();
-                if (request != null) {
-                    var httpRequest = request.getHttpServletRequest();
-                    if (httpRequest != null) {
-                        redirectUrl = httpRequest.getHeader("origin");
-                    }
-                }
-            }
+                return request.getHttpServletRequest().getHeader("origin");
+                // return request.getRequestURL().toString();
+            }).orElse(null);
         }
         return redirectUrl;
     }
 
+    private class LocalAuthProvider implements OAuth2AuthProvider {
+
+        @Override
+        public String getRegistrationId() {
+            return AuthProvider.LOCAL_AUTH_PROVIDER_ID;
+        }
+
+        @Override
+        public String getTitle() {
+            return "Local";
+        }
+
+        @Override
+        public String getLoginUrlTemplate() {
+            return null;
+        }
+
+        @Override
+        public OAuth2UserInfo createOAuth2UserInfo(Map<String, Object> attributes) {
+            return null;
+        }
+
+        @Override
+        public String getImageResourcePath() {
+            return null;
+        }
+
+    }
 }

@@ -99,14 +99,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
         add(new Text(" "));
         clusterBox = new ComboBox<>("Select a cluster");
-        clusterList = k8s.getAvailableContexts().stream()
-                .map(name -> {
-                    final var cluster = clusterService.getCluster(name);
-                    return new ClusterItem(name, cluster.getTitle(), cluster);
-                })
-                .filter(cluster -> cluster.cluster().isEnabled())
-                .toList();
-
+        clusterList = clusterService.getAvailableClusters();
         clusterBox.setItems(clusterList);
         clusterBox.setItemLabelGenerator(ClusterItem::title);
         clusterBox.setWidthFull();
