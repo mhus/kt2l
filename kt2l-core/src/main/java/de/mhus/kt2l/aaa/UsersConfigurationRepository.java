@@ -1,5 +1,6 @@
 package de.mhus.kt2l.aaa;
 
+import de.mhus.commons.errors.AccessDeniedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,21 +23,19 @@ public class UsersConfigurationRepository extends InMemoryUserRepository impleme
     @PostConstruct
     public void init() {
         usersConfig.getUsers().forEach(u -> {
-            LOGGER.info("Add user {} with roles {}", u.name(), u.roles());
+            LOGGER.info("Add user {} with roles {}", u.id(), u.roles());
             var password = u.password();
-            if (loginConfig.isAutoLogin() && u.name().equals(loginConfig.getAutoLoginUser())) {
+            if (loginConfig.isAutoLogin() && u.id().equals(loginConfig.getAutoLoginUser())) {
                 var p = loginConfig.getLocalAutoLoginPassword();
                 password = passwordEncoder.encode(p);
                 if (SecurityUtils.isUnsecure())
-                    LOGGER.info("Set autologin password for user {} to {}", u.name(), p);
-            } else
-            if (password == null || "{generate}".equals(password)) {
+                    LOGGER.info("Set autologin password for user {} to {}", u.id(), p);
+            } else if (password == null || "{generate}".equals(password)) {
                 var p = UUID.randomUUID().toString();
                 password = passwordEncoder.encode(p);
                 if (SecurityUtils.isUnsecure())
-                    LOGGER.info("Set login password for user {} to {}", u.name(), p);
-            } else
-            if (password.startsWith("{env}")) {
+                    LOGGER.info("Set login password for user {} to {}", u.id(), p);
+            } else if (password.startsWith("{env}")) {
 //                password = passwordEncoder().encode(System.getenv(password.substring(5)));
                 final var envValue = System.getenv(password.substring(5)).trim();
                 if (envValue == null || envValue.length() == 0)
@@ -46,11 +45,34 @@ public class UsersConfigurationRepository extends InMemoryUserRepository impleme
                 else
                     password = "{noop}" + envValue;
             }
-            createUser(AaaUser.builder().username(u.name())
+            super.createUser(AaaUser.builder()
+                    .userId(u.id())
+                    .displayName(u.name())
                     .encodedPassword(password)
                     .roles(u.roles())
                     .build());
         });
+    }
+
+    @Override
+    public AaaUser createUser(AaaUser user) {
+        if (!usersConfig.allowCreateUsers())
+            throw new AccessDeniedException("Create users not allowed");
+        return super.createUser(user);
+    }
+
+    @Override
+    public AaaUser updateUser(AaaUser user) {
+        if (!usersConfig.allowUpdateUsers())
+            throw new AccessDeniedException("Update users not allowed");
+        return super.updateUser(user);
+    }
+
+    @Override
+    public void deleteUser(String userId) {
+        if (!usersConfig.allowDeleteUsers())
+            throw new AccessDeniedException("Delete users not allowed");
+        super.deleteUser(userId);
     }
 
 }

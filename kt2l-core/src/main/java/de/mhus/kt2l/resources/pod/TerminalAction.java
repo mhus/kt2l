@@ -20,11 +20,11 @@ package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.commons.tree.MProperties;
+import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
+import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.config.CmdConfiguration;
 import de.mhus.kt2l.config.ShellConfiguration;
-import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
-import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;

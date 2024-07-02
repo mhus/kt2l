@@ -16,9 +16,15 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-autoLogin: false
+autoLogin: true
 autoLoginUser: autologin
 localAuthEnabled: true
-oauth2Enabled: true
-oauth2Providers:
-  - google
+oauth2Enabled: false
+#oauth2Providers:
+#  - id: google
+#    roleMapping:
+#        role: [READ]
+#oauth2AcceptEmails:
+#  - pattern: '.*@gmail.com'
+#    # userConfigPreset: google
+#    defaultRoles: [READ]

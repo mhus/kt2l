@@ -48,3 +48,19 @@ For more options see the spring boot configuration
 
 By default, generated passwords will be reported in the log file. If you want to suppress this, you can set the 
 environment variable `KT2L_UNSECURE` to `false`.
+
+## User Repository
+
+By default, the users are stored in memory. Initially the users are loaded from the `config/users.yaml` file. This
+configuration is used to configure this repository. If another repository is used this configuration is not valid.
+
+Configure access to the user repository with the following parameters:
+
+```yaml
+allowCreateUsers: false
+allowUpdateUsers: false
+allowDeleteUsers: false
+```
+
+By default, the access is restricted then it's not possible to use SSO logins. If you want to use SSO logins you
+have to set the access to true.

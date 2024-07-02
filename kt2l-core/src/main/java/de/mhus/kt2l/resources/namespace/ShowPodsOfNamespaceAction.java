@@ -19,9 +19,9 @@
 package de.mhus.kt2l.resources.namespace;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;

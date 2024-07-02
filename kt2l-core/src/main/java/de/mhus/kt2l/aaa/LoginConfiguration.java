@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.aaa;
 
+import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.AbstractSingleConfig;
 import de.mhus.kt2l.config.Configuration;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -78,11 +80,62 @@ public class LoginConfiguration extends AbstractSingleConfig {
         return config().getBoolean("oauth2Enabled", false);
     }
 
-    public List<String> getOAuth2Providers() {
-        return MTree.getArrayValueStringList(config().getArray("oauth2Providers").orElse(MTree.EMPTY_LIST));
+    public List<OAuthProvider> getOAuth2Providers() {
+        return config().getArray("oauth2Providers").orElse(MTree.EMPTY_LIST).stream().map(e -> new OAuthProvider(e)).toList();
+    }
+
+    public Optional<OAuthProvider> getOAuth2Provider(String id) {
+        return config().getArray("oauth2Providers").orElse(MTree.EMPTY_LIST).stream().filter(e -> e.getString("id").orElse("").equals(id)).findFirst().map(e -> new OAuthProvider(e));
+    }
+
+    public List<OAuthAccepted> getOAuth2AcceptEmails() {
+        return config().getArray("oauth2AcceptEmails").orElse(MTree.EMPTY_LIST).stream().map(e -> new OAuthAccepted(e)).toList();
     }
 
     public String getRedirectUrl() {
         return config().getString("redirectUrl", null);
+    }
+
+    public static class OAuthAccepted {
+
+        private final ITreeNode item;
+
+        private OAuthAccepted(ITreeNode item) {
+            this.item = item;
+        }
+
+        public String getPattern() {
+            return item.getString("pattern", null);
+        }
+
+        public boolean matches(String mail) {
+            return mail.matches(getPattern());
+        }
+
+
+        public List<String> getDefaultRoles() {
+            return MTree.getArrayValueStringList(item.getArray("defaultRoles").orElse(MTree.EMPTY_LIST));
+        }
+
+        public String getUserConfigPreset() {
+            return item.getString("userConfigPreset", null);
+        }
+    }
+
+    public static class OAuthProvider {
+
+        private final ITreeNode item;
+
+        private OAuthProvider(ITreeNode item) {
+            this.item = item;
+        }
+
+        public String getId() {
+            return item.getString("id", null);
+        }
+
+        public List<String> getRoleMapping(String role) {
+            return MTree.getArrayValueStringList(item.getObject("roleMapping").orElse(MTree.EMPTY_MAP).getArray(role).orElse(MTree.EMPTY_LIST));
+        }
     }
 }

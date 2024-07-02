@@ -62,7 +62,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         setAlignItems(Alignment.CENTER);
 
         add(new H1("KT2L"));
-        if (loginConfig.isLocalAuthEnabled()) {
+        if (loginConfig.isLocalAuthEnabled() && !"true".equals(SecurityUtils.getHttpRequest().getAttribute("autologin")) ) {
             login.setForgotPasswordButtonVisible(false);
             login.setAction("login");
             add(login);

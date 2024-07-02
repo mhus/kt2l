@@ -19,10 +19,10 @@
 package de.mhus.kt2l.ai;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
-import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.aaa.WithRole;
+import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;

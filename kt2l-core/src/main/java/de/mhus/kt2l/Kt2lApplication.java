@@ -34,7 +34,7 @@ import java.util.concurrent.ScheduledExecutorService;
 @Slf4j
 public class Kt2lApplication {
 
-	public static final String UI_USERNAME = "username";
+	public static final String UI_USER = "user";
 	private static String[] args;
 
 	public static void main(String[] args) {

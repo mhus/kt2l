@@ -111,7 +111,7 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
         i.append("Up Time        : " + upTimeService.getUpTimeFormatted() + "\n");
         i.append("\n");
         i.append("Active Sessions: " + CoreCounterListener.getCounter() + "\n");
-        i.append("Current User   : " + tryThis(() -> SecurityContext.lookupUserName()).orElse("?") + "\n");
+        i.append("Current User   : " + tryThis(() -> SecurityContext.lookupUserId()).orElse("?") + "\n");
         i.append("\n");
         i.append("Memory         : " + MSystem.freeMemoryAsString() + " / " + MSystem.maxMemoryAsString() + "\n");
         i.append("Threads        : " + Thread.getAllStackTraces().size() + "\n");

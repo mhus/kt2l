@@ -27,13 +27,10 @@ import de.mhus.commons.tools.MSystem;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.ResourceId;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.realm.GenericPrincipal;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import java.security.Principal;
 import java.util.Set;
 
 @Component
@@ -43,18 +40,28 @@ public class SecurityUtils {
     private static final String LOGOUT_SUCCESS_URL = "/";
     private static Boolean unsecure = null;
 
-    static Principal getPrincipal() {
+    public static AaaUser getUser() {
         VaadinServletRequest request = VaadinServletRequest.getCurrent();
         if (request == null) {
             LOGGER.warn("Request not found");
             return null;
         }
-        var principal = request.getUserPrincipal();
-        if (principal == null) {
-            LOGGER.warn("Principal not found in request", new Throwable());
-        }
-        return principal;
+        return (AaaUser)request.getSession().getAttribute("user"); //XXX
     }
+
+//XXX
+//    static Principal getPrincipal() {
+//        VaadinServletRequest request = VaadinServletRequest.getCurrent();
+//        if (request == null) {
+//            LOGGER.warn("Request not found");
+//            return null;
+//        }
+//        var principal = request.getUserPrincipal();
+//        if (principal == null) {
+//            LOGGER.warn("Principal not found in request", new Throwable());
+//        }
+//        return principal;
+//    }
 
     public static String getResourceId(Object resource) {
         if (resource == null) return null;
@@ -70,7 +77,7 @@ public class SecurityUtils {
         return unsecure;
     }
 
-    boolean hasPrincipalRoles(Object resource, Set<String> roles) {
+    boolean hasUserRoles(Object resource, Set<String> roles) {
         if (resource == null || roles == null) return false;
 
         final var withRole = resource.getClass().getAnnotation(WithRole.class);
@@ -85,90 +92,40 @@ public class SecurityUtils {
      * @param roles
      * @return
      */
-    static boolean hasPrincipalRoles(Set<String> roles) {
-        final var principal = SecurityContext.lookupPrincipal();
-        if (principal == null) {
-            LOGGER.warn("Principal not found in request");
+    static boolean hasUserRoles(Set<String> roles) {
+        final var user = SecurityContext.lookupUser();
+        if (user == null) {
+            LOGGER.warn("User not found in request");
             return false;
         }
-        return hasPrincipalRoles(roles, principal);
+        return hasUserRoles(roles, user);
     }
 
-    static boolean hasPrincipalRoles(Set<String> roles, Principal principal) {
+    static boolean hasUserRoles(Set<String> roles, AaaUser user) {
 
-        if (principal == null) {
-            LOGGER.warn("Principal not found", new Throwable());
+        if (user == null) {
+            LOGGER.warn("User not found", new Throwable());
             return false;
         }
 
-        if (principal instanceof GenericPrincipal user) {
-            for (String resourceRole : roles) {
-                if (!user.hasRole(resourceRole)) return false;
-            }
-            return true;
+        for (String resourceRole : roles) {
+            if (!user.getRoles().contains(resourceRole)) return false;
         }
-
-        if (principal instanceof Authentication user) {
-            final var authorities = user.getAuthorities();
-            if (authorities == null) {
-                LOGGER.warn("Authorities of principal {} not set", principal);
-                return false;
-            }
-            for (String resourceRole : roles) {
-                boolean found = false;
-                for (GrantedAuthority authoritity : authorities)
-                    if (toAuthorityRoleName(resourceRole).equals(authoritity.getAuthority())) {
-                        found = true;
-                        break;
-                    }
-                if (!found) return false;
-            }
-            return true;
-        }
-
-        LOGGER.warn("Unknown principal type {}", principal.getClass());
-        return false;
-
+        return true;
     }
 
     // do not use
-    static boolean hasPrincipalResourceRoles(Object resource) {
-        final var principal = SecurityContext.lookupPrincipal();
-        if (principal == null) {
-            LOGGER.warn("Principal not found in request");
+    static boolean hasUserResourceRoles(Object resource) {
+        final var user = SecurityContext.lookupUser();
+        if (user == null) {
+            LOGGER.warn("User not found in request");
             return false;
         }
 
         final var withRole = resource.getClass().getAnnotation(WithRole.class);
         if (withRole == null) return false;
 
-        if (principal instanceof GenericPrincipal user) {
-            for (ROLE resourceRole : withRole.value()) {
-               if (!user.hasRole(resourceRole.name())) return false;
-            }
-            return true;
-        }
-
-        if (principal instanceof Authentication user) {
-            final var authorities = user.getAuthorities();
-            if (authorities == null) {
-                LOGGER.warn("Authorities of principal {} not set", principal);
-                return false;
-            }
-            for (ROLE resourceRole : withRole.value()) {
-                boolean found = false;
-                for (GrantedAuthority authoritity : authorities)
-                    if (toAuthorityRoleName(resourceRole.name()).equals(authoritity.getAuthority())) {
-                        found = true;
-                        break;
-                    }
-                if (!found) return false;
-            }
-            return true;
-        }
-
-        LOGGER.warn("Unknown principal type {}", principal.getClass());
-        return false;
+        return user.getRoles().contains(withRole.value());
 
     }
 
@@ -176,19 +133,21 @@ public class SecurityUtils {
         return "ROLE_" + name.toUpperCase().trim();
     }
 
+    public static HttpServletRequest getHttpRequest() {
+        VaadinServletRequest request = VaadinServletRequest.getCurrent();
+        if (request == null) return null;
+        return request.getHttpServletRequest();
+
+    }
+
     // do not use
-    static boolean hasPrincipalResourceRoles(Object resource, ROLE role) {
+    static boolean hasUserResourceRoles(Object resource, ROLE role) {
         if (resource == null) return false;
         final var withRole = resource.getClass().getAnnotation(WithRole.class);
         if (withRole != null) {
             return MCollection.contains(withRole.value(), role);
         }
         return false;
-    }
-
-    public static boolean isAuthenticated() {
-        VaadinServletRequest request = VaadinServletRequest.getCurrent();
-        return request != null && request.getUserPrincipal() != null;
     }
 
     public static boolean authenticate(String username, String password) {

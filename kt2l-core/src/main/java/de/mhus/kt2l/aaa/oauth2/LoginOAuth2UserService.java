@@ -70,7 +70,7 @@ public class LoginOAuth2UserService extends DefaultOAuth2UserService {
         AaaUser user = AaaUser.builder()
                 .provider(oAuth2UserRequest.getClientRegistration().getRegistrationId())
                 .providerId(oAuth2UserInfo.getId())
-                .username(oAuth2UserInfo.getName())
+                .userId(oAuth2UserInfo.getName())
                 .email(oAuth2UserInfo.getEmail())
                 .imageUrl(oAuth2UserInfo.getImageUrl())
                 .build();
@@ -81,7 +81,7 @@ public class LoginOAuth2UserService extends DefaultOAuth2UserService {
     private AaaUser updateExistingUser(AaaUser existingUser, OAuth2UserInfo oAuth2UserInfo) {
 
         AaaUser newUser = AaaUser.builder()
-                .username(oAuth2UserInfo.getName())
+                .userId(oAuth2UserInfo.getName())
                 .imageUrl(oAuth2UserInfo.getImageUrl())
                 .build();
         return userRepository.updateUser(newUser);

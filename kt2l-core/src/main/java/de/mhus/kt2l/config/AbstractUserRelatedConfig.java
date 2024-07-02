@@ -56,7 +56,7 @@ public abstract class AbstractUserRelatedConfig {
     }
 
     protected ITreeNode config() {
-        final var userName = SecurityContext.lookupUserName();
+        final var userName = SecurityContext.lookupUserId();
         synchronized (cache) {
             var config = cache.get(userName);
             if (config == null) {

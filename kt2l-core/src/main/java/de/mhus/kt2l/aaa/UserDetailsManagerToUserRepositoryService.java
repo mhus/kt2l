@@ -1,5 +1,6 @@
 package de.mhus.kt2l.aaa;
 
+import de.mhus.kt2l.aaa.oauth2.AuthProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,25 +16,30 @@ public class UserDetailsManagerToUserRepositoryService implements UserDetailsMan
 
     @Override
     public void createUser(UserDetails user) {
-        userRepository.createUser(toAaaUser(user));
+        userRepository.createUser(toAaaUser(user, true));
     }
 
-    private AaaUser toAaaUser(UserDetails user) {
-        return  AaaUser.builder()
-        .username(user.getUsername())
-        .encodedPassword(user.getPassword())
-        .roles(user.getAuthorities().stream().map(a -> a.getAuthority()).toList())
-        .build();
+    public static AaaUser toAaaUser(UserDetails user, boolean create) {
+        var builder =  AaaUser.builder();
+        builder.userId(user.getUsername());
+        if (create) {
+            builder.displayName(user.getUsername());
+        }
+        builder.provider(AuthProvider.LOCAL_AUTH_PROVIDER_ID);
+        builder.providerId(user.getUsername());
+        builder.encodedPassword(user.getPassword());
+        builder.roles(user.getAuthorities().stream().map(a -> a.getAuthority()).toList());
+        return builder.build();
     }
 
     @Override
     public void updateUser(UserDetails user) {
-        userRepository.updateUser(toAaaUser(user));
+        userRepository.updateUser(toAaaUser(user, false));
     }
 
     @Override
-    public void deleteUser(String username) {
-        userRepository.deleteUser(username);
+    public void deleteUser(String userId) {
+        userRepository.deleteUser(userId);
     }
 
     @Override
@@ -42,17 +48,17 @@ public class UserDetailsManagerToUserRepositoryService implements UserDetailsMan
     }
 
     @Override
-    public boolean userExists(String username) {
-        return userRepository.userExists(username);
+    public boolean userExists(String userId) {
+        return userRepository.userExists(userId);
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        var maybeUser = userRepository.getUserByUsername(username);
+    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+        var maybeUser = userRepository.getUserByUsername(userId);
         if (maybeUser.isEmpty())
-            throw new UsernameNotFoundException("User not found: " + username);
+            throw new UsernameNotFoundException("User not found: " + userId);
         var user = maybeUser.get();
-        return User.withUsername(user.getUsername())
+        return User.withUsername(user.getUserId())
                 .password(user.getEncodedPassword())
                 .roles(user.getRoles().toArray(new String[0])).build();
     }

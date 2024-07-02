@@ -16,8 +16,13 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+allowCreateUsers: true
+allowUpdateUsers: true
+allowDeleteUsers: true
+
 users:
   - name: "admin"
+    id: "admin"
     password: "{generate}"
     roles:
       - "READ"
@@ -26,19 +31,23 @@ users:
       - "SETTINGS"
       - "ADMIN"
   - name: "user"
+    id: "user"
     password: "{generate}"
     roles:
     - "READ"
     - "WRITE"
     - "SETTINGS"
   - name: "viewer"
+    id: "viewer"
     password: "{generate}"
     roles:
       - "READ"
   - name: "dummy"
+    id : "dummy"
     password: "{generate}"
     roles:
   - name: "autologin"
+    id: "autologin"
     password: "{generate}"
     roles:
     - "READ"

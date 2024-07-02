@@ -27,7 +27,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Component;
 
-import java.security.Principal;
 import java.util.Set;
 
 @Component
@@ -38,8 +37,8 @@ public class SecurityService {
 
     private static final String LOGOUT_SUCCESS_URL = "/";
 
-    public Principal getPrincipal() {
-        return de.mhus.kt2l.aaa.SecurityContext.lookupPrincipal();
+    public AaaUser getUser() {
+        return de.mhus.kt2l.aaa.SecurityContext.lookupUser();
     }
 
     public Set<String> getRolesForResource(String resourceScope, String resourceName) {
@@ -47,7 +46,7 @@ public class SecurityService {
     }
 
     public boolean hasRole(String role) {
-        return SecurityUtils.hasPrincipalRoles(Set.of(role));
+        return SecurityUtils.hasUserRoles(Set.of(role));
     }
 
     public boolean hasRole(String resourceScope, String resourceName, String ... defaultRole) {
@@ -60,36 +59,36 @@ public class SecurityService {
             roles = defaultRole;
         if (roles == null)
             return false;
-        return SecurityUtils.hasPrincipalRoles(roles);
+        return SecurityUtils.hasUserRoles(roles);
     }
 
-    public boolean hasRole(String resourceScope, String resourceName, Set<String> defaultRole, Principal principal) {
+    public boolean hasRole(String resourceScope, String resourceName, Set<String> defaultRole, AaaUser user) {
         Set<String> roles = getRolesForResource(resourceScope, resourceName);
         if (roles == null)
             roles = defaultRole;
         if (roles == null)
             return false;
-        return SecurityUtils.hasPrincipalRoles(roles, principal);
+        return SecurityUtils.hasUserRoles(roles, user);
     }
 
     public boolean hasRole(String resourceScope, Object resource) {
         if (resource == null) return false;
         final var roles = configuration.getRoles(resourceScope, SecurityUtils.getResourceId(resource));
         if (roles != null) {
-            return SecurityUtils.hasPrincipalRoles(roles);
+            return SecurityUtils.hasUserRoles(roles);
         }
-        return SecurityUtils.hasPrincipalResourceRoles(resource);
+        return SecurityUtils.hasUserResourceRoles(resource);
     }
-
-    public UserDetails getAuthenticatedUser() {
-        SecurityContext context = SecurityContextHolder.getContext();
-        Object principal = context.getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            return (UserDetails) context.getAuthentication().getPrincipal();
-        }
-        // Anonymous or no authentication.
-        return null;
-    }
+//XXX
+//    public UserDetails getAuthenticatedUser() {
+//        SecurityContext context = SecurityContextHolder.getContext();
+//        Object principal = context.getAuthentication().getPrincipal();
+//        if (principal instanceof UserDetails) {
+//            return (UserDetails) context.getAuthentication().getPrincipal();
+//        }
+//        // Anonymous or not authenticated.
+//        return null;
+//    }
 
     public void logout() {
         UI.getCurrent().getPage().setLocation(LOGOUT_SUCCESS_URL);

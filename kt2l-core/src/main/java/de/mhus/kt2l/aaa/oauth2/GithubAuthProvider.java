@@ -1,11 +1,13 @@
 package de.mhus.kt2l.aaa.oauth2;
 
+import de.mhus.kt2l.aaa.AaaUser;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @Component
-public class GithubAuthProvider implements OAuth2AuthProvider {
+public class GithubAuthProvider extends AbstractOAuth2AuthProvider {
 
     @Override
     public String getRegistrationId() {
@@ -18,18 +20,18 @@ public class GithubAuthProvider implements OAuth2AuthProvider {
     }
 
     @Override
-    public String getLoginUrlTemplate() {
-        return "${baseUrl}/login/oauth2/code/github";
-    }
-
-    @Override
     public OAuth2UserInfo createOAuth2UserInfo(Map<String, Object> attributes) {
         return new GithubOAuth2UserInfo(attributes);
     }
 
     @Override
-    public String getImageResourcePath() {
-        return "/images/github-logo.svg";
+    public boolean canHandle(DefaultOidcUser userDetails) {
+        return false; //XXX
+    }
+
+    @Override
+    public AaaUser createAaaUser(DefaultOidcUser userDetails) {
+        return null; //XXX
     }
 
     public static class GithubOAuth2UserInfo extends OAuth2UserInfo {

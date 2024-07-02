@@ -38,16 +38,16 @@ import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MThread;
+import de.mhus.kt2l.aaa.AaaConfiguration;
+import de.mhus.kt2l.aaa.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityService;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterService;
-import de.mhus.kt2l.aaa.AaaConfiguration;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.PanelService;
-import de.mhus.kt2l.aaa.SecurityContext;
-import de.mhus.kt2l.aaa.SecurityService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
@@ -60,7 +60,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.security.Principal;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -191,8 +190,6 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             if (e.isFromClient())
                 historyAdd();
         });
-
-        final Principal principal = securityService.getPrincipal();
 
         k8s.fillTypes(cluster).handle((types, t) -> {
             if (t != null) {

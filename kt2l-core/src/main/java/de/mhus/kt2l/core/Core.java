@@ -57,16 +57,18 @@ import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.Kt2lApplication;
+import de.mhus.kt2l.aaa.AaaUser;
+import de.mhus.kt2l.aaa.LoginConfiguration;
 import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.aaa.SecurityService;
+import de.mhus.kt2l.aaa.UsersConfiguration;
+import de.mhus.kt2l.aaa.oauth2.AuthProvider;
 import de.mhus.kt2l.cfg.CfgService;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.config.AbstractUserRelatedConfig;
 import de.mhus.kt2l.config.Configuration;
-import de.mhus.kt2l.aaa.LoginConfiguration;
-import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.help.HelpAction;
 import de.mhus.kt2l.help.HelpConfiguration;
@@ -103,7 +105,6 @@ import java.util.function.Supplier;
 
 import static de.mhus.commons.tools.MCollection.detached;
 import static de.mhus.commons.tools.MCollection.notNull;
-import static de.mhus.commons.tools.MLang.tryThis;
 import static org.apache.logging.log4j.util.Strings.isBlank;
 
 @PermitAll
@@ -154,9 +155,13 @@ public class Core extends AppLayout {
     private LoginConfiguration loginConfiguration;
 
     @Autowired
-    ApplicationContext springContext;
+    private ApplicationContext springContext;
 
-    private final transient AuthenticationContext authContext;
+    @Autowired
+    private AuthProvider authProvider;
+
+    @Autowired
+    private transient AuthenticationContext authContext;
     private DeskTabBar tabBar;
     private ScheduledFuture<?> closeScheduler;
     private Span tabTitle;
@@ -188,16 +193,22 @@ public class Core extends AppLayout {
     private ContextMenu generalContextMenu;
     private boolean uiLostEnabled = false;
 
-    public Core(AuthenticationContext authContext) {
-        this.authContext = authContext;
-    }
-
     @PostConstruct
     public void createUi() {
 
         ui = UI.getCurrent();
         session = UI.getCurrent().getSession();
         sessionId = session.getSession().getId();
+
+        var maybeUser = authProvider.fetchUserFromContext();
+        if (maybeUser.isEmpty()) {
+            LOGGER.error("㋡ {} No user found", sessionId);
+            closeSession();
+            ui.getPage().setLocation("/login?error=No%20User%20Found&autologin=false");
+            return;
+        }
+        var user = maybeUser.get();
+        UI.getCurrent().getSession().setAttribute(Kt2lApplication.UI_USER, user);
 
         if (!MSystem.isVmDebug()) {
             generalContextMenu = new ContextMenu();
@@ -215,7 +226,7 @@ public class Core extends AppLayout {
         }
 
         createContent();
-        createHeader();
+        createHeader(user);
         createDrawer();
 
         LOGGER.debug("㋡ {} Start Refresh Scheduler", sessionId);
@@ -333,8 +344,10 @@ public class Core extends AppLayout {
     protected synchronized void closeSession() {
         if (session == null) return;
         LOGGER.debug("㋡ {} Close Session", sessionId);
-        closeScheduler.cancel(false);
-        detached(tabBar.getTabs()).forEach(DeskTab::closeTab);
+        if (closeScheduler != null)
+            closeScheduler.cancel(false);
+        if (tabBar != null)
+            detached(tabBar.getTabs()).forEach(DeskTab::closeTab);
         clusteredJobsClose();
         if (coreListeners != null)
             coreListeners.forEach(l -> l.onCoreDestroyed(this));
@@ -371,82 +384,62 @@ public class Core extends AppLayout {
         }
     }
 
-    private void createHeader() {
+    private void createHeader(AaaUser user) {
 
-        var authUser = tryThis(() -> authContext.getAuthenticatedUser(UserDetails.class))
-                .onException(
-                    ClassCastException.class,
-                    e -> Optional.of(new UserDetailsWrapper(authContext.getAuthenticatedUser(DefaultOidcUser.class))) )
-                .get();
+        tabTitle = new Span("");
+        tabTitle.setWidthFull();
+        tabTitle.addClassName("ktool-title");
 
-        final var header =
-                authUser.map(userDetails -> {
+        if (helpConfiguration.isEnabled()) {
+            helpToggel = new Button(VaadinIcon.QUESTION_CIRCLE_O.create());
+            helpMenu = new ContextMenu();
+            helpMenu.setTarget(helpToggel);
+            helpMenu.setOpenOnClick(true);
+            Shortcuts.addShortcutListener(helpToggel, () -> {
+                if (helpContent.isVisible())
+                    helpContent.setVisible(false);
+                else
+                    showHelp(true); // open the help menu instead, not possible at the moment
+            }, Key.KEY_H, KeyModifier.CONTROL);
+        }
+        var space = new Span(" ");
 
-                    if (userDetails == null) return null;
+        Button userButton = new Button(LumoIcon.USER.create());
+        var userMenu = new ContextMenu();
+        userMenu.setTarget(userButton);
+        userMenu.setOpenOnClick(true);
 
-                    tabTitle = new Span("");
-                    tabTitle.setWidthFull();
-                    tabTitle.addClassName("ktool-title");
-
-                    if (helpConfiguration.isEnabled()) {
-                        helpToggel = new Button(VaadinIcon.QUESTION_CIRCLE_O.create());
-                        helpMenu = new ContextMenu();
-                        helpMenu.setTarget(helpToggel);
-                        helpMenu.setOpenOnClick(true);
-                        Shortcuts.addShortcutListener(helpToggel, () -> {
-                            if (helpContent.isVisible())
-                                helpContent.setVisible(false);
-                            else
-                                showHelp(true); // open the help menu instead, not possible at the moment
-                        }, Key.KEY_H, KeyModifier.CONTROL);
-                    }
-                    var space = new Span(" ");
-
-
-                    UI.getCurrent().getSession().setAttribute(Kt2lApplication.UI_USERNAME, userDetails.getUsername());
-
-                    Button userButton = new Button(LumoIcon.USER.create());
-                    var userMenu = new ContextMenu();
-                    userMenu.setTarget(userButton);
-                    userMenu.setOpenOnClick(true);
-
-                    if (cfgService.isUserCfgEnabled()) {
-                        UiUtil.createIconItem(userMenu, VaadinIcon.COG, "User Settings", null, true).addClickListener(click -> {
-                            cfgService.showUserCfg(this);
-                        });
-                    }
-                    if (cfgService.isGlobalCfgEnabled()) {
-                        UiUtil.createIconItem(userMenu, VaadinIcon.COGS, "Global Settings", null, true).addClickListener(click -> {
-                            cfgService.showGlobalCfg(this);
-                        });
-                    }
-                    if (userDetails.getUsername().equals(loginConfiguration.getAutoLoginUser())) {
-                        UiUtil.createIconItem(userMenu, VaadinIcon.RECYCLE, "Reset Session", null, true).addClickListener(click -> {
-                            resetSession();
-                        });
-                    } else {
-                        UiUtil.createIconItem(userMenu, VaadinIcon.SIGN_OUT, "Logout " + userDetails.getUsername(), null, true).addClickListener(click -> {
-                            resetSession();
-                        });
-                    }
-                    if (securityService.hasRole(UsersConfiguration.ROLE.ADMIN.name()) && Kt2lApplication.canRestart()) {
-                        UiUtil.createIconItem(userMenu, VaadinIcon.WARNING, "Restart Server", null, true).addClickListener(click -> {
-                            ConfirmDialog dialog = new ConfirmDialog();
-                            dialog.setHeader("Restart");
-                            dialog.setText("Do you really want to restart the server?");
-                            dialog.setConfirmText("Restart");
-                            dialog.setCancelable(true);
-                            dialog.addConfirmListener(e -> Kt2lApplication.restart());
-                            dialog.open();
-                        });
-                    }
-                    return new HorizontalLayout(notNull(new DrawerToggle(), createLogo(), tabTitle, userButton, helpToggel, space));
-
-                }).orElse(
-                        new HorizontalLayout(createLogo())
-                );
-
-        if (header == null) return;
+        if (cfgService.isUserCfgEnabled()) {
+            UiUtil.createIconItem(userMenu, VaadinIcon.COG, "User Settings", null, true).addClickListener(click -> {
+                cfgService.showUserCfg(this);
+            });
+        }
+        if (cfgService.isGlobalCfgEnabled()) {
+            UiUtil.createIconItem(userMenu, VaadinIcon.COGS, "Global Settings", null, true).addClickListener(click -> {
+                cfgService.showGlobalCfg(this);
+            });
+        }
+        if (user.getDisplayName().equals(loginConfiguration.getAutoLoginUser())) {
+            UiUtil.createIconItem(userMenu, VaadinIcon.RECYCLE, "Reset Session", null, true).addClickListener(click -> {
+                resetSession();
+            });
+        } else {
+            UiUtil.createIconItem(userMenu, VaadinIcon.SIGN_OUT, "Logout " + user.getDisplayName(), null, true).addClickListener(click -> {
+                resetSession();
+            });
+        }
+        if (securityService.hasRole(UsersConfiguration.ROLE.ADMIN.name()) && Kt2lApplication.canRestart()) {
+            UiUtil.createIconItem(userMenu, VaadinIcon.WARNING, "Restart Server", null, true).addClickListener(click -> {
+                ConfirmDialog dialog = new ConfirmDialog();
+                dialog.setHeader("Restart");
+                dialog.setText("Do you really want to restart the server?");
+                dialog.setConfirmText("Restart");
+                dialog.setCancelable(true);
+                dialog.addConfirmListener(e -> Kt2lApplication.restart());
+                dialog.open();
+            });
+        }
+        var header = new HorizontalLayout(notNull(new DrawerToggle(), createLogo(), tabTitle, userButton, helpToggel, space));
 
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         header.setWidthFull();
@@ -733,7 +726,7 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
     public void resetSession() {
         try {
             springContext.getBean(Configuration.class).clearCache();
-            var userName = SecurityContext.lookupUserName();
+            var userName = SecurityContext.lookupUserId();
             String[] beanNames = springContext.getBeanDefinitionNames();
             for (String beanName : beanNames) {
                 var bean = springContext.getBean(beanName);

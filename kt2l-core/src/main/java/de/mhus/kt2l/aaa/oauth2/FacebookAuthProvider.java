@@ -1,11 +1,13 @@
 package de.mhus.kt2l.aaa.oauth2;
 
+import de.mhus.kt2l.aaa.AaaUser;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @Component
-public class FacebookAuthProvider implements OAuth2AuthProvider {
+public class FacebookAuthProvider extends AbstractOAuth2AuthProvider {
 
     @Override
     public String getRegistrationId() {
@@ -18,18 +20,18 @@ public class FacebookAuthProvider implements OAuth2AuthProvider {
     }
 
     @Override
-    public String getLoginUrlTemplate() {
-        return "${baseUrl}/login/oauth2/code/facebook";
-    }
-
-    @Override
     public OAuth2UserInfo createOAuth2UserInfo(Map<String, Object> attributes) {
         return new FacebookOAuth2UserInfo(attributes);
     }
 
     @Override
-    public String getImageResourcePath() {
-        return "/images/facebook-logo.svg";
+    public boolean canHandle(DefaultOidcUser userDetails) {
+        return false; //XXX
+    }
+
+    @Override
+    public AaaUser createAaaUser(DefaultOidcUser userDetails) {
+        return null; //XXX
     }
 
     public static class FacebookOAuth2UserInfo extends OAuth2UserInfo {
