@@ -124,7 +124,7 @@ public class LocalServerTest {
     @Test
     @Order(2)
     public void testClusterSelect() {
-        App.resetUi(driver, webServerApplicationContext);
+        App.resetUi(driver, webServerApplicationContext, false);
 
         // Cluster Name
         var clusterSelector = driver.findElement(By.cssSelector("#clusterselect input"));
@@ -142,7 +142,7 @@ public class LocalServerTest {
     @Test
     @Order(3)
     public void testNamespacePush() throws InterruptedException, ApiException {
-        App.resetUi(driver, webServerApplicationContext);
+        App.resetUi(driver, webServerApplicationContext, false);
 
         // click on Resources on Main
         App.clusterOpenResources(driver);
@@ -184,7 +184,7 @@ public class LocalServerTest {
     @Test
     @Order(4)
     public void testPodPush() throws InterruptedException, ApiException {
-        App.resetUi(driver, webServerApplicationContext);
+        App.resetUi(driver, webServerApplicationContext, false);
 
         // click on Resources on Main
         App.clusterOpenResources(driver);
@@ -229,7 +229,7 @@ public class LocalServerTest {
     @Test
     @Order(5)
     public void testAceEditor() throws InterruptedException {
-        App.resetUi(driver, webServerApplicationContext);
+        App.resetUi(driver, webServerApplicationContext, false);
 
         // click on Resources on Main
         App.clusterOpenResources(driver);
@@ -285,7 +285,7 @@ public class LocalServerTest {
     @Test
     @Order(6)
     public void testXTermAddon() throws InterruptedException {
-        App.resetUi(driver, webServerApplicationContext);
+        App.resetUi(driver, webServerApplicationContext, false);
 
         // click on Resources on Main
         App.clusterOpenResources(driver);

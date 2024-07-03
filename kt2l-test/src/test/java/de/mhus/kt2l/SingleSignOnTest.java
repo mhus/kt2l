@@ -52,14 +52,15 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElemen
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-        "kt2l.configuration.localDirectory=config_timeout",
+        "kt2l.configuration.localDirectory=config_sso",
         "kt2l.configuration.usersDirectory=users_nodirectoryset",
-        "kt2l.deskTabPreserveMode=false"
-//        "server.session.timeout=2"
+        "kt2l.deskTabPreserveMode=false",
+        "spring.security.oauth2.client.registration.google.client-id=x",
+        "spring.security.oauth2.client.registration.google.client-secret=x"
         }
 )
 @Import({AremoricaContextConfiguration.class, CoreHelper.class})
-public class LocalServerTimeoutTest {
+public class SingleSignOnTest {
 
     private static WebDriver driver;
 
@@ -109,14 +110,22 @@ public class LocalServerTimeoutTest {
 
     @Test
     @Order(2)
-    public void testExtendSession() {
-        App.resetUi(driver, webServerApplicationContext, false);
-        LOGGER.info("Wait for timeout time");
-        MThread.sleep(5 * 1000);
-        LOGGER.info("Wait for Idle Notification Dialog");
+    public void testSingleSignOn() {
+        App.resetUi(driver, webServerApplicationContext, true);
 
-        new WebDriverWait(driver, ofSeconds(60), ofSeconds(1))
-                .until(presenceOfElementLocated(By.id("extend-session")));
+        // wait for login page
+        new WebDriverWait(driver, ofSeconds(10), ofSeconds(1))
+                .until(presenceOfElementLocated(By.xpath("//div[contains(.,\"Login with Google\")]")));
+
+        new WebDriverWait(driver, ofSeconds(10), ofSeconds(1))
+                .until(presenceOfElementLocated(By.xpath("//div[contains(.,\"Login with Github\")]")));
+
+        var googleLink = driver.findElement(By.xpath("//div[text()='Login with Google']"));
+        // click on google login
+        googleLink.click();
+        // wait for the google page - oauth id not correct, but that's fine
+        new WebDriverWait(driver, ofSeconds(10), ofSeconds(1))
+                .until(presenceOfElementLocated(By.xpath("//div[contains(.,\"The OAuth client was not found.\")]")));
 
         DebugTestUtil.doScreenshot(driver, "extend_session");
 
