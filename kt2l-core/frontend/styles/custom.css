@@ -26,12 +26,25 @@ html, body {
 
 
 a.login-link {
-    width: 360px;
+    width: 312px;
     height: 36px;
     border: 1px solid #f2f2f2;
     display: inline-block;
-    text-align: center;
+    text-align: left;
     vertical-align: middle;
+    margin-bottom: 10px;
+}
+
+a.login-link vaadin-icon {
+    width: 24px;
+    height: 24px;
+    margin-left: 6px;
+}
+
+a.login-link div {
+    display: inline-block;
+    vertical-align: middle;
+    padding-left: 10px;
 }
 
 .desktabview .tabitem:hover {

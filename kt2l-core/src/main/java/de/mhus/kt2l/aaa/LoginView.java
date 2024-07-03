@@ -21,19 +21,23 @@ package de.mhus.kt2l.aaa;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import de.mhus.commons.net.MNet;
 import de.mhus.kt2l.aaa.oauth2.AuthProvider;
+import de.mhus.kt2l.aaa.oauth2.OAuth2AuthProvider;
 import de.mhus.kt2l.ui.UiUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletException;
@@ -85,13 +89,23 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
         if (loginConfig.isOAuth2Enabled()) {
             for (var provider : authProvider.getAuthProviders()) {
-                Anchor loginLink = new Anchor(authProvider.getProividerLoginUrl(provider), "Login with " + provider.getTitle());
+                var logo = getLogo(provider);
+                var text = new Div("Login with " + provider.getTitle());
+                Anchor loginLink = new Anchor(authProvider.getProividerLoginUrl(provider), logo, text);
                 loginLink.addClassName("login-link");
                 // Instruct Vaadin Router to ignore doing SPA handling
                 loginLink.setRouterIgnore(true);
                 add(loginLink);
             }
         }
+    }
+
+    private SvgIcon getLogo(OAuth2AuthProvider provider) {
+        var path = provider.getImageResourcePath() == null ? "/images/saml-logo.svg" : provider.getImageResourcePath();
+        StreamResource iconResource = new StreamResource(provider.getRegistrationId() + "-logo.svg",
+                () -> LoginView.class.getResourceAsStream(path));
+        SvgIcon icon = new SvgIcon(iconResource);
+        return icon;
     }
 
     public static HttpServletRequest getCurrentHttpRequest(){
