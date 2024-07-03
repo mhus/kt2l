@@ -65,6 +65,7 @@ public class DebugTestUtil {
     }
 
     private static void updateFrame() {
+        if (frameLabel == null) return;
         if (isEmpty(currentTestName))
             frameLabel.setText("Running in debug mode");
         else
