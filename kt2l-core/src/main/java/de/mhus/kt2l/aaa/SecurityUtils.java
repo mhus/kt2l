@@ -43,28 +43,7 @@ public class SecurityUtils {
 
     public static AaaUser getUser() {
         return (AaaUser)UI.getCurrent().getSession().getAttribute(SecurityService.UI_USER);
-// This is not the same session then this:
-//        VaadinServletRequest request = VaadinServletRequest.getCurrent();
-//        if (request == null) {
-//            LOGGER.warn("Request not found");
-//            return null;
-//        }
-//        return (AaaUser)request.getSession().getAttribute(Kt2lApplication.UI_USER); //XXX
     }
-
-//XXX
-//    static Principal getPrincipal() {
-//        VaadinServletRequest request = VaadinServletRequest.getCurrent();
-//        if (request == null) {
-//            LOGGER.warn("Request not found");
-//            return null;
-//        }
-//        var principal = request.getUserPrincipal();
-//        if (principal == null) {
-//            LOGGER.warn("Principal not found in request", new Throwable());
-//        }
-//        return principal;
-//    }
 
     public static String getResourceId(Object resource) {
         if (resource == null) return null;
@@ -134,21 +113,10 @@ public class SecurityUtils {
         final var withRole = resource.getClass().getAnnotation(WithRole.class);
         if (withRole == null) return false;
 
-        return user.getRoles().contains(withRole.value());
-
+        for (var role : withRole.value())
+            if (!user.getRoles().contains(role.name())) return false;
+        return true;
     }
-
-    private static String toAuthorityRoleName(String name) {
-        return "ROLE_" + name.toUpperCase().trim();
-    }
-
-//XXX
-//    public static HttpServletRequest getHttpRequest() {
-//        VaadinServletRequest request = VaadinServletRequest.getCurrent();
-//        if (request == null) return null;
-//        return request.getHttpServletRequest();
-//
-//    }
 
     // do not use
     static boolean hasUserResourceRoles(Object resource, ROLE role) {

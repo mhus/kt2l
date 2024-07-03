@@ -52,6 +52,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.generic.GenericGrid;
+import de.mhus.kt2l.resources.generic.GenericGridFactory;
 import de.mhus.kt2l.resources.generic.GenericK8s;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
 import io.kubernetes.client.openapi.models.V1APIResource;
@@ -375,6 +376,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                             foundFactory = factory;
                     }
 
+        if (foundFactory == null)
+            foundFactory = new GenericGridFactory(); // fallback to generic grid
         ResourcesGrid resourcesGrid = foundFactory.create(type);
         core.getBeanFactory().autowireBean(resourcesGrid);
         LOGGER.debug("Create grid: {}",resourcesGrid.getClass().getSimpleName());

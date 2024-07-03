@@ -52,7 +52,7 @@ public class App {
             }
         }
         if (!done) {
-            DebugTestUtil.debugBreakpoint("Reset reset failed");
+            DebugTestUtil.debugStep("Reset reset failed", true);
             throw new RuntimeException("Reset reset failed");
         }
 
@@ -74,7 +74,7 @@ public class App {
                 LOGGER.error("ⓧ Reset home failed", e);
             }
         }
-        DebugTestUtil.debugBreakpoint("Reset home failed");
+        DebugTestUtil.debugStep("Reset home failed", true);
         throw new RuntimeException("Reset home failed");
     }
 
