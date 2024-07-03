@@ -20,10 +20,8 @@ package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
+import de.mhus.kt2l.aaa.oauth2.AuthProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Component;
 
@@ -32,10 +30,13 @@ import java.util.Set;
 @Component
 public class SecurityService {
 
+    public static final String UI_USER = "user";
     @Autowired
     private AaaConfiguration configuration;
+    @Autowired
+    private AuthProvider authProvider;
 
-    private static final String LOGOUT_SUCCESS_URL = "/";
+    public static final String LOGOUT_SUCCESS_URL = "/";
 
     public AaaUser getUser() {
         return de.mhus.kt2l.aaa.SecurityContext.lookupUser();
@@ -91,7 +92,16 @@ public class SecurityService {
 //    }
 
     public void logout() {
-        UI.getCurrent().getPage().setLocation(LOGOUT_SUCCESS_URL);
+        AaaUser user = getUser();
+        authProvider.getProvider(user.getProvider()).ifPresentOrElse(
+                p -> {
+                    p.logout(user);
+                },
+                () -> {
+                    UI.getCurrent().getPage().setLocation(LOGOUT_SUCCESS_URL);
+                }
+        );
+        UI.getCurrent().getSession().setAttribute(UI_USER, null);
         SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
         logoutHandler.logout(
                 VaadinServletRequest.getCurrent().getHttpServletRequest(), null,

@@ -83,48 +83,50 @@ public class AuthProvider {
 
     public Optional<AaaUser> fetchUserFromContext() {
         try {
-            Optional<AaaUser> maybeAaaUser;
+            AaaUser aaaUser;
             try {
                 UserDetails userDetails = authContext.getAuthenticatedUser(UserDetails.class).get();
                 if (userDetails == null)
                     return Optional.empty();
-                maybeAaaUser = userFromUserDetails(userDetails);
+                var maybeAaaUser = userFromUserDetails(userDetails);
+                if (maybeAaaUser == null || maybeAaaUser.isEmpty())
+                    return Optional.empty();
+                aaaUser = maybeAaaUser.get();
             } catch (ClassCastException e) {
                 DefaultOidcUser oidcUser = authContext.getAuthenticatedUser(DefaultOidcUser.class).get();
                 if (oidcUser == null)
                     return Optional.empty();
-                maybeAaaUser = userFromOidcUser(oidcUser);
-            }
-            if (maybeAaaUser == null || maybeAaaUser.isEmpty())
-                return Optional.empty();
-            var aaaUser = maybeAaaUser.get();
-            // accept user
-            var accept = acceptUser(aaaUser);
-            if (accept == null) {
-                LOGGER.debug("User {} not accepted", aaaUser.getEmail());
-                return Optional.empty();
-            }
-            // add default roles for match
-            aaaUser = mergeRoles(aaaUser, accept.getDefaultRoles());
-            // check if user home exists and create if not
-            if (accept.getUserConfigPreset() != null) {
-                var presetDir = configuration.getPresetConfigurationDirectory(accept.getUserConfigPreset());
-                if (presetDir.exists()) {
-                    var userConfigDir = configuration.getLocalUserConfigurationDirectory(aaaUser.getUserId());
-                    if (!userConfigDir.exists()) {
-                        LOGGER.info("Copy/Create user config from {} to {}", presetDir, userConfigDir);
-                        MFile.copyDir(presetDir, userConfigDir);
-                    }
-                } else {
-                    LOGGER.warn("Preset directory {} not found", presetDir);
+                var maybeAaaUser = userFromOidcUser(oidcUser);
+                if (maybeAaaUser == null || maybeAaaUser.isEmpty())
+                    return Optional.empty();
+                aaaUser = maybeAaaUser.get();
+                // accept user
+                var accept = acceptUser(aaaUser);
+                if (accept == null) {
+                    LOGGER.debug("User {} not accepted", aaaUser.getEmail());
+                    return Optional.empty();
                 }
-            }
-
-            // create if not exists
-            if (userRepository.getUserByUsername(aaaUser.getUserId()).isEmpty()) {
-                aaaUser = userRepository.createUser(aaaUser);
-            } else {
-                aaaUser = userRepository.updateUser(aaaUser);
+                // add default roles for match
+                aaaUser = mergeRoles(aaaUser, accept.getDefaultRoles());
+                // check if user home exists and create if not
+                if (accept.getUserConfigPreset() != null) {
+                    var presetDir = configuration.getPresetConfigurationDirectory(accept.getUserConfigPreset());
+                    if (presetDir.exists()) {
+                        var userConfigDir = configuration.getLocalUserConfigurationDirectory(aaaUser.getUserId());
+                        if (!userConfigDir.exists()) {
+                            LOGGER.info("Copy/Create user config from {} to {}", presetDir, userConfigDir);
+                            MFile.copyDir(presetDir, userConfigDir);
+                        }
+                    } else {
+                        LOGGER.warn("Preset directory {} not found", presetDir);
+                    }
+                }
+                // create if not exists
+                if (userRepository.getUserByUsername(aaaUser.getUserId()).isEmpty()) {
+                    aaaUser = userRepository.createUser(aaaUser);
+                } else {
+                    aaaUser = userRepository.updateUser(aaaUser);
+                }
             }
             return Optional.of(aaaUser);
         } catch (NoSuchElementException e) {

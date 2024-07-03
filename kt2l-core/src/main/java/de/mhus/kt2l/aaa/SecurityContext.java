@@ -20,7 +20,6 @@ package de.mhus.kt2l.aaa;
 import com.vaadin.flow.component.UI;
 import de.mhus.commons.errors.AuthorizationException;
 import de.mhus.commons.lang.ICloseable;
-import de.mhus.kt2l.Kt2lApplication;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -81,12 +80,14 @@ public class SecurityContext {
     }
 
     public static String lookupUserId() {
-        return lookupUser().getUserId();
+        var user = lookupUser();
+        if (user == null) return null;
+        return user.getUserId();
     }
 
     public static AaaUser lookupUser() {
         var context = threadLocalConfigurationContext.get();
-        final var user = context != null ? context.getUser() : tryThis(() -> (AaaUser) UI.getCurrent().getSession().getAttribute(Kt2lApplication.UI_USER)).getOrThrow(() -> {
+        final var user = context != null ? context.getUser() : tryThis(() -> SecurityUtils.getUser()).getOrThrow(() -> {
             LOGGER.error("Calling config() without user in UI context", new Exception());
             return new AuthorizationException("No user in UI context");
         });

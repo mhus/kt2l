@@ -21,13 +21,14 @@ package de.mhus.kt2l.aaa;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.VaadinSession;
+import de.mhus.commons.io.MHttp;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MSystem;
+import de.mhus.commons.util.MUri;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.core.ResourceId;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -41,12 +42,14 @@ public class SecurityUtils {
     private static Boolean unsecure = null;
 
     public static AaaUser getUser() {
-        VaadinServletRequest request = VaadinServletRequest.getCurrent();
-        if (request == null) {
-            LOGGER.warn("Request not found");
-            return null;
-        }
-        return (AaaUser)request.getSession().getAttribute("user"); //XXX
+        return (AaaUser)UI.getCurrent().getSession().getAttribute(SecurityService.UI_USER);
+// This is not the same session then this:
+//        VaadinServletRequest request = VaadinServletRequest.getCurrent();
+//        if (request == null) {
+//            LOGGER.warn("Request not found");
+//            return null;
+//        }
+//        return (AaaUser)request.getSession().getAttribute(Kt2lApplication.UI_USER); //XXX
     }
 
 //XXX
@@ -75,6 +78,12 @@ public class SecurityUtils {
         if (unsecure == null)
             unsecure = MCast.toboolean(System.getProperty("KT2L_UNSECURE"), true);
         return unsecure;
+    }
+
+    public static void exitToLogin(String errorMessage) {
+        var ui = UI.getCurrent();
+        ui.getSession().setAttribute("autologin", "false");
+        ui.getPage().setLocation("/login?error=" + MUri.encode(errorMessage));
     }
 
     boolean hasUserRoles(Object resource, Set<String> roles) {
@@ -133,12 +142,13 @@ public class SecurityUtils {
         return "ROLE_" + name.toUpperCase().trim();
     }
 
-    public static HttpServletRequest getHttpRequest() {
-        VaadinServletRequest request = VaadinServletRequest.getCurrent();
-        if (request == null) return null;
-        return request.getHttpServletRequest();
-
-    }
+//XXX
+//    public static HttpServletRequest getHttpRequest() {
+//        VaadinServletRequest request = VaadinServletRequest.getCurrent();
+//        if (request == null) return null;
+//        return request.getHttpServletRequest();
+//
+//    }
 
     // do not use
     static boolean hasUserResourceRoles(Object resource, ROLE role) {

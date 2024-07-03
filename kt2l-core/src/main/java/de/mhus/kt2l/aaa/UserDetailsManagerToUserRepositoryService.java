@@ -28,7 +28,14 @@ public class UserDetailsManagerToUserRepositoryService implements UserDetailsMan
         builder.provider(AuthProvider.LOCAL_AUTH_PROVIDER_ID);
         builder.providerId(user.getUsername());
         builder.encodedPassword(user.getPassword());
-        builder.roles(user.getAuthorities().stream().map(a -> a.getAuthority()).toList());
+        builder.roles(
+                user.getAuthorities()
+                        .stream()
+                        .map(a -> a.getAuthority())
+                        .filter(a -> a.startsWith("ROLE_"))
+                        .map(a -> a.substring(5))
+                        .toList()
+        );
         return builder.build();
     }
 

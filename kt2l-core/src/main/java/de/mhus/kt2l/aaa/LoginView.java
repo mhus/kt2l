@@ -28,9 +28,13 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinRequest;
+import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import de.mhus.commons.net.MNet;
 import de.mhus.kt2l.aaa.oauth2.AuthProvider;
+import de.mhus.kt2l.ui.UiUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,18 +66,31 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         setAlignItems(Alignment.CENTER);
 
         add(new H1("KT2L"));
-        if (loginConfig.isLocalAuthEnabled() && !"true".equals(SecurityUtils.getHttpRequest().getAttribute("autologin")) ) {
+        if (loginConfig.isLocalAuthEnabled()) {
             login.setForgotPasswordButtonVisible(false);
             login.setAction("login");
             add(login);
         }
+//        if ("false".equals(UI.getCurrent().getSession().getAttribute("autologin"))) {
+//            UI.getCurrent().getSession().close();
+//            UI.getCurrent().getPage().setLocation("/reset");
+//            VaadinServletRequest request = VaadinServletRequest.getCurrent();
+//            for (var cookie : request.getCookies()) {
+//                cookie.setMaxAge(0);
+//                cookie.setValue(null);
+//                cookie.setPath("/");
+//                VaadinService.getCurrentResponse().addCookie(cookie);
+//            }
+//        }
 
-        for (var provider : authProvider.getAuthProviders()) {
-            Anchor loginLink = new Anchor(authProvider.getProividerLoginUrl(provider), "Login with " + provider.getTitle());
-            loginLink.addClassName("login-link");
-            // Instruct Vaadin Router to ignore doing SPA handling
-            loginLink.setRouterIgnore(true);
-            add(loginLink);
+        if (loginConfig.isOAuth2Enabled()) {
+            for (var provider : authProvider.getAuthProviders()) {
+                Anchor loginLink = new Anchor(authProvider.getProividerLoginUrl(provider), "Login with " + provider.getTitle());
+                loginLink.addClassName("login-link");
+                // Instruct Vaadin Router to ignore doing SPA handling
+                loginLink.setRouterIgnore(true);
+                add(loginLink);
+            }
         }
     }
 
@@ -93,7 +110,8 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         var req = getCurrentHttpRequest();
         var rhost = req.getRemoteHost();
 
-        if (loginConfig.isAutoLogin()) {
+        var sessionAutoLogin = UI.getCurrent().getSession().getAttribute("autologin");
+        if (loginConfig.isAutoLogin() /* && !"false".equals(sessionAutoLogin ) */) {
             if (!loginConfig.isAutoLoginLocalhostOnly() || MNet.isLocalhost(rhost)) {
                 LOGGER.info("Do auto login for {}",loginConfig.getAutoLoginUser());
                 try {

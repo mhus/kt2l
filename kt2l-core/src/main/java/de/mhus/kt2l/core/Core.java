@@ -61,6 +61,7 @@ import de.mhus.kt2l.aaa.AaaUser;
 import de.mhus.kt2l.aaa.LoginConfiguration;
 import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.aaa.SecurityService;
+import de.mhus.kt2l.aaa.SecurityUtils;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.oauth2.AuthProvider;
 import de.mhus.kt2l.cfg.CfgService;
@@ -202,13 +203,13 @@ public class Core extends AppLayout {
 
         var maybeUser = authProvider.fetchUserFromContext();
         if (maybeUser.isEmpty()) {
-            LOGGER.error("㋡ {} No user found", sessionId);
-            closeSession();
-            ui.getPage().setLocation("/login?error=No%20User%20Found&autologin=false");
+            LOGGER.error("㋡ {} No user found (createUi)", sessionId);
+            SecurityUtils.exitToLogin("No User Found");
             return;
         }
         var user = maybeUser.get();
-        UI.getCurrent().getSession().setAttribute(Kt2lApplication.UI_USER, user);
+        UI.getCurrent().getSession().setAttribute(SecurityService.UI_USER, user);
+        UI.getCurrent().getSession().setAttribute("autologin", "true");
 
         if (!MSystem.isVmDebug()) {
             generalContextMenu = new ContextMenu();
@@ -287,6 +288,11 @@ public class Core extends AppLayout {
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
+        if (SecurityUtils.getUser() == null) {
+            LOGGER.error("㋡ {} No user found (onAttach)", sessionId);
+            SecurityUtils.exitToLogin("No User Found");
+            return;
+        }
         ui = attachEvent.getUI();
         uiLost = 0;
 
