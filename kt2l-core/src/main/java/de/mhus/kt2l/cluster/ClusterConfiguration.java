@@ -20,8 +20,8 @@ package de.mhus.kt2l.cluster;
 
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tree.MTree;
+import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.config.AbstractUserRelatedConfig;
-import de.mhus.kt2l.core.SecurityContext;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import org.springframework.stereotype.Component;
@@ -66,7 +66,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
             clusterConfig.get().forEach(cluster -> {
                 clusterInfo.clusters.put(cluster.getString("name").get(), new Cluster(
                         this,
-                        SecurityContext.lookupUserName(),
+                        SecurityContext.lookupUserId(),
                         cluster.getString("name").get(),
                         cluster
                 ));
@@ -75,7 +75,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
     }
 
     private ClusterInfo getClusterInfo() {
-        return clusterInfos.computeIfAbsent(SecurityContext.lookupUserName(), (n) -> new ClusterInfo(n));
+        return clusterInfos.computeIfAbsent(SecurityContext.lookupUserId(), (n) -> new ClusterInfo(n));
     }
 
 //    Cluster getCluster(String name) {
@@ -92,7 +92,7 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
 
     private synchronized Cluster getDefault(String name) {
         var clusterInfo = getClusterInfo();
-        return clusterInfo.defaultClusters.computeIfAbsent(name, (n) -> new Cluster(this, SecurityContext.lookupUserName(), n, MTree.EMPTY_MAP));
+        return clusterInfo.defaultClusters.computeIfAbsent(name, (n) -> new Cluster(this, SecurityContext.lookupUserId(), n, MTree.EMPTY_MAP));
     }
 
     public void clearClusterCache() {

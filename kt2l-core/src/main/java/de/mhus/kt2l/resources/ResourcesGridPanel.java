@@ -38,20 +38,21 @@ import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MThread;
+import de.mhus.kt2l.aaa.AaaConfiguration;
+import de.mhus.kt2l.aaa.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityService;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterService;
-import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.PanelService;
-import de.mhus.kt2l.core.SecurityContext;
-import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.generic.GenericGrid;
+import de.mhus.kt2l.resources.generic.GenericGridFactory;
 import de.mhus.kt2l.resources.generic.GenericK8s;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
 import io.kubernetes.client.openapi.models.V1APIResource;
@@ -60,7 +61,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.security.Principal;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -191,8 +191,6 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             if (e.isFromClient())
                 historyAdd();
         });
-
-        final Principal principal = securityService.getPrincipal();
 
         k8s.fillTypes(cluster).handle((types, t) -> {
             if (t != null) {
@@ -378,6 +376,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                             foundFactory = factory;
                     }
 
+        if (foundFactory == null)
+            foundFactory = new GenericGridFactory(); // fallback to generic grid
         ResourcesGrid resourcesGrid = foundFactory.create(type);
         core.getBeanFactory().autowireBean(resourcesGrid);
         LOGGER.debug("Create grid: {}",resourcesGrid.getClass().getSimpleName());

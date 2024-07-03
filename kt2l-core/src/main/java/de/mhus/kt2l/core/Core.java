@@ -57,14 +57,19 @@ import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.Kt2lApplication;
+import de.mhus.kt2l.aaa.AaaUser;
+import de.mhus.kt2l.aaa.LoginConfiguration;
+import de.mhus.kt2l.aaa.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityService;
+import de.mhus.kt2l.aaa.SecurityUtils;
+import de.mhus.kt2l.aaa.UsersConfiguration;
+import de.mhus.kt2l.aaa.oauth2.AuthProvider;
 import de.mhus.kt2l.cfg.CfgService;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.cluster.ClusterOverviewPanel;
 import de.mhus.kt2l.config.AbstractUserRelatedConfig;
 import de.mhus.kt2l.config.Configuration;
-import de.mhus.kt2l.config.LoginConfiguration;
-import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.help.HelpAction;
 import de.mhus.kt2l.help.HelpConfiguration;
@@ -81,12 +86,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.olli.FileDownloadWrapper;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,9 +156,13 @@ public class Core extends AppLayout {
     private LoginConfiguration loginConfiguration;
 
     @Autowired
-    ApplicationContext springContext;
+    private ApplicationContext springContext;
 
-    private final transient AuthenticationContext authContext;
+    @Autowired
+    private AuthProvider authProvider;
+
+    @Autowired
+    private transient AuthenticationContext authContext;
     private DeskTabBar tabBar;
     private ScheduledFuture<?> closeScheduler;
     private Span tabTitle;
@@ -182,16 +194,22 @@ public class Core extends AppLayout {
     private ContextMenu generalContextMenu;
     private boolean uiLostEnabled = false;
 
-    public Core(AuthenticationContext authContext) {
-        this.authContext = authContext;
-    }
-
     @PostConstruct
     public void createUi() {
 
         ui = UI.getCurrent();
         session = UI.getCurrent().getSession();
         sessionId = session.getSession().getId();
+
+        var maybeUser = authProvider.fetchUserFromContext();
+        if (maybeUser.isEmpty()) {
+            LOGGER.error("㋡ {} No user found (createUi)", sessionId);
+            SecurityUtils.exitToLogin("No User Found");
+            return;
+        }
+        var user = maybeUser.get();
+        UI.getCurrent().getSession().setAttribute(SecurityService.UI_USER, user);
+        UI.getCurrent().getSession().setAttribute("autologin", "true");
 
         if (!MSystem.isVmDebug()) {
             generalContextMenu = new ContextMenu();
@@ -209,7 +227,7 @@ public class Core extends AppLayout {
         }
 
         createContent();
-        createHeader();
+        createHeader(user);
         createDrawer();
 
         LOGGER.debug("㋡ {} Start Refresh Scheduler", sessionId);
@@ -270,6 +288,11 @@ public class Core extends AppLayout {
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
+        if (SecurityUtils.getUser() == null) {
+            LOGGER.error("㋡ {} No user found (onAttach)", sessionId);
+            SecurityUtils.exitToLogin("No User Found");
+            return;
+        }
         ui = attachEvent.getUI();
         uiLost = 0;
 
@@ -327,8 +350,10 @@ public class Core extends AppLayout {
     protected synchronized void closeSession() {
         if (session == null) return;
         LOGGER.debug("㋡ {} Close Session", sessionId);
-        closeScheduler.cancel(false);
-        detached(tabBar.getTabs()).forEach(DeskTab::closeTab);
+        if (closeScheduler != null)
+            closeScheduler.cancel(false);
+        if (tabBar != null)
+            detached(tabBar.getTabs()).forEach(DeskTab::closeTab);
         clusteredJobsClose();
         if (coreListeners != null)
             coreListeners.forEach(l -> l.onCoreDestroyed(this));
@@ -365,76 +390,62 @@ public class Core extends AppLayout {
         }
     }
 
-    private void createHeader() {
+    private void createHeader(AaaUser user) {
 
-        final var header =
-                authContext.getAuthenticatedUser(UserDetails.class).map(userDetails -> {
+        tabTitle = new Span("");
+        tabTitle.setWidthFull();
+        tabTitle.addClassName("ktool-title");
 
-                    if (userDetails == null) return null;
+        if (helpConfiguration.isEnabled()) {
+            helpToggel = new Button(VaadinIcon.QUESTION_CIRCLE_O.create());
+            helpMenu = new ContextMenu();
+            helpMenu.setTarget(helpToggel);
+            helpMenu.setOpenOnClick(true);
+            Shortcuts.addShortcutListener(helpToggel, () -> {
+                if (helpContent.isVisible())
+                    helpContent.setVisible(false);
+                else
+                    showHelp(true); // open the help menu instead, not possible at the moment
+            }, Key.KEY_H, KeyModifier.CONTROL);
+        }
+        var space = new Span(" ");
 
-                    tabTitle = new Span("");
-                    tabTitle.setWidthFull();
-                    tabTitle.addClassName("ktool-title");
+        Button userButton = new Button(LumoIcon.USER.create());
+        var userMenu = new ContextMenu();
+        userMenu.setTarget(userButton);
+        userMenu.setOpenOnClick(true);
 
-                    if (helpConfiguration.isEnabled()) {
-                        helpToggel = new Button(VaadinIcon.QUESTION_CIRCLE_O.create());
-                        helpMenu = new ContextMenu();
-                        helpMenu.setTarget(helpToggel);
-                        helpMenu.setOpenOnClick(true);
-                        Shortcuts.addShortcutListener(helpToggel, () -> {
-                            if (helpContent.isVisible())
-                                helpContent.setVisible(false);
-                            else
-                                showHelp(true); // open the help menu instead, not possible at the moment
-                        }, Key.KEY_H, KeyModifier.CONTROL);
-                    }
-                    var space = new Span(" ");
-
-
-                    UI.getCurrent().getSession().setAttribute(Kt2lApplication.UI_USERNAME, userDetails.getUsername());
-
-                    Button userButton = new Button(LumoIcon.USER.create());
-                    var userMenu = new ContextMenu();
-                    userMenu.setTarget(userButton);
-                    userMenu.setOpenOnClick(true);
-
-                    if (cfgService.isUserCfgEnabled()) {
-                        UiUtil.createIconItem(userMenu, VaadinIcon.COG, "User Settings", null, true).addClickListener(click -> {
-                            cfgService.showUserCfg(this);
-                        });
-                    }
-                    if (cfgService.isGlobalCfgEnabled()) {
-                        UiUtil.createIconItem(userMenu, VaadinIcon.COGS, "Global Settings", null, true).addClickListener(click -> {
-                            cfgService.showGlobalCfg(this);
-                        });
-                    }
-                    if (userDetails.getUsername().equals(loginConfiguration.getAutoLoginUser())) {
-                        UiUtil.createIconItem(userMenu, VaadinIcon.RECYCLE, "Reset Session", null, true).addClickListener(click -> {
-                            resetSession();
-                        });
-                    } else {
-                        UiUtil.createIconItem(userMenu, VaadinIcon.SIGN_OUT, "Logout " + userDetails.getUsername(), null, true).addClickListener(click -> {
-                            resetSession();
-                        });
-                    }
-                    if (securityService.hasRole(UsersConfiguration.ROLE.ADMIN.name()) && Kt2lApplication.canRestart()) {
-                        UiUtil.createIconItem(userMenu, VaadinIcon.WARNING, "Restart Server", null, true).addClickListener(click -> {
-                            ConfirmDialog dialog = new ConfirmDialog();
-                            dialog.setHeader("Restart");
-                            dialog.setText("Do you really want to restart the server?");
-                            dialog.setConfirmText("Restart");
-                            dialog.setCancelable(true);
-                            dialog.addConfirmListener(e -> Kt2lApplication.restart());
-                            dialog.open();
-                        });
-                    }
-                    return new HorizontalLayout(notNull(new DrawerToggle(), createLogo(), tabTitle, userButton, helpToggel, space));
-
-                }).orElse(
-                        new HorizontalLayout(createLogo())
-                );
-
-        if (header == null) return;
+        if (cfgService.isUserCfgEnabled()) {
+            UiUtil.createIconItem(userMenu, VaadinIcon.COG, "User Settings", null, true).addClickListener(click -> {
+                cfgService.showUserCfg(this);
+            });
+        }
+        if (cfgService.isGlobalCfgEnabled()) {
+            UiUtil.createIconItem(userMenu, VaadinIcon.COGS, "Global Settings", null, true).addClickListener(click -> {
+                cfgService.showGlobalCfg(this);
+            });
+        }
+        if (user.getDisplayName().equals(loginConfiguration.getAutoLoginUser())) {
+            UiUtil.createIconItem(userMenu, VaadinIcon.RECYCLE, "Reset Session", null, true).addClickListener(click -> {
+                resetSession();
+            });
+        } else {
+            UiUtil.createIconItem(userMenu, VaadinIcon.SIGN_OUT, "Logout " + user.getDisplayName(), null, true).addClickListener(click -> {
+                resetSession();
+            });
+        }
+        if (securityService.hasRole(UsersConfiguration.ROLE.ADMIN.name()) && Kt2lApplication.canRestart()) {
+            UiUtil.createIconItem(userMenu, VaadinIcon.WARNING, "Restart Server", null, true).addClickListener(click -> {
+                ConfirmDialog dialog = new ConfirmDialog();
+                dialog.setHeader("Restart");
+                dialog.setText("Do you really want to restart the server?");
+                dialog.setConfirmText("Restart");
+                dialog.setCancelable(true);
+                dialog.addConfirmListener(e -> Kt2lApplication.restart());
+                dialog.open();
+            });
+        }
+        var header = new HorizontalLayout(notNull(new DrawerToggle(), createLogo(), tabTitle, userButton, helpToggel, space));
 
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         header.setWidthFull();
@@ -444,6 +455,57 @@ public class Core extends AppLayout {
 
         addToNavbar(header);
 
+    }
+
+    private static class UserDetailsWrapper implements UserDetails {
+
+        @Getter
+        private final DefaultOidcUser user;
+/*
+this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Authorities: [[OIDC_USER, SCOPE_https://www.googleapis.com/auth/userinfo.email, SCOPE_https://www.googleapis.com/auth/userinfo.profile, SCOPE_openid]], User Attributes: [{at_hash=dwsxDC1GSQ2yWQxEy3EOmQ, sub=114434824555433513888, email_verified=true, iss=https://accounts.google.com, given_name=Mike, nonce=TZA-A3dRDcpdiGYaPt0noCu9CGv-ifOqj8ioOycdsV0, picture=https://lh3.googleusercontent.com/a/ACg8ocJJcjb6TPxBkOBJikqFpm2vOlWP_k66m5DLC8R3cppTgDfZRknp=s96-c, aud=[958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com], azp=958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com, name=Mike Hummel (Jesus), exp=2024-07-01T22:03:54Z, family_name=Hummel, iat=2024-07-01T21:03:54Z, email=msgformike@gmail.com}]"
+ idToken = {OidcIdToken@12964}
+ userInfo = null
+ authorities = {Collections$UnmodifiableSet@12965}  size = 4
+  0 = {OidcUserAuthority@12969} "OIDC_USER"
+  1 = {SimpleGrantedAuthority@12970} "SCOPE_https://www.googleapis.com/auth/userinfo.email"
+  2 = {SimpleGrantedAuthority@12971} "SCOPE_https://www.googleapis.com/auth/userinfo.profile"
+  3 = {SimpleGrantedAuthority@12972} "SCOPE_openid"
+ attributes = {Collections$UnmodifiableMap@12966}  size = 14
+  "at_hash" -> "dwsxDC1GSQ2yWQxEy3EOmQ"
+  "sub" -> "114434824555433513888"
+  "email_verified" -> {Boolean@12996} true
+  "iss" -> {URL@12998} "https://accounts.google.com"
+  "given_name" -> "Mike"
+  "nonce" -> "TZA-A3dRDcpdiGYaPt0noCu9CGv-ifOqj8ioOycdsV0"
+  "picture" -> "https://lh3.googleusercontent.com/a/ACg8ocJJcjb6TPxBkOBJikqFpm2vOlWP_k66m5DLC8R3cppTgDfZRknp=s96-c"
+  "aud" -> {ArrayList@13006}  size = 1
+  "azp" -> "958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com"
+  "name" -> "Mike Hummel (Jesus)"
+  "exp" -> {Instant@13012} "2024-07-01T22:03:54Z"
+  "family_name" -> "Hummel"
+  "iat" -> {Instant@13016} "2024-07-01T21:03:54Z"
+  "email" -> "msgformike@gmail.com"
+ nameAttributeKey = "sub"
+ */
+        public <U> UserDetailsWrapper(Optional<DefaultOidcUser> user) {
+            LOGGER.debug("Create User Wrapper {}", user.get() );
+            this.user = user.get();
+        }
+
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+            return user.getAuthorities();
+        }
+
+        @Override
+        public String getPassword() {
+            return "{none}";
+        }
+
+        @Override
+        public String getUsername() {
+            return user.getName();
+        }
     }
 
     protected void updateHelpMenu(boolean setDefaultDocu) {
@@ -670,7 +732,7 @@ public class Core extends AppLayout {
     public void resetSession() {
         try {
             springContext.getBean(Configuration.class).clearCache();
-            var userName = SecurityContext.lookupUserName();
+            var userName = SecurityContext.lookupUserId();
             String[] beanNames = springContext.getBeanDefinitionNames();
             for (String beanName : beanNames) {
                 var bean = springContext.getBean(beanName);

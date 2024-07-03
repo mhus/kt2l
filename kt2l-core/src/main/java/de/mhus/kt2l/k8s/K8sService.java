@@ -18,11 +18,12 @@
 
 package de.mhus.kt2l.k8s;
 
+import de.mhus.kt2l.aaa.AaaConfiguration;
+import de.mhus.kt2l.aaa.AaaUser;
+import de.mhus.kt2l.aaa.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityService;
 import de.mhus.kt2l.cluster.Cluster;
-import de.mhus.kt2l.config.AaaConfiguration;
 import de.mhus.kt2l.config.Configuration;
-import de.mhus.kt2l.core.SecurityContext;
-import de.mhus.kt2l.core.SecurityService;
 import de.mhus.kt2l.resources.generic.GenericK8s;
 import io.kubernetes.client.Discovery;
 import io.kubernetes.client.common.KubernetesObject;
@@ -36,7 +37,6 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -71,13 +71,13 @@ public class K8sService {
         return findResource(type, apiProvider, null);
     }
 
-    public V1APIResource findResource(V1APIResource type, ApiProvider apiProvider, Principal principal) {
-        if (principal == null)
-            principal = securityService.getPrincipal();
-        final var principalFinal = principal;
+    public V1APIResource findResource(V1APIResource type, ApiProvider apiProvider, AaaUser user) {
+        if (user == null)
+            user = securityService.getUser();
+        final var userFinal = user;
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
-        return securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, type.getName(), defaultRole, principalFinal ) ? type : null;
+        return securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, type.getName(), defaultRole, userFinal ) ? type : null;
 
     }
 
@@ -85,10 +85,10 @@ public class K8sService {
         return getTypesAsync(apiProvider, null);
     }
 
-    public CompletableFuture<List<V1APIResource>> getTypesAsync(ApiProvider apiProvider, Principal principal) {
-        if (principal == null)
-            principal = securityService.getPrincipal();
-        final var principalFinal = principal;
+    public CompletableFuture<List<V1APIResource>> getTypesAsync(ApiProvider apiProvider, AaaUser user) {
+        if (user == null)
+            user = securityService.getUser();
+        final var userFinal = user;
 
         SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
         CompletableFuture<List<V1APIResource>> future = new CompletableFuture<>();
@@ -105,7 +105,7 @@ public class K8sService {
                                 // find K8s
                                 V1APIResource res = K8s.toType(r, v);
                                 // check access
-                                if (securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, K8s.displayName(res), defaultRole, principalFinal)) {
+                                if (securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, K8s.displayName(res), defaultRole, userFinal)) {
                                     results.add(res);
                                 }
                             }
@@ -124,43 +124,42 @@ public class K8sService {
         return getResourceTypes(apiProvider, null);
     }
 
-    public List<V1APIResource> getResourceTypes(ApiProvider apiProvider, Principal principal) {
-        if (principal == null)
-            principal = securityService.getPrincipal();
-        final var principalFinal = principal;
+    public List<V1APIResource> getResourceTypes(ApiProvider apiProvider, AaaUser user) {
+        if (user == null)
+            user = securityService.getUser();
+        final var userFinal = user;
 
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_RESOURCE);
-        return K8sUtil.getResourceTypes(apiProvider.getCoreV1Api()).stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, principalFinal )).toList();
+        return K8sUtil.getResourceTypes(apiProvider.getCoreV1Api()).stream().filter(res -> securityService.hasRole(AaaConfiguration.SCOPE_RESOURCE, res.getName(), defaultRole, userFinal )).toList();
     }
 
     public List<String> getNamespaces(boolean includeAllOption, ApiProvider apiProvider) {
         return getNamespaces(includeAllOption, apiProvider, null);
     }
 
-    public List<String> getNamespaces(boolean includeAllOption, ApiProvider apiProvider, Principal principal) {
-        if (principal == null)
-            principal = securityService.getPrincipal();
-        final var principalFinal = principal;
+    public List<String> getNamespaces(boolean includeAllOption, ApiProvider apiProvider, AaaUser user) {
+        if (user == null)
+            user = securityService.getUser();
+        final var userFinal = user;
 
         var namespaces = K8sUtil.getNamespaces(apiProvider.getCoreV1Api());
         final var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT,AaaConfiguration.SCOPE_NAMESPACE);
-        if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, principalFinal))
+        if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, userFinal))
             namespaces.addFirst(K8sUtil.NAMESPACE_ALL_LABEL);
 
-        return namespaces.stream().filter(ns -> securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, ns, defaultRole, principalFinal) ).toList();
+        return namespaces.stream().filter(ns -> securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, ns, defaultRole, userFinal) ).toList();
     }
 
     public CompletableFuture<List<String>> getNamespacesAsync(boolean includeAllOption, ApiProvider apiProvider) {
         return getNamespacesAsync(includeAllOption, apiProvider, null);
     }
 
-    public CompletableFuture<List<String>> getNamespacesAsync(boolean includeAllOption,ApiProvider apiProvider, Principal principal) {
-        if (principal == null)
-            principal = securityService.getPrincipal();
-        final var principalFinal = principal;
-        if (principal == null) {
-            throw new RuntimeException("Principal not found");
-        }
+    public CompletableFuture<List<String>> getNamespacesAsync(boolean includeAllOption,ApiProvider apiProvider, AaaUser user) {
+        if (user == null)
+            user = securityService.getUser();
+        if (user == null)
+            throw new RuntimeException("User not found");
+        final var userFinal = user;
 
         SecurityContext cc = SecurityContext.create(); // need to export the configuration context to another thread
 
@@ -172,11 +171,11 @@ public class K8sService {
             }
             try (SecurityContext.Environment cce = cc.enter()){
                 var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE);
-                if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, principalFinal))
+                if (includeAllOption && securityService.hasRole(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_NAMESPACE + "_all", defaultRole, userFinal))
                     namespaces.addFirst(K8sUtil.NAMESPACE_ALL_LABEL);
 
                 namespaces = namespaces.stream().filter(
-                        n -> n.equals(K8sUtil.NAMESPACE_ALL_LABEL) || securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, n, defaultRole, principalFinal)).toList();
+                        n -> n.equals(K8sUtil.NAMESPACE_ALL_LABEL) || securityService.hasRole(AaaConfiguration.SCOPE_NAMESPACE, n, defaultRole, userFinal)).toList();
                 future.complete(namespaces);
                 return namespaces;
             }
@@ -188,10 +187,10 @@ public class K8sService {
         return getAvailableContexts(null);
     }
 
-    public Set<String> getAvailableContexts(Principal principal) {
-        if (principal == null)
-            principal = securityService.getPrincipal();
-        final var principalFinal = principal;
+    public Set<String> getAvailableContexts(AaaUser user) {
+        if (user == null)
+            user = securityService.getUser();
+        final var userFinal = user;
 
         final Set<String> availableContexts = new TreeSet<>();
         getKubeConfigs().forEach(config -> config.getContexts().forEach(context -> availableContexts.add( (String)((LinkedHashMap)context).get("name") ) ));
@@ -203,7 +202,7 @@ public class K8sService {
         LOGGER.debug("Available contexts: {}", availableContexts);
 
         var defaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_CLUSTER);
-        return availableContexts.stream().filter(ctx -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER, ctx, defaultRole, principalFinal)).collect(Collectors.toSet());
+        return availableContexts.stream().filter(ctx -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER, ctx, defaultRole, userFinal)).collect(Collectors.toSet());
     }
 
     private List<File> findKubeConfigFiles() {

@@ -20,7 +20,7 @@ package de.mhus.kt2l.config;
 
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.util.SoftHashMap;
-import de.mhus.kt2l.core.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ public abstract class AbstractUserRelatedConfig {
     }
 
     protected ITreeNode config() {
-        final var userName = SecurityContext.lookupUserName();
+        final var userName = SecurityContext.lookupUserId();
         synchronized (cache) {
             var config = cache.get(userName);
             if (config == null) {

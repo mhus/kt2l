@@ -16,14 +16,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.config;
+package de.mhus.kt2l.aaa;
 
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNodeList;
+import de.mhus.kt2l.config.AbstractSingleConfig;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Component
@@ -47,6 +47,7 @@ public class UsersConfiguration extends AbstractSingleConfig {
         if (userConfig.isPresent())
             userConfig.get().forEach(user -> {
                 users.add(new User(
+                        user.getString("id").get(),
                         user.getString("name").get(),
                         user.getString("password").get(),
                         MTree.getArrayValueStringList(user.getArray("roles").orElse(new TreeNodeList("", null)))
@@ -55,6 +56,18 @@ public class UsersConfiguration extends AbstractSingleConfig {
         return users;
     }
 
-    public static record User(String name, String password, Collection<String> roles) {
+    public boolean allowCreateUsers() {
+        return config().getBoolean("allowCreateUsers", false);
+    }
+
+    public boolean allowUpdateUsers() {
+        return config().getBoolean("allowUpdateUsers", false);
+    }
+
+    public boolean allowDeleteUsers() {
+        return config().getBoolean("allowDeleteUsers", false);
+    }
+
+    public record User (String id, String name, String password, List<String> roles) {
     }
 }

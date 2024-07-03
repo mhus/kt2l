@@ -22,7 +22,7 @@ import de.mhus.commons.lang.ICloseable;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tree.IProperties;
 import de.mhus.commons.tree.MProperties;
-import de.mhus.kt2l.core.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.storage.StorageFile;
 import io.azam.ulidj.ULID;

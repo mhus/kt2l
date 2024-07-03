@@ -18,12 +18,12 @@
 package de.mhus.kt2l.cfg;
 
 import de.mhus.commons.tools.MFile;
+import de.mhus.kt2l.aaa.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityService;
+import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.config.Configuration;
-import de.mhus.kt2l.config.UsersConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.PanelService;
-import de.mhus.kt2l.core.SecurityContext;
-import de.mhus.kt2l.core.SecurityService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,7 +52,7 @@ public class CfgService {
     public synchronized boolean isUserCfgEnabled() {
 
         if (!securityService.hasRole(UsersConfiguration.ROLE.SETTINGS.name())) return false;
-        var userName = SecurityContext.lookupUserName();
+        var userName = SecurityContext.lookupUserId();
         return canWriteUserCfg.computeIfAbsent(userName, n -> {
             var userConfigDir = configuration.getUserConfigurationDirectory(n);
             var testFile = new File(userConfigDir,"test.txt");
@@ -95,7 +95,7 @@ public class CfgService {
 
         // collect all factories
 //        List<CfgFactory> userFactories = cfgFactories.stream().filter(f -> f.isUserRelated()).toList();
-        var userName = SecurityContext.lookupUserName();
+        var userName = SecurityContext.lookupUserId();
         File configDir = configuration.getUserConfigurationDirectory(userName);
 
         File localUserDir = configuration.getLocalUserConfigurationDirectory(userName);

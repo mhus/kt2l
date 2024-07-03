@@ -16,9 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.core;
-
-import de.mhus.kt2l.config.UsersConfiguration;
+package de.mhus.kt2l.aaa;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

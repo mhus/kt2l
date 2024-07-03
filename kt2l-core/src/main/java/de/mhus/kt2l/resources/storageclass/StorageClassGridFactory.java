@@ -18,8 +18,8 @@
 
 package de.mhus.kt2l.resources.storageclass;
 
-import de.mhus.kt2l.config.UsersConfiguration;
-import de.mhus.kt2l.core.WithRole;
+import de.mhus.kt2l.aaa.UsersConfiguration;
+import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourceGridFactory;
 import de.mhus.kt2l.resources.ResourcesGrid;

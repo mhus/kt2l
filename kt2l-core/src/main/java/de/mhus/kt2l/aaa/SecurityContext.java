@@ -15,17 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.core;
+package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.component.UI;
 import de.mhus.commons.errors.AuthorizationException;
 import de.mhus.commons.lang.ICloseable;
-import de.mhus.commons.security.SimplePrincipal;
-import de.mhus.kt2l.Kt2lApplication;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.security.Principal;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
@@ -35,22 +31,22 @@ public class SecurityContext {
     private static final ThreadLocal<SecurityContext> threadLocalConfigurationContext = new ThreadLocal<>();
 
     @Getter
-    private final String userName;
-    @Getter
-    private final Principal principal;
+    private final AaaUser user;
 
     public static SecurityContext create() {
         return new SecurityContext();
     }
 
-    public SecurityContext(String userName) {
-        this.userName = userName;
-        this.principal = new SimplePrincipal(userName);
+    public SecurityContext(AaaUser user) {
+        this.user = user;
     }
 
     protected SecurityContext() {
-        userName = lookupUserName();
-        principal = lookupPrincipal();
+        user = lookupUser();
+    }
+
+    public String getUserId() {
+        return user.getUserId();
     }
 
 //    public static boolean has() {
@@ -83,22 +79,19 @@ public class SecurityContext {
         }
     }
 
-    public static String lookupUserName() {
-        var context = threadLocalConfigurationContext.get();
-        final var userName = context != null ? context.getUserName() : tryThis(() -> (String) UI.getCurrent().getSession().getAttribute(Kt2lApplication.UI_USERNAME)).getOrThrow(() -> {
-            LOGGER.error("Calling config() without user in UI context", new Exception());
-            return new AuthorizationException("No user in UI context");
-        });
-        return userName;
+    public static String lookupUserId() {
+        var user = lookupUser();
+        if (user == null) return null;
+        return user.getUserId();
     }
 
-    public static Principal lookupPrincipal() {
+    public static AaaUser lookupUser() {
         var context = threadLocalConfigurationContext.get();
-        final var principal = context != null ? context.getPrincipal() : tryThis(() -> (Principal) SecurityUtils.getPrincipal()).getOrThrow(() -> {
+        final var user = context != null ? context.getUser() : tryThis(() -> SecurityUtils.getUser()).getOrThrow(() -> {
             LOGGER.error("Calling config() without user in UI context", new Exception());
             return new AuthorizationException("No user in UI context");
         });
-        return principal;
+        return user;
     }
 
 }

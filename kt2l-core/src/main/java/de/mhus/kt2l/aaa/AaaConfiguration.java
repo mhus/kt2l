@@ -16,9 +16,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.config;
+package de.mhus.kt2l.aaa;
 
 import de.mhus.commons.tree.MTree;
+import de.mhus.kt2l.config.AbstractUserRelatedConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

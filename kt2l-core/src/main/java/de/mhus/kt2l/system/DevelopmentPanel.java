@@ -21,6 +21,7 @@ import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.server.VaadinServletRequest;
 import de.mhus.commons.console.ConsoleTable;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MString;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.util.Arrays;
 import java.util.Objects;
 
 import static de.mhus.commons.tools.MLang.tryThis;
@@ -58,6 +60,7 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
     private OperatingSystemMXBean osBean;
     private TextArea output;
     private String browserMemoryUsage;
+    private volatile long requestRoundtripTime = -1;
 
     public DevelopmentPanel(boolean evilMode) {
         this.evilMode = evilMode;
@@ -85,6 +88,7 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         ebcmItem.getElement().setAttribute("title", "Enable Browser Context Menu");
         ebcmItem.setEnabled(deskTab.getTabBar().getCore().getGeneralContextMenu() != null);
 //        bar.addItem("Exception", e -> LOGGER.warn("Test", new RuntimeException("Test Exception")));
+        bar.addItem("HttpRequest", e -> showHttpRequest());
 
         add(bar);
 
@@ -101,6 +105,51 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
 
         osBean = ManagementFactory.getOperatingSystemMXBean();
         updateInfo(0);
+    }
+
+    private void showHttpRequest() {
+        VaadinServletRequest request = VaadinServletRequest.getCurrent();
+        if (request == null) {
+            output.setValue("No Request");
+            return;
+        }
+        var httpRequest = request.getHttpServletRequest();
+        if (httpRequest == null) {
+            output.setValue("No HttpRequest");
+            return;
+        }
+        StringBuffer i = new StringBuffer();
+        i.append("HttpRequest\n");
+        i.append("-----------------------\n");
+        i.append("Method        : " + httpRequest.getMethod() + "\n");
+        i.append("URI           : " + httpRequest.getRequestURI() + "\n");
+        i.append("Query         : " + httpRequest.getQueryString() + "\n");
+        i.append("RemoteAddr    : " + httpRequest.getRemoteAddr() + "\n");
+        i.append("RemoteHost    : " + httpRequest.getRemoteHost() + "\n");
+        i.append("RemotePort    : " + httpRequest.getRemotePort() + "\n");
+        i.append("LocalAddr     : " + httpRequest.getLocalAddr() + "\n");
+        i.append("LocalName     : " + httpRequest.getLocalName() + "\n");
+        i.append("LocalPort     : " + httpRequest.getLocalPort() + "\n");
+        i.append("AuthType      : " + httpRequest.getAuthType() + "\n");
+        i.append("UserPrincipal : " + httpRequest.getUserPrincipal() + "\n");
+        i.append("SessionId     : " + httpRequest.getSession().getId() + "\n");
+        i.append("SessionCreationTime       : " + httpRequest.getSession().getCreationTime() + "\n");
+        i.append("SessionLastAccessedTime   : " + httpRequest.getSession().getLastAccessedTime() + "\n");
+        i.append("SessionMaxInactiveInterval: " + httpRequest.getSession().getMaxInactiveInterval() + "\n");
+        i.append("SessionIsNew  : " + httpRequest.getSession().isNew() + "\n");
+        i.append("SessionIsRequestedSessionIdValid     : " + httpRequest.isRequestedSessionIdValid() + "\n");
+        i.append("SessionIsRequestedSessionIdFromCookie: " + httpRequest.isRequestedSessionIdFromCookie() + "\n");
+        i.append("SessionIsRequestedSessionIdFromURL   : " + httpRequest.isRequestedSessionIdFromURL() + "\n");
+        httpRequest.getHeaderNames().asIterator().forEachRemaining(h -> {
+            i.append("Header        : " + h + "=" + httpRequest.getHeader(h) + "\n");
+        });
+        Arrays.stream(httpRequest.getCookies()).forEach(c -> {
+            i.append("Cookie        : " + c.getName() + "=" + c.getValue() + "\n");
+        });
+        httpRequest.getParameterMap().forEach((k, v) -> {
+            i.append("Parameter     : " + k + "=" + Arrays.toString(v) + "\n");
+        });
+        output.setValue(i.toString());
     }
 
     private void showGridHistory() {
@@ -196,7 +245,9 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
 
     private void updateInfo(long counter) {
 
+        final var startRequestTime = System.currentTimeMillis();
         getElement().executeJs("return performance && performance.memory ? performance.memory.jsHeapSizeLimit + \" \" + performance.memory.totalJSHeapSize + \" \" + performance.memory.usedJSHeapSize : \"\"").then(String.class, value -> {
+            requestRoundtripTime = System.currentTimeMillis() - startRequestTime;
             this.browserMemoryUsage = value;
         });
 
@@ -218,6 +269,9 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
             var jsTotal = MCast.tolong(parts[1], 0);
             var jsUsed = MCast.tolong(parts[2], 0);
             i.append("Browser Memory (3sec): " + MString.toByteDisplayString(jsUsed) + " / " + MString.toByteDisplayString(jsLimit) + " / " + MString.toByteDisplayString(jsTotal) + "\n");
+        }
+        if (requestRoundtripTime >= 0) {
+            i.append("Browser Roundtrip Time: " + requestRoundtripTime + "ms\n");
         }
 
         info.setValue(i.toString());

@@ -204,4 +204,8 @@ public class Configuration {
     public void clearCache() {
         sections.clear();
     }
+
+    public File getPresetConfigurationDirectory(String preset) {
+        return new File(getGlobalConfigurationDirectory(), "presets/" + MFile.normalize(preset));
+    }
 }

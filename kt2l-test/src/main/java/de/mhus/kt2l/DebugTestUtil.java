@@ -19,6 +19,7 @@ package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MSystem;
+import de.mhus.commons.tools.MThread;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -27,25 +28,35 @@ import org.openqa.selenium.WebDriver;
 import javax.swing.*;
 import java.io.File;
 
+import static de.mhus.commons.tools.MString.isEmpty;
+
 @Slf4j
 public class DebugTestUtil {
 
     public static final boolean TEST_DEBUG = MCast.toboolean(System.getenv("TEST_DEBUG"), MSystem.isVmDebug());
+    public static final boolean TEST_DEBUG_STEPS = MCast.toboolean(System.getenv("TEST_DEBUG_STEPS"), false);
     public static final boolean TEST_HEADLESS = MCast.toboolean(System.getenv("TEST_HEADLESS"), TEST_DEBUG);
     public static final boolean TEST_SCREENSHOTS = MCast.toboolean(System.getenv("TEST_SCREENSHOTS"), false);
     private static JFrame frame;
     private static JLabel frameLabel;
+    private static String currentTestName = "";
 
-    public static void debugPrepare() {
+    public static void debugPrepare(String testName) {
         if (TEST_DEBUG) {
-            if (frame != null) return;
+            if (frame != null) {
+                DebugTestUtil.currentTestName = testName;
+                updateFrame();
+                return;
+            }
             System.setProperty("java.awt.headless", String.valueOf(!TEST_DEBUG));
             frame = new JFrame();
-            frame.setSize(200,50);
+            frame.setSize(600,50);
+            frame.setUndecorated(false);
             frameLabel = new JLabel("Running in debug mode");
             frame.getContentPane().add(frameLabel);
             frame.setVisible(true);
             frame.setAlwaysOnTop(true);
+            updateFrame();
         }
         if (TEST_SCREENSHOTS) {
             File dir = new File("target/screenshots");
@@ -53,17 +64,31 @@ public class DebugTestUtil {
         }
     }
 
-    public static void debugBreakpoint(String msg) {
+    private static void updateFrame() {
+        if (frameLabel == null) return;
+        if (isEmpty(currentTestName))
+            frameLabel.setText("Running in debug mode");
+        else
+            frameLabel.setText("Running: " + currentTestName);
+    }
+
+    public static void debugStep(String msg) {
+        debugStep(msg, TEST_DEBUG_STEPS);
+    }
+
+    public static void debugStep(String msg, boolean force) {
         if (!TEST_DEBUG) return;
 
         frame.toFront();
-        frameLabel.setText("Waiting for user input");
+        frameLabel.setText("Waiting: " + currentTestName + " - " + msg);
 
-        JOptionPane.showConfirmDialog(null,
-                msg, "Breakpoint", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE);
-
-        frameLabel.setText("Running in debug mode");
-
+        if (force) {
+            JOptionPane.showConfirmDialog(null,
+                    msg, "Breakpoint", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE);
+        } else {
+            MThread.sleep(1000);
+        }
+        updateFrame();
     }
 
     public static void doScreenshot(WebDriver driver, String name) {
@@ -75,5 +100,10 @@ public class DebugTestUtil {
             LOGGER.info("Screenshot {} at {}", name, screenshot.getAbsolutePath());
         } else
             LOGGER.error("Screenshot not supported by driver");
+    }
+
+    public static void debugClose() {
+        currentTestName = "closed";
+        updateFrame();
     }
 }

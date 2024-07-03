@@ -19,11 +19,11 @@ package de.mhus.kt2l.system;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import de.mhus.kt2l.config.UsersConfiguration;
+import de.mhus.kt2l.aaa.UsersConfiguration;
+import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.CoreAction;
 import de.mhus.kt2l.core.PanelService;
-import de.mhus.kt2l.core.WithRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

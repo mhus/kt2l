@@ -33,7 +33,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
 @Slf4j
 public class App {
 
-    public static void resetUi(WebDriver driver, ServletWebServerApplicationContext webServerApplicationContext) {
+    public static void resetUi(WebDriver driver, ServletWebServerApplicationContext webServerApplicationContext, boolean loginPageExpected) {
         LOGGER.info("Reset test on port {}", webServerApplicationContext.getWebServer().getPort());
 
         boolean done = false;
@@ -52,7 +52,7 @@ public class App {
             }
         }
         if (!done) {
-            DebugTestUtil.debugBreakpoint("Reset reset failed");
+            DebugTestUtil.debugStep("Reset reset failed", true);
             throw new RuntimeException("Reset reset failed");
         }
 
@@ -62,14 +62,19 @@ public class App {
 //            MThread.sleep(300);
             driver.get("http://localhost:" + webServerApplicationContext.getWebServer().getPort());
             try {
-                new WebDriverWait(driver, ofSeconds(10), ofSeconds(2))
-                        .until(visibilityOfElementLocated(By.xpath("//span[contains(.,\"[KT2L]\")]")));
+                if (loginPageExpected) {
+                    new WebDriverWait(driver, ofSeconds(10), ofSeconds(2))
+                            .until(visibilityOfElementLocated(By.xpath("//h1[contains(.,\"KT2L\")]")));
+                } else {
+                    new WebDriverWait(driver, ofSeconds(10), ofSeconds(2))
+                            .until(visibilityOfElementLocated(By.xpath("//span[contains(.,\"[KT2L]\")]")));
+                }
                 return;
             } catch (Exception e) {
                 LOGGER.error("ⓧ Reset home failed", e);
             }
         }
-        DebugTestUtil.debugBreakpoint("Reset home failed");
+        DebugTestUtil.debugStep("Reset home failed", true);
         throw new RuntimeException("Reset home failed");
     }
 

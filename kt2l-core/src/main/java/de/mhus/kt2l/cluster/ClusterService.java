@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -48,5 +49,16 @@ public class ClusterService {
 
     public Optional<String> defaultClusterName() {
         return Optional.ofNullable(clustersConfig.defaultClusterName());
+    }
+
+    public List<ClusterOverviewPanel.ClusterItem> getAvailableClusters() {
+        return k8s.getAvailableContexts().stream()
+                .map(name -> {
+                    final var cluster = getCluster(name);
+                    return new ClusterOverviewPanel.ClusterItem(name, cluster.getTitle(), cluster);
+                })
+                .filter(cluster -> cluster.cluster().isEnabled())
+                .toList();
+
     }
 }

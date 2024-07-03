@@ -20,8 +20,8 @@ package de.mhus.kt2l;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.util.App;
 import de.mhus.kt2l.util.AremoricaContextConfiguration;
-import de.mhus.kt2l.util.AremoricaK8sService;
 import de.mhus.kt2l.util.CoreHelper;
+import de.mhus.kt2l.util.TestResultDebugWatcher;
 import de.mhus.kt2l.util.WebDriverUtil;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -59,6 +60,7 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElemen
         }
 )
 @Import({AremoricaContextConfiguration.class, CoreHelper.class})
+@ExtendWith(TestResultDebugWatcher.class)
 public class LocalServerTimeoutTest {
 
     private static WebDriver driver;
@@ -72,46 +74,17 @@ public class LocalServerTimeoutTest {
 
     @BeforeAll
     public static void beforeAll() throws IOException, ApiException {
-        System.out.println("----------------------------------------------------------------");
-        System.out.println("Ⓘ Before All");
-        System.out.println("----------------------------------------------------------------");
-        DebugTestUtil.debugPrepare();
-
         driver = WebDriverUtil.open();
-
     }
 
     @AfterAll
     public static void afterAll() {
-        System.out.println("----------------------------------------------------------------");
-        System.out.println("Ⓘ After All");
-        System.out.println("----------------------------------------------------------------");
-
         WebDriverUtil.close(driver);
-        AremoricaK8sService.stop();
-    }
-
-    @BeforeEach
-    public void beforeEach(TestInfo testInfo) {
-        System.out.println("----------------------------------------------------------------");
-        var name = testInfo.getTestMethod().map(Method::getName).orElse("unknown");
-        System.out.println("Ⓘ Start Test: " + name);
-        System.out.println("----------------------------------------------------------------");
-    }
-
-    @AfterEach
-    public void afterEach(TestInfo testInfo) {
-        System.out.println("----------------------------------------------------------------");
-        var name = testInfo.getTestMethod().map(Method::getName).orElse("unknown");
-        System.out.println("Ⓘ End Test: " + name);
-        System.out.println("----------------------------------------------------------------");
-        DebugTestUtil.debugBreakpoint("After " + name);
     }
 
     @Test
-    @Order(2)
     public void testExtendSession() {
-        App.resetUi(driver, webServerApplicationContext);
+        App.resetUi(driver, webServerApplicationContext, false);
         LOGGER.info("Wait for timeout time");
         MThread.sleep(5 * 1000);
         LOGGER.info("Wait for Idle Notification Dialog");

@@ -29,15 +29,15 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.StreamResource;
 import de.mhus.commons.tools.MString;
-import de.mhus.kt2l.config.AaaConfiguration;
+import de.mhus.kt2l.aaa.AaaConfiguration;
+import de.mhus.kt2l.aaa.SecurityService;
+import de.mhus.kt2l.aaa.SecurityUtils;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.CoreAction;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.PanelService;
-import de.mhus.kt2l.core.SecurityService;
-import de.mhus.kt2l.core.SecurityUtils;
 import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.system.DevelopmentAction;
@@ -99,14 +99,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
         add(new Text(" "));
         clusterBox = new ComboBox<>("Select a cluster");
-        clusterList = k8s.getAvailableContexts().stream()
-                .map(name -> {
-                    final var cluster = clusterService.getCluster(name);
-                    return new ClusterItem(name, cluster.getTitle(), cluster);
-                })
-                .filter(cluster -> cluster.cluster().isEnabled())
-                .toList();
-
+        clusterList = clusterService.getAvailableClusters();
         clusterBox.setItems(clusterList);
         clusterBox.setItemLabelGenerator(ClusterItem::title);
         clusterBox.setWidthFull();
