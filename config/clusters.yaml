@@ -19,6 +19,7 @@
 defaultCluster: colima
 defaultResourceType: "pods"
 defaultNamespace: default
+clusterSelector: true
 clusters:
   - name: colima
     title: "Colima"

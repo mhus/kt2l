@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kt2l-cluster-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kt2l-cluster-role
+subjects:
+  - kind: ServiceAccount
+    name: kt2l-service-account
+    namespace: kt2l

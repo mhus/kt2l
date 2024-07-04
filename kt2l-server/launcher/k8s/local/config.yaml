@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-config
+  namespace: kt2l
+data:
+  # kt2l-users
+  login.yaml: |
+    autoLogin: false
+    autoLoginUser: nouser
+    localAuthEnabled: true
+    oauth2Enabled: false
+  users.yaml: |
+    users:
+      - name: "admin"
+        id: "admin"
+        password: "{env}admin_password"
+        roles:
+          - "READ"
+          - "WRITE"
+          - "LOCAL"
+          - "SETTINGS"
+          - "ADMIN"
+      - name: "user"
+        id: "user"
+        password: "{env}user_password"
+        roles:
+        - "READ"
+        - "WRITE"
+        - "SETTINGS"
+      - name: "viewer"
+        id: "viewer"
+        password: "{env}viewer_password"
+        roles:
+          - "READ"
+  clusters.yaml: |
+    defaultCluster: .local-cluster
+    defaultResourceType: "pods"
+    defaultNamespace: default
+    clusterSelector: false
+    clusters:
+        - name: .local-cluster
+          title: "Cluster"
+          enabled: true

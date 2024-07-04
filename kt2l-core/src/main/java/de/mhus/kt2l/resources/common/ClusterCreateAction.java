@@ -19,6 +19,8 @@ package de.mhus.kt2l.resources.common;
 
 import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.aaa.UsersConfiguration;
+import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterAction;
 import de.mhus.kt2l.core.Core;
@@ -27,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@WithRole(UsersConfiguration.ROLE.WRITE)
 public class ClusterCreateAction implements ClusterAction {
 
     @Autowired

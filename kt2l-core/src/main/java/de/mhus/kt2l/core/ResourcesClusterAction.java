@@ -20,12 +20,15 @@ package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.aaa.UsersConfiguration;
+import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@WithRole(UsersConfiguration.ROLE.READ)
 public class ResourcesClusterAction implements ClusterAction {
 
     @Autowired

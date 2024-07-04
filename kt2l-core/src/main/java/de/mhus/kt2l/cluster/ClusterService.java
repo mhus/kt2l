@@ -18,11 +18,17 @@
 package de.mhus.kt2l.cluster;
 
 import de.mhus.commons.errors.NotFoundRuntimeException;
+import de.mhus.kt2l.aaa.AaaConfiguration;
+import de.mhus.kt2l.aaa.SecurityService;
+import de.mhus.kt2l.aaa.SecurityUtils;
+import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.core.CoreAction;
 import de.mhus.kt2l.k8s.K8sService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,12 +38,19 @@ public class ClusterService {
 
     @Autowired
     private ClusterConfiguration clustersConfig;
-
     @Autowired
     private K8sService k8s;
-
+    @Autowired(required = false)
+    private List<CoreAction> coreActions;
+    @Autowired(required = false)
+    private List<ClusterAction> clusterActions;
+    @Autowired
+    private SecurityService securityService;
 
     public Cluster getCluster(String clusterName) {
+        if (!isClusterSelectorEnabled() && !clusterName.equals(clustersConfig.defaultClusterName())) {
+            throw new NotFoundRuntimeException("Cluster not default: " + clusterName);
+        }
         var contexts = k8s.getAvailableContexts();
         if (!contexts.contains(clusterName)) {
             throw new NotFoundRuntimeException("Cluster not found: " + clusterName);
@@ -51,14 +64,34 @@ public class ClusterService {
         return Optional.ofNullable(clustersConfig.defaultClusterName());
     }
 
-    public List<ClusterOverviewPanel.ClusterItem> getAvailableClusters() {
+    public List<Cluster> getAvailableClusters() {
+        if (!isClusterSelectorEnabled()) {
+            return List.of(getCluster(clustersConfig.defaultClusterName()));
+        }
         return k8s.getAvailableContexts().stream()
-                .map(name -> {
-                    final var cluster = getCluster(name);
-                    return new ClusterOverviewPanel.ClusterItem(name, cluster.getTitle(), cluster);
-                })
-                .filter(cluster -> cluster.cluster().isEnabled())
+                .map(name -> getCluster(name))
+                .filter(cluster -> cluster.isEnabled())
                 .toList();
+    }
 
+    public boolean isClusterSelectorEnabled() {
+        return clustersConfig.defaultClusterName() == null || clustersConfig.isClusterSelectorEnabled();
+    }
+
+    public List<CoreAction> getCoreActions(Core core) {
+        if (coreActions == null) return List.of();
+        return coreActions.stream()
+                .filter(action ->
+                        securityService.hasRole(AaaConfiguration.SCOPE_CORE_ACTION, action) && action.canHandle(core))
+                .sorted(Comparator.comparingInt(a -> a.getPriority()))
+                .toList();
+    }
+
+    public List<ClusterAction> getClusterActions(Core core) {
+        if (clusterActions == null) return List.of();
+        return clusterActions.stream()
+                .filter(action -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER_ACTION, action) && action.canHandle(core))
+                .sorted(Comparator.comparingInt(a -> a.getPriority()))
+                .toList();
     }
 }
