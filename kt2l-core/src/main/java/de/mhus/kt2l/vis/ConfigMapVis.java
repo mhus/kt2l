@@ -19,7 +19,7 @@ package de.mhus.kt2l.vis;
 
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.secret.SecretWatch;
+import de.mhus.kt2l.resources.configmap.ConfigMapWatch;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -39,7 +39,7 @@ public class ConfigMapVis extends  AbstractVisHandler {
 
     @Override
     protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
-        return SecretWatch.class;
+        return ConfigMapWatch.class;
     }
 
     @Override
@@ -71,8 +71,8 @@ public class ConfigMapVis extends  AbstractVisHandler {
         pod.getSpec().getContainers().forEach(container -> {
             if (container.getEnv() != null) {
                 container.getEnv().forEach(env -> {
-                    if (env.getValueFrom() != null && env.getValueFrom().getSecretKeyRef() != null) {
-                        if (env.getValueFrom().getSecretKeyRef().getName().equals(resName)) {
+                    if (env.getValueFrom() != null && env.getValueFrom().getConfigMapKeyRef() != null) {
+                        if (env.getValueFrom().getConfigMapKeyRef().getName().equals(resName)) {
                             panel.processEdge(v1, v2);
                         }
                     }
@@ -80,8 +80,8 @@ public class ConfigMapVis extends  AbstractVisHandler {
             }
             if (container.getEnvFrom() != null) {
                 container.getEnvFrom().forEach(envFrom -> {
-                    if (envFrom.getSecretRef() != null) {
-                        if (envFrom.getSecretRef().getName().equals(resName)) {
+                    if (envFrom.getConfigMapRef() != null) {
+                        if (envFrom.getConfigMapRef().getName().equals(resName)) {
                             panel.processEdge(v1, v2);
                         }
                     }

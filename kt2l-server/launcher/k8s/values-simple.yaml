@@ -1,0 +1,35 @@
+
+login:
+  users:
+    - name: "admin"
+      id: "admin"
+      password: "{env}admin_password"
+      roles:
+        - "READ"
+        - "WRITE"
+        - "LOCAL"
+        - "SETTINGS"
+        - "ADMIN"
+    - name: "user"
+      id: "user"
+      password: "{env}user_password"
+      roles:
+        - "READ"
+        - "WRITE"
+        - "SETTINGS"
+    - name: "viewer"
+      id: "viewer"
+      password: "{env}viewer_password"
+      roles:
+        - "READ"
+  passwords:
+    # 2UKowq7JszoxAzfSvcCKRTpD4Cb
+    admin_password: MlVLb3dxN0pzem94QXpmU3ZjQ0tSVHBENENiCg==
+    # ov7yV9EzZRMp65ZHaurPRYy2PwD
+    user_password: b3Y3eVY5RXpaUk1wNjVaSGF1clBSWXkyUHdECg==
+    # tvanR3WHokmAexboBeaqGm6LVub
+    viewer_password: dHZhblIzV0hva21BZXhib0JlYXFHbTZMVnViCg==
+
+image:
+  tag: "snapshot-20240704232901"
+  pullPolicy: Never
