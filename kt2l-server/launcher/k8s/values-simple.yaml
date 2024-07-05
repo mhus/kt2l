@@ -23,12 +23,9 @@ login:
       roles:
         - "READ"
   passwords:
-    # 2UKowq7JszoxAzfSvcCKRTpD4Cb
-    admin_password: MlVLb3dxN0pzem94QXpmU3ZjQ0tSVHBENENiCg==
-    # ov7yV9EzZRMp65ZHaurPRYy2PwD
-    user_password: b3Y3eVY5RXpaUk1wNjVaSGF1clBSWXkyUHdECg==
-    # tvanR3WHokmAexboBeaqGm6LVub
-    viewer_password: dHZhblIzV0hva21BZXhib0JlYXFHbTZMVnViCg==
+    admin_password: 2UKowq7JszoxAzfSvcCKRTpD4Cb
+    user_password: ov7yV9EzZRMp65ZHaurPRYy2PwD
+    viewer_password: tvanR3WHokmAexboBeaqGm6LVub
 
 image:
   tag: "snapshot-20240704232901"
