@@ -1,0 +1,9 @@
+{{- if .Values.namespace.resourceQuota -}}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ .Values.namespace.name }}-quota
+  namespace: {{ .Values.namepace.name }}
+spec:
+  hard: {{ .Values.namespace.resourceQuota }}
+{{- end }}

@@ -43,14 +43,13 @@ if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
     exit 1
 fi
 
-
 CREATED=$(date +"%Y-%m-%d")
 rm -rf gh-pages
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
 
 FILENAME=kt2l-container-$CREATED.zip
 TITLE="Docker Container"
-DESCRIPTION="Can be started as Server and accessed via Browser, locally also. Java JDK 21 is required."
+DESCRIPTION="Can be started as Server and accessed via Browser, locally also. Java JDK 21 is required. \"docker pull mhus/kt2l-server:snapshot-$CREATED\""
 HREF=
 HREF_HELP="/docs/installation/container"
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-container.ts
@@ -59,7 +58,8 @@ REGISTRY_URL="https://index.docker.io/v1/"
 docker login "$REGISTRY_URL" -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 
 docker push mhus/kt2l-server:snapshot
-docker push mhus/kt2l-server:$(cat kt2l-container.version)
+docker tag mhus/kt2l-server:snapshot mhus/kt2l-server:snapshot-$CREATED
+docker push mhus/kt2l-server:snapshot-$CREATED
 
 # copy to aws
 echo "Copy download-snapshot-container.ts to cache"

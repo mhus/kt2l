@@ -45,6 +45,7 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.tools.MCollection;
+import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
 import de.mhus.commons.tree.ITreeNode;
@@ -466,6 +467,7 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
 
     @Override
     public void setNamespace(String value) {
+        if (MObject.equals(namespace, value)) return;
         namespace = value;
         if (resourcesList != null) {
             resourcesList = null;

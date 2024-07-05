@@ -432,6 +432,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                 tl.setPadding(false);
             }
             gridContainer.add(gc);
+            grid.setNamespace(namespaceSelector.getValue());
         }
     }
 
