@@ -217,7 +217,7 @@ public class LocalServerTest {
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1)).until((d) ->
         {
             try {
-                var element = d.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[2]/vaadin-checkbox"));
+                var element = d.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[1]/vaadin-checkbox"));
                 return element.getAttribute("checked") != null;
             } catch (Exception e) {
                 return false;
@@ -273,7 +273,7 @@ public class LocalServerTest {
         new WebDriverWait(driver, ofSeconds(60), ofSeconds(1)).until((d) ->
         {
             try {
-                var element = d.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[2]/vaadin-checkbox"));
+                var element = d.findElement(By.xpath("//vaadin-grid-cell-content[contains(.,\"asterix\")]/preceding-sibling::*[1]/vaadin-checkbox"));
                 return element.getAttribute("checked") != null;
             } catch (Exception e) {
                 return false;
