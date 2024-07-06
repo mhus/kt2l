@@ -31,7 +31,9 @@ oauth2Providers:
   - id: github
     roleMapping:
       role: [READ]
-oauth2AcceptEmails:
+oauth2Accept:
   - pattern: '.*@gmail.com'
+    provider: google
+    acceptRoles: ['.*']
     # userConfigPreset: google
     defaultRoles: [READ]

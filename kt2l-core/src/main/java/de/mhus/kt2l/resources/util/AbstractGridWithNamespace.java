@@ -313,6 +313,19 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
     protected abstract int sortColumn(String sorted, SortDirection direction, T a, T b);
 
     @Override
+    public void setNamespace(String value) {
+        if (resourcesGrid == null) return;
+        var columns = resourcesGrid.getColumns();
+        if (columns.size() == 0) return;
+        super.setNamespace(value);
+        if (value != null  && value.equals(K8sUtil.NAMESPACE_ALL_LABEL)) {
+            columns.get(0).setVisible(true);
+        } else {
+            columns.get(0).setVisible(false);
+        }
+    }
+
+        @Override
     public boolean isNamespaced() {
         return true;
     }

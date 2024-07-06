@@ -13,6 +13,7 @@ configuration can be overwritten in the user config directory. Set the environme
 defaultCluster: colima
 defaultResourceType: "pods"
 defaultNamespace: default
+clusterSelector: true
 clusters:
   - name: colima
     title: "Colima"
@@ -23,6 +24,12 @@ clusters:
 The example shows the configuration for the cluster `colima`.
 
 The following colors are available: `red`, `green`, `blue`, `yellow`, `purple`, `orange`, `pink`, `cyan`, `gray`.
+
+The common confiuration properties are:
+- `defaultCluster`: The default cluster
+- `defaultResourceType`: The default resource type
+- `defaultNamespace`: The default namespace
+- `clusterSelector`: If the cluster selector is enabled or the default cluster forced to be used (defaultCluster must be set)
 
 In the cluster section you can define the following properties:
 

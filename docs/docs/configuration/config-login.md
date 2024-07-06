@@ -34,8 +34,10 @@ oauth2Providers:
   - id: google
     roleMapping:
         role: [READ]
-oauth2AcceptEmails:
+oauth2Accept:
   - pattern: '.*@gmail.com'
+    provider: google
+    acceptRoles: ['.*']
     userConfigPreset: google
     defaultRoles: [READ]
 ```
@@ -43,9 +45,17 @@ oauth2AcceptEmails:
 Disable autologint to show the login page. Enable `oauth2Enabled` to enable the OAuth2 login. With
 `oauth2Providers` you can define the OAuth2 providers to use. The `id` is the identifier of the provider
 and must be unique. The `roleMapping` maps the roles of the provider to the roles of the user. 
-The `oauth2AcceptEmails` is a list of email patterns that are accepted for login. The list will be
+The `oauth2Accept` is a list of email patterns that are accepted for login. The list will be
 processes from top to bottom. The `userConfigPreset` is the user configuration preset to use for the user. It
 will be created if no user configuration exists. The `defaultRoles` are the roles that are assigned to the user.
+
+The option `provider` is optional and can specify the provider to use for the user. If the provider is not specified
+the rule will match every provider.
+
+The `acceptRoles` is a list of roles that are accepted for the user. The roles are regular expressions. If the user
+has a role that matches the regular expression the user is accepted.  If the option is not specified the rule will
+match every role. If the user has no role and this option is set with a not empty list or patterns the user will not be
+accepted.
 
 The `oauth2Providers` configuration is provider specific. The following providers are supported:
 - google

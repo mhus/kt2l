@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: environment
+  namespace: {{ .Values.namespace.name }}
+data:
+  KT2L_UNSECURE: "false"
+  {{- range $key, $val := .Values.environment }}
+  # fix printing the key name in the required string
+  {{ $key }}: {{ required "a valid key is required" $val }}
+  {{- end }}

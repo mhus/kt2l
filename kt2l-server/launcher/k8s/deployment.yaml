@@ -45,7 +45,6 @@ data:
     login.yaml: |
       autoLogin: false
       autoLoginUser: nouser
-      protectedConfigurations:
     users.yaml: |
       users:
         - name: "admin"
@@ -70,9 +69,10 @@ data:
         defaultCluster: .local-cluster
         defaultResourceType: "pods"
         defaultNamespace: default
+        clusterSelector: false
         clusters:
             - name: .local-cluster
-              title: "This"
+              title: "Cluster"
               enabled: true
               color: blue
 ---

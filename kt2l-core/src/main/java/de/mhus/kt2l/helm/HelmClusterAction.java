@@ -20,6 +20,8 @@ package de.mhus.kt2l.helm;
 import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.server.StreamResource;
+import de.mhus.kt2l.aaa.UsersConfiguration;
+import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterAction;
 import de.mhus.kt2l.core.Core;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
+@WithRole(UsersConfiguration.ROLE.READ)
 public class HelmClusterAction implements ClusterAction {
 
     @Autowired

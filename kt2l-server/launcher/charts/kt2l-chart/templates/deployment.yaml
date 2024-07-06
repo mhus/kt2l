@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ include "kt2l-chart.fullname" . }}
+    {{- include "kt2l-chart.labels" . | nindent 4 }}
+  name: {{ include "kt2l-chart.fullname" . }}
+  namespace: {{ .Values.namespace.name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "kt2l-chart.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "kt2l-chart.fullname" . }}
+        {{- include "kt2l-chart.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "kt2l-chart.fullname" . }}
+      containers:
+        - image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: {{ include "kt2l-chart.fullname" . }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          ports:
+            - containerPort: 9080
+              name: http
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: {{ include "kt2l-chart.fullname" . }}-passwords
+            - configMapRef:
+                name: {{ include "kt2l-chart.fullname" . }}-config
+          volumeMounts:
+            - name: config
+              mountPath: /app/kt2l-server/config/local
+          livenessProbe:
+            failureThreshold: 60
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 5
+      volumes:
+        # You set volumes at the Pod level, then mount them into containers inside that Pod
+        - name: config
+          configMap:
+            # Provide the name of the ConfigMap you want to mount.
+            name: {{ include "kt2l-chart.fullname" . }}-config

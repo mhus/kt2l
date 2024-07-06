@@ -1,0 +1,20 @@
+
+login:
+  users:
+    - name: "viewer"
+      id: "viewer"
+      password: "{env}viewer_password"
+      roles:
+        - "READ"
+  passwords:
+    viewer_password: tvanR3WHokmAexboBeaqGm6LVub
+
+role:
+  rules:
+    - apiGroups: ["", "metrics.k8s.io","apps","batch","extensions","networking.k8s.io","storage.k8s.io","rbac.authorization.k8s.io","autoscaling","policy", "events.k8s.io"]
+      resources: ["*"]
+      verbs: ["read", "list","watch"]
+
+image:
+  tag: "snapshot-20240704232901"
+  pullPolicy: Never

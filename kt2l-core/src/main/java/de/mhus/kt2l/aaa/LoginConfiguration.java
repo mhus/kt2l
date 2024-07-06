@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static de.mhus.commons.tools.MString.isEmpty;
+import static de.mhus.commons.tools.MString.isSet;
+
 @Component
 public class LoginConfiguration extends AbstractSingleConfig {
 
@@ -88,8 +91,8 @@ public class LoginConfiguration extends AbstractSingleConfig {
         return config().getArray("oauth2Providers").orElse(MTree.EMPTY_LIST).stream().filter(e -> e.getString("id").orElse("").equals(id)).findFirst().map(e -> new OAuthProvider(e));
     }
 
-    public List<OAuthAccepted> getOAuth2AcceptEmails() {
-        return config().getArray("oauth2AcceptEmails").orElse(MTree.EMPTY_LIST).stream().map(e -> new OAuthAccepted(e)).toList();
+    public List<OAuthAccepted> getOAuth2Accept() {
+        return config().getArray("oauth2Accept").orElse(MTree.EMPTY_LIST).stream().map(e -> new OAuthAccepted(e)).toList();
     }
 
     public String getRedirectUrl() {
@@ -108,13 +111,37 @@ public class LoginConfiguration extends AbstractSingleConfig {
             return item.getString("pattern", null);
         }
 
-        public boolean matches(String mail) {
-            return mail.matches(getPattern());
+        public String getProvider() {
+            return item.getString("provider", null);
+        }
+
+        public boolean accept(AaaUser user) {
+            return
+                    (isEmpty(getProvider()) || getProvider().equals(user.getProvider()))
+                    &&
+                    isSet(user.getEmail()) && user.getEmail().matches(getPattern())
+                    &&
+                    acceptRoles(user);
+        }
+
+        private boolean acceptRoles(AaaUser user) {
+            var acceptRoles = getAcceptRoles();
+            if (acceptRoles.isEmpty())
+                return true;
+            for (String userRole : user.getRoles())
+                for (String role : acceptRoles)
+                    if (userRole.matches(role))
+                        return true;
+            return false;
         }
 
 
         public List<String> getDefaultRoles() {
             return MTree.getArrayValueStringList(item.getArray("defaultRoles").orElse(MTree.EMPTY_LIST));
+        }
+
+        public List<String> getAcceptRoles() {
+            return MTree.getArrayValueStringList(item.getArray("acceptRoles").orElse(MTree.EMPTY_LIST));
         }
 
         public String getUserConfigPreset() {

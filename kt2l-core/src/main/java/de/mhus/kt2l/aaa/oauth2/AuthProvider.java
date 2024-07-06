@@ -143,8 +143,8 @@ public class AuthProvider {
     }
 
     private LoginConfiguration.OAuthAccepted acceptUser(AaaUser aaaUser) {
-        for ( var accept : loginConfiguration.getOAuth2AcceptEmails())
-            if (accept.matches(aaaUser.getEmail()))
+        for ( var accept : loginConfiguration.getOAuth2Accept())
+            if (accept.accept(aaaUser))
                 return accept;
         return null;
     }

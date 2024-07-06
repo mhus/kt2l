@@ -20,17 +20,19 @@
 while getopts hcpus flag
 do
     case "${flag}" in
-        h) echo "Usage: $0 [-h] [-c] [-p] [-u] [-s]"
+        h) echo "Usage: $0 [-h] [-c] [-p] [-u] [-s] [-t]"
                echo "  -h  Display this help"
                echo "  -c  Skip compile"
                echo "  -p  Skip prepare"
                echo "  -u  uninstall before install"
                echo "  -s  Start server after install"
+               echo "  -t  Also execute tests"
                exit 0;;
         c) SKIP_COMPILE=true;;
         p) SKIP_PREPARE=true;;
         u) UNINSTALL=true;;
         s) START=true;;
+        t) TEST=true;;
     esac
 done
 
@@ -48,6 +50,16 @@ if [ -z "$SKIP_COMPILE" ]; then
   echo "Compile project"
   echo "------------------------------------------------------------"
   mvn clean install -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
+fi
+
+if [ -n "$TEST" ]; then
+  echo "------------------------------------------------------------"
+  echo "Execute tests"
+  echo "------------------------------------------------------------"
+  cd kt2l-tests
+  # export TEST_DEBUG=true
+  mvn test || exit 1
+  cd ..
 fi
 
 cd kt2l-server

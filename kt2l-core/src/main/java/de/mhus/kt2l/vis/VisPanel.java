@@ -453,7 +453,7 @@ public class VisPanel extends SplitLayout implements DeskTabListener {
 
     public void processEdge(NodeStore v1, NodeStore v2) {
         deges.computeIfAbsent(v1.node.getId() + "/" + v2.node.getId(), n -> {
-            LOGGER.info("Add Edge {} -> {}", v1.node().getId(), v2.node().getId());
+            LOGGER.debug("Add Edge {} -> {}", v1.node().getId(), v2.node().getId());
             var edge = new Edge(v1.node().getId(), v2.node().getId());
             v1.handler.createEdge(edge, v1, v2);
             core.ui().access(() -> {

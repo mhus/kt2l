@@ -29,6 +29,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.StreamResource;
 import de.mhus.commons.tools.MString;
+import de.mhus.commons.tree.ITreeNode;
 import de.mhus.kt2l.aaa.AaaConfiguration;
 import de.mhus.kt2l.aaa.SecurityService;
 import de.mhus.kt2l.aaa.SecurityUtils;
@@ -59,14 +60,8 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     @Autowired
     private K8sService k8s;
 
-    @Autowired(required = false)
-    private ClusterService clusterService;
-
-    @Autowired(required = false)
-    private List<ClusterAction> clusterActions;
-
     @Autowired
-    private List<CoreAction> coreActions;
+    private ClusterService clusterService;
 
     @Autowired
     private SecurityService securityService;
@@ -90,88 +85,65 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
             new DevelopmentAction().execute(panelService, core, false);
         }
     };
+    private ITreeNode viewConfig;
+    private Div clusterLabel;
+    private Cluster defaultCluster;
 
     public ClusterOverviewPanel(Core core) {
         this.core = core;
     }
 
     public void createUi() {
+        viewConfig = viewsConfiguration.getConfig("clusterOverview");
 
         add(new Text(" "));
-        clusterBox = new ComboBox<>("Select a cluster");
-        clusterList = clusterService.getAvailableClusters();
-        clusterBox.setItems(clusterList);
-        clusterBox.setItemLabelGenerator(ClusterItem::title);
-        clusterBox.setWidthFull();
-        clusterBox.setId("clusterselect");
 
-        if (viewsConfiguration.getConfig("clusterOverview").getBoolean("colors", true)) {
-            clusterBox.setRenderer(new ComponentRenderer<Component, ClusterItem>(item -> {
-                Div div = new Div(item.title());
-                if (item.cluster().getColor() != null)
-                    div.addClassName("color-" + item.cluster().getColor().name().toLowerCase());
-                return div;
-            }));
-            clusterBox.addValueChangeListener(e -> {
-                clusterBox.getClassNames().removeIf(n -> n.startsWith("color-"));
-                if (e.getValue() != null && e.getValue().cluster().getColor() != null) {
-                    clusterBox.addClassName("color-" + e.getValue().cluster().getColor().name().toLowerCase());
-                }
+        if (clusterService.isClusterSelectorEnabled()) {
+            clusterBox = new ComboBox<>("Select a cluster");
+            clusterList = clusterService.getAvailableClusters().stream().map(c -> new ClusterItem(c.getName(), c.getTitle(), c)).toList();
+            clusterBox.setItems(clusterList);
+            clusterBox.setItemLabelGenerator(ClusterItem::title);
+            clusterBox.setWidthFull();
+            clusterBox.setId("clusterselect");
+
+            if (viewConfig.getBoolean("colors", true)) {
+                clusterBox.setRenderer(new ComponentRenderer<Component, ClusterItem>(item -> {
+                    Div div = new Div(item.title());
+                    if (item.cluster().getColor() != null)
+                        div.addClassName("color-" + item.cluster().getColor().name().toLowerCase());
+                    return div;
+                }));
+                clusterBox.addValueChangeListener(e -> {
+                    clusterBox.getClassNames().removeIf(n -> n.startsWith("color-"));
+                    if (e.getValue() != null && e.getValue().cluster().getColor() != null) {
+                        clusterBox.addClassName("color-" + e.getValue().cluster().getColor().name().toLowerCase());
+                    }
+                });
+            }
+            clusterService.defaultClusterName().ifPresent(defaultClusterName -> {
+                clusterList.stream().filter(c -> c.name().equals(defaultClusterName)).findFirst().ifPresent(clusterBox::setValue);
             });
+            add(clusterBox);
+        } else {
+            clusterLabel = new Div();
+            var clusterName = clusterService.defaultClusterName().get();
+            defaultCluster = clusterService.getCluster(clusterName);
+            clusterLabel.setText(defaultCluster.getTitle());
+            clusterLabel.addClassName("cluster-label");
+            add(clusterLabel);
         }
-        clusterService.defaultClusterName().ifPresent(defaultClusterName -> {
-            clusterList.stream().filter(c -> c.name().equals(defaultClusterName)).findFirst().ifPresent(clusterBox::setValue);
-        });
-        add(clusterBox);
-
-        if (clusterActions != null) {
+        var clusterActions = clusterService.getClusterActions(core);
+        if (!clusterActions.isEmpty()) {
             var clusterMenuBar = new MenuBar();
             add(clusterMenuBar);
-            final var clusterDefaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_CLUSTER_ACTION);
-            clusterActions.stream()
-                    .filter(action -> securityService.hasRole(AaaConfiguration.SCOPE_CLUSTER_ACTION, SecurityUtils.getResourceId(action), clusterDefaultRole) && action.canHandle(core))
-                    .sorted(Comparator.comparingInt(a -> a.getPriority()))
-                    .forEach(action -> {
-
-                        var item = clusterMenuBar.addItem(action.getTitle(), click -> {
-                            if (clusterBox.getValue() != null) {
-                                if (!validateCluster(clusterBox.getValue())) {
-                                    return;
-                                }
-                                if (!action.canHandle(core, clusterBox.getValue().cluster())) {
-                                    UiUtil.showErrorNotification("Can't handle this cluster");
-                                    return;
-                                }
-                                action.execute(core, clusterBox.getValue().cluster());
-                            }
-                        });
-                        var icon = action.getIcon();
-                        if (icon != null)
-                            item.addComponentAsFirst(action.getIcon());
-                    });
+            createClusterActions(clusterActions, clusterMenuBar);
         }
 
-        if (coreActions != null) {
+        var coreActions = clusterService.getCoreActions(core);
+        if (!coreActions.isEmpty()) {
             var coreMenuBar = new MenuBar();
             add(coreMenuBar);
-            final var coreDefaultRole = securityService.getRolesForResource(AaaConfiguration.SCOPE_DEFAULT, AaaConfiguration.SCOPE_CORE_ACTION);
-            coreActions.stream()
-                    .filter(action -> securityService.hasRole(AaaConfiguration.SCOPE_CORE_ACTION, SecurityUtils.getResourceId(action), coreDefaultRole) && action.canHandle(core))
-                    .sorted(Comparator.comparingInt(a -> a.getPriority()))
-                    .forEach(action -> {
-
-                        var item = coreMenuBar.addItem(action.getTitle(), click -> {
-                            if (clusterBox.getValue() != null) {
-                                if (!validateCluster(clusterBox.getValue())) {
-                                    return;
-                                }
-                                action.execute(core);
-                            }
-                        });
-                        var icon = action.getIcon();
-                        if (icon != null)
-                            item.addComponentAsFirst(action.getIcon());
-                    });
+            createCoreActions(coreActions, coreMenuBar);
         }
 
         StreamResource imageResource = new StreamResource("kt2l-logo.svg",
@@ -209,8 +181,52 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
     }
 
-    private boolean validateCluster(ClusterItem cluster) {
-        var clusterId = cluster.cluster().getName();
+    private void createCoreActions(List<CoreAction> coreActions, MenuBar coreMenuBar) {
+        coreActions.stream()
+                .forEach(action -> {
+
+                    var item = coreMenuBar.addItem(action.getTitle(), click -> {
+                        if (getSelectedCluster() != null) {
+                            if (!validateCluster(getSelectedCluster())) {
+                                return;
+                            }
+                            action.execute(core);
+                        }
+                    });
+                    var icon = action.getIcon();
+                    if (icon != null)
+                        item.addComponentAsFirst(action.getIcon());
+                });
+    }
+
+    private void createClusterActions(List<ClusterAction> clusterActions, MenuBar clusterMenuBar) {
+        clusterActions.stream()
+                .forEach(action -> {
+
+                    var item = clusterMenuBar.addItem(action.getTitle(), click -> {
+                        if (getSelectedCluster() != null) {
+                            if (!validateCluster(getSelectedCluster())) {
+                                return;
+                            }
+                            if (!action.canHandle(core, getSelectedCluster())) {
+                                UiUtil.showErrorNotification("Can't handle this cluster");
+                                return;
+                            }
+                            action.execute(core, getSelectedCluster());
+                        }
+                    });
+                    var icon = action.getIcon();
+                    if (icon != null)
+                        item.addComponentAsFirst(action.getIcon());
+                });
+    }
+
+    private Cluster getSelectedCluster() {
+        return clusterBox != null ? clusterBox.getValue().cluster() : defaultCluster;
+    }
+
+    private boolean validateCluster(Cluster cluster) {
+        var clusterId = cluster.getName();
         try {
             var coreApi = k8s.getKubeClient(clusterId).getCoreV1Api();
             coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null, null);

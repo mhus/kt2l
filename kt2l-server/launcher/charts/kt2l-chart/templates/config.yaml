@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kt2l-chart.fullname" . }}-config
+  namespace: {{ .Values.namespace.name }}
+data:
+  # kt2l-users
+  login.yaml: |
+    autoLogin: {{ .Values.login.autoLogin }}
+    autoLoginUser: {{ .Values.login.autoLoginUser }}
+    localAuthEnabled: {{ .Values.login.localAuthEnabled }}
+    oauth2Enabled: {{ .Values.login.oauth2Enabled }}
+    oauth2Providers: {{ .Values.login.oauth2Providers | toJson }}
+    oauth2Accept: {{ .Values.login.oauth2Accept | toJson }}
+  users.yaml: |
+    users: {{ .Values.login.users | toYaml | nindent 6 }}
+  clusters.yaml: |
+    defaultCluster: .local-cluster
+    defaultResourceType: {{ .Values.cluster.defaultResourceType }}
+    defaultNamespace: {{ .Values.cluster.defaultNamespace }}
+    clusterSelector: false
+    clusters:
+        - name: .local-cluster
+          title: "Cluster"
+          enabled: true

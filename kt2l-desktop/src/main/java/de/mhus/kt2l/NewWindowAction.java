@@ -19,12 +19,15 @@ package de.mhus.kt2l;
 
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import de.mhus.kt2l.aaa.UsersConfiguration;
+import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.CoreAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@WithRole(UsersConfiguration.ROLE.READ)
 public class NewWindowAction implements CoreAction  {
 
     @Autowired

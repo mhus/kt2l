@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kt2l
+  name: kt2l
+  namespace: kt2l
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kt2l
+  template:
+    metadata:
+      labels:
+        app: kt2l
+    spec:
+      serviceAccountName: kt2l-service-account
+      containers:
+        - image: mhus/kt2l-server:snapshot-20240704232901
+          imagePullPolicy: Never
+          name: kt2l-server
+          resources:
+            limits:
+              memory: "4Gi"
+              cpu: "3000m"
+            requests:
+              memory: "1Gi"
+              cpu: "1000m"
+          ports:
+            - containerPort: 9080
+              name: http
+          envFrom:
+            - secretRef:
+                name: passwords
+            - configMapRef:
+                name: environment
+          volumeMounts:
+            - name: config
+              mountPath: /app/kt2l-server/config/local
+          livenessProbe:
+            failureThreshold: 60
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 5
+      volumes:
+        # You set volumes at the Pod level, then mount them into containers inside that Pod
+        - name: config
+          configMap:
+            # Provide the name of the ConfigMap you want to mount.
+            name: local-config

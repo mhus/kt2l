@@ -99,6 +99,10 @@ public class ClusterConfiguration extends AbstractUserRelatedConfig {
         clusterInfos.clear();
     }
 
+    public boolean isClusterSelectorEnabled() {
+        return config().getBoolean("clusterSelector", true);
+    }
+
     private class ClusterInfo {
         private final String name;
         private final Map<String, Cluster> defaultClusters = Collections.synchronizedMap(new HashMap<>());
