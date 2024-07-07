@@ -49,7 +49,7 @@ git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
 
 FILENAME=kt2l-container-$CREATED.zip
 TITLE="Docker Container"
-DESCRIPTION="Can be started as Server and accessed via Browser, locally also. Java JDK 21 is required. \"docker pull mhus/kt2l-server:snapshot-$CREATED\""
+DESCRIPTION="Can be started as Server and accessed via Browser, locally also. Java JDK 21 is required. \\\"docker pull mhus/kt2l-server:snapshot-$CREATED\\\""
 HREF=
 HREF_HELP="/docs/installation/container"
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-container.ts
