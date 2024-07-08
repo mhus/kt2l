@@ -386,16 +386,31 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
             V1Pod pod = container.getPod();
             String source = pod.getMetadata().getName();
 
-            PodLogs podLogs = new PodLogs(apiProvider.getClient());
-            logStream = podLogs.streamNamespacedPodLog(
-                    pod.getMetadata().getNamespace(),
-                    pod.getMetadata().getName(),
-                    null,
-                    null,
-                    10,
-                    true
-            );
-
+            int tryCount = 130;
+            while (logStream == null) {
+                try {
+                    PodLogs podLogs = new PodLogs(apiProvider.getClient());
+                    logStream = podLogs.streamNamespacedPodLog(
+                            pod.getMetadata().getNamespace(),
+                            pod.getMetadata().getName(),
+                            null,
+                            null,
+                            10,
+                            true
+                    );
+                } catch (Exception e) {
+                    if (e instanceof InterruptedException) {
+                        LOGGER.debug("Interrupted", e);
+                        return;
+                    }
+                    LOGGER.info("Error getting log stream for {}: {}", pod.getMetadata().getName(), e.toString());
+                    if (tryCount-- <= 0) {
+                        LOGGER.error("Error ({}) getting log stream for {}: {}", tryCount, pod.getMetadata().getName(), e.toString());
+                        return;
+                    }
+                    MThread.sleep(1000);
+                }
+            }
             BufferedReader reader = new BufferedReader(new InputStreamReader(logStream));
 
             while (true) {
@@ -413,6 +428,10 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
                         captureFile.getStream().write('\n');
                         captureFile.getStream().flush();
                     } catch (Exception e) {
+                        if (e instanceof InterruptedException) {
+                            LOGGER.debug("Interrupted", e);
+                            return;
+                        }
                         LOGGER.error("Error capturing logs", e);
                     }
                 } else {
