@@ -20,10 +20,12 @@ package de.mhus.kt2l.resources.deployment;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
+import de.mhus.kt2l.resources.pod.PodGrid;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.openapi.models.V1APIResource;
@@ -75,6 +77,47 @@ public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Res
     public V1APIResource getManagedType() {
         return K8s.DEPLOYMENT;
     }
+
+    protected void createDetailsComponent() {
+        detailsComponent = new VerticalLayout();
+    }
+    @Override
+    protected void onDetailsChanged(Resource item) {
+
+    }
+//
+//    @Override
+//    protected void onShowDetails(Resource item, boolean flip) {
+//
+//        containerList = null;
+//        containerSelectedPod = null;
+//        detailsComponent.setVisible(!flip || !detailsComponent.isVisible());
+//        if (detailsComponent.isVisible()) {
+//            needMetricRefresh = true;
+//            containerSelectedPod = item;
+//            detailsComponent.getDataProvider().refreshAll();
+//            if (!flip)
+//                detailsComponent.getElement().getNode()
+//                        .runWhenAttached(ui -> getPanel().getCore().ui().getPage().executeJs(
+//                                "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", detailsComponent.getElement()));
+//        }
+//
+//    }
+//
+//    @Override
+//    protected void onGridSelectionChanged() {
+//        if (detailsComponent.isVisible())
+//            detailsComponent.deselectAll();
+//    }
+//
+//    protected void onGridCellFocusChanged(PodGrid.Resource item) {
+//        if (detailsComponent.isVisible()) {
+//            containerSelectedPod = item;
+//            containerList = null;
+//            detailsComponent.getDataProvider().refreshAll();
+//        }
+//    }
+
 
     @Getter
     public static class Resource extends ResourceItem<V1Deployment> {

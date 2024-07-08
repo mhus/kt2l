@@ -19,6 +19,7 @@
 package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
@@ -140,8 +141,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         var req = getCurrentHttpRequest();
         var rhost = req.getRemoteHost();
 
-        var sessionAutoLogin = UI.getCurrent().getSession().getAttribute("autologin");
-        if (loginConfig.isAutoLogin() /* && !"false".equals(sessionAutoLogin ) */) {
+        if (loginConfig.isAutoLogin()) {
             if (!loginConfig.isAutoLoginLocalhostOnly() || MNet.isLocalhost(rhost)) {
                 LOGGER.info("Do auto login for {}",loginConfig.getAutoLoginUser());
                 try {
@@ -160,9 +160,14 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     @Override
+    public void onDetach(DetachEvent detachEvent) {
+        UI.getCurrent().getElement().getClassList().remove("login-page");
+        super.onDetach(detachEvent);
+    }
+
+    @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
         if(UI.getCurrent() != null){
-            LOGGER.debug("!!!!!!!!!!!!!!! onAttach");
 //            UI.getCurrent().getElement().getStyle().set("background", "url(./frontend/images/login-background.jpg) no-repeat center center fixed");
             UI.getCurrent().getElement().getClassList().add("login-page");
         }

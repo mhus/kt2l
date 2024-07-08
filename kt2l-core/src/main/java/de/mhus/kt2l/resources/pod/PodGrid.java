@@ -161,23 +161,19 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
 
     @Override
     protected void onDetailsChanged(Resource item) {
-        setContainerPod(item);
+        onGridCellFocusChanged(item);
     }
 
     @Override
     protected void onShowDetails(Resource item, boolean flip) {
-        flipContainerVisibility(item, flip, !flip);
-    }
-
-    private void flipContainerVisibility(Resource pod, boolean flip, boolean focus) {
         containerList = null;
         containerSelectedPod = null;
         detailsComponent.setVisible(!flip || !detailsComponent.isVisible());
         if (detailsComponent.isVisible()) {
             needMetricRefresh = true;
-            containerSelectedPod = pod;
+            containerSelectedPod = item;
             detailsComponent.getDataProvider().refreshAll();
-            if (focus)
+            if (!flip)
                 detailsComponent.getElement().getNode()
                         .runWhenAttached(ui -> getPanel().getCore().ui().getPage().executeJs(
                                 "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", detailsComponent.getElement()));
@@ -191,6 +187,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             detailsComponent.deselectAll();
     }
 
+    @Override
     protected void onGridCellFocusChanged(Resource item) {
         if (detailsComponent.isVisible()) {
             containerSelectedPod = item;
@@ -199,12 +196,14 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
     }
 
+    @Override
     protected void doRefreshGrid() {
         super.doRefreshGrid();
         needMetricRefresh = true;
     }
 
-        public void refresh(long counter) {
+    @Override
+    public void refresh(long counter) {
         super.refresh(counter);
         if (!needMetricRefresh && counter % 10 != 0) return;
         updateMetrics();
@@ -707,10 +706,6 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         public int hashCode() {
             return Objects.hash(name, namespace);
         }
-    }
-
-    private void setContainerPod(Resource item) {
-        onGridCellFocusChanged(item);
     }
 
 }

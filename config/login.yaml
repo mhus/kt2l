@@ -19,10 +19,10 @@
 #autoLogin: false
 #oauth2Enabled: true
 
-autoLogin: false
+autoLogin: true
 autoLoginUser: autologin
 localAuthEnabled: true
-oauth2Enabled: true
+oauth2Enabled: false
 showLoginHeader: true
 loginText:
 oauth2Providers:
