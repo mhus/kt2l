@@ -272,7 +272,12 @@ public class K8sService {
 
     public HandlerK8s getTypeHandler(KubernetesObject object, Cluster cluster, V1APIResource fallback) {
         var clazz = object.getClass();
-        return resourceHandlers.stream().filter(h -> h.getManagedType().equals(clazz)).findFirst().orElseGet(() -> new GenericK8s(fallback));
+
+        return resourceHandlers.stream().filter(h -> isHandlerFor(h.getManagedType(), clazz)).findFirst().orElseGet(() -> new GenericK8s(fallback));
+    }
+
+    private boolean isHandlerFor(V1APIResource managedType, Class<? extends KubernetesObject> clazz) {
+        return (managedType.getVersion() + managedType.getSingularName()).equalsIgnoreCase(clazz.getSimpleName());
     }
 
 //    public HandlerK8s getTypeHandler(V1APIResource resource) {
