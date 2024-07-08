@@ -103,6 +103,10 @@ public class LoginConfiguration extends AbstractSingleConfig {
         return config().getString("loginText", null);
     }
 
+    public boolean isShowLoginHeader() {
+        return config().getBoolean("showLoginHeader", true);
+    }
+
     public static class OAuthAccepted {
 
         private final ITreeNode item;

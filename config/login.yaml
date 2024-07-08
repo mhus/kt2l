@@ -19,11 +19,12 @@
 #autoLogin: false
 #oauth2Enabled: true
 
-autoLogin: true
+autoLogin: false
 autoLoginUser: autologin
 localAuthEnabled: true
-oauth2Enabled: false
-
+oauth2Enabled: true
+showLoginHeader: true
+loginText:
 oauth2Providers:
   - id: google
     roleMapping:

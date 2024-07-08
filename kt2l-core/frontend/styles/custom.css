@@ -20,6 +20,27 @@ html, body {
   overscroll-behavior-x: none;
 }
 
+body.login-page {
+  background-color: #efefef;
+}
+
+body.login-page vaadin-login-form-wrapper {
+    border-radius: 10px;
+}
+
+body.login-page div.login-text {
+    width: 360px;
+}
+
+vaadin-vertical-layout.login-view h1 {
+    margin-right: 20px;
+}
+
+vaadin-vertical-layout.login-view h1 div {
+  float: right;
+  margin-left: 10px;
+}
+
 div.cluster-label {
     padding: 10px;
     border-color: black;
@@ -35,14 +56,19 @@ div.cluster-label {
 }
 
 
+div.login-div {
+    width: 360px;
+    height: 40px;
+    background-color: #fff;
+    border-radius: 10px;
+}
+
 a.login-link {
-    width: 312px;
-    height: 36px;
-    border: 1px solid #f2f2f2;
     display: inline-block;
     text-align: left;
     vertical-align: middle;
-    margin-bottom: 10px;
+    margin-top: 5px;
+    margin-left: 20px;
 }
 
 a.login-link vaadin-icon {

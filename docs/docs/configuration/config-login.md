@@ -12,7 +12,8 @@ The configuration is stored in the `config/login.yaml` file.
 autoLogin: true
 autoLoginUser: autologin
 autoLoginLocalhostOnly: true
-loginText: 'Hello World'
+showLoginHeader: true
+loginText:
 ```
 
 `autoLogin` enables automatic login with the user specified in `autoLoginUser`. If
@@ -23,8 +24,18 @@ The user specified in `autoLoginUser` must be a known user. The user must be def
 
 See also the [User Configuration](config-users) for more information about the user configuration.
 
+`showLoginHeader` is a flag to show the login header title.
 `loginText` is the text that is shown on the login page. The text is an HTML based text and can break the website.
 
+```yaml
+showLoginHeader: false
+loginText: |
+  <h1>Welcome</h1>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+```
+
+```yaml
 ## SSO Configuration
 
 If you run the application as server you can use the single sign-on (SSO) feature to login with OAuth2 providers.
