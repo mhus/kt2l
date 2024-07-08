@@ -99,6 +99,10 @@ public class LoginConfiguration extends AbstractSingleConfig {
         return config().getString("redirectUrl", null);
     }
 
+    public String getLoginText() {
+        return config().getString("loginText", null);
+    }
+
     public static class OAuthAccepted {
 
         private final ITreeNode item;

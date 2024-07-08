@@ -12,6 +12,7 @@ The configuration is stored in the `config/login.yaml` file.
 autoLogin: true
 autoLoginUser: autologin
 autoLoginLocalhostOnly: true
+loginText: 'Hello World'
 ```
 
 `autoLogin` enables automatic login with the user specified in `autoLoginUser`. If
@@ -21,6 +22,8 @@ Other IP sources will be prompted for login.
 The user specified in `autoLoginUser` must be a known user. The user must be defined in the `config/users.yaml` file.
 
 See also the [User Configuration](config-users) for more information about the user configuration.
+
+`loginText` is the text that is shown on the login page. The text is an HTML based text and can break the website.
 
 ## SSO Configuration
 

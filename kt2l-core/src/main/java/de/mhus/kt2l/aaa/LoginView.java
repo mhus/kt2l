@@ -19,6 +19,7 @@
 package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
@@ -48,6 +49,8 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import static de.mhus.commons.tools.MString.isSet;
+
 @Route("login")
 @PageTitle("Login")
 @AnonymousAllowed
@@ -70,6 +73,10 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         setAlignItems(Alignment.CENTER);
 
         add(new H1("KT2L"));
+        var loginText = loginConfig.getLoginText();
+        if (isSet(loginText)) {
+            add(new Html("<div class='login-text'>" + loginText + "</div>"));
+        }
         if (loginConfig.isLocalAuthEnabled()) {
             login.setForgotPasswordButtonVisible(false);
             login.setAction("login");
