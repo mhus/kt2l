@@ -40,6 +40,7 @@ import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1Event;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EphemeralContainer;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -80,6 +81,21 @@ public class KubeTest {
         }
     }
     private static final String CLUSTER_NAME = LOCAL_PROPERTIES.getProperty("cluster.name", null);
+
+    @Test
+    public void getRolloutHistory() throws IOException, ApiException {
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        final var service = new K8sService();
+        ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
+
+        var deployment = apiProvider.getAppsV1Api().listDeploymentForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null).getItems().get(0);
+//        var history = Kubectl.rollout(deployment).history();
+//        System.out.println(history);
+
+    }
 
     @Test
     public void getHelmInstallations() throws IOException, ApiException {

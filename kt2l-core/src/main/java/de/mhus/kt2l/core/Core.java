@@ -42,6 +42,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
@@ -126,6 +127,7 @@ import static org.apache.logging.log4j.util.Strings.isBlank;
 @Uses(FileDownloadWrapper.class)
 @Uses(NetworkDiagram.class)
 @Uses(ToggleButton.class)
+@Uses(IntegerField.class)
 public class Core extends AppLayout {
 
     private long uiTemeoutSeconds = 60;
