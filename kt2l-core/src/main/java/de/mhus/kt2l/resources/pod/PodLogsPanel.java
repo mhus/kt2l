@@ -108,6 +108,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     private volatile StorageFile captureDirectory;
     private Icon menuItemStoreIconDivIcon;
     private String[] jsonFields;
+    private int podConnectRetries;
 
     public PodLogsPanel(Core core, Cluster cluster, List<ContainerResource> containers) {
         this.cluster = cluster;
@@ -121,6 +122,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         this.tab = deskTab;
 
         maxCachedEntries = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("maxCachedEntries", 1000);
+        podConnectRetries = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("podConnectRetries", 130);
         jsonFields = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getString("jsonFields", "@timestamp,severity,message").split(",");
 
         logs = new Tail();
@@ -336,7 +338,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         AtomicLong lastLine = new AtomicLong(System.currentTimeMillis());
         Thread.startVirtualThread(() -> {
             try {
-                while (lastLine.get() > 0){
+                while (lastLine.get() > 0) {
                     if (System.currentTimeMillis() - lastLine.get() > 1000) {
                         LOGGER.debug("Timeout in copy stream");
                         in.close();
@@ -386,7 +388,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
             V1Pod pod = container.getPod();
             String source = pod.getMetadata().getName();
 
-            int tryCount = 130;
+            int tryCount = podConnectRetries;
             while (logStream == null) {
                 try {
                     PodLogs podLogs = new PodLogs(apiProvider.getClient());
@@ -404,7 +406,11 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
                         return;
                     }
                     LOGGER.info("Error getting log stream for {}: {}", pod.getMetadata().getName(), e.toString());
+                    if (tryCount % 10 == 0) {
+                        addLogEntry(new LogEntry(source, color, "! Failed to connect to pod (" + tryCount +")"));
+                    }
                     if (tryCount-- <= 0) {
+                        addLogEntry(new LogEntry(source, color, "! Failed to connect to pod"));
                         LOGGER.error("Error ({}) getting log stream for {}: {}", tryCount, pod.getMetadata().getName(), e.toString());
                         return;
                     }

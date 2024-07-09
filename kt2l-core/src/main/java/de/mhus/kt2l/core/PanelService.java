@@ -26,6 +26,7 @@ import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.events.EventPanel;
+import de.mhus.kt2l.form.FormPanel;
 import de.mhus.kt2l.helm.HelmChartDetailsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
 import de.mhus.kt2l.helm.HelmInstalledChartsPanel;
@@ -33,6 +34,7 @@ import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.common.ResourceCreatePanel;
+import de.mhus.kt2l.resources.common.ResourceEditFormPanel;
 import de.mhus.kt2l.resources.common.ResourcePatchPanel;
 import de.mhus.kt2l.resources.common.ResourceYamlEditorPanel;
 import de.mhus.kt2l.resources.configmap.EditConfigMapPanel;
@@ -517,5 +519,20 @@ public class PanelService {
         )
                 .setReproducable(true)
                 .setHelpContext("system_logs");
+    }
+
+    public DeskTab showEditFormPanel(DeskTab parentTab, FormPanel form, Cluster cluster, KubernetesObject resource, V1APIResource type) {
+        return addPanel(
+                parentTab,
+                cluster.getName() + ":" + resource.getMetadata().getNamespace() + "." + resource.getMetadata().getName() + ":edit-resource",
+                resource.getMetadata().getName(),
+                true,
+                VaadinIcon.EDIT.create(),
+                () -> new ResourceEditFormPanel(parentTab.getTabBar().getCore(), cluster, resource, form, type)
+        )
+                .setReproducable(true)
+                .setHelpContext("edit_resource")
+                .setWindowTitle(cluster.getTitle() + " - " + resource.getMetadata().getName() + " - Edit");
+
     }
 }

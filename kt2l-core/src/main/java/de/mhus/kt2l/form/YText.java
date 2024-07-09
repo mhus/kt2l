@@ -15,53 +15,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.cfg.panel;
+package de.mhus.kt2l.form;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.textfield.TextField;
 import de.mhus.commons.tree.ITreeNode;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+public class YText extends YComponent<String> {
 
-public class YCombobox extends YComponent<String> {
-
-    private ComboBox<String> component;
-
-    private List<String> values = new ArrayList<>();
-
-    public YCombobox values(Collection<String> values) {
-        this.values.addAll(values);
-        return this;
-    }
-
-    public YCombobox values(String... values) {
-        for (String v : values)
-            this.values.add(v);
-        return this;
-    }
+    private TextField text;
 
     @Override
     public void initUi() {
-        component = new ComboBox<String>();
-        component.setLabel(label);
-        component.setItems(values);
-        component.setWidthFull();
+        text = new TextField();
+        text.setWidthFull();
+        text.setLabel(label);
     }
 
     @Override
     public Component getComponent() {
-        return component;
+        return text;
     }
 
     @Override
     public void load(ITreeNode content) {
-        component.setValue(content.getString(name, defaultValue));
+        text.setValue(getParent(content).getString(getNodeName(), defaultValue));
+        text.setReadOnly(readOnly);
     }
 
     @Override
     public void save(ITreeNode node) {
-        node.put(name, component.getValue());
+        getParent(node).put(getNodeName(), text.getValue());
     }
 }

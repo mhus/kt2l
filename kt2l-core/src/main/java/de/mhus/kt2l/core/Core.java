@@ -413,6 +413,7 @@ public class Core extends AppLayout {
         var space = new Span(" ");
 
         Button userButton = new Button(LumoIcon.USER.create());
+        userButton.setTooltipText(user.getUserId());
         var userMenu = new ContextMenu();
         userMenu.setTarget(userButton);
         userMenu.setOpenOnClick(true);
