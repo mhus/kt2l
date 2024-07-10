@@ -310,12 +310,7 @@ public class KubeTest {
         final var podName = LOCAL_PROPERTIES.getProperty("pod.name");
         final var namespace = LOCAL_PROPERTIES.getProperty("namespace");
 
-        var debugger = new V1EphemeralContainer();
-        debugger.setName("debugger-" + UUID.randomUUID());
-        debugger.setImage("nginx");
-//        V1Patch patch = new V1Patch(debugger    );
 
-//        api.patchNamespacedPodEphemeralcontainers(name, namespace, )
 
     }
 

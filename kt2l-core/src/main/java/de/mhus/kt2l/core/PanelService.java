@@ -531,7 +531,7 @@ public class PanelService {
                 () -> new ResourceEditFormPanel(parentTab.getTabBar().getCore(), cluster, resource, form, type)
         )
                 .setReproducable(true)
-                .setHelpContext("edit_resource")
+                .setHelpContext("edit_form")
                 .setWindowTitle(cluster.getTitle() + " - " + resource.getMetadata().getName() + " - Edit");
 
     }

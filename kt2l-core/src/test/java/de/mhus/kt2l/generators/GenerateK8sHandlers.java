@@ -306,14 +306,19 @@ public class GenerateK8sHandlers {
     }
      */
     private void replaceResourceType(StringBuffer o, V1APIResource k8s) {
+
         o.append("    @Override\n");
         o.append("    public Object replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {\n");
-        o.append("        var body = Yaml.loadAs(yaml, ").append(resourceClassName(k8s)).append(".class);\n");
+        o.append("        var res = Yaml.loadAs(yaml, ").append(resourceClassName(k8s)).append(".class);\n");
+        o.append("        return replaceResource(apiProvider, name, namespace, res);\n");
+        o.append("    }\n");
+        o.append("\n");
+        o.append("    public Object replaceResource(ApiProvider apiProvider, String name, String namespace, ").append(resourceClassName(k8s)).append(" resource) throws ApiException {\n");
         o.append("        return apiProvider.").append(apiFunction(k8s)).append(".replace").append(methodName(k8s)).append("(\n");
         o.append("            name,\n");
         if (k8s.getNamespaced())
             o.append("            namespace,\n");
-        o.append("            body,\n");
+        o.append("            resource,\n");
         o.append("            null, null, null, null\n");
         o.append("        );\n");
         o.append("    }\n");
@@ -353,7 +358,7 @@ public class GenerateK8sHandlers {
 
     private void managedResourceType(StringBuffer o, V1APIResource k8s) {
         o.append("    @Override\n");
-        o.append("    public V1APIResource getManagedResourceType() {\n");
+        o.append("    public V1APIResource getManagedType() {\n");
         o.append("        return K8s.").append(staticName(k8s)).append(";\n");
         o.append("    }\n");
         o.append("\n");
