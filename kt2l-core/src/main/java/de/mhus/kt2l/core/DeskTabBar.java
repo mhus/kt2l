@@ -187,4 +187,10 @@ public class DeskTabBar extends VerticalLayout {
     public List<DeskTab> getTabs() {
         return tabs;
     }
+
+    void updateWindowTitle(DeskTab deskTab) {
+        if (deskTab == selectedTab) {
+            core.setWindowTitle(deskTab.getWindowTitle(), deskTab.getColor());
+        }
+    }
 }

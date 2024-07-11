@@ -20,6 +20,10 @@ html, body {
   overscroll-behavior-x: none;
 }
 
+div.strikethrough {
+    text-decoration: line-through;
+}
+
 body.login-page {
   background-color: #efefef;
 }
@@ -229,6 +233,67 @@ vaadin-horizontal-layout.footer {
     background-color: #808080;
 }
 
+.title-red {
+    background-color: #ff0000;
+    color: #fff;
+}
+
+.title-green {
+    background-color: #00ff00;
+    color: #000;
+}
+
+.title-blue {
+    background-color: #0000ff;
+    color: #fff;
+}
+
+.title-yellow {
+    background-color: #ffff00;
+    color: #000;
+}
+
+.title-orange {
+    background-color: #ff8000;
+    color: #000;
+}
+
+.title-purple {
+    background-color: #8000ff;
+    color: #000;
+}
+
+.title-cyan {
+    background-color: #00ffff;
+    color: #000;
+}
+
+.title-black {
+    background-color: #000000;
+    color: #fff;
+}
+
+.title-white {
+    background-color: #ffffff;
+    color: #000;
+}
+
+.title-pink {
+    background-color: #ff00ff;
+    color: #000;
+}
+.title-magenta {
+    background-color: #ff00ff;
+    color: #fff;
+}
+.title-brown {
+    background-color: #a52a2a;
+    color: #fff;
+}
+.title-grey {
+    background-color: #808080;
+    color: #000;
+}
 
 span.ktool-title {
     padding-left: 10px;

@@ -174,6 +174,7 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
     }
 
     private void closeTerminal() {
+        tab.setPanelClosed(true);
         procExec = null;
         if (procAttach != null)
             procAttach.close();

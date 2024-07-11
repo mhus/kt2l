@@ -146,7 +146,8 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabSelected() {
-
+        if (menuItemAutoScroll.isChecked())
+            eventList.scrollToEnd();
     }
 
     @Override

@@ -174,6 +174,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         namespaceSelector.addValueChangeListener(e -> {
             if (grid != null && !MString.equals(e.getValue(), grid.getNamespace())) {
                 grid.setNamespace(e.getValue());
+                updateTitle();
                 if (e.isFromClient())
                     historyAdd();
             }
@@ -352,12 +353,18 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             var rt = typeSelector.getValue();
             if (rt == null || rt.equals(currentType)) return;
             currentType = rt;
+            updateTitle();
             grid = createGrid(rt);
         } catch (NotFoundRuntimeException e) {
             LOGGER.debug("Resource type not found: {}", typeSelector.getValue());
             grid = createDefaultGrid();
         }
         initGrid();
+    }
+
+    protected void updateTitle() {
+        tab.setTabTitle(K8s.displayName(currentType));
+        tab.setWindowTitle(cluster.getTitle() + " - " + K8s.displayName(currentType) + (currentType.getNamespaced() != null && currentType.getNamespaced() ? " @ " + namespaceSelector.getValue() : "") + " - Resources");
     }
 
     private ResourcesGrid createDefaultGrid() {
@@ -398,6 +405,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             grid.destroy();
         grid = createGrid(cluster.getDefaultType());
         initGrid();
+        updateTitle();
 
         final var cc = SecurityContext.create();
         namespaceEventRegistration = getCore().backgroundJobInstance( cluster, NamespaceWatch.class).getEventHandler().register(

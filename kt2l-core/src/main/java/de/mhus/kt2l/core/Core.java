@@ -663,9 +663,9 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
         else
             tabTitle.setText(title);
 
-        Arrays.stream(UiUtil.COLOR.values()).forEach(c -> tabTitle.removeClassNames("bgcolor-" + c.name().toLowerCase()));
+        Arrays.stream(UiUtil.COLOR.values()).forEach(c -> tabTitle.removeClassNames("title-" + c.name().toLowerCase()));
         if (color != null && color != UiUtil.COLOR.NONE)
-            tabTitle.addClassNames("bgcolor-" + color.name().toLowerCase());
+            tabTitle.addClassNames("title-" + color.name().toLowerCase());
     }
 
     public DeskTabBar getTabBar() {

@@ -20,6 +20,7 @@ package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.Icon;
@@ -27,16 +28,18 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import de.mhus.kt2l.ui.UiUtil;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 
+@Slf4j
 public class DeskTab extends HorizontalLayout {
 
     private final AbstractIcon icon;
     @Getter
     private final String tabId;
     @Getter
-    private final Text tabTitle; // in the tab
+    private final Div tabTitle; // in the tab
     @Getter
     private String windowTitle; // window top
     @Getter
@@ -53,6 +56,8 @@ public class DeskTab extends HorizontalLayout {
     private String helpContext;
     @Getter
     private boolean reproducable = false;
+    @Getter
+    private boolean panelClosed = false;
 
 //    @Getter
 //    private Map<String, Object> parameters = new HashMap<>();
@@ -66,7 +71,7 @@ public class DeskTab extends HorizontalLayout {
         this.closeable = closeable;
         this.panel = panel;
         windowTitle = title;
-        tabTitle = new Text(title);
+        tabTitle = new Div(title);
         Span span = new Span();
         span.setClassName("tabtext");
         span.add(tabTitle);
@@ -122,6 +127,7 @@ public class DeskTab extends HorizontalLayout {
 
     public DeskTab setWindowTitle(String title) {
         this.windowTitle = title;
+        if (tabBar != null) tabBar.updateWindowTitle(this);
         return this;
     }
 
@@ -146,4 +152,23 @@ public class DeskTab extends HorizontalLayout {
         this.reproducable = reproducable;
         return this;
     }
+
+    public void setTabTitle(String title) {
+        tabTitle.setText(title);
+    }
+
+    public void setPanelClosed(boolean panelClosed) {
+        if (panelClosed == this.panelClosed) return;
+        this.panelClosed = panelClosed;
+        try {
+            if (panelClosed) {
+                tabTitle.addClassName("strikethrough");
+            } else {
+                tabTitle.removeClassName("strikethrough");
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Error", e);
+        }
+    }
+
 }

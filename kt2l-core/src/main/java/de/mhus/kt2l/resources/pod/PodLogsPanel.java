@@ -532,7 +532,8 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabSelected() {
-
+        if (menuItemAutoScroll.isChecked())
+            logs.scrollToEnd();
     }
 
     @Override
