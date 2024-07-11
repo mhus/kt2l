@@ -22,6 +22,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -31,6 +32,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.theme.lumo.LumoIcon;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MCollection;
@@ -115,6 +117,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     private LinkedList<HistoryItem> history = new LinkedList<>();
     private int historyPointer = 0;
     private int historyMaxSize = 50;
+    private Button resourceFilterMenuButton;
+    private ContextMenu resourceFilterMenu;
 
     public ResourcesGridPanel(String clusterId, Core core) {
         this.clusterId = clusterId;
@@ -134,6 +138,14 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             }
         });
         resourceFilterButton.setEnabled(false);
+        resourceFilterButton.addClassName("button-combo-left");
+
+        resourceFilterMenuButton = new Button(LumoIcon.ANGLE_DOWN.create());
+        resourceFilterMenuButton.addClassName("button-combo-right");
+        resourceFilterMenuButton.setTooltipText("Filter Selector");
+        resourceFilterMenu = new ContextMenu();
+        resourceFilterMenu.setTarget(resourceFilterMenuButton);
+        resourceFilterMenu.setOpenOnClick(true);
 
         filterText = new TextField();
         namespaceSelector = new ComboBox<>();
@@ -235,7 +247,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         spacer.setWidthFull();
 
         // toolbar
-        var toolbar = new HorizontalLayout(resourceFilterButton, filterText, namespaceSelector, typeSelector, spacer, historyBackButton, historyForwardButton, cloneButton);
+        var toolbar = new HorizontalLayout(resourceFilterButton, resourceFilterMenuButton, filterText, namespaceSelector, typeSelector, spacer, historyBackButton, historyForwardButton, cloneButton);
         toolbar.addClassName("toolbar");
         toolbar.setPadding(false);
         toolbar.setSpacing(false);
@@ -370,6 +382,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     private ResourcesGrid createDefaultGrid() {
         var g =  new GenericGrid();
         core.getBeanFactory().autowireBean(g);
+        updateFilterMenu(g);
         return g;
     }
 
@@ -387,8 +400,24 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             foundFactory = new GenericGridFactory(); // fallback to generic grid
         ResourcesGrid resourcesGrid = foundFactory.create(type);
         core.getBeanFactory().autowireBean(resourcesGrid);
+        updateFilterMenu(resourcesGrid);
         LOGGER.debug("Create grid: {}",resourcesGrid.getClass().getSimpleName());
         return resourcesGrid;
+    }
+
+    private void updateFilterMenu(ResourcesGrid resourcesGrid) {
+        resourceFilterMenu.removeAll();
+        var filters = resourcesGrid.getResourceFilterFactories();
+        if (filters != null && filters.size() > 0) {
+            for (ResourceFilterFactory filter : filters) {
+                resourceFilterMenu.addItem(filter.getTitle(), e -> {
+                    showResources(currentType, resourcesGrid.getNamespace(), filter.create(), filterText.getValue());
+                });
+            }
+            resourceFilterMenuButton.setEnabled(true);
+        } else {
+            resourceFilterMenuButton.setEnabled(false);
+        }
     }
 
     @Override
@@ -479,11 +508,11 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     }
 
     private void showResourcesInternal(V1APIResource type, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending, LinkedList<HistoryItem> history, int historyPointer) {
+        if (filter != null)
+            setResourcesFilter(filter);
         if (filterText != null)
             this.filterText.setValue(filterText);
         setNamespace(namespace);
-        if (filter != null)
-            setResourcesFilter(filter);
         setType(type);
         grid.setSortOrder(sortOrder, sortAscending);
         if (history != null) {
@@ -491,6 +520,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             this.historyPointer = historyPointer;
             historyUpdate();
         }
+        if (grid != null)
+            grid.setFilter(this.filterText.getValue(), this.resourcesFilter);
     }
 
     public void setType(V1APIResource type) {

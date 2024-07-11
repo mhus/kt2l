@@ -20,6 +20,20 @@ html, body {
   overscroll-behavior-x: none;
 }
 
+vaadin-button.button-combo-right {
+    margin-left: 0px;
+    border-radius: 0px 4px 4px 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    color: var(--lumo-contrast-60pct);
+}
+
+vaadin-button.button-combo-left {
+    margin-right: -4px;
+    border-radius: 4px 0px 0px 4px;
+    padding-right: 3px;
+}
+
 vaadin-icon.icon-for-button-with-text {
     margin-right: 5px;
     width: 16px;

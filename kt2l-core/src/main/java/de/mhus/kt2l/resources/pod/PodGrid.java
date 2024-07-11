@@ -33,11 +33,14 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.ResourceFilterFactory;
+import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.pod.score.PodScorer;
 import de.mhus.kt2l.resources.pod.score.PodScorerConfiguration;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.Metrics;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
 import io.kubernetes.client.openapi.ApiException;
@@ -721,6 +724,14 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         public int hashCode() {
             return Objects.hash(name, namespace);
         }
+    }
+
+    @Override
+    public List<ResourceFilterFactory> getResourceFilterFactories() {
+        return List.of(
+                new ResourceFilterFactory("Terminating",res -> res.getMetadata().getDeletionTimestamp() != null),
+                new ResourceFilterFactory("Running",res -> "Running".equalsIgnoreCase( ((V1Pod)res).getStatus().getPhase() ))
+        );
     }
 
 }
