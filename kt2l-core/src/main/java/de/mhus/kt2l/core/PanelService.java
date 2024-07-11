@@ -471,7 +471,7 @@ public class PanelService {
                 cluster.getName() + "-helm-chart",
                 "Helm Chart",
                 true,
-                HelmClusterAction.getHelmIcon(),
+                HelmClusterAction.createIcon(),
                 () -> new HelmInstalledChartsPanel(core, cluster)
         )
                 .setReproducable(true)
@@ -487,7 +487,7 @@ public class PanelService {
                 cluster.getName() + ":" + resource.getMetadata().getNamespace() + "." + resource.getMetadata().getName() + ":helm-details",
                 resource.getMetadata().getName(),
                 true,
-                HelmClusterAction.getHelmIcon(),
+                HelmClusterAction.createIcon(),
                 () -> new HelmChartDetailsPanel(parentTab.getTabBar().getCore(), cluster, resource)
         )
                 .setReproducable(true)

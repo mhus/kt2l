@@ -21,6 +21,7 @@ package de.mhus.kt2l.cluster;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
@@ -41,6 +42,7 @@ import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.kscript.AttachScope;
 import de.mhus.kt2l.system.DevelopmentAction;
 import de.mhus.kt2l.ui.UiUtil;
 import lombok.Getter;
@@ -48,6 +50,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -88,6 +92,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     private ITreeNode viewConfig;
     private Div clusterLabel;
     private Cluster defaultCluster;
+    private List<ClusterActionRecord> clusterActionList = Collections.synchronizedList(new ArrayList<>());
 
     public ClusterOverviewPanel(Core core) {
         this.core = core;
@@ -118,6 +123,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
                     if (e.getValue() != null && e.getValue().cluster().getColor() != null) {
                         clusterBox.addClassName("color-" + e.getValue().cluster().getColor().name().toLowerCase());
                     }
+                    updateClusterActions();
                 });
             }
             clusterService.defaultClusterName().ifPresent(defaultClusterName -> {
@@ -172,6 +178,8 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
             add(licence);
         }
 
+        updateClusterActions();
+
         setPadding(false);
         setMargin(false);
 
@@ -181,15 +189,29 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
     }
 
+    private void updateClusterActions() {
+        var cluster = clusterBox.getValue().cluster();
+        Thread.startVirtualThread(() -> {
+            if (!validateCluster(cluster)) {
+                core.ui().access(() -> {
+                    clusterActionList.forEach(r -> r.item.setEnabled(false));
+                    UiUtil.showErrorNotification("Can't connect to cluster");
+                });
+                return;
+            }
+            clusterActionList.forEach(r -> {
+                var enabled = r.action.canHandle(core, cluster);
+                core.ui().access(() -> r.item.setEnabled(enabled));
+            });
+        });
+    }
+
     private void createCoreActions(List<CoreAction> coreActions, MenuBar coreMenuBar) {
         coreActions.stream()
                 .forEach(action -> {
 
                     var item = coreMenuBar.addItem(action.getTitle(), click -> {
                         if (getSelectedCluster() != null) {
-                            if (!validateCluster(getSelectedCluster())) {
-                                return;
-                            }
                             action.execute(core);
                         }
                     });
@@ -200,12 +222,14 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     }
 
     private void createClusterActions(List<ClusterAction> clusterActions, MenuBar clusterMenuBar) {
+        clusterActionList.clear();
         clusterActions.stream()
                 .forEach(action -> {
 
                     var item = clusterMenuBar.addItem(action.getTitle(), click -> {
                         if (getSelectedCluster() != null) {
                             if (!validateCluster(getSelectedCluster())) {
+                                UiUtil.showErrorNotification("Can't connect to cluster");
                                 return;
                             }
                             if (!action.canHandle(core, getSelectedCluster())) {
@@ -218,6 +242,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
                     var icon = action.getIcon();
                     if (icon != null)
                         item.addComponentAsFirst(action.getIcon());
+                    clusterActionList.add(new ClusterActionRecord(action, item));
                 });
     }
 
@@ -232,8 +257,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
             coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null, null);
             return true;
         } catch (Exception e) {
-            LOGGER.error("Can't connect to cluster: " + clusterId, e);
-            UiUtil.showErrorNotification("Can't connect to cluster: " + clusterId, e);
+            LOGGER.warn("Can't connect to cluster: " + clusterId, e);
         }
         return false;
     }
@@ -270,4 +294,6 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     public record ClusterItem(String name, String title, Cluster cluster) {
     }
 
+    private record ClusterActionRecord(ClusterAction action, MenuItem item) {
+    }
 }

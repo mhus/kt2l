@@ -20,6 +20,12 @@ html, body {
   overscroll-behavior-x: none;
 }
 
+vaadin-icon.icon-for-button-with-text {
+    margin-right: 5px;
+    width: 16px;
+    height: 16px;
+}
+
 div.strikethrough {
     text-decoration: line-through;
 }

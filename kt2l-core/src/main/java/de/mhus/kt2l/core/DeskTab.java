@@ -19,7 +19,6 @@
 package de.mhus.kt2l.core;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.AbstractIcon;
@@ -153,8 +152,9 @@ public class DeskTab extends HorizontalLayout {
         return this;
     }
 
-    public void setTabTitle(String title) {
+    public DeskTab setTabTitle(String title) {
         tabTitle.setText(title);
+        return this;
     }
 
     public void setPanelClosed(boolean panelClosed) {
