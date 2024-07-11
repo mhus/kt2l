@@ -54,6 +54,7 @@ public class RunCompiler {
         commands.put("elseif", CmdElseIf.class);
         commands.put("endif", CmdEndIf.class);
         commands.put("download", CmdDownload.class);
+        commands.put("debug", CmdDebug.class);
     }
 
     public Block compile(String command) throws Exception {
