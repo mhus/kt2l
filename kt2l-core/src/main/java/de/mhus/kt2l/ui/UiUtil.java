@@ -212,7 +212,10 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
                 case "Delete": return new byte[]{0x1b, 0x5b, 0x33, 0x7e};
                 case "Enter": return new byte[]{0x0d};
                 case "Tab": return new byte[]{0x09};
-
+                case "Meta": return null;
+                case "Control": return null;
+                case "Shift": return null;
+                case "Alt": return null;
             }
 
             LOGGER.warn("Unknown key: " + key);

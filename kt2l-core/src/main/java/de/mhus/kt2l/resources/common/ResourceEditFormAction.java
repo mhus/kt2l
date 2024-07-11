@@ -70,7 +70,7 @@ public class ResourceEditFormAction implements ResourceAction {
 
     @Override
     public String getShortcutKey() {
-        return "f";
+        return "Ctrl+F";
     }
 
     @Override

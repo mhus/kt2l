@@ -34,7 +34,9 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.k8s.ApiProvider;
+import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.ui.UiUtil;
+import io.kubernetes.client.Attach;
 import io.kubernetes.client.Exec;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
@@ -57,18 +59,23 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
     private final ApiProvider apiProvider;
     private final Core core;
     private final V1Pod pod;
+    private final String containerName;
+    private final boolean attach;
     private DeskTab tab;
     private XTerm xterm;
     private Thread threadInput;
-    private Process proc;
+    private Process procExec;
     private Thread threadError;
     private MenuBar xTermMenuBar;
+    private Attach.AttachResult procAttach;
 
-    public ContainerShellPanel(Cluster cluster, Core core, V1Pod pod) {
+    public ContainerShellPanel(Cluster cluster, Core core, V1Pod pod, String containerName, boolean attach) {
         this.cluster = cluster;
         this.apiProvider = cluster.getApiProvider();
         this.core = core;
         this.pod = pod;
+        this.containerName = containerName == null ? K8sUtil.getAttachableContainer(pod) : containerName;
+        this.attach = attach;
     }
 
     @Override
@@ -76,7 +83,7 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
         this.tab = deskTab;
 
         xterm = new XTerm();
-        xterm.writeln("Start console\n\n");
+        xterm.writeln("Start console" + (containerName == null ? "" : " on " + containerName) +"\n\n");
         xterm.setCursorBlink(true);
         xterm.setCursorStyle(ITerminalOptions.CursorStyle.UNDERLINE);
 
@@ -88,8 +95,7 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
             byte[] keyBytes = UiUtil.xtermKeyToBytes(e.getKey());
             if (keyBytes == null) return;
             try {
-                proc.getOutputStream().write(keyBytes);
-                proc.getOutputStream().flush();
+                write(keyBytes);
             } catch (IOException ex) {
                 LOGGER.error("Write error", ex);
                 closeTerminal();
@@ -99,8 +105,7 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
             try {
                 var json = MJson.load(e.getText());
                 var text = json.get("text").asText();
-                proc.getOutputStream().write(text.getBytes());
-                proc.getOutputStream().flush();
+                write(text.getBytes());
             } catch (IOException ex) {
                 LOGGER.error("Write error", ex);
                 closeTerminal();
@@ -112,15 +117,15 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
 
         xTermMenuBar = new MenuBar();
         xTermMenuBar.addItem("ESC", e -> {
-            MLang.tryThis(() -> proc.getOutputStream().write("\u001b".getBytes()));
+            MLang.tryThis(() -> write("\u001b".getBytes()));
             xterm.focus();
         });
         xTermMenuBar.addItem("TAB", e -> {
-            MLang.tryThis(() -> proc.getOutputStream().write("\t".getBytes()));
+            MLang.tryThis(() -> write("\t".getBytes()));
             xterm.focus();
         });
         xTermMenuBar.addItem("Ctrl+C", e -> {
-            MLang.tryThis(() -> proc.getOutputStream().write("\u0003".getBytes()));
+            MLang.tryThis(() -> write("\u0003".getBytes()));
             xterm.focus();
         });
 
@@ -133,20 +138,46 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
         setPadding(false);
         setMargin(false);
 
-        try {
-            Exec exec = new Exec(apiProvider.getClient());
-            proc = exec.exec(pod, new String[]{shellConfiguration.getShellFor(cluster, pod )}, true, true);
+        if (attach) {
+            try {
+                Attach attach = new Attach(apiProvider.getClient());
+                boolean tty = containerName == null || K8sUtil.hasTty(pod, containerName);
+                procAttach = attach.attach(pod, containerName, tty, tty);
 
-            threadInput = Thread.startVirtualThread(this::loopInput);
-            threadError = Thread.startVirtualThread(this::loopError);
-        } catch (Exception e) {
-            LOGGER.error("Execute", e);
+                threadInput = Thread.startVirtualThread(this::loopInput);
+                threadError = Thread.startVirtualThread(this::loopError);
+
+            } catch (Exception e) {
+                LOGGER.error("Attach", e);
+            }
+        } else {
+            try {
+                Exec exec = new Exec(apiProvider.getClient());
+                procExec = exec.exec(pod, new String[]{shellConfiguration.getShellFor(cluster, pod)}, containerName, true, true);
+
+                threadInput = Thread.startVirtualThread(this::loopInput);
+                threadError = Thread.startVirtualThread(this::loopError);
+            } catch (Exception e) {
+                LOGGER.error("Execute", e);
+            }
         }
+    }
 
+    private void write(byte[] bytes) throws IOException {
+        if (attach) {
+            procAttach.getStandardInputStream().write(bytes);
+            procAttach.getStandardInputStream().flush();
+        } else {
+            procExec.getOutputStream().write(bytes);
+            procExec.getOutputStream().flush();
+        }
     }
 
     private void closeTerminal() {
-        proc = null;
+        procExec = null;
+        if (procAttach != null)
+            procAttach.close();
+        procAttach = null;
         if (threadError != null)
             threadError.interrupt();
         if (threadInput != null)
@@ -163,38 +194,42 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
     private void loopError() {
         try {
             byte[] buffer = new byte[1024];
-            InputStream is = proc.getErrorStream();
+            InputStream is = attach ? procAttach.getErrorStream() : procExec.getErrorStream();
             while (true) {
                 int len = is.read(buffer);
                 if (len <= 0) {
                     MThread.sleep(100);
                     continue;
                 }
-                // System.out.println("ERead: " + len);
                 String line = new String(buffer, 0, len);
                 core.ui().access(() -> xterm.write(UiUtil.xtermPrepareEsc(line)));
             }
         } catch (Exception e) {
-            LOGGER.error("Loop", e);
+            if ( e instanceof InterruptedException)
+                LOGGER.debug("loopError Interrupted");
+            else
+                LOGGER.error("loopError", e);
         }
     }
 
     private void loopInput() {
         try {
             byte[] buffer = new byte[1024];
-            InputStream is = proc.getInputStream();
+            InputStream is = attach ? procAttach.getStandardOutputStream() : procExec.getInputStream();
             while (true) {
                 int len = is.read(buffer);
                 if (len <= 0) {
                     MThread.sleep(100);
                     continue;
                 }
-                System.out.println("IRead: " + len);
                 String line = new String(buffer, 0, len);
                 core.ui().access(() -> xterm.write(line));
             }
         } catch (Exception e) {
-            LOGGER.error("Loop", e);
+            if ( e instanceof InterruptedException)
+                LOGGER.debug("loopInput Interrupted");
+            else
+                LOGGER.error("loopInput", e);
         }
     }
 
@@ -211,8 +246,11 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
     @Override
     public void tabDestroyed() {
         LOGGER.debug("Destroy xterm");
-        if (proc != null) {
-            proc.destroy();
+        if (procExec != null) {
+            procExec.destroy();
+        }
+        if (procAttach != null) {
+            procAttach.close();
         }
         if (threadInput != null) {
             threadInput.interrupt();
@@ -222,7 +260,8 @@ public class ContainerShellPanel extends VerticalLayout implements DeskTabListen
         }
         threadInput = null;
         threadError = null;
-        proc = null;
+        procExec = null;
+        procAttach = null;
     }
 
     @Override

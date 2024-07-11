@@ -218,7 +218,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         public ResourceDataProvider() {
             super(query -> {
                 synchronized (AbstractGridWithNamespace.this) {
-                    LOGGER.debug("◌ Do the query {} {}", getManagedType(), queryToString(query));
+                    LOGGER.debug("◌ Do the query {} {}", getManagedType().getName(), queryToString(query));
                     if (filteredList == null) return Stream.empty();
                     for (QuerySortOrder queryOrder :
                             query.getSortOrders()) {
@@ -246,7 +246,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                     return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                 }
             }, query -> {
-                        LOGGER.debug("◌ Do the size query {} {}", getManagedType(), queryToString(query));
+                        LOGGER.debug("◌ Do the size query {} {}", getManagedType().getName(), queryToString(query));
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
                             if (namespace != null) {

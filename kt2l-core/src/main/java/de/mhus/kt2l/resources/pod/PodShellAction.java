@@ -61,8 +61,13 @@ public class PodShellAction implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
-        var selected = (V1Pod)context.getSelected().iterator().next();
-        panelService.showContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), selected).select();
+        var selected = context.getSelected().iterator().next();
+        if (selected instanceof V1Pod pod) {
+            panelService.showContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), pod, null, false).select();
+        } else
+        if (selected instanceof ContainerResource container) {
+            panelService.showContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), container.getPod(), container.getContainerName(), false).select();
+        }
     }
 
     @Override

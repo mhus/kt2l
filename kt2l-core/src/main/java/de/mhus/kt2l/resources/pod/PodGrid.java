@@ -370,7 +370,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     private class ContainerProvider extends CallbackDataProvider<Container, Void> {
         public ContainerProvider() {
             super(query -> {
-                        LOGGER.debug("◌ Cont: Do the query {} {}", K8s.CONTAINER, queryToString(query));
+                        LOGGER.debug("◌ Cont: Do the query {}", queryToString(query));
                         for(QuerySortOrder queryOrder :
                                 query.getSortOrders()) {
                             Collections.sort(containerList, (a, b) -> switch (queryOrder.getSorted()) {
@@ -404,7 +404,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                         }
                         return containerList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
-                        LOGGER.debug("◌ Cont: Do the size query {} {}",K8s.CONTAINER, queryToString(query));
+                        LOGGER.debug("◌ Cont: Do the size query {}", queryToString(query));
                         if (containerList == null) {
                             containerList = new ArrayList<>();
 
@@ -464,6 +464,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         private String status;
         private int runningContainersCnt;
         private int containerCnt;
+        private int allContainerCnt;
         private int restarts;
 
         private double metricCpu = Double.MAX_VALUE;
@@ -517,11 +518,13 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             this.restarts = 0;
             this.runningContainersCnt = 0;
             this.containerCnt = 0;
+            this.allContainerCnt = 0;
             {
                 var containers = resource.getStatus().getContainerStatuses();
                 if (containers != null) {
                     for (V1ContainerStatus container : containers) {
                         this.containerCnt++;
+                        this.allContainerCnt++;
                         if (container.getReady() != null && container.getReady())
                             this.runningContainersCnt++;
                         this.restarts += container.getRestartCount();
@@ -533,7 +536,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 if (containers != null) {
                     for (V1ContainerStatus container : containers) {
                         if (container.getState() != null && container.getState().getTerminated() == null) {
-                            this.containerCnt++;
+                            this.allContainerCnt++;
                             if (container.getReady() != null && container.getReady())
                                 this.runningContainersCnt++;
                         }
@@ -546,7 +549,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 if (containers != null) {
                     for (V1ContainerStatus container : containers) {
                         if (container.getState() != null && container.getState().getTerminated() == null) {
-                            this.containerCnt++;
+                            this.allContainerCnt++;
                             if (container.getReady() != null && container.getReady())
                                 this.runningContainersCnt++;
                         }
@@ -582,7 +585,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
 
         public String getReadyContainers() {
-            return runningContainersCnt + "/" + containerCnt;
+            return runningContainersCnt + "/" + containerCnt + ( containerCnt != allContainerCnt ? "/" + allContainerCnt : "");
         }
 
         public synchronized boolean updateMetric(PodMetrics metric) {

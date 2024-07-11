@@ -25,6 +25,7 @@ import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Builder;
@@ -52,18 +53,13 @@ public class ExecutionContext {
 
     public void finished() {
         getUi().access(() -> {
+            if (errors.size() == 1) {
+                UiUtil.showErrorNotification("Error in Action", errors.get(0));
+            } else
             if (errors.size() > 0) {
-                Notification notification = Notification
-                        .show("Error\n"+errors); //XXX
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                UiUtil.showErrorNotification("Error in Action\n" + errors, errors.get(0));
             } else {
-                Notification notification = Notification
-                        .show("Completed!");
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-
-//                if (isNeedGridRefresh()) {
-//                    grid.refresh(0);
-//                }
+                UiUtil.showSuccessNotification("Completed Action!");
             }
         });
     }

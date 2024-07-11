@@ -155,21 +155,23 @@ public class PanelService {
                 .setWindowTitle("Local Bash");
     }
 
-    public DeskTab showContainerShellPanel(DeskTab parentTab, Cluster cluster, Core core, V1Pod selected) {
+    public DeskTab showContainerShellPanel(DeskTab parentTab, Cluster cluster, Core core, V1Pod selected, String containerName, boolean attach) {
         return addPanel(
                 parentTab,
-                cluster.getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":shell",
-                selected.getMetadata().getName(),
+                cluster.getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + (attach ? ":attach" : ":shell"),
+                selected.getMetadata().getName() + (containerName == null ? "" : "." + containerName),
                 true,
-                VaadinIcon.TERMINAL.create(),
+                attach ? VaadinIcon.DESKTOP.create() : VaadinIcon.TERMINAL.create(),
                 () -> new ContainerShellPanel(
                         cluster,
                         core,
-                        selected
+                        selected,
+                        containerName,
+                        attach
                 ))
                 .setReproducable(false)
                 .setHelpContext("shell")
-                .setWindowTitle(cluster.getTitle() + " - " + selected.getMetadata().getName() + " - Shell");
+                .setWindowTitle(cluster.getTitle() + " - " + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + (containerName == null ? "" : "." + containerName) + (attach ? " - Attach" : " - Shell"));
     }
 
     public DeskTab showStoragePanel(Core core, StorageFile file) {

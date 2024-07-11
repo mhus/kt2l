@@ -350,4 +350,45 @@ public class K8sUtil {
         }
         return null;
     }
+
+    public static String getAttachableContainer(V1Pod pod) {
+        if (pod.getStatus().getContainerStatuses() != null) {
+            for (V1ContainerStatus cs : pod.getStatus().getContainerStatuses()) {
+                if (cs.getState().getTerminated() == null && cs.getState().getRunning() != null) return cs.getName();
+            }
+        }
+        if (pod.getStatus().getEphemeralContainerStatuses() != null) {
+            for (V1ContainerStatus cs : pod.getStatus().getEphemeralContainerStatuses()) {
+                if (cs.getState().getTerminated() == null && cs.getState().getRunning() != null) return cs.getName();
+            }
+        }
+        if (pod.getStatus().getInitContainerStatuses() != null) {
+            for (V1ContainerStatus cs : pod.getStatus().getInitContainerStatuses()) {
+                if (cs.getState().getTerminated() == null && cs.getState().getRunning() != null) return cs.getName();
+            }
+        }
+        return null;
+    }
+
+    public static boolean hasTty(V1Pod pod, String containerName) {
+        if (pod.getSpec().getContainers() != null)
+            for (var c : pod.getSpec().getContainers()) {
+                if (c.getName().equals(containerName)) {
+                    return c.getTty() != null && c.getTty();
+                }
+            }
+        if (pod.getSpec().getInitContainers() != null)
+            for (var c : pod.getSpec().getInitContainers()) {
+                if (c.getName().equals(containerName)) {
+                    return c.getTty() != null && c.getTty();
+                }
+            }
+        if (pod.getSpec().getEphemeralContainers() != null)
+            for (var c : pod.getSpec().getEphemeralContainers()) {
+                if (c.getName().equals(containerName)) {
+                    return c.getTty() != null && c.getTty();
+                }
+            }
+        return false;
+    }
 }

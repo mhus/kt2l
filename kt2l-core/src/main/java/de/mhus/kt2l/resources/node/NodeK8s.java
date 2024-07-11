@@ -53,7 +53,7 @@ public class NodeK8s extends K8sV1Node {
             try {
                 final var pods = apiProvider.getCoreV1Api().listPodForAllNamespaces(null, null, "spec.nodeName=" + node.getMetadata().getName(), null, null, null, null, null, null, null, null);
                 if (pods.getItems().size() > 0) {
-                    sb.append("\nPods:\n");
+                    sb.append("\nPods: ").append(pods.getItems().size()).append("\n");
                     var table = new ConsoleTable();
                     table.setHeaderValues("Name", "Namespace", "Status", "Age");
                     for (var pod : pods.getItems()) {

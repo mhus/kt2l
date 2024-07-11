@@ -16,84 +16,82 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.ai;
+package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.PanelService;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 @Slf4j
 @Component
-@WithRole(ROLE.READ)
-public class AiAction implements ResourceAction  {
+@WithRole(ROLE.WRITE)
+public class PodAttachAction implements ResourceAction {
+
+    @Autowired
+    private Configuration configuration;
 
     @Autowired
     private PanelService panelService;
 
-    @Autowired
-    private AiConfiguration aiConfiguration;
 
     @Override
     public boolean canHandleType(Cluster cluster, V1APIResource type) {
-        return aiConfiguration.isEnabled();
+        return
+                K8s.POD.equals(type) || K8s.CONTAINER.equals(type);
     }
 
     @Override
     public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
-        return selected.size() > 0;
+        return canHandleType(cluster, type) && selected.size() == 1;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-
-        List<KubernetesObject> resources = new LinkedList<>();
-        for (var selected : context.getSelected()) {
-            resources.add(selected);
+        var selected = context.getSelected().iterator().next();
+        if (selected instanceof V1Pod pod) {
+            panelService.showContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), pod, null, true).select();
+        } else
+        if (selected instanceof ContainerResource container) {
+            panelService.showContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), container.getPod(), container.getContainerName(), true).select();
         }
-
-        if (resources.size() == 0) return;
-
-        // process
-        panelService.addAiPanel(context.getSelectedTab(), context.getCore(), context.getCluster(), resources).select();
     }
 
     @Override
     public String getTitle() {
-        return "AI;icon=" + VaadinIcon.CROSSHAIRS;
+        return "Attach;icon=" + VaadinIcon.DESKTOP;
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.TOOLS_PATH;
+        return ResourceAction.ACTIONS_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.TOOLS_ORDER + 10;
+        return ResourceAction.ACTIONS_ORDER+21;
     }
 
     @Override
     public String getShortcutKey() {
-        return "Ctrl+I";
+        return "A";
     }
 
     @Override
     public String getDescription() {
-        return "Analyse with AI";
+        return "Open Attach shell";
     }
-
-
 }
