@@ -409,7 +409,7 @@ import java.io.InputStreamReader;
         o.append("public abstract class ").append(generatedClassName(k8s)).append(" implements HandlerK8s {\n");
         o.append("\n");
         o.append("    @Autowired\n");
-        o.append("    private SecurityService securityService;\n");
+        o.append("    protected SecurityService securityService;\n");
         o.append("\n");
 
 

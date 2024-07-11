@@ -29,7 +29,7 @@ import io.kubernetes.client.openapi.models.V1NodeList;
 public abstract class K8sV1Node implements HandlerK8s {
 
     @Autowired
-    private SecurityService securityService;
+    protected SecurityService securityService;
 
     @Override
     public V1APIResource getManagedType() {

@@ -82,7 +82,7 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
 //                eventList.addClassNames("events-view-nowrap");
 //            else
 //                eventList.removeClassNames("events-view-nowrap");
-            eventList.setScrollDirection(menuItemWrapLines.isChecked() ? Scroller.ScrollDirection.VERTICAL : Scroller.ScrollDirection.BOTH);
+//            eventList.setScrollDirection(menuItemWrapLines.isChecked() ? Scroller.ScrollDirection.VERTICAL : Scroller.ScrollDirection.BOTH);
         });
         menuItemWrapLines.setCheckable(true);
 
@@ -93,7 +93,7 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
         add(menuBar);
 
         eventList = new Tail();
-        eventList.setScrollDirection(Scroller.ScrollDirection.BOTH);
+//        eventList.setScrollDirection(Scroller.ScrollDirection.BOTH);
         eventList.addClassName("events-view");
         eventList.setSizeFull();
         eventList.setAutoScroll(true);

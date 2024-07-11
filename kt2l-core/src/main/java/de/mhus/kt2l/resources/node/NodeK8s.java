@@ -21,9 +21,11 @@ package de.mhus.kt2l.resources.node;
 import de.mhus.commons.console.ConsoleTable;
 import de.mhus.kt2l.generated.K8sV1Node;
 import de.mhus.kt2l.k8s.ApiProvider;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.PolicyV1Api;
 import io.kubernetes.client.openapi.models.V1Node;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -69,6 +71,11 @@ public class NodeK8s extends K8sV1Node {
         }
         K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
+    }
+
+    @Override
+    public Object delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {
+        throw new ApiException("Delete is not possible for nodes");
     }
 
 }

@@ -29,7 +29,7 @@ import io.kubernetes.client.openapi.models.V1StorageClassList;
 public abstract class K8sV1StorageClass implements HandlerK8s {
 
     @Autowired
-    private SecurityService securityService;
+    protected SecurityService securityService;
 
     @Override
     public V1APIResource getManagedType() {

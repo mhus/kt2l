@@ -30,6 +30,7 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.resources.ResourcesGrid;
 import de.mhus.kt2l.resources.pod.score.PodScorerConfiguration;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.common.KubernetesListObject;
@@ -96,7 +97,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                 final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                         () -> {
                             final var res = createResourceItem();
-                            res.initResource((V) event.object, true);
+                            res.initResource((V) event.object, true, AbstractGridWithNamespace.this);
                             res.updateResource();
                             resourcesList.add((T) res);
                             added.set(true);
@@ -259,7 +260,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                                             .onSuccess(list -> {
                                                 list.getItems().forEach(res -> {
                                                     var newRes = createResourceItem();
-                                                    newRes.initResource((V) res, false);
+                                                    newRes.initResource((V) res, false, AbstractGridWithNamespace.this);
                                                     newRes.updateResource();
                                                     resourcesList.add(newRes);
                                                 });
@@ -339,13 +340,15 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         protected String namespace;
         protected OffsetDateTime created;
         protected V resource;
+        private ResourcesGrid grid;
         public ALERT alert = ALERT.NONE;
         private String resourceVersion;
 
-        void initResource(V resource, boolean newResource) {
+        void initResource(V resource, boolean newResource, ResourcesGrid grid) {
             this.name = resource.getMetadata().getName();
             this.namespace = resource.getMetadata().getNamespace();
             this.resource = resource;
+            this.grid = grid;
             if (newResource)
                 setFlashColor(UiUtil.COLOR.GREEN);
         }

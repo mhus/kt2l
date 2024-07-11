@@ -316,15 +316,15 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         podGrid.addColumn(pod -> pod.getMetricMemoryPercentage() < 0 ? "" : pod.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
         if (scoringEnabled)
             podGrid.addColumn(pod -> pod.getScore() < 0 ? "" : pod.getScore()).setHeader("Score").setSortProperty("score");
-
     }
 
     protected void createGridColumnsAtEnd(Grid<Resource> podGrid) {
+        podGrid.addColumn(pod -> pod.getNode()).setHeader("Node").setSortProperty("node");
+        podGrid.addColumn(pod -> pod.getIp()).setHeader("IP").setSortProperty("ip");
         podGrid.addColumn(pod -> pod.getOwner()).setHeader("Owner").setSortProperty("owner");
     }
 
-
-        @Override
+    @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
         return switch (sorted) {
             case "status" -> switch (direction) {
@@ -362,6 +362,14 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             case "owner" -> switch (direction) {
                 case ASCENDING -> a.getOwner().compareTo(b.getOwner());
                 case DESCENDING -> b.getOwner().compareTo(a.getOwner());
+            };
+            case "node" -> switch (direction) {
+                case ASCENDING -> a.getNode().compareTo(b.getNode());
+                case DESCENDING -> b.getNode().compareTo(a.getNode());
+            };
+            case "ip" -> switch (direction) {
+                case ASCENDING -> a.getIp().compareTo(b.getIp());
+                case DESCENDING -> b.getIp().compareTo(a.getIp());
             };
             default -> 0;
         };
@@ -479,6 +487,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         private int score = -1;
 
         private String owner = "";
+        private String node = "";
+        private String ip = "";
 
         private PodMetrics metric;
 
@@ -501,6 +511,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 var ownerReference = ownerReferences.get(0);
                 owner = ownerReference.getKind() + "-" + ownerReference.getUid();
             }
+            node = resource.getSpec().getNodeName();
+            ip = resource.getStatus().getPodIP();
 
             if (this.status != null && !Objects.equals(this.status, resource.getStatus().getPhase())) {
                 setFlashColor(UiUtil.COLOR.MAGENTA);

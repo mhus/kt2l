@@ -29,7 +29,7 @@ import io.kubernetes.client.openapi.models.V1ClusterRoleBindingList;
 public abstract class K8sV1ClusterRoleBinding implements HandlerK8s {
 
     @Autowired
-    private SecurityService securityService;
+    protected SecurityService securityService;
 
     @Override
     public V1APIResource getManagedType() {

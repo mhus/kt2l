@@ -78,6 +78,7 @@ public class ScaleDeploymentAction implements ResourceAction {
         useButton.addClickShortcut(Key.ENTER);
         dialog.getFooter().add(useButton);
 
+        dialog.addAttachListener(e -> replicasField.focus());
         dialog.open();
 
     }
