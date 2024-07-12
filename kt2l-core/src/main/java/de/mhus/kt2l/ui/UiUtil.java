@@ -44,6 +44,7 @@ import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.yaml.MYaml;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -233,6 +234,7 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
     }
 
     @Getter
+    @ToString(exclude = "registration")
     public static class Shortcut {
 
         private final Key key;

@@ -77,7 +77,6 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     @Autowired
     private PodScorerConfiguration podScorerConfiguration;
 
-    private volatile boolean needMetricRefresh = true;
     private int scoreErrorThreshold;
     private int scoreWarnThreshold;
     private boolean scoringEnabled;
@@ -173,7 +172,6 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         containerSelectedPod = null;
         detailsComponent.setVisible(!flip || !detailsComponent.isVisible());
         if (detailsComponent.isVisible()) {
-            needMetricRefresh = true;
             containerSelectedPod = item;
             detailsComponent.getDataProvider().refreshAll();
             if (!flip)
@@ -202,19 +200,18 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     @Override
     protected void doRefreshGrid() {
         super.doRefreshGrid();
-        needMetricRefresh = true;
     }
 
     @Override
     public void refresh(long counter) {
         super.refresh(counter);
-        if (!needMetricRefresh && counter % 10 != 0) return;
-        updateMetrics();
+        if (counter % 10 == 2)
+            updateMetrics();
     }
 
     protected synchronized void updateMetrics() {
         if (filteredList == null) return;
-        needMetricRefresh = false;
+      //  needMetricRefresh = false;
 
         Map<String, PodMetrics> metricMap = new HashMap<>();
         for (String ns : getKnownNamespaces()) {

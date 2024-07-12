@@ -59,7 +59,6 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     private HandlerK8s podResourceHandler;
     private List<V1Pod> podList;
     private IRegistration podEventRegistration;
-    private volatile boolean needMetricRefresh = true;
 
     @Override
     protected void init() {
@@ -189,13 +188,12 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     @Override
     public void refresh(long counter) {
         super.refresh(counter);
-        if (!needMetricRefresh && counter % 10 != 0) return;
-        updateMetrics();
+        if (counter % 10 == 1)
+            updateMetrics();
     }
 
     protected synchronized void updateMetrics() {
         if (filteredList == null) return;
-        needMetricRefresh = false;
 
         var metrics = getNodeMetrics();
         var map = metrics.stream().collect(Collectors.toMap(m -> m.getMetadata().getName(), m -> m));

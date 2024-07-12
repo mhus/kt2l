@@ -230,10 +230,9 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
                     return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                 }
             }, query -> {
-                LOGGER.debug("◌ Do the size query {} {}", getManagedType().getName(), queryToString(query));
                 if (resourcesList == null) {
                     resourcesList = new ArrayList<>();
-                    synchronized (resourcesList) {
+                    synchronized (AbstractGridWithoutNamespace.this) {
                         tryThis(() -> createResourceListWithoutNamespace())
                                 .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
                                 .onSuccess(list -> {
@@ -247,7 +246,9 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
                     }
                 }
                 filterList();
-                return filteredList.size();
+                var res = filteredList.size();
+                LOGGER.debug("◌ The size query {} {} returns {}", getManagedType().getName(), queryToString(query), res);
+                return res;
             });
         }
 

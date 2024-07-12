@@ -247,11 +247,10 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                     return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                 }
             }, query -> {
-                        LOGGER.debug("◌ Do the size query {} {}", getManagedType().getName(), queryToString(query));
                         if (resourcesList == null) {
                             resourcesList = new ArrayList<>();
                             if (namespace != null) {
-                                synchronized (resourcesList) {
+                                synchronized (AbstractGridWithNamespace.this) {
                                     tryThis(() -> namespace.equals(K8sUtil.NAMESPACE_ALL_LABEL) ?
                                             createRawResourceListForAllNamespaces() :
                                             createRawResourceListForNamespace(namespace)
@@ -269,7 +268,9 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
                             }
                         }
                         filterList();
-                        return filteredList.size();
+                        var res = filteredList.size();
+                        LOGGER.debug("◌ The size query {} {} returns {}", getManagedType().getName(), queryToString(query), res);
+                        return res;
             });
         }
 
