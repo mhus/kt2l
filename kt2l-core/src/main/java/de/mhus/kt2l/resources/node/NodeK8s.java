@@ -164,6 +164,11 @@ public class NodeK8s extends K8sV1Node {
 //                sb.append(table).append("\n");
 //            }
             sb.append("Images:        ").append(node.getStatus().getImages()).append("\n");
+            sb.append("Images:\n");
+                for (var image : node.getStatus().getImages()) {
+                    image.getNames().forEach(n -> sb.append("  ").append(n).append("\n"));
+                    sb.append("    ").append(MString.toByteDisplayString(image.getSizeBytes())).append("\n");
+                }
         }
         K8sUtil.describeFooter(apiProvider, this, res, sb);
         return sb.toString();
