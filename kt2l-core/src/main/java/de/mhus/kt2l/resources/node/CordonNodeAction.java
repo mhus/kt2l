@@ -23,7 +23,7 @@ import java.util.Set;
 
 @Component
 @WithRole(UsersConfiguration.ROLE.ADMIN)
-public class DrainNodeAction implements ResourceAction {
+public class CordonNodeAction implements ResourceAction {
     @Override
     public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return K8s.NODE.equals(type);
@@ -37,20 +37,12 @@ public class DrainNodeAction implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Drain Node");
+        dialog.setHeader("Cordon Node");
 
         var form = new FormLayout();
-        var text = new Div("Do you really want to drain the selected " + context.getSelected().size() + " node(s)?");
+        var text = new Div("Do you really want to cordon the selected " + context.getSelected().size() + " node(s)?");
 
-        var forceChk = new Checkbox("Force Drain");
-        var ignoreDaemonSetsChk = new Checkbox("Ignore DaemonSets");
-        ignoreDaemonSetsChk.setValue(true);
-        var gracePeriodCnt = new NumberField("Grace Period (sec)");
-        gracePeriodCnt.setMin(-1);
-        gracePeriodCnt.setMax(1000);
-        gracePeriodCnt.setValue(-1.0);
-        gracePeriodCnt.setStep(1);
-        form.add(text, forceChk, ignoreDaemonSetsChk, gracePeriodCnt);
+        form.add(text);
         form.setResponsiveSteps(
                 // Use one column by default
                 new FormLayout.ResponsiveStep("0", 1),
@@ -59,7 +51,7 @@ public class DrainNodeAction implements ResourceAction {
         form.setWidthFull();
         form.setColspan(text, 2);
         dialog.setWidth("80%");
-        dialog.setConfirmText("Drain");
+        dialog.setConfirmText("Cordon");
         dialog.setCancelText("Cancel");
         dialog.setCloseOnEsc(false);
         dialog.setCancelable(true);
@@ -67,7 +59,7 @@ public class DrainNodeAction implements ResourceAction {
         dialog.setCancelButtonTheme("tertiary");
         dialog.addConfirmListener(
                 e -> {
-                    drainNodes(context, forceChk.getValue(), ignoreDaemonSetsChk.getValue(), gracePeriodCnt.getValue().intValue());
+                    drainNodes(context);
                 });
 
         dialog.setText(form);
@@ -75,30 +67,23 @@ public class DrainNodeAction implements ResourceAction {
 
     }
 
-    private void drainNodes(ExecutionContext context, boolean force, boolean ignoreDaemonSets, int gracePeriod) {
+    private void drainNodes(ExecutionContext context) {
 
         ProgressDialog progress = new ProgressDialog();
-        progress.setHeaderTitle("Drain Nodes");
+        progress.setHeaderTitle("Cordon Nodes");
         progress.setMax(context.getSelected().size());
         progress.open();
 
         Thread.startVirtualThread(() -> {
             for (KubernetesObject obj : context.getSelected()) {
                 context.getUi().access(() -> progress.next(obj.getMetadata().getName()));
-                var drain = Kubectl.drain();
-                if (force)
-                    drain.force();
-                if (ignoreDaemonSets)
-                    drain.ignoreDaemonSets();
-                if (gracePeriod >= 0)
-                    drain.gracePeriod(gracePeriod);
-
+                var cordon = Kubectl.cordon();
                 try {
-                    drain.apiClient(context.getCluster().getApiProvider().getClient())
+                    cordon.apiClient(context.getCluster().getApiProvider().getClient())
                             .name(obj.getMetadata().getName()).execute();
-                    context.getUi().access(() -> UiUtil.showSuccessNotification("Node " + obj.getMetadata().getName() + " drained"));
+                    context.getUi().access(() -> UiUtil.showSuccessNotification("Node " + obj.getMetadata().getName() + " cordoned"));
                 } catch (Exception e) {
-                    context.getUi().access(() -> UiUtil.showErrorNotification("Error draining node " + obj.getMetadata().getName(), e));
+                    context.getUi().access(() -> UiUtil.showErrorNotification("Error cordon node " + obj.getMetadata().getName(), e));
                 }
             }
             context.getUi().access(() -> progress.close());
@@ -107,7 +92,7 @@ public class DrainNodeAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Drain Node;icon=" + VaadinIcon.CLOSE_CIRCLE_O;
+        return "Cordon Node;icon=" + VaadinIcon.CLOSE;
     }
 
     @Override
@@ -117,7 +102,7 @@ public class DrainNodeAction implements ResourceAction {
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.ACTIONS_ORDER + 110;
+        return ResourceAction.ACTIONS_ORDER + 100;
     }
 
     @Override

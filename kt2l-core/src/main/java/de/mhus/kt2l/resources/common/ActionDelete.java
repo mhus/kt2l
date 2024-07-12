@@ -54,7 +54,7 @@ public class ActionDelete implements ResourceAction {
 
     @Override
     public boolean canHandleType(Cluster cluster, V1APIResource type) {
-        return !K8s.CONTAINER.equals(type);
+        return !K8s.CONTAINER.equals(type) && !K8s.NODE.equals(type);
     }
 
     @Override

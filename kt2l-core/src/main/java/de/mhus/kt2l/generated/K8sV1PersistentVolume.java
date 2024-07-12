@@ -91,10 +91,15 @@ public abstract class K8sV1PersistentVolume implements HandlerK8s {
     @Override
     public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
         var patch = new V1Patch(patchString);
-        return apiProvider.getCoreV1Api().patchPersistentVolumeCall(
-            name,
-            patch,
-            null, null, null, null, null, null
+        return PatchUtils.patch(
+            V1PersistentVolume.class,
+            () -> apiProvider.getCoreV1Api().patchPersistentVolumeCall(
+                    name,
+                    patch,
+                    null, null, null, null, null, null
+            ),
+            V1Patch.PATCH_FORMAT_JSON_PATCH,
+            apiProvider.getClient()
         );
     }
 

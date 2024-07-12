@@ -45,6 +45,7 @@ import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.kscript.AttachScope;
 import de.mhus.kt2l.system.DevelopmentAction;
 import de.mhus.kt2l.ui.UiUtil;
+import io.kubernetes.client.util.credentials.Authentication;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -191,6 +192,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
     private void updateClusterActions() {
         var cluster = clusterBox.getValue().cluster();
+
         Thread.startVirtualThread(() -> {
             if (!validateCluster(cluster)) {
                 core.ui().access(() -> {
@@ -200,8 +202,13 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
                 return;
             }
             clusterActionList.forEach(r -> {
-                var enabled = r.action.canHandle(core, cluster);
-                core.ui().access(() -> r.item.setEnabled(enabled));
+                Thread.startVirtualThread(() -> {
+                    var enabled = r.action.canHandle(core, cluster);
+                    core.ui().access(() -> {
+                        if (cluster != clusterBox.getValue().cluster()) return; // check if changed selection in the meantime
+                        r.item.setEnabled(enabled);
+                    });
+                });
             });
         });
     }

@@ -124,7 +124,7 @@ public class NodeK8s extends K8sV1Node {
                     sb.append(table).append("\n\n");
                 }
             } catch (ApiException e) {
-                LOGGER.error("Error loading pods for node {}", node, e);
+                LOGGER.warn("Error loading pods for node {}", node, e);
             }
             sb.append("Resources:   \n");
             {
@@ -213,8 +213,10 @@ public class NodeK8s extends K8sV1Node {
             }
             sb.append("Images:\n");
                 for (var image : node.getStatus().getImages()) {
-                    image.getNames().forEach(n -> sb.append("  ").append(n).append("\n"));
-                    sb.append("    ").append(MString.toByteDisplayString(image.getSizeBytes())).append("\n");
+                    if (image.getNames() != null) {
+                        image.getNames().forEach(n -> sb.append("  ").append(n).append("\n"));
+                        sb.append("    ").append(MString.toByteDisplayString(image.getSizeBytes())).append("\n");
+                    }
                 }
         }
         K8sUtil.describeFooter(apiProvider, this, res, sb);

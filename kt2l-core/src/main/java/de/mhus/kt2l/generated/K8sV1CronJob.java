@@ -97,11 +97,16 @@ public abstract class K8sV1CronJob implements HandlerK8s {
     @Override
     public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
         var patch = new V1Patch(patchString);
-        return apiProvider.getBatchV1Api().patchNamespacedCronJobCall(
-            name,
-            namespace,
-            patch,
-            null, null, null, null, null, null
+        return PatchUtils.patch(
+            V1CronJob.class,
+            () -> apiProvider.getBatchV1Api().patchNamespacedCronJobCall(
+                    name,
+                    namespace,
+                    patch,
+                    null, null, null, null, null, null
+            ),
+            V1Patch.PATCH_FORMAT_JSON_PATCH,
+            apiProvider.getClient()
         );
     }
 

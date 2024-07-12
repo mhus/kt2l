@@ -257,7 +257,7 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
                 s.append("Ready");
             }
             this.status = s.toString();
-            this.pods = ((NodeGrid)getGrid()).podList.stream().filter(p -> p.getSpec().getNodeName().equals(resource.getMetadata().getName())).count();
+            this.pods = ((NodeGrid)getGrid()).podList.stream().filter(p -> Objects.equals(p.getSpec().getNodeName(), resource.getMetadata().getName())).count();
             this.taintCnt = tryThis(() -> resource.getSpec().getTaints().size()).orElse(0);
             this.ip = resource.getStatus().getAddresses().stream()
                     .filter(a -> "InternalIP".equals(a.getType()))
@@ -268,6 +268,7 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         }
 
         public synchronized boolean setMetrics(NodeMetrics metric) {
+            if (metric == null) return false;
             this.metric = metric;
 
             double cpu = metric.getUsage().get("cpu").getNumber().doubleValue();

@@ -1,11 +1,10 @@
 package de.mhus.kt2l.resources.node;
 
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.TextField;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
@@ -21,9 +20,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
+import static de.mhus.commons.tools.MString.isEmpty;
+
 @Component
 @WithRole(UsersConfiguration.ROLE.ADMIN)
-public class DrainNodeAction implements ResourceAction {
+public class AddTaintAction implements ResourceAction  {
     @Override
     public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return K8s.NODE.equals(type);
@@ -37,20 +38,13 @@ public class DrainNodeAction implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
         ConfirmDialog dialog = new ConfirmDialog();
-        dialog.setHeader("Drain Node");
-
+        dialog.setHeader("Add Taint");
         var form = new FormLayout();
-        var text = new Div("Do you really want to drain the selected " + context.getSelected().size() + " node(s)?");
-
-        var forceChk = new Checkbox("Force Drain");
-        var ignoreDaemonSetsChk = new Checkbox("Ignore DaemonSets");
-        ignoreDaemonSetsChk.setValue(true);
-        var gracePeriodCnt = new NumberField("Grace Period (sec)");
-        gracePeriodCnt.setMin(-1);
-        gracePeriodCnt.setMax(1000);
-        gracePeriodCnt.setValue(-1.0);
-        gracePeriodCnt.setStep(1);
-        form.add(text, forceChk, ignoreDaemonSetsChk, gracePeriodCnt);
+        var text = new Div("Add a taint to the selected " + context.getSelected().size() + " node(s)");
+        var key = new TextField("Key");
+        var value = new TextField("Value");
+        var effect = new TextField("Effect");
+        form.add(text, key, value, effect);
         form.setResponsiveSteps(
                 // Use one column by default
                 new FormLayout.ResponsiveStep("0", 1),
@@ -59,65 +53,56 @@ public class DrainNodeAction implements ResourceAction {
         form.setWidthFull();
         form.setColspan(text, 2);
         dialog.setWidth("80%");
-        dialog.setConfirmText("Drain");
+        dialog.setConfirmText("Add Taint");
         dialog.setCancelText("Cancel");
         dialog.setCloseOnEsc(false);
         dialog.setCancelable(true);
-        dialog.setConfirmButtonTheme("error primary");
+        dialog.setConfirmButtonTheme("primary");
         dialog.setCancelButtonTheme("tertiary");
         dialog.addConfirmListener(
-                e -> {
-                    drainNodes(context, forceChk.getValue(), ignoreDaemonSetsChk.getValue(), gracePeriodCnt.getValue().intValue());
-                });
-
-        dialog.setText(form);
+                e -> addTaint(context, key.getValue(), value.getValue(), effect.getValue()));
+        dialog.addAttachListener(event -> key.focus());
+        dialog.add(form);
         dialog.open();
-
     }
 
-    private void drainNodes(ExecutionContext context, boolean force, boolean ignoreDaemonSets, int gracePeriod) {
-
-        ProgressDialog progress = new ProgressDialog();
-        progress.setHeaderTitle("Drain Nodes");
-        progress.setMax(context.getSelected().size());
-        progress.open();
-
+    private void addTaint(ExecutionContext context, String key, String value, String effect) {
+        ProgressDialog dialog = new ProgressDialog();
+        dialog.setHeaderTitle("Add Taint");
+        dialog.setMax(context.getSelected().size());
+        dialog.open();
         Thread.startVirtualThread(() -> {
             for (KubernetesObject obj : context.getSelected()) {
-                context.getUi().access(() -> progress.next(obj.getMetadata().getName()));
-                var drain = Kubectl.drain();
-                if (force)
-                    drain.force();
-                if (ignoreDaemonSets)
-                    drain.ignoreDaemonSets();
-                if (gracePeriod >= 0)
-                    drain.gracePeriod(gracePeriod);
-
+                context.getUi().access(() -> dialog.next(obj.getMetadata().getName()));
                 try {
-                    drain.apiClient(context.getCluster().getApiProvider().getClient())
-                            .name(obj.getMetadata().getName()).execute();
-                    context.getUi().access(() -> UiUtil.showSuccessNotification("Node " + obj.getMetadata().getName() + " drained"));
+                    var taint = Kubectl.taint().apiClient(context.getCluster().getApiProvider().getClient()).name(obj.getMetadata().getName());
+                    if (isEmpty(value)) {
+                        taint.addTaint(key, effect).execute();
+                    } else {
+                        taint.addTaint(key, value, effect).execute();
+                    }
+                    context.getUi().access(() -> UiUtil.showSuccessNotification("Taint added to node " + obj.getMetadata().getName()));
                 } catch (Exception e) {
-                    context.getUi().access(() -> UiUtil.showErrorNotification("Error draining node " + obj.getMetadata().getName(), e));
+                    context.getUi().access(() -> UiUtil.showErrorNotification("Error add taint to node " + obj.getMetadata().getName(), e));
                 }
             }
-            context.getUi().access(() -> progress.close());
+            context.getUi().access(dialog::close);
         });
     }
 
     @Override
     public String getTitle() {
-        return "Drain Node;icon=" + VaadinIcon.CLOSE_CIRCLE_O;
+        return "Add Taint;icon=" + VaadinIcon.FILE_ADD;
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.ACTIONS_PATH;
+        return ResourceAction.TOOLS_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.ACTIONS_ORDER + 110;
+        return ResourceAction.TOOLS_ORDER + 110;
     }
 
     @Override
@@ -127,6 +112,6 @@ public class DrainNodeAction implements ResourceAction {
 
     @Override
     public String getDescription() {
-        return "";
+        return "Add a taint to the selected nodes";
     }
 }

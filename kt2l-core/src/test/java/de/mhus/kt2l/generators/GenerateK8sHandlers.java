@@ -78,56 +78,35 @@ public class GenerateK8sHandlers {
     }
 
     /*
-        @Override
-    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        V1Patch patch = new V1Patch(patchString);
+        var patch = new V1Patch(patchString);
         return PatchUtils.patch(
-                V1Pod.class,
-                () -> apiProvider.getCoreV1Api().patchNamespacedPodCall(
-                        name,
-                        namespace,
-                        patch,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
+            V1Pod.class,
+            () -> apiProvider.getCoreV1Api().patchNamespacedPodCall(
+                    name,
+                    namespace,
+                    patch,
+                    null, null, null, null, null, null
+            ),
                 V1Patch.PATCH_FORMAT_JSON_PATCH,
                 apiProvider.getClient()
         );
-    }
-    @Override
-    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        V1Patch patch = new V1Patch(patchString);
-        return PatchUtils.patch(
-                V1Node.class,
-                () -> apiProvider.getCoreV1Api().patchNodeCall(
-                        name,
-                        patch,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                V1Patch.PATCH_FORMAT_JSON_PATCH,
-                apiProvider.getClient()
-        );
-    }
+
      */
     private void patchResourceType(StringBuffer o, V1APIResource k8s) {
         o.append("    @Override\n");
         o.append("    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {\n");
         o.append("        var patch = new V1Patch(patchString);\n");
-        o.append("        return apiProvider.").append(apiFunction(k8s)).append(".patch").append(methodName(k8s)).append("Call(\n");
-        o.append("            name,\n");
+        o.append("        return PatchUtils.patch(\n");
+        o.append("            ").append(resourceClassName(k8s)).append(".class,\n");
+        o.append("            () -> apiProvider.").append(apiFunction(k8s)).append(".patch").append(methodName(k8s)).append("Call(\n");
+        o.append("                    name,\n");
         if (k8s.getNamespaced())
-            o.append("            namespace,\n");
-        o.append("            patch,\n");
-        o.append("            null, null, null, null, null, null\n");
+            o.append("                    namespace,\n");
+        o.append("                    patch,\n");
+        o.append("                    null, null, null, null, null, null\n");
+        o.append("            ),\n");
+        o.append("            V1Patch.PATCH_FORMAT_JSON_PATCH,\n");
+        o.append("            apiProvider.getClient()\n");
         o.append("        );\n");
         o.append("    }\n");
         o.append("\n");

@@ -97,11 +97,16 @@ public abstract class K8sV1DaemonSet implements HandlerK8s {
     @Override
     public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
         var patch = new V1Patch(patchString);
-        return apiProvider.getAppsV1Api().patchNamespacedDaemonSetCall(
-            name,
-            namespace,
-            patch,
-            null, null, null, null, null, null
+        return PatchUtils.patch(
+            V1DaemonSet.class,
+            () -> apiProvider.getAppsV1Api().patchNamespacedDaemonSetCall(
+                    name,
+                    namespace,
+                    patch,
+                    null, null, null, null, null, null
+            ),
+            V1Patch.PATCH_FORMAT_JSON_PATCH,
+            apiProvider.getClient()
         );
     }
 

@@ -391,4 +391,15 @@ public class K8sUtil {
             }
         return false;
     }
+
+    public static String normalizeLabelKey(String key) {
+        if (key == null) throw new NullPointerException("Key is null");
+        return key.replaceAll("![A-Za-z0-9_\\-\\./]", "_");
+    }
+
+    public static String normalizeLabelValue(String key) {
+        if (key == null) throw new NullPointerException("Key is null");
+        return key.replaceAll("![A-Za-z0-9_\\-\\./]", "_");
+    }
+
 }
