@@ -23,12 +23,20 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.lang.OptionalBoolean;
+import de.mhus.commons.tools.MCast;
+import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.pod.PodWatch;
 import de.mhus.kt2l.resources.util.AbstractGridWithoutNamespace;
+import io.kubernetes.client.Metrics;
+import io.kubernetes.client.custom.ContainerMetrics;
+import io.kubernetes.client.custom.NodeMetrics;
+import io.kubernetes.client.custom.PodMetrics;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1Node;
 import io.kubernetes.client.openapi.models.V1NodeList;
 import io.kubernetes.client.openapi.models.V1Pod;
@@ -40,6 +48,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static de.mhus.commons.tools.MLang.tryThis;
 
@@ -49,6 +59,7 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     private HandlerK8s podResourceHandler;
     private List<V1Pod> podList;
     private IRegistration podEventRegistration;
+    private volatile boolean needMetricRefresh = true;
 
     @Override
     protected void init() {
@@ -116,6 +127,10 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         resourcesGrid.addColumn(NodeGrid.Resource::getStatus).setHeader("Status").setSortProperty("status");
         resourcesGrid.addColumn(NodeGrid.Resource::getTaintCnt).setHeader("Taints").setSortProperty("taints");
         resourcesGrid.addColumn(NodeGrid.Resource::getPods).setHeader("Pods").setSortProperty("pods");
+        resourcesGrid.addColumn(res -> res.getMetricCpuString()).setHeader("CPU").setSortProperty("cpu");
+        resourcesGrid.addColumn(res -> res.getMetricCpuPercentage() < 0 ? "" : res.getMetricCpuPercentage()).setHeader("CPU%").setSortProperty("cpu%");
+        resourcesGrid.addColumn(res -> res.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
+        resourcesGrid.addColumn(res -> res.getMetricMemoryPercentage() < 0 ? "" : res.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
         resourcesGrid.addColumn(NodeGrid.Resource::getIp).setHeader("IP").setSortProperty("ip");
         resourcesGrid.addColumn(NodeGrid.Resource::getVersion).setHeader("Version").setSortProperty("version");
     }
@@ -171,6 +186,49 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         return K8s.NODE;
     }
 
+    @Override
+    public void refresh(long counter) {
+        super.refresh(counter);
+        if (!needMetricRefresh && counter % 10 != 0) return;
+        updateMetrics();
+    }
+
+    protected synchronized void updateMetrics() {
+        if (filteredList == null) return;
+        needMetricRefresh = false;
+
+        var metrics = getNodeMetrics();
+        var map = metrics.stream().collect(Collectors.toMap(m -> m.getMetadata().getName(), m -> m));
+
+        final AtomicBoolean changed = new AtomicBoolean(false);
+        resourcesList.stream().forEach(r -> {
+            var m = map.get(r.getName());
+            if (r.setMetrics(m)) {
+                resourcesGrid.getDataProvider().refreshItem(r);
+                changed.set(true);
+            }
+        });
+
+        if (changed.get()) {
+            getPanel().getCore().ui().push();
+        }
+
+    }
+
+    private List<NodeMetrics> getNodeMetrics() {
+        Metrics metrics = new Metrics(panel.getCluster().getApiProvider().getClient());
+        try {
+            var list = metrics.getNodeMetrics();
+            return list.getItems();
+        } catch (ApiException e) {
+            LOGGER.error("Can't get metrics for nodes with RC {}", e.getCode(), e);
+            panel.getCluster().getApiProvider().invalidate();
+        } catch (Exception e) {
+            LOGGER.error("Can't get metrics for nodes",e);
+        }
+        return Collections.EMPTY_LIST;
+    }
+
     @Getter
     public static class Resource extends AbstractGridWithoutNamespace.ResourceItem<V1Node> {
         String status;
@@ -178,6 +236,13 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         private String ip;
         private String version;
         private long pods;
+        private double metricCpu = Double.MAX_VALUE;
+        private long metricMemory = Long.MAX_VALUE;
+        private String metricCpuString = "-";
+        private String metricMemoryString = "-";
+        private int metricCpuPercentage = -1;
+        private int metricMemoryPercentage = -1;
+        private NodeMetrics metric;
 
         @Override
         public void updateResource() {
@@ -200,6 +265,31 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
                     .map(a -> a.getAddress())
                     .orElse(null);
             this.version = tryThis(() -> resource.getStatus().getNodeInfo().getKubeletVersion()).orElse("");
+        }
+
+        public synchronized boolean setMetrics(NodeMetrics metric) {
+            this.metric = metric;
+
+            double cpu = metric.getUsage().get("cpu").getNumber().doubleValue();
+            long mem = metric.getUsage().get("memory").getNumber().longValue();
+            var cpuString = MString.truncate(String.valueOf(cpu), 5);
+            var memoryString = MCast.toByteUnit(mem);
+            if (cpuString.equals(metricCpuString) && memoryString.equals(metricMemoryString)) return false;
+            metricCpuString = cpuString;
+            metricMemoryString = memoryString;
+            metricCpu = cpu;
+            metricMemory = mem;
+
+            metricCpuPercentage = -1;
+            metricMemoryPercentage = -1;
+            double cpuLimit = resource.getStatus().getCapacity().get("cpu").getNumber().doubleValue();
+            long memLimit = resource.getStatus().getCapacity().get("memory").getNumber().longValue();
+            if (cpuLimit > 0)
+                metricCpuPercentage = (int) (cpu * 100 / cpuLimit);
+            if (memLimit > 0)
+                metricMemoryPercentage = (int) (mem * 100 / memLimit);
+
+            return true;
         }
     }
 }

@@ -25,6 +25,7 @@ import de.mhus.kt2l.generated.K8sV1Node;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
+import io.kubernetes.client.Metrics;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.PolicyV1Api;
@@ -53,6 +54,23 @@ public class NodeK8s extends K8sV1Node {
             sb.append("Provider ID:   ").append(node.getSpec().getProviderID()).append("\n");
             sb.append("External ID:   ").append(node.getSpec().getExternalID()).append("\n");
             sb.append("Internal IP:   ").append(node.getStatus().getAddresses()).append("\n");
+
+            double cpuUsage = -1;
+            long memoryUsage = -1;
+            try {
+                Metrics metrics = new Metrics(apiProvider.getClient());
+                var list = metrics.getNodeMetrics().getItems();
+                var metric = list.stream().filter(m -> m.getMetadata().getName().equals(node.getMetadata().getName())).findFirst().orElse(null);
+                if (metric != null) {
+                    sb.append("Metrics:\n");
+                    sb.append("  CPU:         ").append(metric.getUsage().get("cpu")).append("\n");
+                    sb.append("  Memory:      ").append(metric.getUsage().get("memory")).append("\n");
+                    cpuUsage = metric.getUsage().get("cpu").getNumber().doubleValue();
+                    memoryUsage = metric.getUsage().get("memory").getNumber().longValue();
+                }
+            } catch (Exception e) {
+                sb.append("Metrics:       ").append(e.getMessage()).append("\n");
+            }
 
             sb.append("Conditions:    \n");
             {
@@ -118,7 +136,7 @@ public class NodeK8s extends K8sV1Node {
                 node.getStatus().getCapacity().forEach((k, v) -> data.get(k)[1] = v.getNumber().toString());
 
                 var table = new ConsoleTable();
-                table.setHeaderValues("Resource", "Capacity", "Allocatable", "Requested", "%", "Limit", "%");
+                table.setHeaderValues("Resource", "Capacity", "Allocatable", "Requested", "Req%", "Limit", "Limit%", "Usage", "Usage%");
 
                 final var finalSumCpuR = sumCpuR;
                 final var finalSumCpuL = sumCpuL;
@@ -126,44 +144,73 @@ public class NodeK8s extends K8sV1Node {
                 final var finalSumMemoryL = sumMemoryL;
                 final var finalSumEphemeralStorage = sumEphemeralStorage;
                 final var finalSumPods = sumPods;
+                final var finalCpuUsage = cpuUsage;
+                final var finalMemoryUsage = memoryUsage;
 
                 data.forEach((k, v) -> {
                     if (k.equals("cpu")) {
                         var capacity = MCast.todouble(v[1], 0d);
                         var allocatable = MCast.todouble(v[0], 0d);
-                        table.addRowValues(k, capacity, allocatable, finalSumCpuR, Math.round(finalSumCpuR * 100 / allocatable), finalSumCpuL, Math.round(finalSumCpuL * 100 / allocatable));
+                        table.addRowValues(
+                                k,
+                                capacity,
+                                allocatable,
+                                finalSumCpuR,
+                                Math.round(finalSumCpuR * 100 / allocatable),
+                                finalSumCpuL,
+                                Math.round(finalSumCpuL * 100 / allocatable),
+                                finalCpuUsage == -1 ? "" : finalCpuUsage,
+                                finalCpuUsage == -1 ? "" : Math.round(finalCpuUsage * 100 / allocatable)
+                                );
                     } else
                     if (k.equals("memory")) {
                         var capacity = MCast.tolong(v[1], 0L);
                         var allocatable = MCast.tolong(v[0], 0L);
-                        table.addRowValues(k, MString.toByteDisplayString(capacity), MString.toByteDisplayString(allocatable), MString.toByteDisplayString(finalSumMemoryR), Math.round(finalSumMemoryR * 100 / allocatable), MString.toByteDisplayString(finalSumMemoryL), Math.round(finalSumMemoryL * 100 / allocatable));
+                        table.addRowValues(
+                                k,
+                                MString.toByteDisplayString(capacity),
+                                MString.toByteDisplayString(allocatable),
+                                MString.toByteDisplayString(finalSumMemoryR),
+                                Math.round(finalSumMemoryR * 100 / allocatable),
+                                MString.toByteDisplayString(finalSumMemoryL),
+                                Math.round(finalSumMemoryL * 100 / allocatable),
+                                finalMemoryUsage == -1 ? "" : MString.toByteDisplayString(finalMemoryUsage),
+                                finalMemoryUsage == -1 ? "" : Math.round(finalMemoryUsage * 100 / allocatable)
+                                );
                     } else
                         if (k.equals("ephemeral-storage")) {
                             var capacity = MCast.tolong(v[1], 0L);
                             var allocatable = MCast.tolong(v[0], 0L);
-                            table.addRowValues(k, MString.toByteDisplayString(capacity), MString.toByteDisplayString(allocatable), MString.toByteDisplayString(finalSumEphemeralStorage), Math.round(finalSumEphemeralStorage * 100 / allocatable), "", "");
+                            table.addRowValues(
+                                    k,
+                                    MString.toByteDisplayString(capacity),
+                                    MString.toByteDisplayString(allocatable),
+                                    MString.toByteDisplayString(finalSumEphemeralStorage),
+                                    Math.round(finalSumEphemeralStorage * 100 / allocatable),
+                                    "", "", "", ""
+                            );
                     } else
                     if (k.equals("pods")) {
                         var capacity = MCast.tolong(v[1], 0L);
                         var allocatable = MCast.tolong(v[0], 0L);
-                        table.addRowValues(k, capacity, allocatable, finalSumPods, Math.round(finalSumPods * 100 / allocatable), "", "");
+                        table.addRowValues(
+                                k,
+                                capacity,
+                                allocatable,
+                                finalSumPods,
+                                Math.round(finalSumPods * 100 / allocatable),
+                                "", "", "", ""
+                        );
                     } else
-                        table.addRowValues(k, v[1], v[0], "","","","" );
+                        table.addRowValues(
+                                k,
+                                v[1],
+                                v[0],
+                                "", "", "", "", "", ""
+                        );
                 } );
                 sb.append(table).append("\n");
             }
-
-//            {
-//                sb.append("Images:\n");
-//                var table = new ConsoleTable();
-//                table.setFull(true);
-//                table.setHeaderValues("Name", "Version");
-//                for (var image : node.getStatus().getImages()) {
-//                    table.addRowValues(image.getNames(), MString.toByteDisplayString(image.getSizeBytes()));
-//                }
-//                sb.append(table).append("\n");
-//            }
-            sb.append("Images:        ").append(node.getStatus().getImages()).append("\n");
             sb.append("Images:\n");
                 for (var image : node.getStatus().getImages()) {
                     image.getNames().forEach(n -> sb.append("  ").append(n).append("\n"));
