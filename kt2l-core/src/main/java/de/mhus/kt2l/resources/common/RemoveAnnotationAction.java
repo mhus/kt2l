@@ -27,7 +27,7 @@ import java.util.Set;
 @Component
 @WithRole(UsersConfiguration.ROLE.WRITE)
 @Slf4j
-public class RemoveLabelAction implements ResourceAction {
+public class RemoveAnnotationAction implements ResourceAction {
 
     @Autowired
     private K8sService k8sService;
@@ -46,7 +46,7 @@ public class RemoveLabelAction implements ResourceAction {
     public void execute(ExecutionContext context) {
         ConfirmDialog dialog = new ConfirmDialog();
         var form = new FormLayout();
-        var text = new Div("Remove Label from the selected "+context.getSelected().size()+" resource(s)");
+        var text = new Div("Remove Annotation from the selected "+context.getSelected().size()+" resource(s)");
         var key = new TextField("Key");
         form.add(text, key);
         form.setResponsiveSteps(
@@ -59,32 +59,32 @@ public class RemoveLabelAction implements ResourceAction {
 
         dialog.setText(form);
         dialog.setWidth("80%");
-        dialog.setConfirmText("Remove Label");
+        dialog.setConfirmText("Remove Annotation");
         dialog.setCancelText("Cancel");
         dialog.setCancelable(true);
         dialog.setCloseOnEsc(true);
         dialog.setConfirmButtonTheme("primary");
         dialog.setCancelButtonTheme("tertiary");
-        dialog.addConfirmListener(e -> removeLabel(context, key.getValue()));
+        dialog.addConfirmListener(e -> removeAnnotation(context, key.getValue()));
         dialog.addAttachListener(event -> key.focus());
         dialog.open();
     }
 
-    private void removeLabel(ExecutionContext context, String key) {
+    private void removeAnnotation(ExecutionContext context, String key) {
         ProgressDialog dialog = new ProgressDialog();
-        dialog.setHeaderTitle("Remove Label");
+        dialog.setHeaderTitle("Remove Annotation");
         dialog.setMax(context.getSelected().size());
         dialog.open();
         Thread.startVirtualThread(() -> {
             for (KubernetesObject obj : context.getSelected()) {
                 context.getUi().access(() -> dialog.next(obj.getMetadata().getName()));
                 try {
-                    var patch = "[{\"op\":\"remove\",\"path\":\"/metadata/labels/" + K8sUtil.normalizeLabelKey(key) + "\"}]";
+                    var patch = "[{\"op\":\"remove\",\"path\":\"/metadata/annotations/" + K8sUtil.normalizeAnnotationKey(key) + "\"}]";
                     var handler = k8sService.getTypeHandler(obj, context.getCluster(), context.getType());
                     handler.patch(context.getCluster().getApiProvider(), obj, patch);
-                    context.getUi().access(() -> UiUtil.showSuccessNotification("Label removed from " + obj.getMetadata().getName()));
+                    context.getUi().access(() -> UiUtil.showSuccessNotification("Annotation removed from " + obj.getMetadata().getName()));
                 } catch (Exception e) {
-                    context.getUi().access(() -> UiUtil.showErrorNotification("Error remove label from " + obj.getMetadata().getName(), e));
+                    context.getUi().access(() -> UiUtil.showErrorNotification("Error remove annotation from " + obj.getMetadata().getName(), e));
                 }
             }
             context.getUi().access(dialog::close);
@@ -93,7 +93,7 @@ public class RemoveLabelAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Remove Label;icon=" + VaadinIcon.FILE_REMOVE;
+        return "Remove Annotation;icon=" + VaadinIcon.FILE_REMOVE;
     }
 
     @Override
@@ -103,7 +103,7 @@ public class RemoveLabelAction implements ResourceAction {
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.TOOLS_ORDER + 201;
+        return ResourceAction.TOOLS_ORDER + 211;
     }
 
     @Override
@@ -113,6 +113,6 @@ public class RemoveLabelAction implements ResourceAction {
 
     @Override
     public String getDescription() {
-        return "Remove a label from the selected resources";
+        return "Remove a annotation from the selected resources";
     }
 }

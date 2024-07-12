@@ -10,16 +10,15 @@ import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import de.mhus.kt2l.ui.ProgressDialog;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.extended.kubectl.Kubectl;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -27,11 +26,7 @@ import java.util.Set;
 @Component
 @WithRole(UsersConfiguration.ROLE.WRITE)
 @Slf4j
-public class RemoveLabelAction implements ResourceAction {
-
-    @Autowired
-    private K8sService k8sService;
-
+public class AddAnnotationAction implements ResourceAction {
     @Override
     public boolean canHandleType(Cluster cluster, V1APIResource type) {
         return !K8s.CONTAINER.equals(type);
@@ -46,9 +41,10 @@ public class RemoveLabelAction implements ResourceAction {
     public void execute(ExecutionContext context) {
         ConfirmDialog dialog = new ConfirmDialog();
         var form = new FormLayout();
-        var text = new Div("Remove Label from the selected "+context.getSelected().size()+" resource(s)");
+        var text = new Div("Add Annotation to the selected "+context.getSelected().size()+" resource(s)");
         var key = new TextField("Key");
-        form.add(text, key);
+        var value = new TextField("Value");
+        form.add(text, key, value);
         form.setResponsiveSteps(
                 // Use one column by default
                 new FormLayout.ResponsiveStep("0", 1),
@@ -59,32 +55,35 @@ public class RemoveLabelAction implements ResourceAction {
 
         dialog.setText(form);
         dialog.setWidth("80%");
-        dialog.setConfirmText("Remove Label");
+        dialog.setConfirmText("Add Annotation");
         dialog.setCancelText("Cancel");
         dialog.setCancelable(true);
         dialog.setCloseOnEsc(true);
         dialog.setConfirmButtonTheme("primary");
         dialog.setCancelButtonTheme("tertiary");
-        dialog.addConfirmListener(e -> removeLabel(context, key.getValue()));
+        dialog.addConfirmListener(e -> addAnnotation(context, key.getValue(), value.getValue()));
         dialog.addAttachListener(event -> key.focus());
         dialog.open();
     }
 
-    private void removeLabel(ExecutionContext context, String key) {
+    private void addAnnotation(ExecutionContext context, String key, String value) {
         ProgressDialog dialog = new ProgressDialog();
-        dialog.setHeaderTitle("Remove Label");
+        dialog.setHeaderTitle("Add Annotation");
         dialog.setMax(context.getSelected().size());
         dialog.open();
         Thread.startVirtualThread(() -> {
             for (KubernetesObject obj : context.getSelected()) {
                 context.getUi().access(() -> dialog.next(obj.getMetadata().getName()));
                 try {
-                    var patch = "[{\"op\":\"remove\",\"path\":\"/metadata/labels/" + K8sUtil.normalizeLabelKey(key) + "\"}]";
-                    var handler = k8sService.getTypeHandler(obj, context.getCluster(), context.getType());
-                    handler.patch(context.getCluster().getApiProvider(), obj, patch);
-                    context.getUi().access(() -> UiUtil.showSuccessNotification("Label removed from " + obj.getMetadata().getName()));
+                    var annotation = Kubectl.annotate(obj.getClass())
+                            .apiClient(context.getCluster().getApiProvider().getClient())
+                            .name(obj.getMetadata().getName());
+                    if (obj.getMetadata().getNamespace() != null)
+                        annotation.namespace(obj.getMetadata().getNamespace());
+                    annotation.addAnnotation(K8sUtil.normalizeAnnotationKey(key), K8sUtil.normalizeAnnotationValue(value)).execute();
+                    context.getUi().access(() -> UiUtil.showSuccessNotification("Annotation added to " + obj.getMetadata().getName()));
                 } catch (Exception e) {
-                    context.getUi().access(() -> UiUtil.showErrorNotification("Error remove label from " + obj.getMetadata().getName(), e));
+                    context.getUi().access(() -> UiUtil.showErrorNotification("Error add annotation to " + obj.getMetadata().getName(), e));
                 }
             }
             context.getUi().access(dialog::close);
@@ -93,7 +92,7 @@ public class RemoveLabelAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Remove Label;icon=" + VaadinIcon.FILE_REMOVE;
+        return "Add Annotation;icon=" + VaadinIcon.FILE_ADD;
     }
 
     @Override
@@ -103,7 +102,7 @@ public class RemoveLabelAction implements ResourceAction {
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.TOOLS_ORDER + 201;
+        return ResourceAction.TOOLS_ORDER + 210;
     }
 
     @Override
@@ -113,6 +112,6 @@ public class RemoveLabelAction implements ResourceAction {
 
     @Override
     public String getDescription() {
-        return "Remove a label from the selected resources";
+        return "Add a annotation to the selected resources";
     }
 }

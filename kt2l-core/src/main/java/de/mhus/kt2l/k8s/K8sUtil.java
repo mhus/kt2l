@@ -402,4 +402,14 @@ public class K8sUtil {
         return key.replaceAll("![A-Za-z0-9_\\-\\./]", "_");
     }
 
+    public static String normalizeAnnotationKey(String key) {
+        if (key == null) throw new NullPointerException("Key is null");
+        return key.replaceAll("![A-Za-z0-9_\\-\\./]", "_");
+    }
+
+    public static String normalizeAnnotationValue(String key) {
+        if (key == null) throw new NullPointerException("Key is null");
+        return key.replaceAll("![A-Za-z0-9_\\-\\./]", "_");
+    }
+
 }
