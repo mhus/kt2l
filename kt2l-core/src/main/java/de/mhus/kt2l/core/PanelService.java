@@ -26,6 +26,7 @@ import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.GlobalCfgPanel;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.events.EventPanel;
+import de.mhus.kt2l.form.FormPanel;
 import de.mhus.kt2l.helm.HelmChartDetailsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
 import de.mhus.kt2l.helm.HelmInstalledChartsPanel;
@@ -33,6 +34,7 @@ import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.common.ResourceCreatePanel;
+import de.mhus.kt2l.resources.common.ResourceEditFormPanel;
 import de.mhus.kt2l.resources.common.ResourcePatchPanel;
 import de.mhus.kt2l.resources.common.ResourceYamlEditorPanel;
 import de.mhus.kt2l.resources.configmap.EditConfigMapPanel;
@@ -153,21 +155,23 @@ public class PanelService {
                 .setWindowTitle("Local Bash");
     }
 
-    public DeskTab showContainerShellPanel(DeskTab parentTab, Cluster cluster, Core core, V1Pod selected) {
+    public DeskTab showContainerShellPanel(DeskTab parentTab, Cluster cluster, Core core, V1Pod selected, String containerName, boolean attach) {
         return addPanel(
                 parentTab,
-                cluster.getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + ":shell",
-                selected.getMetadata().getName(),
+                cluster.getName() + ":" + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + (attach ? ":attach" : ":shell"),
+                selected.getMetadata().getName() + (containerName == null ? "" : "." + containerName),
                 true,
-                VaadinIcon.TERMINAL.create(),
+                attach ? VaadinIcon.DESKTOP.create() : VaadinIcon.TERMINAL.create(),
                 () -> new ContainerShellPanel(
                         cluster,
                         core,
-                        selected
+                        selected,
+                        containerName,
+                        attach
                 ))
                 .setReproducable(false)
                 .setHelpContext("shell")
-                .setWindowTitle(cluster.getTitle() + " - " + selected.getMetadata().getName() + " - Shell");
+                .setWindowTitle(cluster.getTitle() + " - " + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + (containerName == null ? "" : "." + containerName) + (attach ? " - Attach" : " - Shell"));
     }
 
     public DeskTab showStoragePanel(Core core, StorageFile file) {
@@ -467,7 +471,7 @@ public class PanelService {
                 cluster.getName() + "-helm-chart",
                 "Helm Chart",
                 true,
-                HelmClusterAction.getHelmIcon(),
+                HelmClusterAction.createIcon(),
                 () -> new HelmInstalledChartsPanel(core, cluster)
         )
                 .setReproducable(true)
@@ -483,7 +487,7 @@ public class PanelService {
                 cluster.getName() + ":" + resource.getMetadata().getNamespace() + "." + resource.getMetadata().getName() + ":helm-details",
                 resource.getMetadata().getName(),
                 true,
-                HelmClusterAction.getHelmIcon(),
+                HelmClusterAction.createIcon(),
                 () -> new HelmChartDetailsPanel(parentTab.getTabBar().getCore(), cluster, resource)
         )
                 .setReproducable(true)
@@ -517,5 +521,20 @@ public class PanelService {
         )
                 .setReproducable(true)
                 .setHelpContext("system_logs");
+    }
+
+    public DeskTab showEditFormPanel(DeskTab parentTab, FormPanel form, Cluster cluster, KubernetesObject resource, V1APIResource type) {
+        return addPanel(
+                parentTab,
+                cluster.getName() + ":" + resource.getMetadata().getNamespace() + "." + resource.getMetadata().getName() + ":edit-resource",
+                resource.getMetadata().getName(),
+                true,
+                VaadinIcon.EDIT.create(),
+                () -> new ResourceEditFormPanel(parentTab.getTabBar().getCore(), cluster, resource, form, type)
+        )
+                .setReproducable(true)
+                .setHelpContext("edit_form")
+                .setWindowTitle(cluster.getTitle() + " - " + resource.getMetadata().getName() + " - Edit");
+
     }
 }

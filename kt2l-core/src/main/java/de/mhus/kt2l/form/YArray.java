@@ -15,14 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.cfg.panel;
+package de.mhus.kt2l.form;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNode;
@@ -35,9 +38,8 @@ import java.util.function.Consumer;
 public class YArray extends YComponent<String> {
 
     private VerticalLayout main;
-    private Consumer<CPanelVerticalLayout> createConsumer;
+    private Consumer<FormPanelVerticalLayout> createConsumer;
     private final List<PanelStore> panels = new LinkedList<>();
-
 
     @Override
     public void initUi() {
@@ -56,11 +58,14 @@ public class YArray extends YComponent<String> {
         panels.clear();
 
         main.add(new Hr());
-        main.add(new Button(VaadinIcon.PLUS.create(), e -> insertBlockAfterAll(new TreeNode())));
-
-        content.getArray(name).orElse(MTree.EMPTY_LIST).forEach(node -> insertBlockAfterAll(node));
-
-
+        HorizontalLayout buttons = new HorizontalLayout();
+        buttons.setWidthFull();
+        if (!readOnly) {
+            buttons.add(new Button(VaadinIcon.PLUS.create(), e -> insertBlockAfterAll(new TreeNode())));
+        }
+        buttons.add(new Div(label));
+        main.add(buttons);
+        getParent(content).getArray(getNodeName()).orElse(MTree.EMPTY_LIST).forEach(node -> insertBlockAfterAll(node));
     }
 
     private void removeBlock(XPanel panel, ITreeNode node) {
@@ -77,8 +82,11 @@ public class YArray extends YComponent<String> {
         ITreeNode node = new TreeNode();
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setWidthFull();
-        buttons.add(new Button(VaadinIcon.PLUS.create(), e -> insertBlockBefore( panel, node)));
-        buttons.add(new Button(VaadinIcon.MINUS.create(), e -> removeBlock( panel, node)));
+        if (!readOnly) {
+            buttons.add(new Button(VaadinIcon.PLUS.create(), e -> insertBlockBefore(panel, node)));
+            buttons.add(new Button(VaadinIcon.MINUS.create(), e -> removeBlock(panel, node)));
+        }
+        buttons.add(new Div(label));
         var hr = new Hr();
 
         panel.initUi();
@@ -100,8 +108,11 @@ public class YArray extends YComponent<String> {
 
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setWidthFull();
-        buttons.add(new Button(VaadinIcon.PLUS.create(), e -> insertBlockBefore( panel, node)));
-        buttons.add(new Button(VaadinIcon.MINUS.create(), e -> removeBlock( panel, node)));
+        if (!readOnly) {
+            buttons.add(new Button(VaadinIcon.PLUS.create(), e -> insertBlockBefore(panel, node)));
+            buttons.add(new Button(VaadinIcon.MINUS.create(), e -> removeBlock(panel, node)));
+        }
+        buttons.add(new Div(label));
         var hr = new Hr();
 
         panel.initUi();
@@ -115,28 +126,23 @@ public class YArray extends YComponent<String> {
 
     @Override
     public void save(ITreeNode node) {
-        TreeNodeList content = new TreeNodeList(name, (TreeNode)node);
+        TreeNodeList content = new TreeNodeList(path, (TreeNode)node);
         panels.forEach(ps -> {
             var child = ps.node();
             ps.panel.save(child);
             content.add(child);
         });
-        node.put(name, content);
+        node.getObjectByPath(MTree.getParentPath(path)).orElse(node).put(MTree.getNodeName(path), content);
     }
 
-    public YArray create(Consumer<CPanelVerticalLayout> consumer) {
+    public YArray create(Consumer<FormPanelVerticalLayout> consumer) {
         createConsumer = consumer;
         return this;
     }
 
-    private class XPanel extends CPanelVerticalLayout {
-        public XPanel(Consumer<CPanelVerticalLayout> createConsumer) {
+    private class XPanel extends FormPanelVerticalLayout {
+        public XPanel(Consumer<FormPanelVerticalLayout> createConsumer) {
             super();
-        }
-
-        @Override
-        public String getTitle() {
-            return null;
         }
 
         @Override

@@ -64,6 +64,21 @@ Return parameter (&lt;scope&gt;.return):
 
 Closes the current terminal in the `scope`.
 
+## DEBUG
+
+Starts a new Ephemeral container for debugging and creates a new scope with attach or exec.
+
+Arguments:
+- cmd: string - the command to run in the new container, comma separated.
+- tty: boolean - open a tty for the command, default is `true`.
+- stdin: boolean - opens a stdin pipeline for the command, default is `true`.
+- exec: string - the execution command comma separated. If this is set an exec will be created otherwise an attach scope.
+
+Return parameters (&lt;scope&gt;.*):
+- `container` - Name of the created container in the pod.
+
+Note: The container will not be removed after the command is finished.
+
 ## ECHO
 
 Echo a message to the local output.

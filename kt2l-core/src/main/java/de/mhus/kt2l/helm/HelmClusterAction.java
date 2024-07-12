@@ -44,21 +44,18 @@ public class HelmClusterAction implements ClusterAction {
 
     @Override
     public boolean canHandle(Core core) {
-//        try {
-//            var version = Helm.version().call();
-//            LOGGER.info("Helm version: {}", version);
-//            return version != null;
-//        } catch (Exception e) {
-//            LOGGER.warn("Helm not available", e);
-//            return false;
-//        }
         return true;
     }
 
     @Override
     public boolean canHandle(Core core, Cluster cluster) {
-        //return k8sService.getKubeConfigPath(cluster) != null;
-        return true;
+        try {
+            var fieldSelector = "type=helm.sh/release.v1";
+            var list = cluster.getApiProvider().getCoreV1Api().listSecretForAllNamespaces(null, null, fieldSelector, null, null, null, null, null, null, null, null);
+            return list.getItems().size() > 0;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
@@ -73,7 +70,9 @@ public class HelmClusterAction implements ClusterAction {
 
     @Override
     public AbstractIcon getIcon() {
-        return getHelmIcon();
+        var icon = createIcon();
+        icon.addClassName("icon-for-button-with-text");
+        return icon;
     }
 
     @Override
@@ -82,7 +81,7 @@ public class HelmClusterAction implements ClusterAction {
     }
 
 
-    public static SvgIcon getHelmIcon() {
+    public static SvgIcon createIcon() {
         StreamResource iconResource = new StreamResource("helm-logo.svg",
                 () -> HelmClusterAction.class.getResourceAsStream("/images/helm-logo.svg"));
         SvgIcon icon = new SvgIcon(iconResource);

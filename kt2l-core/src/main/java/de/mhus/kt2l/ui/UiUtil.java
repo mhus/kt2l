@@ -24,6 +24,9 @@ import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.ShortcutRegistration;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.HasMenuItems;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.Div;
@@ -31,12 +34,17 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.server.Command;
+import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MJson;
+import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MSystem;
+import de.mhus.commons.yaml.MYaml;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.Getter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -90,17 +98,51 @@ public class UiUtil {
                 new Text(msg)
         );
         if (e != null) {
-            var error = new Div(e.toString());
+            var error = new Div(e.getLocalizedMessage());
             if (e instanceof ApiException apiException) {
                 LOGGER.debug(e + ": " + apiException.getCode() + " " + apiException.getResponseBody());
-                error.setText(apiException.getCode() + " " + apiException.getResponseBody());
             }
+            var detailsBtn = new Button("Details");
+            detailsBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            detailsBtn.addClickListener(event -> {
+                ConfirmDialog dialog = new ConfirmDialog();
+                dialog.setCloseOnEsc(true);
+                dialog.setConfirmText("Close");
+                dialog.setHeader("Error Details");
+                dialog.setHeight("80%");
+                dialog.setWidth("80%");
+                StringBuilder sb = new StringBuilder();
+                sb.append(e.getLocalizedMessage()).append("\n\n");
+                if (e instanceof ApiException apiException) {
+                    sb.append("Error Code: ").append(apiException.getCode()).append("\n\n");
+                    var body = apiException.getResponseBody();
+                    if (body.startsWith("{")) {
+                        try {
+                            sb.append(MYaml.toYaml(MJson.load(body))).append("\n\n");
+                        } catch (Exception ex) {
+                            sb.append(body).append("\n\n");
+                        }
+                    } else {
+                        sb.append(body).append("\n\n");
+                    }
+                }
+                sb.append(MCast.toString(e));
+                var textArea = new TextArea();
+                textArea.setValue(sb.toString());
+                textArea.setSizeFull();
+                textArea.setReadOnly(true);
+                textArea.addClassName("monotext");
+                dialog.setText(textArea);
+                dialog.open();
+            });
             error.addClassName("error-exception");
             text = new Div(
                     new Div(msg),
-                    error
+                    error,
+                    detailsBtn
             );
         }
+
         notification.add(text);
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         notification.setPosition(Notification.Position.TOP_END);
@@ -171,7 +213,10 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
                 case "Delete": return new byte[]{0x1b, 0x5b, 0x33, 0x7e};
                 case "Enter": return new byte[]{0x0d};
                 case "Tab": return new byte[]{0x09};
-
+                case "Meta": return null;
+                case "Control": return null;
+                case "Shift": return null;
+                case "Alt": return null;
             }
 
             LOGGER.warn("Unknown key: " + key);
@@ -189,6 +234,7 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
     }
 
     @Getter
+    @ToString(exclude = "registration")
     public static class Shortcut {
 
         private final Key key;

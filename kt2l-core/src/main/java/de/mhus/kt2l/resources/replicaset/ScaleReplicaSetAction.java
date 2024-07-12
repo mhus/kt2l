@@ -77,6 +77,7 @@ public class ScaleReplicaSetAction implements ResourceAction {
         useButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
         useButton.addClickShortcut(Key.ENTER);
         dialog.getFooter().add(useButton);
+        dialog.addAttachListener(e -> replicasField.focus());
 
         dialog.open();
 

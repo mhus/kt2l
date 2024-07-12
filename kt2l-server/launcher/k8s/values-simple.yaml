@@ -46,5 +46,5 @@ login:
     viewer_password: tvanR3WHokmAexboBeaqGm6LVub
 
 image:
-  tag: "snapshot-20240704232901"
+#  tag: "snapshot-20240704232901"
   pullPolicy: Never

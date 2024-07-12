@@ -15,29 +15,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.cfg.panel;
+package de.mhus.kt2l.form;
 
 import com.vaadin.flow.component.Component;
 import de.mhus.commons.tree.ITreeNode;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 
-@Accessors(fluent = true)
-public abstract class YComponent<T> {
+public interface FormPanel {
 
-    @Setter
-    protected String name;
-    @Setter
-    protected String label;
-    @Setter
-    protected T defaultValue;
+    Component getPanel();
 
-    public abstract void initUi();
+    void load(ITreeNode content);
 
-    public abstract Component getComponent();
+    void save(ITreeNode content);
 
-    public abstract void load(ITreeNode content);
+    boolean isValid();
 
-    public abstract void save(ITreeNode node);
+    void initUi();
 
 }

@@ -78,56 +78,35 @@ public class GenerateK8sHandlers {
     }
 
     /*
-        @Override
-    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        V1Patch patch = new V1Patch(patchString);
+        var patch = new V1Patch(patchString);
         return PatchUtils.patch(
-                V1Pod.class,
-                () -> apiProvider.getCoreV1Api().patchNamespacedPodCall(
-                        name,
-                        namespace,
-                        patch,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
+            V1Pod.class,
+            () -> apiProvider.getCoreV1Api().patchNamespacedPodCall(
+                    name,
+                    namespace,
+                    patch,
+                    null, null, null, null, null, null
+            ),
                 V1Patch.PATCH_FORMAT_JSON_PATCH,
                 apiProvider.getClient()
         );
-    }
-    @Override
-    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {
-        V1Patch patch = new V1Patch(patchString);
-        return PatchUtils.patch(
-                V1Node.class,
-                () -> apiProvider.getCoreV1Api().patchNodeCall(
-                        name,
-                        patch,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
-                V1Patch.PATCH_FORMAT_JSON_PATCH,
-                apiProvider.getClient()
-        );
-    }
+
      */
     private void patchResourceType(StringBuffer o, V1APIResource k8s) {
         o.append("    @Override\n");
         o.append("    public Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException {\n");
         o.append("        var patch = new V1Patch(patchString);\n");
-        o.append("        return apiProvider.").append(apiFunction(k8s)).append(".patch").append(methodName(k8s)).append("Call(\n");
-        o.append("            name,\n");
+        o.append("        return PatchUtils.patch(\n");
+        o.append("            ").append(resourceClassName(k8s)).append(".class,\n");
+        o.append("            () -> apiProvider.").append(apiFunction(k8s)).append(".patch").append(methodName(k8s)).append("Call(\n");
+        o.append("                    name,\n");
         if (k8s.getNamespaced())
-            o.append("            namespace,\n");
-        o.append("            patch,\n");
-        o.append("            null, null, null, null, null, null\n");
+            o.append("                    namespace,\n");
+        o.append("                    patch,\n");
+        o.append("                    null, null, null, null, null, null\n");
+        o.append("            ),\n");
+        o.append("            V1Patch.PATCH_FORMAT_JSON_PATCH,\n");
+        o.append("            apiProvider.getClient()\n");
         o.append("        );\n");
         o.append("    }\n");
         o.append("\n");
@@ -306,14 +285,19 @@ public class GenerateK8sHandlers {
     }
      */
     private void replaceResourceType(StringBuffer o, V1APIResource k8s) {
+
         o.append("    @Override\n");
         o.append("    public Object replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {\n");
-        o.append("        var body = Yaml.loadAs(yaml, ").append(resourceClassName(k8s)).append(".class);\n");
+        o.append("        var res = Yaml.loadAs(yaml, ").append(resourceClassName(k8s)).append(".class);\n");
+        o.append("        return replaceResource(apiProvider, name, namespace, res);\n");
+        o.append("    }\n");
+        o.append("\n");
+        o.append("    public Object replaceResource(ApiProvider apiProvider, String name, String namespace, ").append(resourceClassName(k8s)).append(" resource) throws ApiException {\n");
         o.append("        return apiProvider.").append(apiFunction(k8s)).append(".replace").append(methodName(k8s)).append("(\n");
         o.append("            name,\n");
         if (k8s.getNamespaced())
             o.append("            namespace,\n");
-        o.append("            body,\n");
+        o.append("            resource,\n");
         o.append("            null, null, null, null\n");
         o.append("        );\n");
         o.append("    }\n");
@@ -353,7 +337,7 @@ public class GenerateK8sHandlers {
 
     private void managedResourceType(StringBuffer o, V1APIResource k8s) {
         o.append("    @Override\n");
-        o.append("    public V1APIResource getManagedResourceType() {\n");
+        o.append("    public V1APIResource getManagedType() {\n");
         o.append("        return K8s.").append(staticName(k8s)).append(";\n");
         o.append("    }\n");
         o.append("\n");
@@ -404,7 +388,7 @@ import java.io.InputStreamReader;
         o.append("public abstract class ").append(generatedClassName(k8s)).append(" implements HandlerK8s {\n");
         o.append("\n");
         o.append("    @Autowired\n");
-        o.append("    private SecurityService securityService;\n");
+        o.append("    protected SecurityService securityService;\n");
         o.append("\n");
 
 

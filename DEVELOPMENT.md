@@ -39,8 +39,11 @@
 * [https://github.com/walokra/markdown-page-generator-plugin]
 * [lombok](https://projectlombok.org/features/all)
 * [https://www.baeldung.com/spring-boot]
-* Helm Icon: https://www.svgrepo.com/svg/373664/helm
 * [https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/examples-s3.html]
+
+## Logos
+
+* Helm Logo: [https://www.svgrepo.com/svg/306187/helm]() Logo License
 * Google Logo: [https://www.svgrepo.com/svg/303108/google-icon-logo]()  Logo License
 * Github Logo [https://www.svgrepo.com/svg/303615/github-icon-1-logo]() Logo License
 * Facebook Logo: [https://www.svgrepo.com/svg/303113/facebook-icon-logo]() Logo License
@@ -48,6 +51,7 @@
 * Slack Logo: [https://www.svgrepo.com/svg/303320/slack-new-logo-logo]() Logo License
 * Microsoft Logo: [https://www.svgrepo.com/svg/448239/microsoft]() Logo License
 * SAML Logo: [https://www.svgrepo.com/svg/448246/saml]() Logo License
+* Flux Logo: [https://www.svgrepo.com/svg/367014/flux]() PD License
 
 ## Github Actions
 

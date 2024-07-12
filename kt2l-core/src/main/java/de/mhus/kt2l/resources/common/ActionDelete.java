@@ -26,6 +26,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
@@ -48,15 +49,17 @@ public class ActionDelete implements ResourceAction {
 
     @Autowired
     private K8sService k8s;
+//    @Autowired
+//    private PodK8s podHandler;
 
     @Override
     public boolean canHandleType(Cluster cluster, V1APIResource type) {
-        return true;
+        return !K8s.CONTAINER.equals(type) && !K8s.NODE.equals(type);
     }
 
     @Override
     public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
-        return selected.size() > 0;
+        return canHandleType(cluster, type) && selected.size() > 0;
     }
 
     @Override
@@ -100,15 +103,19 @@ public class ActionDelete implements ResourceAction {
         dialog.open();
 
         Thread.startVirtualThread(() -> {
-            context.getSelected().forEach(o -> {
+            context.getSelected().forEach(res -> {
                 try (var sce = context.getSecurityContext().enter()) {
                     context.getUi().access(() -> {
-                        dialog.setProgress(dialog.getProgress()+1, o.getMetadata().getNamespace() + "." + o.getMetadata().getName());
+                        dialog.setProgress(dialog.getProgress()+1, res.getMetadata().getNamespace() + "." + res.getMetadata().getName());
                     });
-                    var handler = k8s.getTypeHandler(o, context.getCluster(), context.getType());
-                    handler.delete(context.getCluster().getApiProvider(), o.getMetadata().getName(), o.getMetadata().getNamespace());
+//                    if (res instanceof ContainerResource container) {
+//                        podHandler.deleteContainer(context.getCluster().getApiProvider(), container.getPod(), container.getContainerName() );
+//                    } else {
+                        var handler = k8s.getTypeHandler(res, context.getCluster(), context.getType());
+                        handler.delete(context.getCluster().getApiProvider(), res.getMetadata().getName(), res.getMetadata().getNamespace());
+//                    }
                 } catch (Exception e) {
-                    LOGGER.error("delete resource {}", o, e);
+                    LOGGER.error("delete resource {}", res, e);
                     context.getErrors().add(e);
                 }
             });
@@ -150,6 +157,9 @@ public class ActionDelete implements ResourceAction {
         var kind = tryThis(() -> v.getKind() ).orElse(null);
         if (kind == null)
             kind = v.getClass().getSimpleName();
+//        if (v instanceof ContainerResource container) {
+//            name = name + "." + container.getContainerName();
+//        }
         return kind + ": " + (ns == null ? "" : ns + ".") + (name == null ? v.toString() : name);
     }
 

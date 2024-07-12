@@ -30,6 +30,8 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.resources.ResourcesGrid;
+import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;
@@ -79,7 +81,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
                 final var foundRes = MLang.synchronize(() -> resourcesList.stream().filter(res -> res.getName().equals(event.object.getMetadata().getName())).findFirst().orElseGet(
                         () -> {
                             final var res = createResourceItem();
-                            res.initResource((V) event.object, true);
+                            res.initResource((V) event.object, true, AbstractGridWithoutNamespace.this);
                             res.updateResource();
                             resourcesList.add((T) res);
                             added.set(true);
@@ -204,7 +206,7 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
         public ResourceDataProvider() {
             super(query -> {
                 synchronized (AbstractGridWithoutNamespace.this) {
-                    LOGGER.debug("◌ Do the query {} {}", getManagedType(), queryToString(query));
+                    LOGGER.debug("◌ Do the query {} {}", getManagedType().getName(), queryToString(query));
                     if (filteredList == null) return Stream.empty();
                     for (QuerySortOrder queryOrder :
                             query.getSortOrders()) {
@@ -228,16 +230,15 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
                     return (Stream<ResourceItem<V>>) filteredList.stream().skip(query.getOffset()).limit(query.getLimit());
                 }
             }, query -> {
-                LOGGER.debug("◌ Do the size query {} {}", getManagedType(), queryToString(query));
                 if (resourcesList == null) {
                     resourcesList = new ArrayList<>();
-                    synchronized (resourcesList) {
+                    synchronized (AbstractGridWithoutNamespace.this) {
                         tryThis(() -> createResourceListWithoutNamespace())
                                 .onFailure(e -> LOGGER.error("Can't fetch resources from cluster", e))
                                 .onSuccess(list -> {
                                     list.getItems().forEach(res -> {
                                         var newRes = createResourceItem();
-                                        newRes.initResource((V)res, false);
+                                        newRes.initResource((V)res, false, AbstractGridWithoutNamespace.this);
                                         newRes.updateResource();
                                         resourcesList.add(newRes);
                                     });
@@ -245,7 +246,9 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
                     }
                 }
                 filterList();
-                return filteredList.size();
+                var res = filteredList.size();
+                LOGGER.debug("◌ The size query {} {} returns {}", getManagedType().getName(), queryToString(query), res);
+                return res;
             });
         }
 
@@ -287,11 +290,13 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
         protected String name;
         protected OffsetDateTime created;
         protected V resource;
+        private ResourcesGrid grid;
         private String resourceVersion;
 
-        void initResource(V resource, boolean newResource) {
+        void initResource(V resource, boolean newResource, ResourcesGrid grid) {
             this.name = resource.getMetadata().getName();
             this.resource = resource;
+            this.grid = grid;
             if (newResource) {
                 color = UiUtil.COLOR.GREEN;
                 colorTimeout = System.currentTimeMillis() + 2000;

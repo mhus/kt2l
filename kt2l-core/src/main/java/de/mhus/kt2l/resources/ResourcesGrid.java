@@ -56,4 +56,8 @@ public interface ResourcesGrid {
 
     void setSortOrder(String sortOrder, boolean sortAscending);
 
+    default List<ResourceFilterFactory> getResourceFilterFactories() {
+        return null;
+    }
+
 }

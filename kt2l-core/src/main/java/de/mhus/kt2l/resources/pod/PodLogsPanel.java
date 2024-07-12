@@ -19,7 +19,9 @@
 package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -108,6 +110,8 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     private volatile StorageFile captureDirectory;
     private Icon menuItemStoreIconDivIcon;
     private String[] jsonFields;
+    private int podConnectRetries;
+    private MenuItem menuJsonFields;
 
     public PodLogsPanel(Core core, Cluster cluster, List<ContainerResource> containers) {
         this.cluster = cluster;
@@ -121,6 +125,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         this.tab = deskTab;
 
         maxCachedEntries = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("maxCachedEntries", 1000);
+        podConnectRetries = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("podConnectRetries", 130);
         jsonFields = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getString("jsonFields", "@timestamp,severity,message").split(",");
 
         logs = new Tail();
@@ -158,6 +163,24 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         });
         menuItemJson.setCheckable(true);
         menuItemJson.setChecked(true);
+        menuJsonFields = viewMenu.addItem("Json Fields", e -> {
+            var dialog = new ConfirmDialog();
+            dialog.setHeader("Json Fields");
+            var fields = new TextField("Fields");
+            fields.setWidthFull();
+            fields.setValue(String.join(",", jsonFields));
+            dialog.add(fields);
+            dialog.setCancelable(true);
+            dialog.setConfirmText("Ok");
+            dialog.setCancelText("Cancel");
+            dialog.setConfirmButtonTheme("primary");
+            dialog.setCancelButtonTheme("tertiary");
+            dialog.addConfirmListener(ee -> {
+                jsonFields = fields.getValue().split(",");
+                resetTail();
+            });
+            dialog.open();
+        });
 
         menuItemAnsiCleanup = viewMenu.addItem("Ansi Cleanup", e -> {
             synchronized (logsBuffer) {
@@ -184,7 +207,9 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         menuItemShowTime.setCheckable(true);
         menuItemShowTime.setChecked(false);
 
-        menuItemShowColors = viewMenu.addItem("Show Colors");
+        menuItemShowColors = viewMenu.addItem("Show Colors", e-> {
+            resetTail();
+        });
         menuItemShowColors.setCheckable(true);
         menuItemShowColors.setChecked(true);
 
@@ -336,7 +361,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
         AtomicLong lastLine = new AtomicLong(System.currentTimeMillis());
         Thread.startVirtualThread(() -> {
             try {
-                while (lastLine.get() > 0){
+                while (lastLine.get() > 0) {
                     if (System.currentTimeMillis() - lastLine.get() > 1000) {
                         LOGGER.debug("Timeout in copy stream");
                         in.close();
@@ -386,7 +411,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
             V1Pod pod = container.getPod();
             String source = pod.getMetadata().getName();
 
-            int tryCount = 130;
+            int tryCount = podConnectRetries;
             while (logStream == null) {
                 try {
                     PodLogs podLogs = new PodLogs(apiProvider.getClient());
@@ -404,7 +429,11 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
                         return;
                     }
                     LOGGER.info("Error getting log stream for {}: {}", pod.getMetadata().getName(), e.toString());
+                    if (tryCount % 10 == 0) {
+                        addLogEntry(new LogEntry(source, color, "! Failed to connect to pod (" + tryCount +")"));
+                    }
                     if (tryCount-- <= 0) {
+                        addLogEntry(new LogEntry(source, color, "! Failed to connect to pod"));
                         LOGGER.error("Error ({}) getting log stream for {}: {}", tryCount, pod.getMetadata().getName(), e.toString());
                         return;
                     }
@@ -526,7 +555,8 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabSelected() {
-
+        if (menuItemAutoScroll.isChecked())
+            logs.scrollToEnd();
     }
 
     @Override
@@ -548,6 +578,16 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabRefresh(long counter) {
+    }
+
+    public void setJsonFields(String fields) {
+        if (fields == null) return;
+        jsonFields = fields.split(",");
+        resetTail();
+    }
+
+    public void setShowSource(boolean b) {
+        menuItemShowSource.setChecked(b);
     }
 
     @Getter

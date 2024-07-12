@@ -15,11 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.cfg.panel;
+package de.mhus.kt2l.form;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tree.ITreeNode;
+import de.mhus.commons.tree.MTree;
 
 public class YBoolean extends YComponent<Boolean> {
     private Checkbox component;
@@ -38,11 +40,12 @@ public class YBoolean extends YComponent<Boolean> {
 
     @Override
     public void load(ITreeNode content) {
-        component.setValue(content.getBoolean(name, defaultValue));
+        component.setValue(getParent(content).getBoolean(getNodeName(), defaultValue));
+        component.setReadOnly(readOnly);
     }
 
     @Override
     public void save(ITreeNode node) {
-        node.put(name, component.getValue());
+        getParent(node).put(getNodeName(), component.getValue());
     }
 }

@@ -266,9 +266,9 @@ public class K8sUtil {
         var age = System.currentTimeMillis()/1000 - creationTimestamp.toEpochSecond();
         if (age < 0) age = -age;
         if (age < 120) return age + "s";
-        if (age < 7200) return age/60 + "m";
-        if (age < 86400) return age/3600 + "h";
-        if (age < 86400*400) return age/86400 + "d";
+        if (age < 3600*2) return age/60 + "m";
+        if (age < 86400*2) return age/3600 + "h";
+        if (age < 86400*1000) return age/86400 + "d";
         return age/86400/365 + "y";
     }
 
@@ -276,9 +276,9 @@ public class K8sUtil {
         if (age < 0) age = -age;
         if (age == 0) return "0";
         if (age < 120) return age + "s";
-        if (age < 7200) return age/60 + "m";
-        if (age < 86400) return age/3600 + "h";
-        if (age < 86400*400) return age/86400 + "d";
+        if (age < 3600*2) return age/60 + "m";
+        if (age < 86400*2) return age/3600 + "h";
+        if (age < 86400*1000) return age/86400 + "d";
         return age/86400/365 + "y";
     }
 
@@ -350,4 +350,66 @@ public class K8sUtil {
         }
         return null;
     }
+
+    public static String getAttachableContainer(V1Pod pod) {
+        if (pod.getStatus().getContainerStatuses() != null) {
+            for (V1ContainerStatus cs : pod.getStatus().getContainerStatuses()) {
+                if (cs.getState().getTerminated() == null && cs.getState().getRunning() != null) return cs.getName();
+            }
+        }
+        if (pod.getStatus().getEphemeralContainerStatuses() != null) {
+            for (V1ContainerStatus cs : pod.getStatus().getEphemeralContainerStatuses()) {
+                if (cs.getState().getTerminated() == null && cs.getState().getRunning() != null) return cs.getName();
+            }
+        }
+        if (pod.getStatus().getInitContainerStatuses() != null) {
+            for (V1ContainerStatus cs : pod.getStatus().getInitContainerStatuses()) {
+                if (cs.getState().getTerminated() == null && cs.getState().getRunning() != null) return cs.getName();
+            }
+        }
+        return null;
+    }
+
+    public static boolean hasTty(V1Pod pod, String containerName) {
+        if (pod.getSpec().getContainers() != null)
+            for (var c : pod.getSpec().getContainers()) {
+                if (c.getName().equals(containerName)) {
+                    return c.getTty() != null && c.getTty();
+                }
+            }
+        if (pod.getSpec().getInitContainers() != null)
+            for (var c : pod.getSpec().getInitContainers()) {
+                if (c.getName().equals(containerName)) {
+                    return c.getTty() != null && c.getTty();
+                }
+            }
+        if (pod.getSpec().getEphemeralContainers() != null)
+            for (var c : pod.getSpec().getEphemeralContainers()) {
+                if (c.getName().equals(containerName)) {
+                    return c.getTty() != null && c.getTty();
+                }
+            }
+        return false;
+    }
+
+    public static String normalizeLabelKey(String key) {
+        if (key == null) throw new NullPointerException("Key is null");
+        return key.replaceAll("![A-Za-z0-9_\\-\\./]", "_");
+    }
+
+    public static String normalizeLabelValue(String key) {
+        if (key == null) throw new NullPointerException("Key is null");
+        return key.replaceAll("![A-Za-z0-9_\\-\\./]", "_");
+    }
+
+    public static String normalizeAnnotationKey(String key) {
+        if (key == null) throw new NullPointerException("Key is null");
+        return key.replaceAll("![A-Za-z0-9_\\-\\./]", "_");
+    }
+
+    public static String normalizeAnnotationValue(String key) {
+        if (key == null) throw new NullPointerException("Key is null");
+        return key.replaceAll("![A-Za-z0-9_\\-\\./]", "_");
+    }
+
 }

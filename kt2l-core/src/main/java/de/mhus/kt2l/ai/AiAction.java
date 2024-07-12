@@ -87,7 +87,7 @@ public class AiAction implements ResourceAction  {
 
     @Override
     public String getShortcutKey() {
-        return "a";
+        return "Ctrl+I";
     }
 
     @Override
