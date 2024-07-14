@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.pod;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
@@ -72,7 +73,7 @@ public class ShowNodeOfPodAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Nodes;icon=" + VaadinIcon.ARROW_FORWARD;
+        return "Nodes";
     }
 
     @Override
@@ -93,5 +94,10 @@ public class ShowNodeOfPodAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Show Node for the Pod";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.ARROW_FORWARD.create();
     }
 }

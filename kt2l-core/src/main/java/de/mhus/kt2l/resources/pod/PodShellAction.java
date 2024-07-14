@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.pod;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
@@ -72,7 +73,7 @@ public class PodShellAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Shell;icon=" + VaadinIcon.TERMINAL;
+        return "Shell";
     }
 
     @Override
@@ -93,5 +94,10 @@ public class PodShellAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Open shell";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.TERMINAL.create();
     }
 }

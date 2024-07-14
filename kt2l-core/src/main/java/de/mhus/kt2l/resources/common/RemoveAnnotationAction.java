@@ -4,6 +4,7 @@ package de.mhus.kt2l.resources.common;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import de.mhus.kt2l.aaa.UsersConfiguration;
@@ -93,17 +94,17 @@ public class RemoveAnnotationAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Remove Annotation;icon=" + VaadinIcon.FILE_REMOVE;
+        return "Remove Annotation";
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.TOOLS_PATH;
+        return ResourceAction.EDIT_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.TOOLS_ORDER + 211;
+        return ResourceAction.EDIT_ORDER + 211;
     }
 
     @Override
@@ -114,5 +115,10 @@ public class RemoveAnnotationAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Remove a annotation from the selected resources";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.FILE_REMOVE.create();
     }
 }

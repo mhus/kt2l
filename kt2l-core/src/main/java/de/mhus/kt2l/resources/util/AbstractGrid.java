@@ -33,6 +33,7 @@ import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -222,9 +223,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
         final var path = action.getMenuPath();
 //        final var actionName = MString.beforeIndexOrAll(action.getTitle(), ';') + "  " + UiUtil.toShortcutString(action.getShortcutKey());
         final var actionDress = MString.afterIndex(action.getTitle(), ';');
+        final var icon = action.getIcon();
 
         if (MString.isEmptyTrim(path)) {
-            return dressUpMenuItem(menuBar.addItem(createMenuBarTitle(action)), action, false);
+            return dressUpMenuItem(menuBar.addItem(createMenuBarTitle(action)), action, icon, false);
         }
         MenuItem current = null;
         for (String part : path.split("/")) {
@@ -234,17 +236,17 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             final var dress = MString.afterIndex(part, ';');
             if (current == null) {
                 current = menuBar.getItems().stream().filter(i -> i.getText().equalsIgnoreCase(partName)).findFirst().orElseGet(
-                        () -> dressUpMenuItem(menuBar.addItem(partName), dress, false));
+                        () -> dressUpMenuItem(menuBar.addItem(partName), dress, null, false));
             } else {
                 final var finalCurrent = current;
                 current = finalCurrent.getSubMenu().getItems().stream().filter(i -> i.getText().equalsIgnoreCase(partName)).findFirst().orElseGet(
-                        () -> dressUpMenuItem(finalCurrent.getSubMenu().addItem(partName), dress, true));
+                        () -> dressUpMenuItem(finalCurrent.getSubMenu().addItem(partName), dress, null, true));
             }
         }
 
         if (current == null)
-            return dressUpMenuItem(menuBar.addItem(createMenuBarTitle(action)), action, false);
-        return dressUpMenuItem(current.getSubMenu().addItem(createMenuBarTitle(action)), actionDress, true);
+            return dressUpMenuItem(menuBar.addItem(createMenuBarTitle(action)), action, icon, false);
+        return dressUpMenuItem(current.getSubMenu().addItem(createMenuBarTitle(action)), actionDress, icon, true);
     }
 
     private Component createMenuBarTitle(ResourceAction action) {
@@ -264,9 +266,10 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
     protected <T> GridMenuItem<T>createContextMenuItem( GridContextMenu<T> menu, ResourceAction action) {
         final var path = action.getMenuPath();
         final var actionName = MString.beforeIndexOrAll(action.getTitle(), ';');
+        final var icon = action.getIcon();
 
         if (MString.isEmptyTrim(path))
-            return dressUpMenuItem(menu.addItem(actionName), action, true);
+            return dressUpMenuItem(menu.addItem(actionName), action, icon, true);
 
         GridMenuItem<T> current = null;
         for (String part : path.split("/")) {
@@ -276,31 +279,32 @@ public abstract class AbstractGrid<T, S extends Component> extends VerticalLayou
             final var dress = MString.afterIndex(part, ';');
             if (current == null) {
                 current = menu.getItems().stream().filter(i -> i.getText().equalsIgnoreCase(partName)).findFirst().orElseGet(
-                        () -> dressUpMenuItem(menu.addItem(partName), dress, true));
+                        () -> dressUpMenuItem(menu.addItem(partName), dress, null, true));
             } else {
                 final var finalCurrent = current;
                 current = finalCurrent.getSubMenu().getItems().stream().filter(i -> i.getText().equalsIgnoreCase(partName)).findFirst().orElseGet(
-                        () -> dressUpMenuItem(finalCurrent.getSubMenu().addItem(partName), dress, true));
+                        () -> dressUpMenuItem(finalCurrent.getSubMenu().addItem(partName), dress, null, true));
             }
         }
 
         if (current == null)
-            return dressUpMenuItem(menu.addItem(actionName), action, true);
-        return dressUpMenuItem(current.getSubMenu().addItem(actionName), action, true);
+            return dressUpMenuItem(menu.addItem(actionName), action, icon, true);
+        return dressUpMenuItem(current.getSubMenu().addItem(actionName), action, icon, true);
     }
 
-    private <T extends MenuItemBase> T dressUpMenuItem(T item, ResourceAction action, boolean isChild) {
+    private <T extends MenuItemBase> T dressUpMenuItem(T item, ResourceAction action, AbstractIcon icon, boolean isChild) {
         if (action.getDescription() != null)
             item.getElement().setAttribute("title", action.getDescription());
         final var actionDress = MString.afterIndex(action.getTitle(), ';');
-        return dressUpMenuItem(item, actionDress, isChild);
+        return dressUpMenuItem(item, actionDress, icon, isChild);
     }
 
-    private <T extends MenuItemBase> T dressUpMenuItem(T item, String dress, boolean isChild) {
+    private <T extends MenuItemBase> T dressUpMenuItem(T item, String dress, AbstractIcon icon, boolean isChild) {
         if (MString.isEmptyTrim(dress)) return item;
         final var properties = IProperties.toProperties(dress);
-        if (properties.isProperty("icon")) {
-            final var icon = new Icon(properties.getString("icon", VaadinIcon.QUESTION.name()).toLowerCase().replace('_', '-'));
+        if (icon != null || properties.isProperty("icon")) {
+            if (icon == null)
+                icon = new Icon(properties.getString("icon", VaadinIcon.QUESTION.name()).toLowerCase().replace('_', '-'));
             if (isChild) {
                 icon.getStyle().set("width", "var(--lumo-icon-size-s)");
                 icon.getStyle().set("height", "var(--lumo-icon-size-s)");

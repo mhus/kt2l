@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.configmap;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -58,7 +59,7 @@ public class EditConfigMapAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Edit;icon=" + VaadinIcon.INPUT.name();
+        return "Edit";
     }
 
     @Override
@@ -79,5 +80,10 @@ public class EditConfigMapAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Edit ConfigMap content";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.INPUT.create();
     }
 }

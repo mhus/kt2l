@@ -17,6 +17,8 @@
  */
 package de.mhus.kt2l.resources.clusterrolebinding;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
@@ -92,5 +94,10 @@ public class ShowServiceAccountsForClusterRoleBindingAction implements ResourceA
     @Override
     public String getDescription() {
         return "Show Service Accounts for Role Binding";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.ARROW_FORWARD.create();
     }
 }

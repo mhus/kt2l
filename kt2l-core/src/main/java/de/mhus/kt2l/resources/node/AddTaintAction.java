@@ -3,6 +3,7 @@ package de.mhus.kt2l.resources.node;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import de.mhus.kt2l.aaa.UsersConfiguration;
@@ -92,17 +93,17 @@ public class AddTaintAction implements ResourceAction  {
 
     @Override
     public String getTitle() {
-        return "Add Taint;icon=" + VaadinIcon.FILE_ADD;
+        return "Add Taint";
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.TOOLS_PATH;
+        return ResourceAction.EDIT_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.TOOLS_ORDER + 110;
+        return ResourceAction.EDIT_ORDER + 110;
     }
 
     @Override
@@ -113,5 +114,10 @@ public class AddTaintAction implements ResourceAction  {
     @Override
     public String getDescription() {
         return "Add a taint to the selected nodes";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.FILE_ADD.create();
     }
 }

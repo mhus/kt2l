@@ -4,6 +4,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.NumberField;
 import de.mhus.kt2l.aaa.UsersConfiguration;
@@ -92,7 +93,7 @@ public class CordonNodeAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Cordon Node;icon=" + VaadinIcon.CLOSE;
+        return "Cordon Node";
     }
 
     @Override
@@ -113,5 +114,10 @@ public class CordonNodeAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.CLOSE.create();
     }
 }

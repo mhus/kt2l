@@ -1,6 +1,7 @@
 package de.mhus.kt2l.resources.cronjob;
 
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -106,7 +107,7 @@ public class CronJobSuspendAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Suspend/Resume;icon=" + VaadinIcon.POWER_OFF;
+        return "Suspend/Resume";
     }
 
     @Override
@@ -127,5 +128,10 @@ public class CronJobSuspendAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Toggle Suspend/Resume CronJob";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.POWER_OFF.create();
     }
 }

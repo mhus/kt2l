@@ -3,6 +3,7 @@ package de.mhus.kt2l.resources.node;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -90,7 +91,7 @@ public class UnCordonNodeAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Uncordon Node;icon=" + VaadinIcon.CHECK;
+        return "Uncordon Node";
     }
 
     @Override
@@ -111,5 +112,10 @@ public class UnCordonNodeAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.CHECK.create();
     }
 }

@@ -22,6 +22,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
@@ -128,7 +129,7 @@ public class ActionDelete implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Delete;icon=" + VaadinIcon.FILE_REMOVE;
+        return "Delete";
     }
 
     @Override
@@ -149,6 +150,11 @@ public class ActionDelete implements ResourceAction {
     @Override
     public String getDescription() {
         return "Delete pods or container";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.FILE_REMOVE.create();
     }
 
     private String getColumnValue(KubernetesObject v) {

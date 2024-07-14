@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.pod;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
@@ -72,7 +73,7 @@ public class PodAttachAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Attach;icon=" + VaadinIcon.DESKTOP;
+        return "Attach";
     }
 
     @Override
@@ -93,5 +94,10 @@ public class PodAttachAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Open Attach shell";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.DESKTOP.create();
     }
 }
