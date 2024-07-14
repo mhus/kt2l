@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.serviceaccount;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -69,7 +70,7 @@ public class ShowPodsForServiceAccountAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Pods;icon=" + VaadinIcon.ARROW_FORWARD;
+        return "Pods";
     }
 
     @Override
@@ -90,5 +91,10 @@ public class ShowPodsForServiceAccountAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.ARROW_FORWARD.create();
     }
 }

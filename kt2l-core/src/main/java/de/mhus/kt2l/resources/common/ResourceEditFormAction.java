@@ -1,5 +1,6 @@
 package de.mhus.kt2l.resources.common;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -55,17 +56,17 @@ public class ResourceEditFormAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Edit Form;icon=" + VaadinIcon.EDIT;
+        return "Edit Form";
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.ACTIONS_PATH;
+        return ResourceAction.EDIT_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.ACTIONS_ORDER + 101;
+        return ResourceAction.EDIT_ORDER + 101;
     }
 
     @Override
@@ -76,5 +77,10 @@ public class ResourceEditFormAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Edit the selected resource with a form";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.EDIT.create();
     }
 }

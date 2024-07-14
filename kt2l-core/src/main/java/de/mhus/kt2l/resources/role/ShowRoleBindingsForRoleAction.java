@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.role;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -72,7 +73,7 @@ public class ShowRoleBindingsForRoleAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "RoleBindings;icon=" + VaadinIcon.ARROW_FORWARD;
+        return "RoleBindings";
     }
 
     @Override
@@ -93,5 +94,10 @@ public class ShowRoleBindingsForRoleAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Show RoleBindings for Role";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.ARROW_FORWARD.create();
     }
 }

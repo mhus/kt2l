@@ -4,6 +4,7 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.NumberField;
 import de.mhus.kt2l.aaa.UsersConfiguration;
@@ -107,7 +108,7 @@ public class DrainNodeAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Drain Node;icon=" + VaadinIcon.CLOSE_CIRCLE_O;
+        return "Drain Node";
     }
 
     @Override
@@ -128,5 +129,10 @@ public class DrainNodeAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.CLOSE_CIRCLE_O.create();
     }
 }

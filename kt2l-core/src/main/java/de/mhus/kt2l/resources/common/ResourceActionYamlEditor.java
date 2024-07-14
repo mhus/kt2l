@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.common;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
@@ -34,7 +35,7 @@ import java.util.Set;
 
 @Component
 @WithRole(ROLE.READ)
-public class ActionYamlEditor implements ResourceAction {
+public class ResourceActionYamlEditor implements ResourceAction {
 
     @Autowired
     private PanelService panelService;
@@ -59,17 +60,17 @@ public class ActionYamlEditor implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Yaml Editor;icon=" + VaadinIcon.FILE_TEXT_O;
+        return "Yaml Editor";
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.VIEW_PATH;
+        return ResourceAction.EDIT_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.VIEW_ORDER+1;
+        return ResourceAction.EDIT_ORDER+50;
     }
 
     @Override
@@ -80,5 +81,10 @@ public class ActionYamlEditor implements ResourceAction {
     @Override
     public String getDescription() {
         return "Resource Details";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.FILE_TEXT_O.create();
     }
 }

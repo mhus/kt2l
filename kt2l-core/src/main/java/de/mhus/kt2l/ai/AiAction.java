@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.ai;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
@@ -72,7 +73,7 @@ public class AiAction implements ResourceAction  {
 
     @Override
     public String getTitle() {
-        return "AI;icon=" + VaadinIcon.CROSSHAIRS;
+        return "AI";
     }
 
     @Override
@@ -93,6 +94,11 @@ public class AiAction implements ResourceAction  {
     @Override
     public String getDescription() {
         return "Analyse with AI";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.CROSSHAIRS.create();
     }
 
 

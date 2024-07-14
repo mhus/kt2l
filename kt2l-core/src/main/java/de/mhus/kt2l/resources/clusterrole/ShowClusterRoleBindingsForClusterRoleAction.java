@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.clusterrole;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -72,7 +73,7 @@ public class ShowClusterRoleBindingsForClusterRoleAction implements ResourceActi
 
     @Override
     public String getTitle() {
-        return "ClusterRoleBindings;icon=" + VaadinIcon.ARROW_FORWARD;
+        return "ClusterRoleBindings";
     }
 
     @Override
@@ -93,5 +94,10 @@ public class ShowClusterRoleBindingsForClusterRoleAction implements ResourceActi
     @Override
     public String getDescription() {
         return "Show Cluster Role Bindings for Cluster Role";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.ARROW_FORWARD.create();
     }
 }

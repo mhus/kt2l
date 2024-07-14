@@ -1,6 +1,7 @@
 package de.mhus.kt2l.resources.pod;
 
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -76,7 +77,7 @@ public class CreateDebugContainerAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Create Debug Container;icon=" + VaadinIcon.ENVELOPE_OPEN_O;
+        return "Create Debug Container";
     }
 
     @Override
@@ -97,5 +98,10 @@ public class CreateDebugContainerAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Create an ephemeral debug container in the selected pod";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.ENVELOPE_OPEN_O.create();
     }
 }

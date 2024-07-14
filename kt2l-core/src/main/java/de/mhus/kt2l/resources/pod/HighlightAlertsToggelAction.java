@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.pod;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -61,7 +62,7 @@ public class HighlightAlertsToggelAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Highlight Alerts;icon=" + VaadinIcon.ALARM;
+        return "Highlight Alerts";
     }
 
     @Override
@@ -82,5 +83,10 @@ public class HighlightAlertsToggelAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Toggle Highlight Alerts";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.ALARM.create();
     }
 }

@@ -20,6 +20,7 @@ package de.mhus.kt2l.resources.common;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextArea;
 import de.mhus.kt2l.aaa.UsersConfiguration;
@@ -99,7 +100,7 @@ public class DescribeAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Describe;icon=" + VaadinIcon.FILE_PRESENTATION;
+        return "Describe";
     }
 
     @Override
@@ -120,5 +121,10 @@ public class DescribeAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Describe Resource";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.FILE_PRESENTATION.create();
     }
 }
