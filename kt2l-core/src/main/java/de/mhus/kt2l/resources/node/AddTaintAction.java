@@ -56,7 +56,7 @@ public class AddTaintAction implements ResourceAction  {
         dialog.setWidth("80%");
         dialog.setConfirmText("Add Taint");
         dialog.setCancelText("Cancel");
-        dialog.setCloseOnEsc(false);
+        dialog.setCloseOnEsc(true);
         dialog.setCancelable(true);
         dialog.setConfirmButtonTheme("primary");
         dialog.setCancelButtonTheme("tertiary");
