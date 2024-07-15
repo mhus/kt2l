@@ -38,5 +38,5 @@ jobs:
         git config --global user.name 'Robot'
         git config --global user.email 'mhus@users.noreply.github.com'
         git commit -m "Try Commit"
-        git push
+        git push --force
 
