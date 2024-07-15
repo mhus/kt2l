@@ -1,5 +1,6 @@
 package de.mhus.kt2l.resources.node;
 
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
@@ -17,9 +18,11 @@ import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.extended.kubectl.Kubectl;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1Node;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
+import java.util.TreeSet;
 
 import static de.mhus.commons.tools.MString.isEmpty;
 
@@ -38,11 +41,25 @@ public class RemoveTaintAction implements ResourceAction  {
 
     @Override
     public void execute(ExecutionContext context) {
+        // collect all taints
+        // collect all labels
+        Set<String> existing = new TreeSet<>();
+        for (KubernetesObject obj : context.getSelected()) {
+            if (obj instanceof V1Node node) {
+                if (node.getSpec().getTaints() != null) {
+                    for (var taint : node.getSpec().getTaints()) {
+                        existing.add(taint.getKey());
+                    }
+                }
+            }
+        }
+        // dialog
         ConfirmDialog dialog = new ConfirmDialog();
         dialog.setHeader("Remove Taint");
         var form = new FormLayout();
         var text = new Div("Remove a taint from the selected " + context.getSelected().size() + " node(s)");
-        var key = new TextField("Key");
+        var key = new ComboBox<String>("Key");
+        key.setItems(existing);
         var effect = new TextField("Effect");
         form.add(text, key, effect);
         form.setResponsiveSteps(
@@ -55,7 +72,7 @@ public class RemoveTaintAction implements ResourceAction  {
         dialog.setWidth("80%");
         dialog.setConfirmText("Add Taint");
         dialog.setCancelText("Cancel");
-        dialog.setCloseOnEsc(false);
+        dialog.setCloseOnEsc(true);
         dialog.setCancelable(true);
         dialog.setConfirmButtonTheme("primary");
         dialog.setCancelButtonTheme("tertiary");

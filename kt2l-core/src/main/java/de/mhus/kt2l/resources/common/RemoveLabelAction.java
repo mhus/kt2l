@@ -1,6 +1,7 @@
 package de.mhus.kt2l.resources.common;
 
 
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
+import java.util.TreeSet;
 
 @Component
 @WithRole(UsersConfiguration.ROLE.WRITE)
@@ -45,10 +47,18 @@ public class RemoveLabelAction implements ResourceAction {
 
     @Override
     public void execute(ExecutionContext context) {
+        // collect all labels
+        Set<String> existing = new TreeSet<>();
+        for (KubernetesObject obj : context.getSelected()) {
+            if (obj.getMetadata().getLabels() != null)
+                existing.addAll(obj.getMetadata().getLabels().keySet());
+        }
+        // dialog
         ConfirmDialog dialog = new ConfirmDialog();
         var form = new FormLayout();
         var text = new Div("Remove Label from the selected "+context.getSelected().size()+" resource(s)");
-        var key = new TextField("Key");
+        var key = new ComboBox<String>("Key");
+        key.setItems(existing);
         form.add(text, key);
         form.setResponsiveSteps(
                 // Use one column by default
