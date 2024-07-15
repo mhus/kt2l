@@ -23,8 +23,10 @@ import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.generated.K8sV1Pod;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.K8sUtil;
+import io.kubernetes.client.Metrics;
 import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Pod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -80,6 +82,27 @@ public class PodK8s extends K8sV1Pod {
                 sb.append("Topology:      ").append(res.getSpec().getTopologySpreadConstraints()).append("\n");
             if (res.getSpec().getOverhead() != null)
                 sb.append("Overhead:      ").append(res.getSpec().getOverhead()).append("\n");
+
+            try {
+                Metrics metrics = new Metrics(apiProvider.getClient());
+                var list = metrics.getPodMetrics(res.getMetadata().getNamespace());
+                list.getItems().forEach(podMetrics -> {
+                    if (podMetrics.getMetadata().getName().equals(res.getMetadata().getName())) {
+                        sb.append("Metrics:\n");
+                        sb.append("  Containers:\n");
+                        podMetrics.getContainers().forEach(containerMetrics -> {
+                            sb.append("    ").append(containerMetrics.getName()).append("\n");
+                            sb.append("      CPU: ").append(containerMetrics.getUsage().get("cpu")).append("\n");
+                            sb.append("      MEM: ").append(containerMetrics.getUsage().get("memory")).append("\n");
+                        });
+                        sb.append("  Window:   ").append(podMetrics.getWindow()).append("\n");
+                    }
+                });
+            } catch (Exception e) {
+                sb.append("Metrics:       ").append(e.getMessage()).append("\n");
+            }
+
+
             sb.append("Init Cont:     ").append(res.getSpec().getInitContainers()).append("\n");
             sb.append("Cont:          ").append(res.getSpec().getContainers()).append("\n");
             sb.append("Ephemeral:     ").append(res.getSpec().getEphemeralContainers()).append("\n");
@@ -119,4 +142,36 @@ public class PodK8s extends K8sV1Pod {
         return sb.toString();
     }
 
+    public void deleteContainer(ApiProvider apiProvider, V1Pod pod, String containerName) throws ApiException {
+        if (pod.getSpec().getContainers() != null)
+            for (var c : pod.getSpec().getContainers()) {
+                if (c.getName().equals(containerName)) {
+                    pod.getSpec().getContainers().remove(c);
+                    break;
+                }
+            }
+        if (pod.getSpec().getInitContainers() != null)
+            for (var c : pod.getSpec().getInitContainers()) {
+                if (c.getName().equals(containerName)) {
+                    pod.getSpec().getInitContainers().remove(c);
+                    break;
+                }
+            }
+        if (pod.getSpec().getEphemeralContainers() != null)
+            for (var c : pod.getSpec().getEphemeralContainers()) {
+                if (c.getName().equals(containerName)) {
+                    pod.getSpec().getEphemeralContainers().remove(c);
+                    apiProvider.getCoreV1Api().replaceNamespacedPodEphemeralcontainers(
+                            pod.getMetadata().getName(),
+                            pod.getMetadata().getNamespace(),
+                            pod,
+                            null, null, null, null
+                    );
+                    return;
+                }
+            }
+
+        replaceResource(apiProvider, pod.getMetadata().getName(), pod.getMetadata().getNamespace(), pod);
+
+    }
 }

@@ -17,21 +17,10 @@
  */
 package de.mhus.kt2l.cfg;
 
-import com.vaadin.flow.component.Component;
-import de.mhus.commons.tree.ITreeNode;
+import de.mhus.kt2l.form.FormPanel;
 
-public interface CfgPanel {
-
-    Component getPanel();
-
-    void load(ITreeNode content);
-
-    void save(ITreeNode content);
-
-    boolean isValid();
+public interface CfgPanel extends FormPanel {
 
     String getTitle();
-
-    void initUi();
 
 }

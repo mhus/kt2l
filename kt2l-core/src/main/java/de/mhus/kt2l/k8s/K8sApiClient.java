@@ -179,8 +179,12 @@ public class K8sApiClient extends ApiClient {
         try {
             return client.execute(call, returnType);
         } catch (ApiException e) {
+            if (e.getCode() == 404) { // 404 is fine, do not log stacktrace
+                LOGGER.debug("Failed to execute call {} with {} and {}",call.request(),e.getCode(), extractMessage(e.getResponseBody()));
+                throw e;
+            }
             LOGGER.warn("Failed to execute call {} with {} and {}",call.request(),e.getCode(), extractMessage(e.getResponseBody()), e);
-            if (canRetry(e)) { //XXX
+            if (canRetry(e)) { // check if retry is possible
                 refreshClient();
                 return client.execute(call, returnType);
             }

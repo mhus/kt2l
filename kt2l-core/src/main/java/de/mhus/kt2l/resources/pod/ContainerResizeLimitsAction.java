@@ -21,6 +21,8 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.icon.AbstractIcon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -43,7 +45,7 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Slf4j
-@Component
+//@Component
 @WithRole(UsersConfiguration.ROLE.WRITE)
 public class ContainerResizeLimitsAction implements ResourceAction {
     @Override
@@ -220,5 +222,10 @@ public class ContainerResizeLimitsAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.RESIZE_V.create();
     }
 }

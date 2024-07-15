@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.service;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -97,7 +98,7 @@ public class OpenSvcPortForwardAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Port Forward;icon=" + VaadinIcon.CLOUD_UPLOAD_O.name();
+        return "Port Forward";
     }
 
     @Override
@@ -118,5 +119,10 @@ public class OpenSvcPortForwardAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Open port forwarder panel and prepare the command";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.CLOUD_UPLOAD_O.create();
     }
 }

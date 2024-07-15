@@ -16,69 +16,88 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.mhus.kt2l.resources.common;
+package de.mhus.kt2l.resources.pod;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.PanelService;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1Pod;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
+@Slf4j
 @Component
-@WithRole(ROLE.READ)
-public class ActionYamlEditor implements ResourceAction {
+@WithRole(ROLE.WRITE)
+public class PodAttachAction implements ResourceAction {
+
+    @Autowired
+    private Configuration configuration;
 
     @Autowired
     private PanelService panelService;
 
+
     @Override
     public boolean canHandleType(Cluster cluster, V1APIResource type) {
-        return true;
+        return
+                K8s.POD.equals(type) || K8s.CONTAINER.equals(type);
     }
 
     @Override
     public boolean canHandleResource(Cluster cluster, V1APIResource type, Set<? extends KubernetesObject> selected) {
-        return selected.size() == 1;
+        return canHandleType(cluster, type) && selected.size() == 1;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-
         var selected = context.getSelected().iterator().next();
-        panelService.showYamlPanel(context.getSelectedTab(), context.getCluster(), context.getType(), selected).select();
-
+        if (selected instanceof V1Pod pod) {
+            panelService.showContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), pod, null, true).select();
+        } else
+        if (selected instanceof ContainerResource container) {
+            panelService.showContainerShellPanel(context.getSelectedTab(), context.getCluster(), context.getCore(), container.getPod(), container.getContainerName(), true).select();
+        }
     }
 
     @Override
     public String getTitle() {
-        return "Yaml Editor;icon=" + VaadinIcon.FILE_TEXT_O;
+        return "Attach";
     }
 
     @Override
     public String getMenuPath() {
-        return ResourceAction.VIEW_PATH;
+        return ResourceAction.ACTIONS_PATH;
     }
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.VIEW_ORDER+1;
+        return ResourceAction.ACTIONS_ORDER+21;
     }
 
     @Override
     public String getShortcutKey() {
-        return "Y";
+        return "A";
     }
 
     @Override
     public String getDescription() {
-        return "Resource Details";
+        return "Open Attach shell";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.DESKTOP.create();
     }
 }

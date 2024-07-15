@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.deployment;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
@@ -74,7 +75,7 @@ public class ShowReplicaSetsOfDeploymentAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Replica Sets;icon=" + VaadinIcon.OPEN_BOOK;
+        return "Replica Sets";
     }
 
     @Override
@@ -95,5 +96,10 @@ public class ShowReplicaSetsOfDeploymentAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Show Replica Sets of the selected Deployment";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.OPEN_BOOK.create();
     }
 }

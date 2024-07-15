@@ -85,34 +85,34 @@ jobs:
 #          mvn clean install -B -Pproduction || exit 1
 #          cd ..
 #          rm -rf vaadin-raw-xterm-addon
-      - name: markdown-page-generator-plugin
-        run: |
-          echo "Build markdown-page-generator-plugin"
-          echo "================"
-          git clone https://github.com/walokra/markdown-page-generator-plugin.git
-          cd markdown-page-generator-plugin
-          mvn clean install -B || exit 1
-          cd ..
-          rm -rf markdown-page-generator-plugin
+#      - name: markdown-page-generator-plugin
+#        run: |
+#          echo "Build markdown-page-generator-plugin"
+#          echo "================"
+#          git clone https://github.com/walokra/markdown-page-generator-plugin.git
+#          cd markdown-page-generator-plugin
+#          mvn clean install -B || exit 1
+#          cd ..
+#          rm -rf markdown-page-generator-plugin
       - name: Prepare
         run: ./launcher/prepare.sh
       - name: Build maven linux-amd64
-        run: mvn clean install -B -Plinux-amd64 -Pdeploy -Pproduction -Ppreview -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
+        run: mvn clean install -B -Plinux-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
       - name: Build maven macosx-aarch64
         if:  ${{ contains(inputs.execute, ':macosx-aarch64:') }}
-        run: cd kt2l-desktop;mvn install -B -Pmacosx-aarch64 -Pdeploy -Pproduction -Ppreview -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
+        run: cd kt2l-desktop;mvn install -B -Pmacosx-aarch64 -Pdeploy -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
       - name: Build maven macosx-x86_64
         if:  ${{ contains(inputs.execute, ':all-others:') }}
-        run: cd kt2l-desktop;mvn install -B -Pmacosx-x86_64 -Pdeploy -Pproduction -Ppreview -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
+        run: cd kt2l-desktop;mvn install -B -Pmacosx-x86_64 -Pdeploy -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
       - name: Build maven windows-amd64
         if:  ${{ contains(inputs.execute, ':windows-amd64:') }}
-        run: cd kt2l-desktop;mvn install -B -Pwindows-amd64 -Pdeploy -Pproduction -Ppreview -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
+        run: cd kt2l-desktop;mvn install -B -Pwindows-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
       - name: Integration Tests
         if:  ${{ contains(inputs.execute, ':integration-tests:') }}
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
-          mvn -B verify -Pdeploy -Pproduction -Ppreview -Pintegration_tests -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
+          mvn -B verify -Pdeploy -Pproduction -Pintegration_tests -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
         env:
           TEST_DEBUG: false
           TEST_SCREENSHOTS: true

@@ -23,7 +23,8 @@ autoLogin: true
 autoLoginUser: autologin
 localAuthEnabled: true
 oauth2Enabled: false
-
+showLoginHeader: true
+loginText:
 oauth2Providers:
   - id: google
     roleMapping:

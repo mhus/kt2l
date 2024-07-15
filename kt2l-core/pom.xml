@@ -163,13 +163,13 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
-			<version>2.26.14</version>
+			<version>2.26.20</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-s3</artifactId>
-			<version>1.12.755</version>
+			<version>1.12.761</version>
 		</dependency>
 
 		<dependency>
@@ -193,7 +193,7 @@
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
-			<version>3.26.0</version>
+			<version>3.26.3</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -232,7 +232,7 @@
 			<plugin>
 				<groupId>com.ruleoftech</groupId>
 				<artifactId>markdown-page-generator-plugin</artifactId>
-				<version>2.4.0</version>
+				<version>2.4.2</version>
 				<executions>
 					<execution>
 						<id>manual</id>
@@ -272,52 +272,6 @@
 	</build>
 
 	<profiles>
-		<profile>
-			<id>preview</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.ruleoftech</groupId>
-						<artifactId>markdown-page-generator-plugin</artifactId>
-						<version>2.4.1-SNAPSHOT</version>
-						<executions>
-							<execution>
-								<id>manual</id>
-								<configuration>
-									<removeMarkdownHeaders>true</removeMarkdownHeaders>
-									<inputDirectory>${project.basedir}/../docs/docs</inputDirectory>
-									<outputDirectory>${project.basedir}/src/main/resources/META-INF/resources/public/docs</outputDirectory>
-									<applyFiltering>false</applyFiltering>
-									<headerHtmlFile>${project.basedir}/misc/markdown_header.html</headerHtmlFile>
-									<footerHtmlFile>${project.basedir}/misc/markdown_footer.html</footerHtmlFile>
-									<transformRelativeMarkdownLinks>true</transformRelativeMarkdownLinks>
-									<recursiveInput>true</recursiveInput>
-								</configuration>
-								<phase>process-resources</phase>
-								<goals>
-									<goal>generate</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>additional</id>
-								<configuration>
-									<inputDirectory>${project.basedir}/docs</inputDirectory>
-									<outputDirectory>${project.basedir}/src/main/resources/META-INF/resources/public/docs</outputDirectory>
-									<applyFiltering>false</applyFiltering>
-									<headerHtmlFile>${project.basedir}/misc/markdown_header.html</headerHtmlFile>
-									<footerHtmlFile>${project.basedir}/misc/markdown_footer.html</footerHtmlFile>
-									<transformRelativeMarkdownLinks>true</transformRelativeMarkdownLinks>
-								</configuration>
-								<phase>process-resources</phase>
-								<goals>
-									<goal>generate</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 		<profile>
 			<id>production</id>
 			<build>

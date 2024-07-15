@@ -22,9 +22,12 @@ import com.google.gson.reflect.TypeToken;
 import de.mhus.commons.io.Zip;
 import de.mhus.commons.tools.MJson;
 import de.mhus.commons.tools.MLang;
+import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8sService;
+import io.kubernetes.client.Attach;
+import io.kubernetes.client.Exec;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
@@ -40,22 +43,27 @@ import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1Event;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EphemeralContainer;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.util.KubeConfig;
+import io.kubernetes.client.util.Streams;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -80,6 +88,21 @@ public class KubeTest {
         }
     }
     private static final String CLUSTER_NAME = LOCAL_PROPERTIES.getProperty("cluster.name", null);
+
+    @Test
+    public void getRolloutHistory() throws IOException, ApiException {
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+        final var service = new K8sService();
+        ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
+
+        var deployment = apiProvider.getAppsV1Api().listDeploymentForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null).getItems().get(0);
+//        var history = Kubectl.rollout(deployment).history();
+//        System.out.println(history);
+
+    }
 
     @Test
     public void getHelmInstallations() throws IOException, ApiException {
@@ -280,8 +303,71 @@ public class KubeTest {
         MLang.await(() -> done.get() ? "yo" : null, 10000, 1000);
 
     }
+
     @Test
-    public void testPodDebug() throws IOException, ApiException {
+    public void testPodAttach() throws IOException, ApiException {
+
+        if (CLUSTER_NAME == null) {
+            LOGGER.error("Local properties not found");
+            return;
+        }
+
+        final var service = new K8sService();
+        ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
+
+        final var podName = "loremdeployment-6c64ffbc79-7p4ff";
+        final var namespace = "default";
+
+        var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace, null);
+        Attach attach = new Attach(apiProvider.getClient());
+        var result = attach.attach(pod, true);
+
+//        result.getResizeStream().write("24,80\n".getBytes());
+
+        new Thread(
+                () -> {
+                    BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+                    OutputStream output = result.getStandardInputStream();
+                    try {
+                        while (true) {
+                            String line = in.readLine();
+                            output.write(line.getBytes());
+                            output.write('\n');
+                            output.flush();
+                        }
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                })
+                .start();
+
+        new Thread(
+                () -> {
+                    try {
+                        Streams.copy(result.getStandardOutputStream(), System.out);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                })
+                .start();
+
+        new Thread(
+                () -> {
+                    try {
+                        Streams.copy(result.getConnectionErrorStream(), System.err);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                })
+                .start();
+
+        MThread.sleep(10 * 1000);
+        result.close();
+
+    }
+
+    @Test
+    public void testPodEphemeralContainer() throws IOException, ApiException {
 
         if (CLUSTER_NAME == null) {
             LOGGER.error("Local properties not found");
@@ -294,12 +380,30 @@ public class KubeTest {
         final var podName = LOCAL_PROPERTIES.getProperty("pod.name");
         final var namespace = LOCAL_PROPERTIES.getProperty("namespace");
 
-        var debugger = new V1EphemeralContainer();
-        debugger.setName("debugger-" + UUID.randomUUID());
-        debugger.setImage("nginx");
-//        V1Patch patch = new V1Patch(debugger    );
+        // get pod
+        var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace, null);
+        if (pod.getSpec().getEphemeralContainers() == null)
+            pod.getSpec().setEphemeralContainers(new ArrayList<>());
+        var container = new V1EphemeralContainer();
+        var name = "debugger-" + UUID.randomUUID().toString();
+        container.setName(name);
+        container.setImage("busybox");
+        container.setCommand(List.of("sh"));
+        container.setStdin(true);
+        container.setTty(true);
+        pod.getSpec().getEphemeralContainers().add(container);
+        apiProvider.getCoreV1Api().replaceNamespacedPodEphemeralcontainers(podName, namespace, pod, null, null, null, null);
 
-//        api.patchNamespacedPodEphemeralcontainers(name, namespace, )
+        Attach attach = new Attach(apiProvider.getClient());
+        var result = attach.attach(pod, name, true, true);
+        result.getErrorStream().transferTo(System.err);
+        result.getStandardOutputStream().transferTo(System.out);
+
+        result.getStandardInputStream().write("ls\n".getBytes());
+        result.getStandardInputStream().flush();
+
+        MThread.sleep(1000);
+        result.close();
 
     }
 

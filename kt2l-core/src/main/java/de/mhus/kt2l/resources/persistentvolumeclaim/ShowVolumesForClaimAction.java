@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.persistentvolumeclaim;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -69,7 +70,7 @@ public class ShowVolumesForClaimAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Volumes;icon=" + VaadinIcon.ARROW_FORWARD;
+        return "Volumes";
     }
 
     @Override
@@ -90,5 +91,10 @@ public class ShowVolumesForClaimAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Show volumes for claim";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.ARROW_FORWARD.create();
     }
 }

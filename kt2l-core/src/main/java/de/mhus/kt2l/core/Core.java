@@ -42,6 +42,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
@@ -126,6 +127,7 @@ import static org.apache.logging.log4j.util.Strings.isBlank;
 @Uses(FileDownloadWrapper.class)
 @Uses(NetworkDiagram.class)
 @Uses(ToggleButton.class)
+@Uses(IntegerField.class)
 public class Core extends AppLayout {
 
     private long uiTemeoutSeconds = 60;
@@ -411,6 +413,7 @@ public class Core extends AppLayout {
         var space = new Span(" ");
 
         Button userButton = new Button(LumoIcon.USER.create());
+        userButton.setTooltipText(user.getUserId());
         var userMenu = new ContextMenu();
         userMenu.setTarget(userButton);
         userMenu.setOpenOnClick(true);
@@ -660,9 +663,9 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
         else
             tabTitle.setText(title);
 
-        Arrays.stream(UiUtil.COLOR.values()).forEach(c -> tabTitle.removeClassNames("bgcolor-" + c.name().toLowerCase()));
+        Arrays.stream(UiUtil.COLOR.values()).forEach(c -> tabTitle.removeClassNames("title-" + c.name().toLowerCase()));
         if (color != null && color != UiUtil.COLOR.NONE)
-            tabTitle.addClassNames("bgcolor-" + color.name().toLowerCase());
+            tabTitle.addClassNames("title-" + color.name().toLowerCase());
     }
 
     public DeskTabBar getTabBar() {

@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.events;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -55,7 +56,7 @@ public class EventResourceAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Events;icon=" + VaadinIcon.CALENDAR_CLOCK;
+        return "Events";
     }
 
     @Override
@@ -76,5 +77,10 @@ public class EventResourceAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Show events of the selected resource";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.CALENDAR_CLOCK.create();
     }
 }

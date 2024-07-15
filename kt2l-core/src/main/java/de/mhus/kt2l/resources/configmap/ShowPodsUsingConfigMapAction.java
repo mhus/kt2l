@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.configmap;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
@@ -99,7 +100,7 @@ public class ShowPodsUsingConfigMapAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Pods;icon=" + VaadinIcon.OPEN_BOOK;
+        return "Pods";
     }
 
     @Override
@@ -120,5 +121,10 @@ public class ShowPodsUsingConfigMapAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Show Pods using the selected Config Map";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.OPEN_BOOK.create();
     }
 }

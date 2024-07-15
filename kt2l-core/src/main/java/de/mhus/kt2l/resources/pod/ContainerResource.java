@@ -38,6 +38,11 @@ public class ContainerResource implements KubernetesObject {
     }
 
     @Override
+    public String toString() {
+        return super.toString() + "." + container.getName();
+    }
+
+    @Override
     public String getApiVersion() {
         return container.getPod().getApiVersion();
     }

@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.pod;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.commons.tree.MProperties;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
@@ -91,7 +92,7 @@ public class TerminalAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Terminal;icon=" + VaadinIcon.TERMINAL;
+        return "Terminal";
     }
 
     @Override
@@ -112,5 +113,10 @@ public class TerminalAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Open shell in terminal";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.TERMINAL.create();
     }
 }

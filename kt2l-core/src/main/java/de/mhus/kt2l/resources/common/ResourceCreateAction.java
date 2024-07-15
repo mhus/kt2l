@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.common;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -57,7 +58,7 @@ public class ResourceCreateAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Create;icon=" + VaadinIcon.FILE_ADD;
+        return "Create";
     }
 
     @Override
@@ -78,5 +79,10 @@ public class ResourceCreateAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Create new resources";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.FILE_ADD.create();
     }
 }

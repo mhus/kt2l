@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.pod;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
@@ -57,7 +58,7 @@ public class PodExecAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Exec;icon=" + VaadinIcon.FORWARD;
+        return "Exec";
     }
 
     @Override
@@ -78,5 +79,10 @@ public class PodExecAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Execute command in container";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.FORWARD.create();
     }
 }

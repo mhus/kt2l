@@ -183,7 +183,9 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
                     }
                 });
             }
-            dialog.close();
+            core.ui().access(() -> {
+                dialog.close();
+            });
         });
     }
 

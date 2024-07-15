@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.common;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -185,7 +186,7 @@ public class ShowOwnerOfResourceAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Show Owner;icon=" + VaadinIcon.ARROW_BACKWARD.name();
+        return "Show Owner";
     }
 
     @Override
@@ -206,5 +207,10 @@ public class ShowOwnerOfResourceAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Show owner of the resource";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.ARROW_BACKWARD.create();
     }
 }

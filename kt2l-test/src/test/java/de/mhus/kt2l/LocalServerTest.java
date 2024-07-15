@@ -290,7 +290,7 @@ public class LocalServerTest {
             var element = new WebDriverWait(driver, ofSeconds(10), ofSeconds(1))
                     .until(visibilityOfElementLocated(By.xpath("//vaadin-vertical-layout[@id=\"aremoricaindomitable-villageasterixshell\"]/fc-xterm/div/div/div[2]/div[2]/div[1]/span[1]")));
             MLang.awaitTrue(() -> element.getText().trim().length() > 0, 5000);
-            assertThat(element.getText()).isEqualTo("Start console");
+            assertThat(element.getText()).isEqualTo("Start console on asterix");
         }
         DebugTestUtil.doScreenshot(driver, "pod_xterm");
     }

@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.namespace;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
@@ -55,7 +56,7 @@ public class ShowPodsOfNamespaceAction implements ResourceAction {
 
     @Override
     public String getTitle() {
-        return "Pods;icon=" + VaadinIcon.OPEN_BOOK;
+        return "Pods";
     }
 
     @Override
@@ -76,6 +77,11 @@ public class ShowPodsOfNamespaceAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Show pods of the selected namespace";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.OPEN_BOOK.create();
     }
 
 }

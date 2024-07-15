@@ -17,6 +17,8 @@
  */
 package de.mhus.kt2l.resources.persistentvolume;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
@@ -89,5 +91,10 @@ public class ShowPodsWithVolumeAction implements ResourceAction {
     @Override
     public String getDescription() {
         return "Show Pods using the Volume";
+    }
+
+    @Override
+    public AbstractIcon getIcon() {
+        return VaadinIcon.OPEN_BOOK.create();
     }
 }

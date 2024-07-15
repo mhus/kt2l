@@ -15,44 +15,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.cfg.panel;
+package de.mhus.kt2l.cfg;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.tree.ITreeNode;
-import de.mhus.kt2l.cfg.CfgPanel;
+import de.mhus.kt2l.form.FormPanel;
+import de.mhus.kt2l.form.FormPanelVerticalLayout;
+import de.mhus.kt2l.form.YComponent;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class CPanelVerticalLayout extends VerticalLayout implements CfgPanel {
-
-    private List<YComponent> components = new LinkedList<>();
-
-    public void add(YComponent build) {
-        build.initUi();
-        components.add(build);
-        add(build.getComponent());
-    }
-
-    @Override
-    public Component getPanel() {
-        return this;
-    }
-
-    @Override
-    public void load(ITreeNode content) {
-        components.forEach(component -> component.load(content));
-    }
-
-    @Override
-    public void save(ITreeNode content) {
-        components.forEach(component -> component.save(content));
-    }
-
-    @Override
-    public boolean isValid() {
-        return false;
-    }
+public abstract class CPanelVerticalLayout extends FormPanelVerticalLayout implements CfgPanel {
 
 }

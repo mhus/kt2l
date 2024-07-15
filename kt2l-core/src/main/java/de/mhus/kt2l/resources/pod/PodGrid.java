@@ -33,11 +33,14 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.resources.ResourceFilterFactory;
+import de.mhus.kt2l.resources.ResourcesFilter;
 import de.mhus.kt2l.resources.pod.score.PodScorer;
 import de.mhus.kt2l.resources.pod.score.PodScorerConfiguration;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.Metrics;
+import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.ContainerMetrics;
 import io.kubernetes.client.custom.PodMetrics;
 import io.kubernetes.client.openapi.ApiException;
@@ -74,7 +77,6 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     @Autowired
     private PodScorerConfiguration podScorerConfiguration;
 
-    private volatile boolean needMetricRefresh = true;
     private int scoreErrorThreshold;
     private int scoreWarnThreshold;
     private boolean scoringEnabled;
@@ -161,23 +163,18 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
 
     @Override
     protected void onDetailsChanged(Resource item) {
-        setContainerPod(item);
+        onGridCellFocusChanged(item);
     }
 
     @Override
     protected void onShowDetails(Resource item, boolean flip) {
-        flipContainerVisibility(item, flip, !flip);
-    }
-
-    private void flipContainerVisibility(Resource pod, boolean flip, boolean focus) {
         containerList = null;
         containerSelectedPod = null;
         detailsComponent.setVisible(!flip || !detailsComponent.isVisible());
         if (detailsComponent.isVisible()) {
-            needMetricRefresh = true;
-            containerSelectedPod = pod;
+            containerSelectedPod = item;
             detailsComponent.getDataProvider().refreshAll();
-            if (focus)
+            if (!flip)
                 detailsComponent.getElement().getNode()
                         .runWhenAttached(ui -> getPanel().getCore().ui().getPage().executeJs(
                                 "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", detailsComponent.getElement()));
@@ -191,6 +188,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             detailsComponent.deselectAll();
     }
 
+    @Override
     protected void onGridCellFocusChanged(Resource item) {
         if (detailsComponent.isVisible()) {
             containerSelectedPod = item;
@@ -199,20 +197,21 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
     }
 
+    @Override
     protected void doRefreshGrid() {
         super.doRefreshGrid();
-        needMetricRefresh = true;
     }
 
-        public void refresh(long counter) {
+    @Override
+    public void refresh(long counter) {
         super.refresh(counter);
-        if (!needMetricRefresh && counter % 10 != 0) return;
-        updateMetrics();
+        if (counter % 10 == 2)
+            updateMetrics();
     }
 
     protected synchronized void updateMetrics() {
         if (filteredList == null) return;
-        needMetricRefresh = false;
+      //  needMetricRefresh = false;
 
         Map<String, PodMetrics> metricMap = new HashMap<>();
         for (String ns : getKnownNamespaces()) {
@@ -317,15 +316,15 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         podGrid.addColumn(pod -> pod.getMetricMemoryPercentage() < 0 ? "" : pod.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
         if (scoringEnabled)
             podGrid.addColumn(pod -> pod.getScore() < 0 ? "" : pod.getScore()).setHeader("Score").setSortProperty("score");
-
     }
 
     protected void createGridColumnsAtEnd(Grid<Resource> podGrid) {
+        podGrid.addColumn(pod -> pod.getNode()).setHeader("Node").setSortProperty("node");
+        podGrid.addColumn(pod -> pod.getIp()).setHeader("IP").setSortProperty("ip");
         podGrid.addColumn(pod -> pod.getOwner()).setHeader("Owner").setSortProperty("owner");
     }
 
-
-        @Override
+    @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
         return switch (sorted) {
             case "status" -> switch (direction) {
@@ -364,6 +363,14 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 case ASCENDING -> a.getOwner().compareTo(b.getOwner());
                 case DESCENDING -> b.getOwner().compareTo(a.getOwner());
             };
+            case "node" -> switch (direction) {
+                case ASCENDING -> a.getNode().compareTo(b.getNode());
+                case DESCENDING -> b.getNode().compareTo(a.getNode());
+            };
+            case "ip" -> switch (direction) {
+                case ASCENDING -> a.getIp().compareTo(b.getIp());
+                case DESCENDING -> b.getIp().compareTo(a.getIp());
+            };
             default -> 0;
         };
     }
@@ -371,7 +378,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     private class ContainerProvider extends CallbackDataProvider<Container, Void> {
         public ContainerProvider() {
             super(query -> {
-                        LOGGER.debug("◌ Cont: Do the query {} {}", K8s.CONTAINER, queryToString(query));
+                        LOGGER.debug("◌ Cont: Do the query {}", queryToString(query));
                         for(QuerySortOrder queryOrder :
                                 query.getSortOrders()) {
                             Collections.sort(containerList, (a, b) -> switch (queryOrder.getSorted()) {
@@ -405,7 +412,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                         }
                         return containerList.stream().skip(query.getOffset()).limit(query.getLimit());
                     }, query -> {
-                        LOGGER.debug("◌ Cont: Do the size query {} {}",K8s.CONTAINER, queryToString(query));
+                        LOGGER.debug("◌ Cont: Do the size query {}", queryToString(query));
                         if (containerList == null) {
                             containerList = new ArrayList<>();
 
@@ -465,6 +472,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         private String status;
         private int runningContainersCnt;
         private int containerCnt;
+        private int allContainerCnt;
         private int restarts;
 
         private double metricCpu = Double.MAX_VALUE;
@@ -479,6 +487,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         private int score = -1;
 
         private String owner = "";
+        private String node = "";
+        private String ip = "";
 
         private PodMetrics metric;
 
@@ -501,6 +511,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 var ownerReference = ownerReferences.get(0);
                 owner = ownerReference.getKind() + "-" + ownerReference.getUid();
             }
+            node = resource.getSpec().getNodeName();
+            ip = resource.getStatus().getPodIP();
 
             if (this.status != null && !Objects.equals(this.status, resource.getStatus().getPhase())) {
                 setFlashColor(UiUtil.COLOR.MAGENTA);
@@ -518,11 +530,13 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             this.restarts = 0;
             this.runningContainersCnt = 0;
             this.containerCnt = 0;
+            this.allContainerCnt = 0;
             {
                 var containers = resource.getStatus().getContainerStatuses();
                 if (containers != null) {
                     for (V1ContainerStatus container : containers) {
                         this.containerCnt++;
+                        this.allContainerCnt++;
                         if (container.getReady() != null && container.getReady())
                             this.runningContainersCnt++;
                         this.restarts += container.getRestartCount();
@@ -534,7 +548,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 if (containers != null) {
                     for (V1ContainerStatus container : containers) {
                         if (container.getState() != null && container.getState().getTerminated() == null) {
-                            this.containerCnt++;
+                            this.allContainerCnt++;
                             if (container.getReady() != null && container.getReady())
                                 this.runningContainersCnt++;
                         }
@@ -547,7 +561,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                 if (containers != null) {
                     for (V1ContainerStatus container : containers) {
                         if (container.getState() != null && container.getState().getTerminated() == null) {
-                            this.containerCnt++;
+                            this.allContainerCnt++;
                             if (container.getReady() != null && container.getReady())
                                 this.runningContainersCnt++;
                         }
@@ -583,7 +597,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
 
         public String getReadyContainers() {
-            return runningContainersCnt + "/" + containerCnt;
+            return runningContainersCnt + "/" + containerCnt + ( containerCnt != allContainerCnt ? "/" + allContainerCnt : "");
         }
 
         public synchronized boolean updateMetric(PodMetrics metric) {
@@ -709,8 +723,12 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
     }
 
-    private void setContainerPod(Resource item) {
-        onGridCellFocusChanged(item);
+    @Override
+    public List<ResourceFilterFactory> getResourceFilterFactories() {
+        return List.of(
+                new ResourceFilterFactory("Terminating",res -> res.getMetadata().getDeletionTimestamp() != null),
+                new ResourceFilterFactory("Running",res -> "Running".equalsIgnoreCase( ((V1Pod)res).getStatus().getPhase() ))
+        );
     }
 
 }

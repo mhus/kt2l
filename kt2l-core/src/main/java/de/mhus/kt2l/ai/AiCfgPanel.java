@@ -17,9 +17,9 @@
  */
 package de.mhus.kt2l.ai;
 
-import de.mhus.kt2l.cfg.panel.CPanelVerticalLayout;
-import de.mhus.kt2l.cfg.panel.YBoolean;
-import de.mhus.kt2l.cfg.panel.YText;
+import de.mhus.kt2l.cfg.CPanelVerticalLayout;
+import de.mhus.kt2l.form.YBoolean;
+import de.mhus.kt2l.form.YText;
 import org.springframework.beans.factory.annotation.Configurable;
 
 @Configurable
@@ -32,23 +32,23 @@ public class AiCfgPanel extends CPanelVerticalLayout {
     @Override
     public void initUi() {
         add(new YBoolean()
-                .name("enabled")
+                .path("enabled")
                 .label("Enabled")
                 .defaultValue(false));
         add(new YText()
-                .name("ollamaUrl")
+                .path("ollamaUrl")
                 .label("ollama Url")
                 .defaultValue("http://localhost:11434"));
         add(new YText()
-                .name("openAiKey")
+                .path("openAiKey")
                 .label("Open API Key")
                 .defaultValue(""));
         add(new YText()
-                .name("codingModel")
+                .path("codingModel")
                 .label("Model for coding")
                 .defaultValue(""));
         add(new YText()
-                .name("translateModel")
+                .path("translateModel")
                 .label("Model for translation")
                 .defaultValue(""));
 

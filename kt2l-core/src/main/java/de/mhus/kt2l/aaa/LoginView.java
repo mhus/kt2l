@@ -19,6 +19,9 @@
 package de.mhus.kt2l.aaa;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
@@ -26,6 +29,8 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.dom.ElementAttachEvent;
+import com.vaadin.flow.dom.ElementAttachListener;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -35,6 +40,7 @@ import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.theme.Theme;
 import de.mhus.commons.net.MNet;
 import de.mhus.kt2l.aaa.oauth2.AuthProvider;
 import de.mhus.kt2l.aaa.oauth2.OAuth2AuthProvider;
@@ -47,6 +53,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import static de.mhus.commons.tools.MString.isSet;
 
 @Route("login")
 @PageTitle("Login")
@@ -69,7 +77,14 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         setJustifyContentMode(JustifyContentMode.CENTER);
         setAlignItems(Alignment.CENTER);
 
-        add(new H1("KT2L"));
+        if (loginConfig.isShowLoginHeader()) {
+            var icon = new SvgIcon(new StreamResource("logo.svg", () -> LoginView.class.getResourceAsStream("/images/kt2l-logo.svg")));
+            add(new H1(icon, new Div("KT2L")));
+        }
+        var loginText = loginConfig.getLoginText();
+        if (isSet(loginText)) {
+            add(new Html("<div class='login-text'>" + loginText + "</div>"));
+        }
         if (loginConfig.isLocalAuthEnabled()) {
             login.setForgotPasswordButtonVisible(false);
             login.setAction("login");
@@ -95,7 +110,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                 loginLink.addClassName("login-link");
                 // Instruct Vaadin Router to ignore doing SPA handling
                 loginLink.setRouterIgnore(true);
-                add(loginLink);
+                var loginDiv = new Div(loginLink);
+                loginDiv.addClassName("login-div");
+                add(loginDiv);
             }
         }
     }
@@ -124,8 +141,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         var req = getCurrentHttpRequest();
         var rhost = req.getRemoteHost();
 
-        var sessionAutoLogin = UI.getCurrent().getSession().getAttribute("autologin");
-        if (loginConfig.isAutoLogin() /* && !"false".equals(sessionAutoLogin ) */) {
+        if (loginConfig.isAutoLogin()) {
             if (!loginConfig.isAutoLoginLocalhostOnly() || MNet.isLocalhost(rhost)) {
                 LOGGER.info("Do auto login for {}",loginConfig.getAutoLoginUser());
                 try {
@@ -144,7 +160,17 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     @Override
+    public void onDetach(DetachEvent detachEvent) {
+        UI.getCurrent().getElement().getClassList().remove("login-page");
+        super.onDetach(detachEvent);
+    }
+
+    @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
+        if(UI.getCurrent() != null){
+//            UI.getCurrent().getElement().getStyle().set("background", "url(./frontend/images/login-background.jpg) no-repeat center center fixed");
+            UI.getCurrent().getElement().getClassList().add("login-page");
+        }
         if(beforeEnterEvent.getLocation()
                 .getQueryParameters()
                 .getParameters()
@@ -152,4 +178,5 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
             login.setError(true);
         }
     }
+
 }

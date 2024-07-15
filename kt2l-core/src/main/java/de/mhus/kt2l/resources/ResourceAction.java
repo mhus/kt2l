@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources;
 
+import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.cluster.Cluster;
 import io.kubernetes.client.common.KubernetesObject;
@@ -30,6 +31,8 @@ public interface ResourceAction {
     String ACTIONS_PATH = "Actions;icon=" + VaadinIcon.START_COG;
     int VIEW_ORDER = 2000;
     String VIEW_PATH = "View;icon=" + VaadinIcon.EYE;
+    int EDIT_ORDER = 3000;
+    String EDIT_PATH = "Edit;icon=" + VaadinIcon.EDIT;
     int TOOLS_ORDER = 5000;
     String TOOLS_PATH = "Tools;icon=" + VaadinIcon.TOOLS;
 
@@ -42,4 +45,7 @@ public interface ResourceAction {
     String getShortcutKey();
 
     String getDescription();
+
+    AbstractIcon getIcon();
+
 }
