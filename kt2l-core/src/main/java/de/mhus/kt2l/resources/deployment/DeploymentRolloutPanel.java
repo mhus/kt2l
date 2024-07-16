@@ -32,7 +32,7 @@ public class DeploymentRolloutPanel extends RolloutPanel<V1Deployment> {
 
     @Override
     protected void updateTarget() {
-        targetUpdated = getInt(target.getStatus().getUpdatedReplicas(), -1);
+        targetReady = getInt(target.getStatus().getUpdatedReplicas(), -1);
         targetDesired = getInt(target.getSpec().getReplicas(), -1);
         targetUnavailable = getInt(target.getStatus().getUnavailableReplicas(), 0);
         ownerKind = "Deployment";

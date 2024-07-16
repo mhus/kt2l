@@ -120,7 +120,6 @@ public class DaemonSetGrid extends AbstractGridWithNamespace<DaemonSetGrid.Resou
         detailsComponent.cleanTarget();
         detailsComponent.setVisible(!flip || !detailsComponent.isVisible());
         if (detailsComponent.isVisible()) {
-            detailsComponent.setHandler((DeploymentK8s) resourceHandler);
             detailsComponent.setTarget(item.getResource());
         }
     }

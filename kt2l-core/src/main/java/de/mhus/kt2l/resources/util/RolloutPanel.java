@@ -30,7 +30,7 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
     private final Button startBtn;
     protected T target;
     private IRegistration registration;
-    protected int targetUpdated = -1;
+    protected int targetReady = -1;
     protected int targetDesired = -1;
     protected int targetUnavailable = -1;
     protected boolean targetCanPause = false;
@@ -116,23 +116,23 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
     }
 
     private void updateView(boolean updateReplicaSets) {
-        if (targetUpdated >= 0 && targetDesired >= 0 && targetUpdated < targetDesired) {
+        if (targetReady >= 0 && targetDesired >= 0 && targetReady < targetDesired) {
             progress.setIndeterminate(false);
             progressPanel.setVisible(true);
             progress.setMax(targetDesired);
-            progress.setValue(targetUpdated);
-            text.setText(targetUpdated + "/" + targetDesired + (targetUnavailable > 0 ? " (" + targetUnavailable + " unavailable)" : ""));
-        } else if (targetUpdated >= 0 && targetDesired >= 0 && targetUpdated > targetDesired) {
+            progress.setValue(targetReady);
+            text.setText(targetReady + "/" + targetDesired + (targetUnavailable > 0 ? " (" + targetUnavailable + " unavailable)" : ""));
+        } else if (targetReady >= 0 && targetDesired >= 0 && targetReady > targetDesired) {
             progress.setIndeterminate(false);
             progressPanel.setVisible(true);
-            progress.setMax(targetUpdated);
+            progress.setMax(targetReady);
             progress.setValue(targetDesired);
-            text.setText(targetUpdated + "/" + targetDesired + (targetUnavailable > 0 ? " (" + targetUnavailable + " unavailable)" : ""));
+            text.setText(targetReady + "/" + targetDesired + (targetUnavailable > 0 ? " (" + targetUnavailable + " unavailable)" : ""));
         } else if (targetUnavailable > 0) {
             progressPanel.setVisible(true);
             progress.setIndeterminate(true);
             text.setText(targetUnavailable + " unavailable");
-        } else if (targetUpdated < 0 && targetDesired < 0) {
+        } else if (targetReady < 0 && targetDesired < 0) {
             text.setText("");
             progressPanel.setVisible(false);
             replicaSets.removeAll();
@@ -187,7 +187,7 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
 
     protected void cleanTarget(boolean updateReplicaSets) {
         targetDesired = -1;
-        targetUpdated = -1;
+        targetReady = -1;
         targetUnavailable = -1;
         ownerKind = null;
         ownerId = null;

@@ -1,16 +1,17 @@
-package de.mhus.kt2l.resources.statefulset;
+package de.mhus.kt2l.resources.replicaset;
 
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.resources.statefulset.StatefulSetWatch;
 import de.mhus.kt2l.resources.util.RolloutPanel;
-import io.kubernetes.client.openapi.models.V1StatefulSet;
+import io.kubernetes.client.openapi.models.V1ReplicaSet;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class StatefulSetRolloutPanel extends RolloutPanel<V1StatefulSet> {
+public class ReplicaSetRolloutPanel extends RolloutPanel<V1ReplicaSet> {
 
-    public StatefulSetRolloutPanel(Core core, Cluster cluster) {
+    public ReplicaSetRolloutPanel(Core core, Cluster cluster) {
         super(core, cluster);
     }
 
@@ -20,7 +21,7 @@ public class StatefulSetRolloutPanel extends RolloutPanel<V1StatefulSet> {
 
     @Override
     protected void updateTarget() {
-        targetReady = getInt(target.getStatus().getUpdatedReplicas(), -1);
+        targetReady = getInt(target.getStatus().getReadyReplicas(), -1);
         targetDesired = getInt(target.getSpec().getReplicas(), -1);
         targetUnavailable = -1;
         ownerNamespace = target.getMetadata().getNamespace();
@@ -37,6 +38,6 @@ public class StatefulSetRolloutPanel extends RolloutPanel<V1StatefulSet> {
 
     @Override
     protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
-        return StatefulSetWatch.class;
+        return ReplicaSetWatch.class;
     }
 }
