@@ -9,6 +9,7 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import de.mhus.commons.lang.IRegistration;
+import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
@@ -116,6 +117,7 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
 
     private void updateView(boolean updateReplicaSets) {
         if (targetUpdated >= 0 && targetDesired >= 0 && targetUpdated < targetDesired) {
+            progress.setIndeterminate(false);
             progressPanel.setVisible(true);
             progress.setMax(targetDesired);
             progress.setValue(targetUpdated);
@@ -124,11 +126,15 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
             progressPanel.setVisible(true);
             progress.setIndeterminate(true);
             text.setText(targetUnavailable + " unavailable");
+        } else if (targetUpdated < 0 && targetDesired < 0) {
+            text.setText("");
+            progressPanel.setVisible(false);
+            replicaSets.removeAll();
         } else {
             progressPanel.setVisible(false);
             progress.setMax(1);
             progress.setValue(0);
-            text.setText("No rollout in progress");
+            text.setText("No rollout in progress" + (target != null ? " for " + target.getMetadata().getName() : ""));
         }
         if (targetCanPause) {
             pauseBtn.setVisible(targetStarted);
@@ -142,17 +148,23 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
             if (ownerKind != null && ownerId != null && ownerNamespace != null) {
                 try {
                     var list = cluster.getApiProvider().getAppsV1Api().listNamespacedReplicaSet(ownerNamespace, null, null, null, null, null, null, null, null, null, null, null);
-                    for (var replicaSet : list.getItems()) {
+                    var sortedList = list.getItems().stream()
+                            .filter(replicaSet -> replicaSet.getMetadata().getOwnerReferences() != null && replicaSet.getMetadata().getOwnerReferences().size() > 0 && ownerKind.equals(replicaSet.getMetadata().getOwnerReferences().get(0).getKind()) && ownerId.equals(replicaSet.getMetadata().getOwnerReferences().get(0).getUid()))
+                            .sorted((a, b) -> MObject.compareTo(b.getMetadata().getCreationTimestamp(), a.getMetadata().getCreationTimestamp())).toList();
+
+                    int rev = sortedList.size();
+                    for (var replicaSet : sortedList) {
                         if (replicaSet.getMetadata().getOwnerReferences() == null || replicaSet.getMetadata().getOwnerReferences().size() == 0)
                             continue;
                         if (!ownerKind.equals(replicaSet.getMetadata().getOwnerReferences().get(0).getKind()) || !ownerId.equals(replicaSet.getMetadata().getOwnerReferences().get(0).getUid()))
                             continue;
-                        var entry = new Div("REV " + replicaSet.getMetadata().getGeneration() +
+                        var entry = new Div("REV " + rev +
                                 " - " + replicaSet.getMetadata().getCreationTimestamp().toString()
                         );
                         entry.setWidthFull();
                         entry.setHeight("20px");
                         replicaSets.add(entry);
+                        rev--;
                     }
                 } catch (Exception e) {
                     LOGGER.debug("Can't fetch ReplicaSets for {} {}", ownerKind, ownerId, e);

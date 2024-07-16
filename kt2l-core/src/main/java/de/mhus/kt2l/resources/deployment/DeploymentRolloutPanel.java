@@ -7,22 +7,23 @@ import de.mhus.kt2l.resources.util.RolloutPanel;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DeploymentRolloutPanel extends RolloutPanel<V1Deployment> {
 
-    private final DeploymentK8s handler;
+    @Setter
+    private DeploymentK8s handler;
 
-    public DeploymentRolloutPanel(Core core, Cluster cluster, DeploymentK8s handler) {
+    public DeploymentRolloutPanel(Core core, Cluster cluster) {
         super(core, cluster);
-        this.handler = handler;
     }
 
     @Override
     protected void updateRunnng(boolean running) {
         try {
-            handler.patch(cluster.getApiProvider(), target, "[{\"op\":\"replace\",\"path\":\"/spec/paused\",\"value\":" + (running ? "True" : "False") + "}]");
+            handler.patch(cluster.getApiProvider(), target, "[{\"op\":\"replace\",\"path\":\"/spec/paused\",\"value\":" + (!running ? "true" : "false") + "}]");
             targetStarted = running;
         } catch (ApiException e) {
             UiUtil.showErrorNotification("Can't update deployment", e);

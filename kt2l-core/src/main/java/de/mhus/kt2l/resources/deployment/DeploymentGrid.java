@@ -100,7 +100,7 @@ public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Res
     }
 
     protected void createDetailsComponent() {
-        detailsComponent = new DeploymentRolloutPanel(panel.getCore(), cluster, (DeploymentK8s) resourceHandler);
+        detailsComponent = new DeploymentRolloutPanel(panel.getCore(), cluster);
         detailsComponent.setVisible(false);
     }
 
@@ -114,6 +114,7 @@ public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Res
         detailsComponent.cleanTarget();
         detailsComponent.setVisible(!flip || !detailsComponent.isVisible());
         if (detailsComponent.isVisible()) {
+            detailsComponent.setHandler((DeploymentK8s) resourceHandler);
             detailsComponent.setTarget(item.getResource());
         }
     }
