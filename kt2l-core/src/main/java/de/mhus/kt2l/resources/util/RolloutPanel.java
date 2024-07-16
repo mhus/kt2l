@@ -121,7 +121,13 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
             progressPanel.setVisible(true);
             progress.setMax(targetDesired);
             progress.setValue(targetUpdated);
-            text.setText(targetUpdated + "/" + targetDesired + " (" + targetUnavailable + " unavailable)");
+            text.setText(targetUpdated + "/" + targetDesired + (targetUnavailable > 0 ? " (" + targetUnavailable + " unavailable)" : ""));
+        } else if (targetUpdated >= 0 && targetDesired >= 0 && targetUpdated > targetDesired) {
+            progress.setIndeterminate(false);
+            progressPanel.setVisible(true);
+            progress.setMax(targetUpdated);
+            progress.setValue(targetDesired);
+            text.setText(targetUpdated + "/" + targetDesired + (targetUnavailable > 0 ? " (" + targetUnavailable + " unavailable)" : ""));
         } else if (targetUnavailable > 0) {
             progressPanel.setVisible(true);
             progress.setIndeterminate(true);

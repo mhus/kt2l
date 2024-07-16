@@ -116,7 +116,7 @@ public class UiUtil {
                 if (e instanceof ApiException apiException) {
                     sb.append("Error Code: ").append(apiException.getCode()).append("\n\n");
                     var body = apiException.getResponseBody();
-                    if (body.startsWith("{")) {
+                    if (body != null && body.startsWith("{")) {
                         try {
                             sb.append(MYaml.toYaml(MJson.load(body))).append("\n\n");
                         } catch (Exception ex) {
