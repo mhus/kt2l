@@ -237,6 +237,7 @@
 					<execution>
 						<id>manual</id>
 						<configuration>
+							<removeMarkdownHeaders>true</removeMarkdownHeaders>
 							<inputDirectory>${project.basedir}/../docs/docs</inputDirectory>
 							<outputDirectory>${project.basedir}/src/main/resources/META-INF/resources/public/docs</outputDirectory>
 							<applyFiltering>false</applyFiltering>
