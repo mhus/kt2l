@@ -48,4 +48,6 @@ public interface HandlerK8s {
 
     Object patch(ApiProvider apiProvider, String namespace, String name, String patchString) throws ApiException;
 
+    KubernetesObject get(ApiProvider apiProvider, String name, String namespace) throws ApiException;
+
 }

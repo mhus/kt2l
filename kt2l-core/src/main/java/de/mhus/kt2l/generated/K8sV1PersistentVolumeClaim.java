@@ -37,6 +37,15 @@ public abstract class K8sV1PersistentVolumeClaim implements HandlerK8s {
     }
 
     @Override
+    public KubernetesObject get(ApiProvider apiProvider, String name, String namespace) throws ApiException {
+        return apiProvider.getCoreV1Api().readNamespacedPersistentVolumeClaim(
+            name,
+            namespace,
+            null
+        );
+    }
+
+    @Override
     public Object replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         var res = Yaml.loadAs(yaml, V1PersistentVolumeClaim.class);
         return replaceResource(apiProvider, name, namespace, res);

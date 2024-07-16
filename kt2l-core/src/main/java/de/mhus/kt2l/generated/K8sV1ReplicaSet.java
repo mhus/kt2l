@@ -37,6 +37,15 @@ public abstract class K8sV1ReplicaSet implements HandlerK8s {
     }
 
     @Override
+    public KubernetesObject get(ApiProvider apiProvider, String name, String namespace) throws ApiException {
+        return apiProvider.getAppsV1Api().readNamespacedReplicaSet(
+            name,
+            namespace,
+            null
+        );
+    }
+
+    @Override
     public Object replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         var res = Yaml.loadAs(yaml, V1ReplicaSet.class);
         return replaceResource(apiProvider, name, namespace, res);

@@ -37,6 +37,15 @@ public abstract class K8sV1RoleBinding implements HandlerK8s {
     }
 
     @Override
+    public KubernetesObject get(ApiProvider apiProvider, String name, String namespace) throws ApiException {
+        return apiProvider.getRbacAuthorizationV1Api().readNamespacedRoleBinding(
+            name,
+            namespace,
+            null
+        );
+    }
+
+    @Override
     public Object replace(ApiProvider apiProvider, String name, String namespace, String yaml) throws ApiException {
         var res = Yaml.loadAs(yaml, V1RoleBinding.class);
         return replaceResource(apiProvider, name, namespace, res);
