@@ -6,7 +6,11 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.resources.util.RolloutPanel;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.proto.V1beta1Apps;
+import io.kubernetes.client.proto.V1beta1Extensions;
+import io.kubernetes.client.util.labels.LabelSelector;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,9 +39,7 @@ public class DeploymentRolloutPanel extends RolloutPanel<V1Deployment> {
         targetReady = getInt(target.getStatus().getUpdatedReplicas(), -1);
         targetDesired = getInt(target.getSpec().getReplicas(), -1);
         targetUnavailable = getInt(target.getStatus().getUnavailableReplicas(), 0);
-        ownerKind = "Deployment";
-        ownerId = target.getMetadata().getUid();
-        ownerNamespace = target.getMetadata().getNamespace();
+        ownerLabelSelector = LabelSelector.parse(target.getSpec().getSelector());
         targetCanPause = true;
         targetStarted = !getBoolean(target.getSpec().getPaused(), false );
     }

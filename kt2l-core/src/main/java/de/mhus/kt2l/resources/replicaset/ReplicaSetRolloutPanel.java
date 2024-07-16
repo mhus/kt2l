@@ -6,6 +6,7 @@ import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.resources.statefulset.StatefulSetWatch;
 import de.mhus.kt2l.resources.util.RolloutPanel;
 import io.kubernetes.client.openapi.models.V1ReplicaSet;
+import io.kubernetes.client.util.labels.LabelSelector;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -24,7 +25,6 @@ public class ReplicaSetRolloutPanel extends RolloutPanel<V1ReplicaSet> {
         targetReady = getInt(target.getStatus().getReadyReplicas(), -1);
         targetDesired = getInt(target.getSpec().getReplicas(), -1);
         targetUnavailable = -1;
-        ownerNamespace = target.getMetadata().getNamespace();
         targetCanPause = false;
     }
 

@@ -39,6 +39,7 @@ public class ClusterVersionAction implements ClusterAction {
         try {
             var version = Kubectl.version().apiClient(cluster.getApiProvider().getClient()).execute();
             ConfirmDialog dialog = new ConfirmDialog();
+            dialog.setHeader("Kubernetes Cluster Version");
             TextArea text = new TextArea();
             text.setReadOnly(true);
             text.setValue(version.toString());

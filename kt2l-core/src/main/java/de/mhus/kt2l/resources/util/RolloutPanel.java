@@ -13,9 +13,14 @@ import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.k8s.K8sRolloutHistory;
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.extended.kubectl.Kubectl;
 import io.kubernetes.client.util.Watch;
+import io.kubernetes.client.util.labels.LabelSelector;
 import lombok.extern.slf4j.Slf4j;
+
+import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
 public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalLayout {
@@ -35,9 +40,7 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
     protected int targetUnavailable = -1;
     protected boolean targetCanPause = false;
     protected boolean targetStarted = true;
-    protected String ownerKind = null;
-    protected String ownerId = null;
-    protected String ownerNamespace = null;
+    protected LabelSelector ownerLabelSelector = null;
 
     public RolloutPanel(Core core, Cluster cluster) {
         this.core = core;
@@ -151,29 +154,24 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
         }
         if (updateReplicaSets) {
             replicaSets.removeAll();
-            if (ownerKind != null && ownerId != null && ownerNamespace != null) {
+            if (ownerLabelSelector != null) {
                 try {
-                    var list = cluster.getApiProvider().getAppsV1Api().listNamespacedReplicaSet(ownerNamespace, null, null, null, null, null, null, null, null, null, null, null);
-                    var sortedList = list.getItems().stream()
-                            .filter(replicaSet -> replicaSet.getMetadata().getOwnerReferences() != null && replicaSet.getMetadata().getOwnerReferences().size() > 0 && ownerKind.equals(replicaSet.getMetadata().getOwnerReferences().get(0).getKind()) && ownerId.equals(replicaSet.getMetadata().getOwnerReferences().get(0).getUid()))
-                            .sorted((a, b) -> MObject.compareTo(b.getMetadata().getCreationTimestamp(), a.getMetadata().getCreationTimestamp())).toList();
-
-                    int rev = sortedList.size();
-                    for (var replicaSet : sortedList) {
-                        if (replicaSet.getMetadata().getOwnerReferences() == null || replicaSet.getMetadata().getOwnerReferences().size() == 0)
-                            continue;
-                        if (!ownerKind.equals(replicaSet.getMetadata().getOwnerReferences().get(0).getKind()) || !ownerId.equals(replicaSet.getMetadata().getOwnerReferences().get(0).getUid()))
-                            continue;
-                        var entry = new Div("REV " + rev +
-                                " - " + replicaSet.getMetadata().getCreationTimestamp().toString()
+                    var rollout = new K8sRolloutHistory();
+                    rollout.setApiClient(cluster.getApiProvider().getApiClient());
+                    rollout.setApiTypeClass(target.getClass());
+                    rollout.setName(target.getMetadata().getName());
+                    rollout.setNamespace(target.getMetadata().getNamespace());
+                    rollout.execute().forEach(h -> {
+                        var entry = new Div(
+                                "REV " + h.revision() +
+                                " - " + h.changeCause()
                         );
                         entry.setWidthFull();
                         entry.setHeight("20px");
                         replicaSets.add(entry);
-                        rev--;
-                    }
+                    });
                 } catch (Exception e) {
-                    LOGGER.debug("Can't fetch ReplicaSets for {} {}", ownerKind, ownerId, e);
+                    LOGGER.debug("Can't fetch ReplicaSets for {} {}", target.getMetadata().getName(), ownerLabelSelector, e);
                 }
             }
         }
@@ -189,9 +187,7 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
         targetDesired = -1;
         targetReady = -1;
         targetUnavailable = -1;
-        ownerKind = null;
-        ownerId = null;
-        ownerNamespace = null;
+        ownerLabelSelector = null;
         target = null;
         core.ui().access(() -> {
             updateView(updateReplicaSets);

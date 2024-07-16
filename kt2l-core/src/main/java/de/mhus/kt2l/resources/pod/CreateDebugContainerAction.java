@@ -87,7 +87,7 @@ public class CreateDebugContainerAction implements ResourceAction {
 
     @Override
     public int getMenuOrder() {
-        return ResourceAction.ACTIONS_ORDER + 100;
+        return ResourceAction.TOOLS_ORDER + 100;
     }
 
     @Override

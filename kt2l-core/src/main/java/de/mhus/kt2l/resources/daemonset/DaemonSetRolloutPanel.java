@@ -5,6 +5,7 @@ import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.resources.util.RolloutPanel;
 import io.kubernetes.client.openapi.models.V1DaemonSet;
+import io.kubernetes.client.util.labels.LabelSelector;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -23,7 +24,7 @@ public class DaemonSetRolloutPanel extends RolloutPanel<V1DaemonSet> {
         targetReady = getInt(target.getStatus().getUpdatedNumberScheduled(), -1);
         targetDesired = getInt(target.getStatus().getDesiredNumberScheduled(), -1);
         targetUnavailable = -1;
-        ownerNamespace = target.getMetadata().getNamespace();
+        ownerLabelSelector = LabelSelector.parse(target.getSpec().getSelector());
         targetCanPause = false;
     }
 
