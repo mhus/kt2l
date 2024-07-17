@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l.aaa;
 
-import com.vaadin.flow.component.UI;
 import de.mhus.commons.errors.AuthorizationException;
 import de.mhus.commons.lang.ICloseable;
 import lombok.Getter;

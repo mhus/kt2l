@@ -31,7 +31,6 @@ import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ResourcesGrid;
-import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.common.KubernetesListObject;
 import io.kubernetes.client.common.KubernetesObject;

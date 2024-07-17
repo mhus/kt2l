@@ -188,10 +188,10 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
                     try {
                         int cnt = 0;
                         for (StorageFile file : list) {
-                            LOGGER.debug("Zip for Download: " + file.getPath());
-                            ui.get().access(() -> dialog.next(file.getPath()));
-                            try (var stream = file.getStorage().openFile(file.getPath()).getStream()){
-                                zos.putNextEntry(new java.util.zip.ZipEntry(file.getPath()));
+                            LOGGER.debug("Zip for Download: " + file.getPathAndName());
+                            ui.get().access(() -> dialog.next(file.getPathAndName()));
+                            try (var stream = file.getStorage().openFile(file.getPathAndName()).getStream()){
+                                zos.putNextEntry(new java.util.zip.ZipEntry(file.getPathAndName()));
                                 MFile.copyFile(stream, zos);
                                 zos.flush();
                                 zos.closeEntry();
@@ -214,7 +214,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
 
 //                FileDownloadWrapper link = new FileDownloadWrapper(selectedCurrent.getName() + ".zip", () -> textField.getValue().getBytes());
             } else {
-                inputStream = selectedCurrent.getStorage().openFile(selectedCurrent.getPath()).getStream();
+                inputStream = selectedCurrent.getStorage().openFile(selectedCurrent.getPathAndName()).getStream();
             }
 
             final var ui = getUI();
@@ -328,8 +328,8 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
                 try (var sce = sc.enter()) {
                     int cnt = 0;
                     for (StorageFile file : list) {
-                        LOGGER.debug("Delete: " + file.getPath());
-                        ui.get().access(() -> dialog.next(file.getPath()));
+                        LOGGER.debug("Delete: " + file.getPathAndName());
+                        ui.get().access(() -> dialog.next(file.getPathAndName()));
                         storageService.getStorage().delete(file);
                     }
                 } catch (Exception e) {
@@ -350,11 +350,10 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
 
     private void showBreadcrumb() {
         breadCrumb.removeAll();
-        var path = MFile.normalizePath(selectedDirectory.getPath()).split("/");
+        var path = MFile.normalizePath(selectedDirectory.getPathAndName()).split("/");
         var currentPath = "";
         var cnt = 0;
         for (String pathElement : path) {
-            currentPath += "/" + pathElement;
             if (cnt != 0) {
                 breadCrumb.add(new Text("/"));
             }
@@ -371,6 +370,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
                 });
                 breadCrumb.add(item);
             }
+            currentPath += "/" + pathElement;
             cnt++;
         }
     }
@@ -410,7 +410,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
             selectedDirectory = file;
             selectedCurrent = null;
         } else {
-            selectedDirectory = new StorageFile(file.getStorage(), MFile.getParentPath(file.getPath()), "", true, -1, -1);
+            selectedDirectory = new StorageFile(file.getStorage(), file.getPath(), "", true, -1, -1);
             selectedCurrent = file;
         }
         showSelectedFiles();

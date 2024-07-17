@@ -59,8 +59,9 @@ public class DirectoryDriver implements BucketDriver {
         }
 
         @Override
-        protected InputStream openFileStream(String path) throws IOException {
-            final var file = new File(root, MFile.normalizePath(path));
+        protected InputStream openFileStream(String path, String name) throws IOException {
+            var pathAndName = MFile.normalizePath(path + "/" + name);
+            final var file = new File(root, pathAndName);
             if (file.exists() && file.isFile()) {
                 return new FileInputStream(file);
             }
@@ -68,8 +69,8 @@ public class DirectoryDriver implements BucketDriver {
         }
 
         @Override
-        public OutputStream createFileStream(String path) throws IOException {
-            final var file = new File(root, MFile.normalizePath(path));
+        public OutputStream createFileStreamInternal(String path, String name) throws IOException {
+            final var file = new File(root, MFile.normalizePath(path + "/" + name));
             file.getParentFile().mkdirs();
             return new FileOutputStream(file);
         }
@@ -81,7 +82,7 @@ public class DirectoryDriver implements BucketDriver {
                     .filter(f -> !f.getName().startsWith("."))
                     .map(f -> new StorageFile(
                             this,
-                            path + "/" + f.getName(),
+                            path,
                             f.getName(),
                             f.isDirectory(),
                             f.length(),
@@ -96,16 +97,16 @@ public class DirectoryDriver implements BucketDriver {
 
         @Override
         public String getLocalPath(StorageFile path) throws IOException {
-            final var file = new File(root, MFile.normalizePath(path.getPath()));
+            final var file = new File(root, MFile.normalizePath(path.getPathAndName()));
             if (!file.exists()) {
-                throw new FileNotFoundException(path.getPath());
+                throw new FileNotFoundException(path.getPathAndName());
             }
             return file.getAbsolutePath();
         }
 
         @Override
         public void delete(StorageFile file) {
-            final var f = new File(root, MFile.normalizePath(file.getPath()));
+            final var f = new File(root, MFile.normalizePath(file.getPathAndName()));
             if (f.exists()) {
                 if (f.isFile())
                     f.delete();

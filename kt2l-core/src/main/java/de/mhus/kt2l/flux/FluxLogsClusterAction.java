@@ -54,7 +54,7 @@ public class FluxLogsClusterAction implements ClusterAction {
         try {
             var list = cluster.getApiProvider().getCoreV1Api().listNamespacedPod(FLUX_NAMESPACE, null, null, null, null, null, null, null, null, null, null, null);
             var selected = list.getItems().stream().filter(p -> p.getMetadata().getName().contains("-controller-")).collect(Collectors.toSet());
-            var tab = panelService.addPodLogsPanel(core.getMainTab(), core, cluster, selected)
+            var tab = panelService.addPodLogsPanel(core.getHomeTab(), core, cluster, selected)
                     .setTabTitle("Flux Logs")
                     .setWindowTitle("Flux Logs")
                     .select();

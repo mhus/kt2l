@@ -36,17 +36,17 @@ public abstract class Storage {
     public OutputFile createFileStream(StorageFile path, String name) throws IOException {
         // TODO validate is a storage place
         name = MFile.normalize(name);
-        return new OutputFile(this, path.getPath() + "/" + name, name, false, 0, System.currentTimeMillis(), createFileStream(path.getPath() + "/" + name));
+        return new OutputFile(this, path.getPath() + "/" + name, name, false, 0, System.currentTimeMillis(), createFileStreamInternal(path.getPath(), name));
     }
 
     public OutputFile createFileStream(String context, String name) throws IOException {
         final var path = createFilePath(context);
         name = MFile.normalize(name);
-        return new OutputFile(this, path + "/" + name, name, false, 0, System.currentTimeMillis(), createFileStream(path));
+        return new OutputFile(this, path, name, false, 0, System.currentTimeMillis(), createFileStreamInternal(path, name));
     }
 
-    public InputFile openFile(String path) throws IOException {
-        return new InputFile(this, path, path, false, 0, 0, openFileStream(path));
+    public InputFile openFile(String pathAndName) throws IOException {
+        return new InputFile(this, MFile.getParentPath(pathAndName), MFile.getFileName(pathAndName), false, 0, 0, openFileStream(MFile.getParentPath(pathAndName), MFile.getFileName(pathAndName)));
     }
 
     /**
@@ -55,16 +55,16 @@ public abstract class Storage {
      * @return
      * @throws IOException, FileNotFoundException if file was not found.
      */
-    protected abstract InputStream openFileStream(String path) throws IOException;
+    protected abstract InputStream openFileStream(String path, String name) throws IOException;
 
     private String createFilePath(String context) {
         return dateFormat.format(new Date()) + ULID.random() + "_" + MFile.normalize(context);
     }
 
-    protected abstract OutputStream createFileStream(String path) throws IOException;
+    protected abstract OutputStream createFileStreamInternal(String path, String name) throws IOException;
 
-    protected OutputStream createFileStream(StorageFile path) throws IOException {
-        return createFileStream(path.getPath());
+    protected OutputStream createFileStream(StorageFile storageFile) throws IOException {
+        return createFileStreamInternal(storageFile.getPath(), storageFile.getName());
     }
 
     /**
@@ -76,7 +76,7 @@ public abstract class Storage {
     public abstract List<StorageFile> listFiles(String path) throws IOException;
 
     public List<StorageFile> listFiles(StorageFile path) throws IOException {
-        return listFiles(path.getPath() == null ? "" : path.getPath());
+        return listFiles(path.getPath() == null ? "" : path.getPathAndName());
     }
 
     /**

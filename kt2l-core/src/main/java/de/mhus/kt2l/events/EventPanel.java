@@ -19,7 +19,6 @@ package de.mhus.kt2l.events;
 
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import de.mhus.commons.lang.IRegistration;
 import de.mhus.commons.tools.MString;

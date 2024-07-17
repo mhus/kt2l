@@ -180,7 +180,7 @@ public class Core extends AppLayout {
     private UI ui;
     private VaadinSession session;
     private String sessionId;
-    private DeskTab mainTab;
+    private DeskTab homeTab;
     @Autowired
     private PanelService panelService;
     @Autowired
@@ -595,10 +595,10 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
     }
 
     private void createMainTab() {
-        mainTab = tabBar.addTab(
+        homeTab = tabBar.addTab(
                 new DeskTab(
-                        "main",
-                        "Main",
+                        "home",
+                        "Home",
                         false,
                         VaadinIcon.HOME_O.create(),
                         new ClusterOverviewPanel(this))
@@ -728,8 +728,8 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
         return ui;
     }
 
-    public DeskTab getMainTab() {
-        return mainTab;
+    public DeskTab getHomeTab() {
+        return homeTab;
     }
 
     public void resetSession() {

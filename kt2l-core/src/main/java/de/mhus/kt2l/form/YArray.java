@@ -18,14 +18,12 @@
 package de.mhus.kt2l.form;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.commons.tree.TreeNode;

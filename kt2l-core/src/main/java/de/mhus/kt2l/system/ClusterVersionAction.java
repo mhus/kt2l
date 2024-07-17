@@ -13,8 +13,6 @@ import io.kubernetes.client.extended.kubectl.Kubectl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
-
 @Component
 @WithRole(UsersConfiguration.ROLE.READ)
 @Slf4j

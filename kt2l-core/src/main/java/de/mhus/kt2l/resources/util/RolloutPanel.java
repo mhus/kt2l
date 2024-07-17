@@ -9,18 +9,14 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import de.mhus.commons.lang.IRegistration;
-import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.k8s.K8sRolloutHistory;
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.extended.kubectl.Kubectl;
 import io.kubernetes.client.util.Watch;
 import io.kubernetes.client.util.labels.LabelSelector;
 import lombok.extern.slf4j.Slf4j;
-
-import static de.mhus.commons.tools.MLang.tryThis;
 
 @Slf4j
 public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalLayout {

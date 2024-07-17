@@ -20,7 +20,9 @@ package de.mhus.kt2l.storage;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.AbstractSingleConfig;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
@@ -51,7 +53,7 @@ public class StorageConfiguration extends AbstractSingleConfig {
         config().getArray("buckets").orElse(MTree.EMPTY_LIST).forEach(node -> {
             Bucket bucket = new Bucket();
             bucket.name = node.getString("name").get();
-            bucket.users = Arrays.stream(ITreeNode.toStringArray(node.getArray("users").orElse(MTree.EMPTY_LIST), ITreeNode.NAMELESS_VALUE)).map(String::trim).collect(Collectors.toSet());
+            bucket.users = Arrays.stream(MTree.toStringArray(node.getArray("users").orElse(MTree.EMPTY_LIST), ITreeNode.NAMELESS_VALUE)).map(String::trim).collect(Collectors.toSet());
             bucket.type = node.getString("type").orElse(DirectoryDriver.NAME);
             bucket.root = node.getString("root").orElse("");
             bucket.node = node;
@@ -64,7 +66,9 @@ public class StorageConfiguration extends AbstractSingleConfig {
     }
 
     @Getter
-    public class Bucket {
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Bucket {
         private Set<String> users;
         private String type;
         private String root;

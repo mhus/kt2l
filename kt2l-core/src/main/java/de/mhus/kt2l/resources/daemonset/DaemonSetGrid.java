@@ -18,15 +18,11 @@
 
 package de.mhus.kt2l.resources.daemonset;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.deployment.DeploymentK8s;
-import de.mhus.kt2l.resources.statefulset.StatefulSetGrid;
-import de.mhus.kt2l.resources.statefulset.StatefulSetRolloutPanel;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.openapi.models.V1APIResource;

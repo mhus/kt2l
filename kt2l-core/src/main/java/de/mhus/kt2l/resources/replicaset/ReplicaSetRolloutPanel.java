@@ -3,10 +3,8 @@ package de.mhus.kt2l.resources.replicaset;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
-import de.mhus.kt2l.resources.statefulset.StatefulSetWatch;
 import de.mhus.kt2l.resources.util.RolloutPanel;
 import io.kubernetes.client.openapi.models.V1ReplicaSet;
-import io.kubernetes.client.util.labels.LabelSelector;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

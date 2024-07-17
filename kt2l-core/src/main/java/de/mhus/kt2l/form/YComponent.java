@@ -20,7 +20,6 @@ package de.mhus.kt2l.form;
 import com.vaadin.flow.component.Component;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
-import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 

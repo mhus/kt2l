@@ -18,17 +18,13 @@
 
 package de.mhus.kt2l.resources.deployment;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.tools.MObject;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.K8s;
-import de.mhus.kt2l.resources.pod.PodGrid;
 import de.mhus.kt2l.resources.util.AbstractGridWithNamespace;
 import de.mhus.kt2l.ui.UiUtil;
-import io.kubernetes.client.extended.kubectl.Kubectl;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentList;

@@ -19,8 +19,6 @@
 package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;

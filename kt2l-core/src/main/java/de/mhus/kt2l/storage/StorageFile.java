@@ -48,4 +48,8 @@ public class StorageFile {
         this(parent.getStorage(), parent.getPath() + "/" + MFile.normalizePath(path), MString.beforeLastIndex(path, '/'), false, -1, -1);
     }
 
+    public String getPathAndName() {
+        return path + "/" + name;
+    }
+
 }

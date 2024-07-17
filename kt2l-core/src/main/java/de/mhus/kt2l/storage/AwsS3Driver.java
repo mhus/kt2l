@@ -22,6 +22,7 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -53,7 +54,6 @@ public class AwsS3Driver implements BucketDriver {
     @Autowired
     private Configuration config;
 
-
     @Override
     public boolean supports(StorageConfiguration.Bucket bucket) {
         return NAME.equals(bucket.getType());
@@ -71,11 +71,15 @@ public class AwsS3Driver implements BucketDriver {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } else {
+        } else if (bucket.getNode().containsKey("accessKey")) {
             credentials = new BasicAWSCredentials(
                     bucket.getNode().getExtracted("accessKey"),
-                    bucket.getNode().getExtracted("secretKey")
+                    bucket.getNode().getExtracted("secretKey"),
+                    bucket.getNode().getExtracted("accountId", null),
+                    bucket.getNode().getExtracted("providerName", null)
             );
+        } else {
+            credentials = new DefaultAWSCredentialsProviderChain().getCredentials();
         }
         AmazonS3 s3client = AmazonS3ClientBuilder
                 .standard()
@@ -105,10 +109,11 @@ public class AwsS3Driver implements BucketDriver {
         }
 
         @Override
-        protected InputStream openFileStream(String path) throws IOException {
-            path = rootPath + "/" + MFile.normalizePath(path);
+        protected InputStream openFileStream(String path, String name) throws IOException {
+            String pathAndName = path + "/" + name;
+            String fullPath = rootPath + "/" + MFile.normalizePath(pathAndName);
             try {
-                S3Object o = client.getObject(s3Bucket, path);
+                S3Object o = client.getObject(s3Bucket, fullPath);
                 S3ObjectInputStream s3is = o.getObjectContent();
                 return s3is;
             } catch (SdkClientException e) {
@@ -117,26 +122,31 @@ public class AwsS3Driver implements BucketDriver {
         }
 
         @Override
-        protected OutputStream createFileStream(String path) throws IOException {
-            path = rootPath + "/" + MFile.normalizePath(path);
+        protected OutputStream createFileStreamInternal(String path, String name) throws IOException {
+            var fullPath = rootPath + "/" + MFile.normalizePath(path + "/" + name);
             var tmpFile = new File(tmpDir, ULID.random() + ".tmp");
-            return new TmpOutputStream(this, tmpFile, path);
+            return new TmpOutputStream(this, tmpFile, fullPath);
         }
 
         @Override
         public List<StorageFile> listFiles(String path) throws IOException {
-            path = rootPath + "/" + MFile.normalizePath(path);
+            var fullPath = rootPath + "/" + MFile.normalizePath(path);
+            var slashCnt = MString.countCharacters(fullPath, '/');
+            var rootSize = rootPath.length() + 1;
             try {
-                var list = client.listObjects(s3Bucket, path);
+                var list = client.listObjects(s3Bucket, fullPath);
                 return list.getObjectSummaries().stream()
-                        .map(o -> new StorageFile(
+                        .filter(o -> MString.countCharacters(o.getKey(), '/') == slashCnt + 1)
+                        .map(o -> {
+                            var p = o.getKey().substring(rootSize);
+                            return new StorageFile(
                                 this,
-                                MFile.getFileDirectory(o.getKey()),
-                                MFile.getFileName(o.getKey()),
+                                MFile.getFileDirectory(p),
+                                MFile.getFileName(p),
                                 false,
                                 o.getSize(),
                                 o.getLastModified().getTime()
-                        )).toList();
+                        );}).toList();
             } catch (SdkClientException e) {
                 throw new IOException(e);
             }
@@ -154,7 +164,7 @@ public class AwsS3Driver implements BucketDriver {
 
         @Override
         public void delete(StorageFile file) {
-            var path = rootPath + "/" + MFile.normalizePath(file.getPath());
+            var path = rootPath + "/" + MFile.normalizePath(file.getPathAndName());
             try {
                 LOGGER.debug("Delete {}", path);
                 client.deleteObject(s3Bucket, path);
