@@ -29,11 +29,11 @@ import org.springframework.stereotype.Component;
 public class UserDetailsManagerToUserRepositoryService implements UserDetailsManager {
 
     @Autowired
-    private AaaUserRepository userRepository;
+    private AaaUserRepositoryService userRepository;
 
     @Override
     public void createUser(UserDetails user) {
-        userRepository.createUser(toAaaUser(user, true));
+        userRepository.getRepository().createUser(toAaaUser(user, true));
     }
 
     public static AaaUser toAaaUser(UserDetails user, boolean create) {
@@ -58,27 +58,27 @@ public class UserDetailsManagerToUserRepositoryService implements UserDetailsMan
 
     @Override
     public void updateUser(UserDetails user) {
-        userRepository.updateUser(toAaaUser(user, false));
+        userRepository.getRepository().updateUser(toAaaUser(user, false));
     }
 
     @Override
     public void deleteUser(String userId) {
-        userRepository.deleteUser(userId);
+        userRepository.getRepository().deleteUser(userId);
     }
 
     @Override
     public void changePassword(String oldPassword, String newPassword) {
-        userRepository.changePassword(oldPassword, newPassword);
+        userRepository.getRepository().changePassword(oldPassword, newPassword);
     }
 
     @Override
     public boolean userExists(String userId) {
-        return userRepository.userExists(userId);
+        return userRepository.getRepository().userExists(userId);
     }
 
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        var maybeUser = userRepository.getUserByUsername(userId);
+        var maybeUser = userRepository.getRepository().getUserByUserId(userId);
         if (maybeUser.isEmpty())
             throw new UsernameNotFoundException("User not found: " + userId);
         var user = maybeUser.get();

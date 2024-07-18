@@ -51,7 +51,7 @@ public class InMemoryUserRepository extends AbstractUserRepository {
     }
 
     @Override
-    public Optional<AaaUser> getUserByUsername(String userId) {
+    public Optional<AaaUser> getUserByUserId(String userId) {
         return Optional.ofNullable(users.get(userId));
     }
 

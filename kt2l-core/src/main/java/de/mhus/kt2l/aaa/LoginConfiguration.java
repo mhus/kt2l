@@ -107,6 +107,10 @@ public class LoginConfiguration extends AbstractSingleConfig {
         return config().getBoolean("showLoginHeader", true);
     }
 
+    public String getUserRepositoryClass() {
+        return config().getString("userRepositoryClass", null);
+    }
+
     public static class OAuthAccepted {
 
         private final ITreeNode item;

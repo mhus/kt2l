@@ -22,7 +22,7 @@ import com.vaadin.flow.spring.security.AuthenticationContext;
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.aaa.AaaUser;
-import de.mhus.kt2l.aaa.AaaUserRepository;
+import de.mhus.kt2l.aaa.AaaUserRepositoryService;
 import de.mhus.kt2l.aaa.LoginConfiguration;
 import de.mhus.kt2l.aaa.UserDetailsManagerToUserRepositoryService;
 import de.mhus.kt2l.config.Configuration;
@@ -58,7 +58,7 @@ public class AuthProvider {
     @Autowired
     private transient AuthenticationContext authContext;
     @Autowired
-    private AaaUserRepository userRepository;
+    private AaaUserRepositoryService userRepository;
 
     @PostConstruct
     public void init() {
@@ -139,10 +139,10 @@ public class AuthProvider {
                     }
                 }
                 // create if not exists
-                if (userRepository.getUserByUsername(aaaUser.getUserId()).isEmpty()) {
-                    aaaUser = userRepository.createUser(aaaUser);
+                if (userRepository.getRepository().getUserByUserId(aaaUser.getUserId()).isEmpty()) {
+                    aaaUser = userRepository.getRepository().createUser(aaaUser);
                 } else {
-                    aaaUser = userRepository.updateUser(aaaUser);
+                    aaaUser = userRepository.getRepository().updateUser(aaaUser);
                 }
             }
             return Optional.of(aaaUser);

@@ -30,7 +30,7 @@ public interface AaaUserRepository {
 
     boolean userExists(String userId);
 
-    Optional<AaaUser> getUserByUsername(String userId);
+    Optional<AaaUser> getUserByUserId(String userId);
 
     Optional<AaaUser> getByEmail(String email);
 }
