@@ -11,9 +11,11 @@ import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.storage.AwsS3Driver;
 import de.mhus.kt2l.storage.Storage;
 import de.mhus.kt2l.storage.StorageConfiguration;
+import de.mhus.kt2l.util.TestResultDebugWatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.commons.util.ReflectionUtils;
 
 import java.io.File;
@@ -21,8 +23,8 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Set;
 
-@Disabled
 @Slf4j
+@ExtendWith(TestResultDebugWatcher.class)
 public class AwsS3DriverTest {
 
     @Test

@@ -6,9 +6,11 @@ import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.storage.DirectoryDriver;
 import de.mhus.kt2l.storage.Storage;
 import de.mhus.kt2l.storage.StorageConfiguration;
+import de.mhus.kt2l.util.TestResultDebugWatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.util.Set;
@@ -16,8 +18,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@Disabled
 @Slf4j
+@ExtendWith(TestResultDebugWatcher.class)
 public class FsDriverTest {
 
     public static void testScenario(Storage storage) throws IOException {

@@ -4,9 +4,11 @@ import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
+import de.mhus.kt2l.util.TestResultDebugWatcher;
 import io.kubernetes.client.util.Streams;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -19,6 +21,7 @@ import java.io.InputStreamReader;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
+@ExtendWith(TestResultDebugWatcher.class)
 public class DesktopTest {
 
     @Test
