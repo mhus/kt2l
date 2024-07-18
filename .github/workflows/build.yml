@@ -90,7 +90,7 @@ jobs:
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
-          mvn -pl kt2l-core,kt2l-test -am -B clean verify -Pproduction -Pintegration_tests -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
+          mvn -pl kt2l-core,kt2l-desktop,kt2l-test -am -B clean verify -Plinux-amd64 -Pproduction -Pintegration_tests -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
         env:
           TEST_DEBUG: false
           TEST_SCREENSHOTS: false
