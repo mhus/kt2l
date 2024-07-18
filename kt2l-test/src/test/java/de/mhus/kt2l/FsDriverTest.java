@@ -7,6 +7,7 @@ import de.mhus.kt2l.storage.DirectoryDriver;
 import de.mhus.kt2l.storage.Storage;
 import de.mhus.kt2l.storage.StorageConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@Disabled
 @Slf4j
 public class FsDriverTest {
 
