@@ -52,6 +52,7 @@ public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Res
         resourcesGrid.addColumn(DeploymentGrid.Resource::getCurrent).setHeader("Current").setSortProperty("current");
         resourcesGrid.addColumn(DeploymentGrid.Resource::getUpToDate).setHeader("Up-To-Date").setSortProperty("uptodate");
         resourcesGrid.addColumn(DeploymentGrid.Resource::getAvailable).setHeader("Available").setSortProperty("available");
+        resourcesGrid.addColumn(DeploymentGrid.Resource::getUnavailable).setHeader("Unavailable").setSortProperty("unavailable");
     }
 
     @Override
@@ -80,6 +81,10 @@ public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Res
             case ("available") -> switch(direction) {
                 case ASCENDING -> MObject.compareTo(a.getAvailable(), b.getAvailable());
                 case DESCENDING -> MObject.compareTo(b.getAvailable(), a.getAvailable());
+            };
+            case ("unavailable") -> switch(direction) {
+                case ASCENDING -> MObject.compareTo(a.getUnavailable(), b.getUnavailable());
+                case DESCENDING -> MObject.compareTo(b.getUnavailable(), a.getUnavailable());
             };
             default -> 0;
         };
@@ -143,6 +148,7 @@ public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Res
         private int current;
         private int upToDate;
         private int available;
+        private int unavailable;
 
         @Override
         public void updateResource() {
@@ -161,6 +167,7 @@ public class DeploymentGrid extends AbstractGridWithNamespace<DeploymentGrid.Res
             desired = toIntOr0(resource.getSpec().getReplicas());
             current = toIntOr0(resource.getStatus().getReplicas());
             upToDate = toIntOr0(resource.getStatus().getUpdatedReplicas());
+            unavailable = toIntOr0(resource.getStatus().getUnavailableReplicas());
             available = toIntOr0(resource.getStatus().getAvailableReplicas());
 
             if (ready != replicas)

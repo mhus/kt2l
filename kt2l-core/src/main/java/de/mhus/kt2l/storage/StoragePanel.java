@@ -35,6 +35,8 @@ import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.aaa.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityService;
+import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
@@ -61,6 +63,9 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
     @Autowired
     private ViewsConfiguration viewsConfiguration;
 
+    @Autowired
+    private SecurityService securityService;
+
 //    private ListBox<StorageFile>[] lists;
 //    private HorizontalLayout listPanel;
     private MenuItem itemOpen;
@@ -83,10 +88,12 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
         itemDelete = menuBar.addItem("Delete", e -> {
             deleteSelected();
         });
-        itemOpen = menuBar.addItem("Open", e -> {
-            if (!storageService.open(selectedCurrent))
-                UiUtil.showErrorNotification("Can't open file locally");
-        });
+        if (securityService.hasRole(UsersConfiguration.ROLE.LOCAL)) {
+            itemOpen = menuBar.addItem("Open", e -> {
+                if (!storageService.open(selectedCurrent))
+                    UiUtil.showErrorNotification("Can't open file locally");
+            });
+        }
         itemDownload = menuBar.addItem("Download", e -> {
             downloadSelected();
         });
