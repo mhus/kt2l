@@ -26,6 +26,10 @@ public class DesktopTest {
 
     @Test
     public void test() throws IOException, AWTException {
+
+        // setup
+        System.setProperty("java.awt.headless", "false");
+
         // start desktop application
         var opts = "-Dspring.profiles.active=prod";
         var jar = new File("../kt2l-desktop/target/kt2l-desktop-linux-amd64-0.0.1-SNAPSHOT.jar");
