@@ -18,12 +18,14 @@
 #
 
 cd "$(dirname "$0")"
+VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
+echo "Version: $VERSION"
 cd ../target
 rm -rf kt2l-server
 mkdir kt2l-server
 cd kt2l-server
 cp -r ../../launcher/package/* .
-cp ../kt2l-server-0.0.1-SNAPSHOT.jar lib/kt2l-server.jar
+cp ../kt2l-server-${VERSION}.jar lib/kt2l-server.jar
 cp -r ../../../config .
 cd ..
 zip -r kt2l-server.zip kt2l-server

@@ -26,11 +26,11 @@ on:
         required: true
         default: ':documentation:server-zip:container:macosx-aarch64:windows-amd64:deb-amd64:all-others:integration-tests:website:sonarcloud:'
         type: string
-#      create_release:
-#        description: 'Create new release version (TBD)'
-#        required: true
-#        default: false
-#        type: boolean
+      create_release:
+        description: 'Create new release version'
+        required: true
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -40,15 +40,20 @@ jobs:
   hello:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Configuration $EXECUTE"
+      - run: |
+          echo "Configuration: $EXECUTE"
+          echo "Release: $RELEASE"
         env:
           EXECUTE: ${{ inputs.execute }}
+          RELEASE: ${{ inputs.create_release }}
 
   build:
     needs: [hello]
     if:  ${{ contains(inputs.execute, ':deb-amd64:') }} || ${{ contains(inputs.execute, ':macosx-aarch64:') }} || ${{ contains(inputs.execute, ':windows-amd64:') }} || ${{ contains(inputs.execute, ':all-others:') }} || ${{ contains(inputs.execute, ':integration-tests:') }} || ${{ contains(inputs.execute, ':sonarcloud:') }} || ${{ contains(inputs.execute, ':server-zip:') }} || ${{ contains(inputs.execute, ':container:') }}
     runs-on: ubuntu-latest
     permissions: write-all
+    outputs:
+      RELEASE_VERSION: ${{ steps.find-next-release-version.outputs.RELEASE_VERSION }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -98,8 +103,22 @@ jobs:
 #          mvn clean install -B || exit 1
 #          cd ..
 #          rm -rf markdown-page-generator-plugin
+
+      - name: find next release version
+        id: find-next-release-version
+        if: ${{ inputs.create_release }}
+        run: |
+          mkdir target
+          mvn -B --fail-at-end -Pdeploy -Prelease 'de.mhus.mvn.plugin:versioning-maven-plugin:1.0.3:next-release-version'
+          echo "RELEASE_VERSION=$(cat target/release-version.txt)"
+          echo "RELEASE_VERSION=$(cat target/release-version.txt)" >> "$GITHUB_OUTPUT"
+      - name: set release version to pom.xml
+        if: ${{ inputs.create_release }}
+        run: mvn -B --fail-at-end -Pdeploy -Prelease versions:set -DnewVersion=${{ steps.find-next-release-version.outputs.RELEASE_VERSION }}
+
       - name: Prepare
         run: ./launcher/prepare.sh
+
       - name: Build maven linux-amd64
         run: mvn clean install -B -Plinux-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
       - name: Build maven macosx-aarch64
@@ -111,6 +130,7 @@ jobs:
       - name: Build maven windows-amd64
         if:  ${{ contains(inputs.execute, ':windows-amd64:') }}
         run: cd kt2l-desktop;mvn install -B -Pwindows-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true
+
       - name: Integration Tests
         if:  ${{ contains(inputs.execute, ':integration-tests:') }}
         run: |
@@ -138,25 +158,25 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=mhus_kt2l -Plinux-amd64 -Pdeploy -Pproduction -Dspring.profiles.active=prod
-      - name: Commit maybe changes to git
+      - name: Commit changes to git
         run: |
+          date +"%Y-%m-%d %H:%M:%S" > last_release.txt
           git config --global user.name 'Robot'
           git config --global user.email 'mhus@users.noreply.github.com'
           git pull
           git checkout -b build/${{ github.run_id }}
-          git add docs/screenshots
-          git add kt2l-core/src/main/java
-          git add kt2l-desktop/src/main/java
-          git add kt2l-server/src/main/java
-          git add kt2l-test/src/main/java
-          git commit -am "Release Build ${{ github.run_id }}" || true
-          git push --set-upstream origin build/${{ github.run_id }} || true
-          gh pr create --title "Release Build ${{ github.run_id }}" --body "Release Build ${{ github.run_id }}" --base main --head build/${{ github.run_id }} || true
+          git add .
+          git commit -m "Release Build ${{ github.run_id }}"
+          git push
+          # git push --set-upstream origin build/${{ github.run_id }} || true
+          # gh pr create --title "Release Build ${{ github.run_id }}" --body "Release Build ${{ github.run_id }}" --base main --head build/${{ github.run_id }} || true
+
       - name: Build Server ZIP
         run: ./kt2l-server/launcher/create-zip.sh
       - name: Build Server Container
         if:  ${{ contains(inputs.execute, ':container:') }}
         run: ./kt2l-server/launcher/create-container.sh
+
       - name: Deploy Server ZIP
         if:  ${{ contains(inputs.execute, ':server-zip:') }}
         run: ./kt2l-server/launcher/deploy-zip.sh
@@ -209,6 +229,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
+
   macosx-aarch64:
     needs: build
     if:  ${{ contains(inputs.execute, ':macosx-aarch64:') }}
@@ -323,6 +344,52 @@ jobs:
           git config --global user.name 'Robot'
           git config --global user.email 'mhus@users.noreply.github.com'
           git commit -m "Update docs"
+          git push
+
+  release_tag:
+    needs: [macosx-aarch64, windows-amd64, deb-amd64, documentation]
+    if: ${{ always() && inputs.create_release }}
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+    - name: Create Release Tag
+      id: create_release
+      uses: actions/create-release@latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: ${{ needs.build.outputs.RELEASE_VERSION }}
+        release_name: Release ${{ needs.build.outputs.RELEASE_VERSION }}
+        draft: false
+        prerelease: false
+
+  prepare_next_snapshot:
+    needs: [new_release]
+    if: ${{ inputs.create_release }}
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.2.1
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Find next snapshot version
+        id: find-next-snapshot-version
+        run: |
+          mvn -B --fail-at-end -Pdeploy -Prelease 'de.mhus.mvn.plugin:versioning-maven-plugin:1.0.3:next-snapshot-version'
+          echo "SNAPSHOT_VERSION=$(cat target/snapshot-version.txt)"
+          echo "SNAPSHOT_VERSION=$(cat target/snapshot-version.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: set snapshot version to pom.xml
+        run: mvn -B --fail-at-end -Pdeploy -Prelease versions:set -DnewVersion=${{ steps.find-next-snapshot-version.outputs.SNAPSHOT_VERSION }}
+
+      - name: commit snapshot
+        run: |
+          git config --global user.name 'Robot'
+          git config --global user.email 'mhus@users.noreply.github.com'
+          git commit -am "Snapshot: ${{ steps.find-next-snapshot-version.outputs.RELEASE_VERSION }}"
           git push
 
   website:

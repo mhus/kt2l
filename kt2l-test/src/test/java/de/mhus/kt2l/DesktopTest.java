@@ -2,6 +2,7 @@ package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MLang;
+import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.util.TestResultDebugWatcher;
@@ -27,15 +28,20 @@ public class DesktopTest {
     @Test
     public void test() throws IOException, AWTException {
 
+        var version = MFile.readLines(new File("pom.xml"),false).stream()
+                .filter(l -> l.contains("<version>"))
+                .map(l -> MString.beforeIndex(MString.afterIndex(l , '>'), '<').trim())
+                .findFirst().get();
+
         // setup
         System.setProperty("java.awt.headless", "false");
 
         // start desktop application
         var opts = "-Dspring.profiles.active=prod";
-        var jar = new File("../kt2l-desktop/target/kt2l-desktop-linux-amd64-0.0.1-SNAPSHOT.jar");
+        var jar = new File("../kt2l-desktop/target/kt2l-desktop-linux-amd64-"+version+".jar");
         if (MSystem.isMac()) {
             opts = "-XstartOnFirstThread -Dspring.profiles.active=prod";
-            jar = new File("../kt2l-desktop/target/kt2l-desktop-macosx-aarch64-0.0.1-SNAPSHOT.jar");
+            jar = new File("../kt2l-desktop/target/kt2l-desktop-macosx-aarch64-"+version+".jar");
         }
         if (!jar.exists()) {
             System.err.println("File not found: " + jar.getAbsolutePath());

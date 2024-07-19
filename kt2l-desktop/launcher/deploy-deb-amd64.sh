@@ -18,10 +18,12 @@
 #
 
 cd "$(dirname "$0")"
+VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
+echo "Version: $VERSION"
 cd ../target
 
-if [ ! -f launcher/kt2l-desktop_1.0_amd64.deb ]; then
-    echo "Fatal: kt2l-desktop_1.0_amd64.deb not found"
+if [ ! -f launcher/kt2l-desktop_${VERSION}_amd64.deb ]; then
+    echo "Fatal: kt2l-desktop_${VERSION}_amd64.deb not found"
     exit 1
 fi
 if [ -z "$AWS_ACCESS_KEY_ID" ]; then
@@ -49,7 +51,7 @@ TITLE="Desktop Linux amd64 DEB"
 DESCRIPTION="Can be installed on debian amd64 systems"
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
 HREF_HELP="/docs/installation/desktop#linux-deb"
-SIZE=$(echo $(du -m ../launcher/kt2l-desktop_1.0_amd64.deb)|cut -d ' ' -f 1)MB
+SIZE=$(echo $(du -m ../launcher/kt2l-desktop_${VERSION}_amd64.deb)|cut -d ' ' -f 1)MB
 # create download information
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-linux-amd64.ts
 
@@ -65,8 +67,14 @@ if [ ! -z "$ENTRIES" ]; then
 fi
 
 # copy
-echo "Copy kt2l-desktop_1.0_amd64.deb to aws $FILENAME"
-aws s3 cp ../launcher/kt2l-desktop_1.0_amd64.deb s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
+echo "Copy kt2l-desktop_${VERSION}_amd64.deb to aws $FILENAME"
+aws s3 cp ../launcher/kt2l-desktop_${VERSION}_amd64.deb s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
 echo "Copy download-snapshot-desktop-linux-amd64.ts to cache"
 aws s3 cp download-snapshot-desktop-linux-amd64.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-linux-amd64.ts --quiet || exit 1
 
+# Release
+if [[ ${VERSION} != *"SNAPSHOT"* ]];then
+  FILENAME=kt2l-desktop-linux-amd64_${VERSION}_amd64.deb
+  echo "Copy kt2l-desktop_${VERSION}_amd64.deb to aws $FILENAME"
+  aws s3 cp ../launcher/kt2l-desktop_${VERSION}_amd64.deb s3://kt2l-downloads/releases/$FILENAME --quiet || exit 1
+fi

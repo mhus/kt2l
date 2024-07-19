@@ -20,6 +20,8 @@
 set -x
 
 cd "$(dirname "$0")"
+VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
+echo "Version: $VERSION"
 cd ../target
 rm -rf launcher
 mkdir launcher
@@ -39,7 +41,7 @@ cd launcher
 if [ -f ../kt2l-desktop-linux-amd64.jar ]; then
   cp ../kt2l-desktop-linux-amd64.jar kt2l-desktop-linux-amd64.jar
 else
-  cp ../kt2l-desktop-linux-amd64-0.0.1-SNAPSHOT.jar kt2l-desktop-linux-amd64.jar
+  cp ../kt2l-desktop-linux-amd64-${VERSION}.jar kt2l-desktop-linux-amd64.jar
 fi
 
 jpackage \
@@ -48,7 +50,7 @@ jpackage \
   --main-jar kt2l-desktop-linux-amd64.jar \
   --type deb \
   --java-options "-Dspring.profiles.active=prod" \
-  --app-version "1.0" \
+  --app-version "$VERSION" \
   --linux-menu-group "Utility;Administration;kt2l" \
   --linux-app-category "Administration" \
   --linux-shortcut \

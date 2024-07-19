@@ -18,6 +18,8 @@
 #
 
 cd "$(dirname "$0")"
+VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
+echo "Version: $VERSION"
 cd ../target
 
 if [ ! -f KT2L.exe ]; then
@@ -69,3 +71,10 @@ echo "Copy KT2L.exe to aws"
 aws s3 cp ../KT2L.exe s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
 echo "Copy download-snapshot-desktop-windows-amd64.ts to cache"
 aws s3 cp download-snapshot-desktop-windows-amd64.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-windows-amd64.ts --quiet || exit 1
+
+# Release
+if [[ ${VERSION} != *"SNAPSHOT"* ]];then
+  FILENAME=kt2l-desktop-windows-amd64-${VERSION}.exe
+  echo "Copy kt2l-desktop_${VERSION}_amd64.deb to aws $FILENAME"
+  aws s3 cp ../launcher/kt2l-desktop_${VERSION}_amd64.deb s3://kt2l-downloads/releases/$FILENAME --quiet || exit 1
+fi

@@ -36,6 +36,8 @@
 
 
 cd "$(dirname "$0")"
+VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
+echo "Version: $VERSION"
 cd ../target
 
 if [ ! -f launcher/KT2L.dmg ]; then
@@ -88,3 +90,9 @@ aws s3 cp ../launcher/KT2L.dmg s3://kt2l-downloads/snapshots/$FILENAME --quiet |
 echo "Copy download-snapshot-desktop-macosx-aarch64.ts to cache"
 aws s3 cp download-snapshot-desktop-macosx-aarch64.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-macosx-aarch64.ts --quiet || exit 1
 
+# Release
+if [[ ${VERSION} != *"SNAPSHOT"* ]];then
+  FILENAME=kt2l-desktop-macosx-aarch64-${VERSION}.dmg
+  echo "Copy kt2l-desktop_${VERSION}_amd64.deb to aws $FILENAME"
+  aws s3 cp ../launcher/kt2l-desktop_${VERSION}_amd64.deb s3://kt2l-downloads/releases/$FILENAME --quiet || exit 1
+fi
