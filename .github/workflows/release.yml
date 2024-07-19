@@ -165,7 +165,7 @@ jobs:
           git config --global user.email 'mhus@users.noreply.github.com'
           git pull
           git add .
-          git commit -m "Release Build ${{ github.run_id }}"
+          git commit -f -m "Release Build ${{ github.run_id }}"
           git push
       - name: Build Server ZIP
         run: ./kt2l-server/launcher/create-zip.sh
