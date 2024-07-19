@@ -31,9 +31,7 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.StreamResource;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.ITreeNode;
-import de.mhus.kt2l.aaa.AaaConfiguration;
 import de.mhus.kt2l.aaa.SecurityService;
-import de.mhus.kt2l.aaa.SecurityUtils;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.CoreAction;
@@ -42,10 +40,8 @@ import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;
-import de.mhus.kt2l.kscript.AttachScope;
 import de.mhus.kt2l.system.DevelopmentAction;
 import de.mhus.kt2l.ui.UiUtil;
-import io.kubernetes.client.util.credentials.Authentication;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +49,6 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import static org.apache.logging.log4j.util.Strings.isBlank;

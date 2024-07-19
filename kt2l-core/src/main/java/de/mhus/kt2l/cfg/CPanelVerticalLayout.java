@@ -17,15 +17,7 @@
  */
 package de.mhus.kt2l.cfg;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import de.mhus.commons.tree.ITreeNode;
-import de.mhus.kt2l.form.FormPanel;
 import de.mhus.kt2l.form.FormPanelVerticalLayout;
-import de.mhus.kt2l.form.YComponent;
-
-import java.util.LinkedList;
-import java.util.List;
 
 public abstract class CPanelVerticalLayout extends FormPanelVerticalLayout implements CfgPanel {
 

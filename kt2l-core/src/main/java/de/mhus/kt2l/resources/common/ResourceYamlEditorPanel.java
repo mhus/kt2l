@@ -56,7 +56,7 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
 
     private final ApiProvider apiProvider;
     private final V1APIResource type;
-    private final KubernetesObject resource;
+    private KubernetesObject resource;
     private final Core core;
     private final Cluster cluster;
     private AceEditor resYamlEditor;
@@ -77,6 +77,7 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
 
     @Autowired
     private SecurityService securityService;
+    private MenuItem resMenuItemReload;
 
     public ResourceYamlEditorPanel(Cluster cluster, Core core, V1APIResource type, KubernetesObject resource) {
         this.apiProvider = cluster.getApiProvider();
@@ -97,27 +98,7 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
             return;
         }
 
-        resContent = K8sUtil.toYamlString(resource);
-        YElement yDocument = MYaml.loadFromString(resContent);
-
-        YMap yMetadata = yDocument.asMap().getMap("metadata");
-        YMap yManagedFields = null;
-        if (yMetadata != null) {
-            yManagedFields = yMetadata.getMap("managedFields");
-        }
-        if (yManagedFields != null) {
-            managedFieldsContent = MYaml.toString(yManagedFields);
-            //noinspection unchecked
-            ((Map<String, Object>) yMetadata.getObject()).remove("managedFields");
-        }
-        YMap yStatus = yDocument.asMap().getMap("status");
-        if (yStatus != null) {
-            //noinspection unchecked
-            ((Map<String, Object>)yDocument.asMap().getObject()).remove("status");
-            statusContent = MYaml.toString(yStatus);
-        }
-
-        resContent = MYaml.toString(yDocument);
+        setContent();
 
         resYamlEditor = new AceEditor();
         resYamlEditor.setTheme(AceTheme.terminal);
@@ -133,6 +114,7 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
             resMenuItemEdit.setEnabled(false);
             resMenuItemSave.setEnabled(true);
             resMenuItemCancel.setEnabled(true);
+            resMenuItemReload.setEnabled(false);
             resYamlEditor.focus();
         });
         resMenuItemSave = resMenuBar.addItem("Save", e -> {
@@ -149,8 +131,11 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
             resMenuItemEdit.setEnabled(true);
             resMenuItemSave.setEnabled(false);
             resMenuItemCancel.setEnabled(false);
+            resMenuItemReload.setEnabled(true);
 
             UiUtil.showSuccessNotification("Resource saved");
+
+            doReload();
         });
         resMenuItemCancel = resMenuBar.addItem("Cancel", e -> {
             resYamlEditor.setValue(resContent);
@@ -158,11 +143,16 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
             resMenuItemEdit.setEnabled(true);
             resMenuItemSave.setEnabled(false);
             resMenuItemCancel.setEnabled(false);
+            resMenuItemReload.setEnabled(true);
+        });
+        resMenuItemReload = resMenuBar.addItem("Reload", e -> {
+            doReload();
         });
 
         resMenuItemEdit.setEnabled(true);
         resMenuItemSave.setEnabled(false);
         resMenuItemCancel.setEnabled(false);
+        resMenuItemReload.setEnabled(true);
 
         var resInfo = new Text( "apiVersion: " + toApiVersion(resType) + ", kind: " + resType.getKind());
 
@@ -222,6 +212,46 @@ public class ResourceYamlEditorPanel extends VerticalLayout implements DeskTabLi
         setSizeFull();
         setPadding(false);
         setMargin(false);
+    }
+
+    private void doReload() {
+        var handler = k8s.getTypeHandler(resType);
+        if (handler == null) {
+            UiUtil.showErrorNotification("No handler found");
+            return;
+        }
+        try {
+            resource = handler.get(apiProvider, resource.getMetadata().getName(), resource.getMetadata().getNamespace());
+            setContent();
+            resYamlEditor.setValue(resContent);
+        } catch (ApiException ex) {
+            LOGGER.debug("Error reloading", ex);
+            UiUtil.showErrorNotification("Error reloading resource", ex);
+        }
+    }
+
+    private void setContent() {
+        resContent = K8sUtil.toYamlString(resource);
+        YElement yDocument = MYaml.loadFromString(resContent);
+
+        YMap yMetadata = yDocument.asMap().getMap("metadata");
+        YMap yManagedFields = null;
+        if (yMetadata != null) {
+            yManagedFields = yMetadata.getMap("managedFields");
+        }
+        if (yManagedFields != null) {
+            managedFieldsContent = MYaml.toString(yManagedFields);
+            //noinspection unchecked
+            ((Map<String, Object>) yMetadata.getObject()).remove("managedFields");
+        }
+        YMap yStatus = yDocument.asMap().getMap("status");
+        if (yStatus != null) {
+            //noinspection unchecked
+            ((Map<String, Object>)yDocument.asMap().getObject()).remove("status");
+            statusContent = MYaml.toString(yStatus);
+        }
+
+        resContent = MYaml.toString(yDocument);
     }
 
     private void doSave() throws ApiException, IOException {

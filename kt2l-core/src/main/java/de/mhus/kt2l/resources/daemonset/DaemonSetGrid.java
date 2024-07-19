@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.resources.daemonset;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.commons.tools.MObject;
@@ -33,7 +32,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DaemonSetGrid extends AbstractGridWithNamespace<DaemonSetGrid.Resource, Component, V1DaemonSet, V1DaemonSetList> {
+public class DaemonSetGrid extends AbstractGridWithNamespace<DaemonSetGrid.Resource, DaemonSetRolloutPanel, V1DaemonSet, V1DaemonSetList> {
 
     @Override
     protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
@@ -100,6 +99,44 @@ public class DaemonSetGrid extends AbstractGridWithNamespace<DaemonSetGrid.Resou
     @Override
     public V1APIResource getManagedType() {
         return K8s.DAEMON_SET;
+    }
+
+    protected void createDetailsComponent() {
+        detailsComponent = new DaemonSetRolloutPanel(panel.getCore(), cluster);
+        detailsComponent.setVisible(false);
+    }
+
+    @Override
+    protected void onDetailsChanged(Resource item) {
+        onGridCellFocusChanged(item);
+    }
+
+    @Override
+    protected void onShowDetails(Resource item, boolean flip) {
+        detailsComponent.cleanTarget();
+        detailsComponent.setVisible(!flip || !detailsComponent.isVisible());
+        if (detailsComponent.isVisible()) {
+            detailsComponent.setTarget(item.getResource());
+        }
+    }
+
+    @Override
+    protected void onGridSelectionChanged() {
+    }
+
+    @Override
+    protected void onGridCellFocusChanged(Resource item) {
+        if (detailsComponent.isVisible()) {
+            detailsComponent.setTarget(item.getResource());
+        }
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        if (detailsComponent != null) {
+            detailsComponent.close();
+        }
     }
 
     @Getter

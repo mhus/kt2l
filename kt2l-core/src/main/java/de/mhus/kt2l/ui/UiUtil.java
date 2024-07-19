@@ -39,7 +39,6 @@ import com.vaadin.flow.server.Command;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MJson;
-import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.yaml.MYaml;
 import io.kubernetes.client.openapi.ApiException;
@@ -116,7 +115,7 @@ public class UiUtil {
                 if (e instanceof ApiException apiException) {
                     sb.append("Error Code: ").append(apiException.getCode()).append("\n\n");
                     var body = apiException.getResponseBody();
-                    if (body.startsWith("{")) {
+                    if (body != null && body.startsWith("{")) {
                         try {
                             sb.append(MYaml.toYaml(MJson.load(body))).append("\n\n");
                         } catch (Exception ex) {

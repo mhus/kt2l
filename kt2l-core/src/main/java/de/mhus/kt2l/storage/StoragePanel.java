@@ -23,6 +23,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -34,6 +35,8 @@ import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.aaa.SecurityContext;
+import de.mhus.kt2l.aaa.SecurityService;
+import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
@@ -60,6 +63,9 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
     @Autowired
     private ViewsConfiguration viewsConfiguration;
 
+    @Autowired
+    private SecurityService securityService;
+
 //    private ListBox<StorageFile>[] lists;
 //    private HorizontalLayout listPanel;
     private MenuItem itemOpen;
@@ -77,15 +83,17 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
         var menuBar = new MenuBar();
         menuBar.setWidthFull();
         menuBar.addItem(VaadinIcon.REFRESH.create(),e -> {
-            showSelectedFiles();
+            updateSelectedFiles();
         });
         itemDelete = menuBar.addItem("Delete", e -> {
             deleteSelected();
         });
-        itemOpen = menuBar.addItem("Open", e -> {
-            if (!storageService.open(selectedCurrent))
-                UiUtil.showErrorNotification("Can't open file locally");
-        });
+        if (securityService.hasRole(UsersConfiguration.ROLE.LOCAL)) {
+            itemOpen = menuBar.addItem("Open", e -> {
+                if (!storageService.open(selectedCurrent))
+                    UiUtil.showErrorNotification("Can't open file locally");
+            });
+        }
         itemDownload = menuBar.addItem("Download", e -> {
             downloadSelected();
         });
@@ -102,6 +110,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
         breadCrumb.setMargin(false);
         breadCrumb.setPadding(false);
         breadCrumb.setSpacing(true);
+        breadCrumb.addClassName("breadcrumb");
 
         grid = new Grid<StorageFile>();
         grid.setSizeFull();
@@ -122,7 +131,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
             if (selected == null) return;
             if (selected.isDirectory()) {
                 selectedDirectory = selected;
-                showSelectedFiles();
+                updateSelectedFiles();
                 selectedCurrent = null;
                 itemOpen.setEnabled(false);
                 itemDownload.setEnabled(false);
@@ -135,21 +144,21 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
                 itemOpen.setEnabled(false);
                 itemDownload.setEnabled(false);
                 itemDelete.setEnabled(false);
+                selectedCurrent = null;
             } else {
                 itemOpen.setEnabled(true);
                 itemDownload.setEnabled(true);
                 itemDelete.setEnabled(true);
-
                 selectedCurrent = selected.get();
             }
-            showBreadcrumb();
+            updateBreadcrumb();
         });
 
         add(breadCrumb,menuBar, grid, downloads);
 
         selectedDirectory = new StorageFile(storageService.getStorage(), "", "", true, -1, -1);
-        showSelectedFiles();
-        showBreadcrumb();
+        updateSelectedFiles();
+        updateBreadcrumb();
 
 //        try {
 //            lists[0].setItems(storageService.getStorage().listFiles("/"));
@@ -188,10 +197,10 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
                     try {
                         int cnt = 0;
                         for (StorageFile file : list) {
-                            LOGGER.debug("Zip for Download: " + file.getPath());
-                            ui.get().access(() -> dialog.next(file.getPath()));
-                            try (var stream = file.getStorage().openFile(file.getPath()).getStream()){
-                                zos.putNextEntry(new java.util.zip.ZipEntry(file.getPath()));
+                            LOGGER.debug("Zip for Download: " + file.getPathAndName());
+                            ui.get().access(() -> dialog.next(file.getPathAndName()));
+                            try (var stream = file.getStorage().openFile(file.getPathAndName()).getStream()){
+                                zos.putNextEntry(new java.util.zip.ZipEntry(file.getPathAndName()));
                                 MFile.copyFile(stream, zos);
                                 zos.flush();
                                 zos.closeEntry();
@@ -214,7 +223,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
 
 //                FileDownloadWrapper link = new FileDownloadWrapper(selectedCurrent.getName() + ".zip", () -> textField.getValue().getBytes());
             } else {
-                inputStream = selectedCurrent.getStorage().openFile(selectedCurrent.getPath()).getStream();
+                inputStream = selectedCurrent.getStorage().openFile(selectedCurrent.getPathAndName()).getStream();
             }
 
             final var ui = getUI();
@@ -328,8 +337,8 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
                 try (var sce = sc.enter()) {
                     int cnt = 0;
                     for (StorageFile file : list) {
-                        LOGGER.debug("Delete: " + file.getPath());
-                        ui.get().access(() -> dialog.next(file.getPath()));
+                        LOGGER.debug("Delete: " + file.getPathAndName());
+                        ui.get().access(() -> dialog.next(file.getPathAndName()));
                         storageService.getStorage().delete(file);
                     }
                 } catch (Exception e) {
@@ -340,7 +349,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
                     });
                 }
                 ui.get().access(() -> dialog.close());
-                ui.get().access(() -> showSelectedFiles());
+                ui.get().access(() -> updateSelectedFiles());
             });
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
@@ -348,34 +357,38 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
         }
     }
 
-    private void showBreadcrumb() {
+    private void updateBreadcrumb() {
         breadCrumb.removeAll();
-        var path = MFile.normalizePath(selectedDirectory.getPath()).split("/");
+        var selectedNow = selectedCurrent == null ? selectedDirectory : selectedCurrent;
+        var path = MFile.normalizePath(selectedNow.getPathAndName()).split("/");
         var currentPath = "";
         var cnt = 0;
         for (String pathElement : path) {
-            currentPath += "/" + pathElement;
             if (cnt != 0) {
                 breadCrumb.add(new Text("/"));
             }
-            if (cnt == path.length-1 && !selectedDirectory.isDirectory()) {
-                breadCrumb.add(new Text(pathElement));
+            if (cnt == path.length-1 && !selectedNow.isDirectory()) {
+                var div = new Div(pathElement);
+                div.addClassName("file");
+                breadCrumb.add(div);
             } else {
                 var item = new Button(cnt == 0 ? "#" : pathElement);
                 item.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-                final var selected = new StorageFile(selectedDirectory.getStorage(), currentPath, pathElement, true, -1, -1);
+                final var selected = new StorageFile(selectedNow.getStorage(), currentPath, pathElement, true, -1, -1);
                 item.addClickListener(e -> {
                     selectedDirectory = selected;
-                    showSelectedFiles();
-                    showBreadcrumb();
+                    selectedCurrent = null;
+                    updateSelectedFiles();
+                    updateBreadcrumb();
                 });
                 breadCrumb.add(item);
             }
+            currentPath += "/" + pathElement;
             cnt++;
         }
     }
 
-    private void showSelectedFiles() {
+    private void updateSelectedFiles() {
         try {
             var files = new LinkedList<>(storageService.getStorage().listFiles(selectedDirectory));
             files.sort((a,b) -> -a.getName().compareTo(b.getName()));
@@ -410,12 +423,12 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
             selectedDirectory = file;
             selectedCurrent = null;
         } else {
-            selectedDirectory = new StorageFile(file.getStorage(), MFile.getParentPath(file.getPath()), "", true, -1, -1);
+            selectedDirectory = new StorageFile(file.getStorage(), file.getPath(), "", true, -1, -1);
             selectedCurrent = file;
         }
-        showSelectedFiles();
+        updateSelectedFiles();
         if (selectedCurrent != null)
             grid.select(selectedCurrent);
-        showBreadcrumb();
+        updateBreadcrumb();
     }
 }

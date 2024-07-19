@@ -19,7 +19,6 @@ package de.mhus.kt2l;
 
 import de.mhus.commons.tools.MArgs;
 import de.mhus.commons.tools.MFile;
-import de.mhus.commons.tools.MThread;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;

@@ -6,24 +6,17 @@ import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
-import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1ServiceAccount;
+import io.kubernetes.client.openapi.models.V1ServiceAccountList;
 import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.Yaml;
-import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.apache.commons.lang3.NotImplementedException;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-import io.kubernetes.client.openapi.models.V1ServiceAccount;
-import io.kubernetes.client.openapi.models.V1ServiceAccountList;
 
 @Slf4j
 public abstract class K8sV1ServiceAccount implements HandlerK8s {
@@ -34,6 +27,15 @@ public abstract class K8sV1ServiceAccount implements HandlerK8s {
     @Override
     public V1APIResource getManagedType() {
         return K8s.SERVICE_ACCOUNT;
+    }
+
+    @Override
+    public KubernetesObject get(ApiProvider apiProvider, String name, String namespace) throws ApiException {
+        return apiProvider.getCoreV1Api().readNamespacedServiceAccount(
+            name,
+            namespace,
+            null
+        );
     }
 
     @Override

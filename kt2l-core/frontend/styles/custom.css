@@ -20,6 +20,11 @@ html, body {
   overscroll-behavior-x: none;
 }
 
+vaadin-horizontal-layout.breadcrumb {
+    overflow: hidden;
+    height: 36px;
+}
+
 vaadin-button.button-combo-right {
     margin-left: 0px;
     border-radius: 0px 4px 4px 0px;

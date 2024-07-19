@@ -33,38 +33,16 @@
  */
 package de.mhus.kt2l;
 
-import com.github.javaparser.JavaToken;
 import de.mhus.commons.tools.MArgs;
-import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.tools.MThread;
-import de.mhus.commons.tree.MTree;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.CloseWindowListener;
-import org.eclipse.swt.browser.LocationEvent;
-import org.eclipse.swt.browser.LocationListener;
-import org.eclipse.swt.browser.OpenWindowListener;
-import org.eclipse.swt.browser.VisibilityWindowListener;
-import org.eclipse.swt.browser.WindowEvent;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;

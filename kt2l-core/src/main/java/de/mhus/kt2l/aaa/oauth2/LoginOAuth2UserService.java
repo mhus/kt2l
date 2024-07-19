@@ -18,7 +18,7 @@
 package de.mhus.kt2l.aaa.oauth2;
 
 import de.mhus.kt2l.aaa.AaaUser;
-import de.mhus.kt2l.aaa.AaaUserRepository;
+import de.mhus.kt2l.aaa.AaaUserRepositoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
@@ -39,7 +39,7 @@ import java.util.Optional;
 public class LoginOAuth2UserService extends DefaultOAuth2UserService {
 
     @Autowired
-    private AaaUserRepository userRepository;
+    private AaaUserRepositoryService userRepository;
     private AuthProvider authProvider;
 
     @Override
@@ -66,7 +66,7 @@ public class LoginOAuth2UserService extends DefaultOAuth2UserService {
             throw new OAuth2AuthenticationProcessingException("Email not found from OAuth2 provider");
         }
 
-        Optional<AaaUser> userOptional = userRepository.getByEmail(oAuth2UserInfo.getEmail());
+        Optional<AaaUser> userOptional = userRepository.getRepository().getByEmail(oAuth2UserInfo.getEmail());
         AaaUser user;
         if(userOptional.isPresent()) {
             user = userOptional.get();
@@ -91,7 +91,7 @@ public class LoginOAuth2UserService extends DefaultOAuth2UserService {
                 .email(oAuth2UserInfo.getEmail())
                 .imageUrl(oAuth2UserInfo.getImageUrl())
                 .build();
-        userRepository.createUser(user);
+        userRepository.getRepository().createUser(user);
         return user;
     }
 
@@ -101,7 +101,7 @@ public class LoginOAuth2UserService extends DefaultOAuth2UserService {
                 .userId(oAuth2UserInfo.getName())
                 .imageUrl(oAuth2UserInfo.getImageUrl())
                 .build();
-        return userRepository.updateUser(newUser);
+        return userRepository.getRepository().updateUser(newUser);
     }
 
 }

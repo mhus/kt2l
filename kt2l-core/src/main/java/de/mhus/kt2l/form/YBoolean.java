@@ -19,9 +19,7 @@ package de.mhus.kt2l.form;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tree.ITreeNode;
-import de.mhus.commons.tree.MTree;
 
 public class YBoolean extends YComponent<Boolean> {
     private Checkbox component;

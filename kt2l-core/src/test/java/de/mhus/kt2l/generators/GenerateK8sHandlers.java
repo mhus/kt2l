@@ -65,6 +65,7 @@ public class GenerateK8sHandlers {
         StringBuffer o = new StringBuffer();
         classHeader(o, k8s);
         managedResourceType(o, k8s);
+        getResourceType(o, k8s);
         replaceResourceType(o, k8s);
         deleteResourceType(o, k8s);
         createResourceType(o, k8s);
@@ -299,6 +300,28 @@ public class GenerateK8sHandlers {
             o.append("            namespace,\n");
         o.append("            resource,\n");
         o.append("            null, null, null, null\n");
+        o.append("        );\n");
+        o.append("    }\n");
+        o.append("\n");
+    }
+
+    /*
+    public KubernetesObject get(ApiProvider apiProvider, String name, String namespace) throws ApiException {
+        return apiProvider.getCoreV1Api().readNamespacedPod(
+            name,
+            namespace,
+            null
+        );
+    }
+     */
+    private void getResourceType(StringBuffer o, V1APIResource k8s) {
+        o.append("    @Override\n");
+        o.append("    public KubernetesObject get(ApiProvider apiProvider, String name, String namespace) throws ApiException {\n");
+        o.append("        return apiProvider.").append(apiFunction(k8s)).append(".read").append(methodName(k8s)).append("(\n");
+        o.append("            name,\n");
+        if (k8s.getNamespaced())
+            o.append("            namespace,\n");
+        o.append("            null\n");
         o.append("        );\n");
         o.append("    }\n");
         o.append("\n");

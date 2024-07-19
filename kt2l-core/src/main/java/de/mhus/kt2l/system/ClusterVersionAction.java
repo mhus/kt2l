@@ -13,8 +13,6 @@ import io.kubernetes.client.extended.kubectl.Kubectl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
-
 @Component
 @WithRole(UsersConfiguration.ROLE.READ)
 @Slf4j
@@ -39,6 +37,7 @@ public class ClusterVersionAction implements ClusterAction {
         try {
             var version = Kubectl.version().apiClient(cluster.getApiProvider().getClient()).execute();
             ConfirmDialog dialog = new ConfirmDialog();
+            dialog.setHeader("Kubernetes Cluster Version");
             TextArea text = new TextArea();
             text.setReadOnly(true);
             text.setValue(version.toString());

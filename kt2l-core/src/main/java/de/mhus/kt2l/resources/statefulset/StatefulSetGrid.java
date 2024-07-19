@@ -18,7 +18,6 @@
 
 package de.mhus.kt2l.resources.statefulset;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.SortDirection;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
@@ -32,7 +31,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class StatefulSetGrid extends AbstractGridWithNamespace<StatefulSetGrid.Resource, Component, V1StatefulSet, V1StatefulSetList> {
+public class StatefulSetGrid extends AbstractGridWithNamespace<StatefulSetGrid.Resource, StatefulSetRolloutPanel, V1StatefulSet, V1StatefulSetList> {
 
     @Override
     protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
@@ -75,6 +74,44 @@ public class StatefulSetGrid extends AbstractGridWithNamespace<StatefulSetGrid.R
     @Override
     public V1APIResource getManagedType() {
         return K8s.STATEFUL_SET;
+    }
+
+    protected void createDetailsComponent() {
+        detailsComponent = new StatefulSetRolloutPanel(panel.getCore(), cluster);
+        detailsComponent.setVisible(false);
+    }
+
+    @Override
+    protected void onDetailsChanged(Resource item) {
+        onGridCellFocusChanged(item);
+    }
+
+    @Override
+    protected void onShowDetails(Resource item, boolean flip) {
+        detailsComponent.cleanTarget();
+        detailsComponent.setVisible(!flip || !detailsComponent.isVisible());
+        if (detailsComponent.isVisible()) {
+            detailsComponent.setTarget(item.getResource());
+        }
+    }
+
+    @Override
+    protected void onGridSelectionChanged() {
+    }
+
+    @Override
+    protected void onGridCellFocusChanged(Resource item) {
+        if (detailsComponent.isVisible()) {
+            detailsComponent.setTarget(item.getResource());
+        }
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        if (detailsComponent != null) {
+            detailsComponent.close();
+        }
     }
 
     @Getter

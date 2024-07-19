@@ -17,6 +17,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+unset AWS_SECRET_ACCESS_KEY
+unset AWS_ACCESS_KEY_ID
+
 while getopts hcpus flag
 do
     case "${flag}" in

@@ -120,4 +120,13 @@ public class GenericK8s implements HandlerK8s {
             return genericApi.patch(name, patchType, patch);
     }
 
+    @Override
+    public KubernetesObject get(ApiProvider apiProvider, String name, String namespace) throws ApiException {
+        final var genericApi = new DynamicKubernetesApi(type.getGroup(), type.getVersion(), type.getName(), apiProvider.getClient());
+        if (type.getNamespaced())
+            return genericApi.get(namespace, name).getObject();
+        else
+            return genericApi.get(name).getObject();
+    }
+
 }

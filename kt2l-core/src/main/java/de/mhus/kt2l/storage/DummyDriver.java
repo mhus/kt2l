@@ -36,12 +36,12 @@ public class DummyDriver implements BucketDriver {
 
     private class DummyStorage extends Storage {
         @Override
-        protected InputStream openFileStream(String path) throws IOException {
-            throw new FileNotFoundException(path);
+        protected InputStream openFileStream(String path, String name) throws IOException {
+            throw new FileNotFoundException(path + "/" + name);
         }
 
         @Override
-        protected OutputStream createFileStream(String path) throws IOException {
+        protected OutputStream createFileStreamInternal(String path, String name) throws IOException {
             return new OutputStream() {
 
                 @Override

@@ -37,7 +37,7 @@ public abstract class AbstractUserRepository implements AaaUserRepository {
     @Override
     public AaaUser updateUser(AaaUser user) {
         // get curent user object
-        var maybeCurrent = getUserByUsername(user.getUserId());
+        var maybeCurrent = getUserByUserId(user.getUserId());
         if (maybeCurrent.isEmpty())
             throw new IllegalArgumentException("User not found: " + user.getUserId());
 

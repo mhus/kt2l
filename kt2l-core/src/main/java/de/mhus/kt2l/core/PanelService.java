@@ -359,7 +359,7 @@ public class PanelService {
 
     public DeskTab addResourceCreatePanel(DeskTab parentTab, Core core, Cluster cluster, String namespace) {
         return addPanel(
-                parentTab == null ? core.getMainTab() : parentTab,
+                parentTab == null ? core.getHomeTab() : parentTab,
                 cluster.getName() + ":" + namespace + ":create",
                 namespace,
                 false,
@@ -377,7 +377,7 @@ public class PanelService {
 
     public DeskTab addResourcePatchPanel(DeskTab parentTab, Core core, Cluster cluster, Set<? extends KubernetesObject> selected) {
         return addPanel(
-                parentTab == null ? core.getMainTab() : parentTab,
+                parentTab == null ? core.getHomeTab() : parentTab,
                 cluster.getName() + ":" + selected + ":patch",
                 "Patch " + (selected.size() == 1 ? selected.iterator().next().getMetadata().getName() : selected.size() + " Items"),
                 false,

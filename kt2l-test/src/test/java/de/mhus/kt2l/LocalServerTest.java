@@ -31,13 +31,11 @@ import de.mhus.kt2l.util.WebDriverUtil;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.openqa.selenium.By;
@@ -50,7 +48,6 @@ import org.springframework.boot.web.servlet.context.ServletWebServerApplicationC
 import org.springframework.context.annotation.Import;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.Set;
 
 import static java.time.Duration.ofSeconds;
