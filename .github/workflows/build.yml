@@ -43,6 +43,7 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ !startsWith(github.event.head_commit.message, 'noop:') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
