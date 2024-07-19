@@ -17,9 +17,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-set -x
-
 cd "$(dirname "$0")"
+VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
+echo "Version: $VERSION"
 cd ../target
 rm -rf launcher
 mkdir launcher
@@ -40,7 +40,7 @@ cp -r ../../launcher/mac/* .
 if [ -f ../kt2l-desktop-macosx-aarch64.jar ]; then
   cp ../kt2l-desktop-macosx-aarch64.jar kt2l-desktop-macosx-aarch64.jar
 else
-  cp ../kt2l-desktop-macosx-aarch64-0.0.1-SNAPSHOT.jar kt2l-desktop-macosx-aarch64.jar
+  cp ../kt2l-desktop-macosx-aarch64-${VERSION}.jar kt2l-desktop-macosx-aarch64.jar
 fi
 
 jpackage \
@@ -48,10 +48,11 @@ jpackage \
   --input . \
   --main-jar kt2l-desktop-macosx-aarch64.jar \
   --resource-dir package/macos \
+  --app-version "$VERSION" \
   --type dmg \
   --java-options "-XstartOnFirstThread" \
   --java-options "-Dspring.profiles.active=prod" \
   --icon kt2l.icns \
   --vendor "www.kt2l.org"
 
-mv KT2L-1.0.dmg KT2L.dmg
+mv KT2L-${VERSION}.dmg KT2L.dmg

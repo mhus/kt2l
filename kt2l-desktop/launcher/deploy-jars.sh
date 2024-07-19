@@ -18,11 +18,11 @@
 #
 
 cd "$(dirname "$0")"
+VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
+echo "Version: $VERSION"
 cd ../target
 
 ARCH="macosx-aarch64 macosx-x86_64 windows-amd64 linux-amd64"
-VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
-echo "Version: $VERSION"
 
 for A in $ARCH; do
     if [ ! -f kt2l-desktop-$A-$VERSION.jar ]; then
@@ -47,3 +47,16 @@ for A in $ARCH; do
         aws s3 cp kt2l-desktop-$A.txt s3://kt2l-downloads/cache/kt2l-desktop-$A.txt --quiet || exit 1
     fi
 done
+
+# Release
+if [[ ${VERSION} != *"SNAPSHOT"* ]];then
+
+  for A in $ARCH; do
+      if [ -f kt2l-desktop-$A-$VERSION.jar ]; then
+          echo "Copy: kt2l-desktop-$A-$VERSION.jar to release"
+          echo $VERSION $(date +"%Y-%m-%d") > kt2l-desktop-$A.txt
+          aws s3 cp kt2l-desktop-$A-$VERSION.jar s3://kt2l-downloads/releases/kt2l-desktop-$A.jar --quiet || exit 1
+      fi
+  done
+
+fi
