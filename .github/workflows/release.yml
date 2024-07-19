@@ -364,7 +364,7 @@ jobs:
         prerelease: false
 
   prepare_next_snapshot:
-    needs: [new_release]
+    needs: [release_tag]
     if: ${{ inputs.create_release }}
     runs-on: ubuntu-latest
     permissions: write-all
