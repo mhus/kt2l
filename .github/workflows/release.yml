@@ -164,14 +164,15 @@ jobs:
           git config --global user.name 'Robot'
           git config --global user.email 'mhus@users.noreply.github.com'
           git pull
-          git checkout -b build/${{ github.run_id }}
+          # git checkout -b build/${{ github.run_id }}
           git add .
           git status
           git commit -m "Release Build ${{ github.run_id }}"
-          git push --set-upstream origin build/${{ github.run_id }} || true
-          gh pr create --title "Release Build ${{ github.run_id }}" --body "Release Build ${{ github.run_id }}" --base main --head build/${{ github.run_id }} || true
+          git push
+          # git push --set-upstream origin build/${{ github.run_id }} || true
+          # gh pr create --title "Release Build ${{ github.run_id }}" --body "Release Build ${{ github.run_id }}" --base main --head build/${{ github.run_id }} || true
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GIT_COMMIT_TOKEN }}
       - name: Build Server ZIP
         run: ./kt2l-server/launcher/create-zip.sh
       - name: Build Server Container
