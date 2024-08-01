@@ -62,6 +62,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up WebKit GTK
+        if: ${{ contains(inputs.execute, ':integration-tests:') }}
         run: |
           sudo apt-get update
           sudo sudo apt-get install -y libwebkit2gtk-4.1
@@ -161,14 +162,15 @@ jobs:
       - name: Commit changes to git
         run: |
           date +"%Y-%m-%d %H:%M:%S" > last_release.txt
-          git config --global user.name 'Robot'
-          git config --global user.email 'mhus@users.noreply.github.com'
-          git pull
           # git checkout -b build/${{ github.run_id }}
+          git config user.name 'Robot'
+          git config user.email 'mhus@users.noreply.github.com'
+          git remote remove origin
+          git remote add origin https://$GH_TOKEN@github.com/mhus/kt2l
           git add .
           git status
           git commit -m "Release Build ${{ github.run_id }}"
-          git push
+          git push --set-upstream origin main
           # git push --set-upstream origin build/${{ github.run_id }} || true
           # gh pr create --title "Release Build ${{ github.run_id }}" --body "Release Build ${{ github.run_id }}" --base main --head build/${{ github.run_id }} || true
         env:
