@@ -61,7 +61,6 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          token: ${{ secrets.GIT_COMMIT_TOKEN }}
       - name: Set up WebKit GTK
         if: ${{ contains(inputs.execute, ':integration-tests:') }}
         run: |
@@ -163,20 +162,12 @@ jobs:
       - name: Commit changes to git
         run: |
           date +"%Y-%m-%d %H:%M:%S" > last_release.txt
-          # git checkout -b build/${{ github.run_id }}
           git config user.name 'Robot'
           git config user.email 'mh@mhus.de'
-          # git remote remove origin
-          # git remote add origin https://$GH_TOKEN@github.com/mhus/kt2l
           git add .
           git status
           git commit -m "chore: Release Build ${{ github.run_id }}"
           git push
-          # git push --set-upstream origin main
-          # git push --set-upstream origin build/${{ github.run_id }} || true
-          # gh pr create --title "Release Build ${{ github.run_id }}" --body "Release Build ${{ github.run_id }}" --base main --head build/${{ github.run_id }} || true
-        #env:
-        #  GH_TOKEN: ${{ secrets.GIT_COMMIT_TOKEN }}
       - name: Build Server ZIP
         run: ./kt2l-server/launcher/create-zip.sh
       - name: Build Server Container
