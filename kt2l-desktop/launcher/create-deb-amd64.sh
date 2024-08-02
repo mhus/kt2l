@@ -18,7 +18,6 @@
 #
 
 set -x
-
 cd "$(dirname "$0")"
 VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
 echo "Version: $VERSION"
