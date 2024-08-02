@@ -44,13 +44,14 @@ else
   cp ../kt2l-desktop-linux-amd64-${VERSION}.jar kt2l-desktop-linux-amd64.jar
 fi
 
+PACK_VERSION=$(echo $VERSION | cut -d . -f 1-2)
 jpackage \
   --name kt2l-desktop \
   --input . \
   --main-jar kt2l-desktop-linux-amd64.jar \
   --type deb \
   --java-options "-Dspring.profiles.active=prod" \
-  --app-version "$VERSION" \
+  --app-version "$PACK_VERSION" \
   --linux-menu-group "Utility;Administration;kt2l" \
   --linux-app-category "Administration" \
   --linux-shortcut \

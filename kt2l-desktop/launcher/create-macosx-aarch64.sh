@@ -43,12 +43,13 @@ else
   cp ../kt2l-desktop-macosx-aarch64-${VERSION}.jar kt2l-desktop-macosx-aarch64.jar
 fi
 
+PACK_VERSION=$(echo $VERSION | cut -d . -f 1-2)
 jpackage \
   --name KT2L \
   --input . \
   --main-jar kt2l-desktop-macosx-aarch64.jar \
   --resource-dir package/macos \
-  --app-version "$VERSION" \
+  --app-version "$PACK_VERSION" \
   --type dmg \
   --java-options "-XstartOnFirstThread" \
   --java-options "-Dspring.profiles.active=prod" \

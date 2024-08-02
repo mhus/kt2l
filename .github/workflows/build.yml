@@ -64,7 +64,7 @@ jobs:
             echo "================"
             git clone https://github.com/mhus/mhus-commons.git
             cd mhus-commons
-            mvn install -B -U || exit 1
+            mvn install -B || exit 1
             cd ..
             rm -rf mhus-commons
           fi
