@@ -56,5 +56,3 @@ jpackage \
   --linux-app-category "Administration" \
   --linux-shortcut \
   --vendor "www.kt2l.org"
-
-# mv kt2l-desktop-1.0.deb

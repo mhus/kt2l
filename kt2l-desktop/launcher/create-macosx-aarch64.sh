@@ -56,4 +56,4 @@ jpackage \
   --icon kt2l.icns \
   --vendor "www.kt2l.org"
 
-mv KT2L-${VERSION}.dmg KT2L.dmg
+mv KT2L-${PACK_VERSION}.dmg KT2L.dmg

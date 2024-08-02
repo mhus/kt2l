@@ -84,6 +84,7 @@ if [ ! -z "$ENTRIES" ]; then
   done
 fi
 
+PACK_VERSION=$(echo $VERSION | cut -d . -f 1-2)
 # copy
 echo "Copy KT2L.dmg to aws"
 aws s3 cp ../launcher/KT2L.dmg s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
@@ -93,6 +94,6 @@ aws s3 cp download-snapshot-desktop-macosx-aarch64.ts s3://kt2l-downloads/cache/
 # Release
 if [[ ${VERSION} != *"SNAPSHOT"* ]];then
   FILENAME=kt2l-desktop-macosx-aarch64-${VERSION}.dmg
-  echo "Copy kt2l-desktop_${VERSION}_amd64.deb to aws $FILENAME"
-  aws s3 cp ../launcher/kt2l-desktop_${VERSION}_amd64.deb s3://kt2l-downloads/releases/$FILENAME --quiet || exit 1
+  echo "Copy KT2L.dmg to aws $FILENAME"
+  aws s3 cp ../launcher/KT2L.dmg s3://kt2l-downloads/releases/$FILENAME --quiet || exit 1
 fi

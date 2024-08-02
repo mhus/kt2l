@@ -55,6 +55,7 @@ SIZE=$(echo $(du -m ../launcher/kt2l-desktop_${VERSION}_amd64.deb)|cut -d ' ' -f
 # create download information
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-linux-amd64.ts
 
+PACK_VERSION=$(echo $VERSION | cut -d . -f 1-2)
 # cleanup
 echo "Cleanup old snapshots in aws"
 ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|cut -b 32-|grep -e ^kt2l-desktop-linux-amd64)
@@ -67,14 +68,14 @@ if [ ! -z "$ENTRIES" ]; then
 fi
 
 # copy
-echo "Copy kt2l-desktop_${VERSION}_amd64.deb to aws $FILENAME"
-aws s3 cp ../launcher/kt2l-desktop_${VERSION}_amd64.deb s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
+echo "Copy kt2l-desktop_${PACK_VERSION}_amd64.deb to aws $FILENAME"
+aws s3 cp ../launcher/kt2l-desktop_${PACK_VERSION}_amd64.deb s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
 echo "Copy download-snapshot-desktop-linux-amd64.ts to cache"
 aws s3 cp download-snapshot-desktop-linux-amd64.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-linux-amd64.ts --quiet || exit 1
 
 # Release
 if [[ ${VERSION} != *"SNAPSHOT"* ]];then
-  FILENAME=kt2l-desktop-linux-amd64_${VERSION}_amd64.deb
-  echo "Copy kt2l-desktop_${VERSION}_amd64.deb to aws $FILENAME"
-  aws s3 cp ../launcher/kt2l-desktop_${VERSION}_amd64.deb s3://kt2l-downloads/releases/$FILENAME --quiet || exit 1
+  FILENAME=kt2l-desktop-linux-amd64_${PACK_VERSION}_amd64.deb
+  echo "Copy kt2l-desktop_${PACK_VERSION}_amd64.deb to aws $FILENAME"
+  aws s3 cp ../launcher/kt2l-desktop_${PACK_VERSION}_amd64.deb s3://kt2l-downloads/releases/$FILENAME --quiet || exit 1
 fi
