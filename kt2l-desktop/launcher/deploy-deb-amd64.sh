@@ -20,11 +20,12 @@
 set -x
 cd "$(dirname "$0")"
 VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
-echo "Version: $VERSION"
+PACK_VERSION=$(echo $VERSION | cut -d . -f 1-2)
+echo "Version: $VERSION - Pack Version: $PACK_VERSION"
 cd ../target
 
-if [ ! -f launcher/kt2l-desktop_${VERSION}_amd64.deb ]; then
-    echo "Fatal: kt2l-desktop_${VERSION}_amd64.deb not found"
+if [ ! -f launcher/kt2l-desktop_${PACK_VERSION}_amd64.deb ]; then
+    echo "Fatal: kt2l-desktop_${PACK_VERSION}_amd64.deb not found"
     exit 1
 fi
 if [ -z "$AWS_ACCESS_KEY_ID" ]; then
@@ -52,11 +53,10 @@ TITLE="Desktop Linux amd64 DEB"
 DESCRIPTION="Can be installed on debian amd64 systems"
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
 HREF_HELP="/docs/installation/desktop#linux-deb"
-SIZE=$(echo $(du -m ../launcher/kt2l-desktop_${VERSION}_amd64.deb)|cut -d ' ' -f 1)MB
+SIZE=$(echo $(du -m ../launcher/kt2l-desktop_${PACK_VERSION}_amd64.deb)|cut -d ' ' -f 1)MB
 # create download information
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-linux-amd64.ts
 
-PACK_VERSION=$(echo $VERSION | cut -d . -f 1-2)
 # cleanup
 echo "Cleanup old snapshots in aws"
 ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|cut -b 32-|grep -e ^kt2l-desktop-linux-amd64)
