@@ -20,7 +20,11 @@
 set -x
 cd "$(dirname "$0")"
 VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
-echo "Version: $VERSION"
+PACK_VERSION=$(echo $VERSION | cut -d - -f 1)
+if [[ "$PACK_VERSION" =~ ^0.* ]]; then
+  PACK_VERSION=1
+fi
+echo "Version: $VERSION - Pack Version: $PACK_VERSION"
 cd ../target
 rm -rf launcher
 mkdir launcher
@@ -44,7 +48,6 @@ else
   cp ../kt2l-desktop-macosx-aarch64-${VERSION}.jar kt2l-desktop-macosx-aarch64.jar
 fi
 
-PACK_VERSION=$(echo $VERSION | cut -d . -f 1-2)
 jpackage \
   --name KT2L \
   --input . \

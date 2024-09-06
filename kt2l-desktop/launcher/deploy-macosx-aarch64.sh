@@ -20,7 +20,11 @@
 set -x
 cd "$(dirname "$0")"
 VERSION=$(cat ../pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
-echo "Version: $VERSION"
+PACK_VERSION=$(echo $VERSION | cut -d - -f 1)
+if [[ "$PACK_VERSION" =~ ^0.* ]]; then
+  PACK_VERSION=1
+fi
+echo "Version: $VERSION - Pack Version: $PACK_VERSION"
 cd ../target
 
 if [ ! -f launcher/KT2L.dmg ]; then
@@ -67,7 +71,6 @@ if [ ! -z "$ENTRIES" ]; then
   done
 fi
 
-PACK_VERSION=$(echo $VERSION | cut -d . -f 1-2)
 # copy
 echo "Copy KT2L.dmg to aws"
 aws s3 cp ../launcher/KT2L.dmg s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
