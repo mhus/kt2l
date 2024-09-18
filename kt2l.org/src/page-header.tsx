@@ -8,6 +8,7 @@ const navigation = [
     {name: 'Intro', href: '/docs/intro'},
     {name: 'Get Started', href: '/docs/get-started'},
     {name: 'Documentation', href: '/docs'},
+    {name: 'Screenshots', href: 'https://kt2l.org/docs/screenshots'},
     {name: 'Disclaimer', href: '/#disclaimer'},
     {name: 'License', href: '/#license'},
 //    {name: 'Contribute', href: '/#contribute'},
