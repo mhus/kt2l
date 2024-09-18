@@ -317,6 +317,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     }
 
     protected void createGridColumnsAtEnd(Grid<Resource> podGrid) {
+        podGrid.addColumn(pod -> pod.getContainerAge()).setHeader("CAge").setSortProperty("cage");
         podGrid.addColumn(pod -> pod.getNode()).setHeader("Node").setSortProperty("node");
         podGrid.addColumn(pod -> pod.getIp()).setHeader("IP").setSortProperty("ip");
         podGrid.addColumn(pod -> pod.getOwner()).setHeader("Owner").setSortProperty("owner");
@@ -368,6 +369,10 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             case "ip" -> switch (direction) {
                 case ASCENDING -> a.getIp().compareTo(b.getIp());
                 case DESCENDING -> b.getIp().compareTo(a.getIp());
+            };
+            case "cage" -> switch (direction) {
+                case ASCENDING -> K8sUtil.compareTo(a.getContainerCreated(), b.getContainerCreated());
+                case DESCENDING -> K8sUtil.compareTo(b.getContainerCreated(), a.getContainerCreated());
             };
             default -> 0;
         };
@@ -488,6 +493,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         private String node = "";
         private String ip = "";
 
+        protected OffsetDateTime containerCreated;
+
         private PodMetrics metric;
 
         public Resource(PodGrid grid) {
@@ -529,6 +536,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             this.runningContainersCnt = 0;
             this.containerCnt = 0;
             this.allContainerCnt = 0;
+            this.containerCreated = null;
             {
                 var containers = resource.getStatus().getContainerStatuses();
                 if (containers != null) {
@@ -538,6 +546,9 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                         if (container.getReady() != null && container.getReady())
                             this.runningContainersCnt++;
                         this.restarts += container.getRestartCount();
+                        var created = container.getState().getRunning().getStartedAt();
+                        if (containerCreated == null || created.isAfter(containerCreated))
+                            containerCreated = created;
                     }
                 }
             }
@@ -550,7 +561,6 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                             if (container.getReady() != null && container.getReady())
                                 this.runningContainersCnt++;
                         }
-                        this.restarts += container.getRestartCount();
                     }
                 }
             }
@@ -563,7 +573,6 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                             if (container.getReady() != null && container.getReady())
                                 this.runningContainersCnt++;
                         }
-                        this.restarts += container.getRestartCount();
                     }
                 }
             }
@@ -652,6 +661,9 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             return Objects.hash(name, namespace);
         }
 
+        public String getContainerAge() {
+            return containerCreated == null ? "-" : K8sUtil.getAge(containerCreated);
+        }
     }
 
     @Data
