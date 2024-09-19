@@ -36,8 +36,9 @@ The resources YAML editor view allows you to edit the YAML of a resource.
 
 ![Resources YAML Editor View](screenshots/pod_yaml_editor.png)
 
-## As Desktop Application
+## Desktop Application Cover
 
-The application can be run as a desktop application. The application is started in a window and can be used as a desktop application.
+The application can be run as a desktop application. The application is started in the background and can be 
+used with a desktop application window.
 
 ![As Desktop Application](screenshots/kt2l-desktop.png)

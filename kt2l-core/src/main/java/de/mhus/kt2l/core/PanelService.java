@@ -30,6 +30,7 @@ import de.mhus.kt2l.form.FormPanel;
 import de.mhus.kt2l.helm.HelmChartDetailsPanel;
 import de.mhus.kt2l.helm.HelmClusterAction;
 import de.mhus.kt2l.helm.HelmInstalledChartsPanel;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.portforward.PortForwardingPanel;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
@@ -94,7 +95,7 @@ public class PanelService {
 
     public DeskTab showYamlPanel(DeskTab parentTab, Cluster cluster, V1APIResource type, KubernetesObject resource) {
         return parentTab.getTabBar().addTab(
-                cluster.getName() + ":" + type + ":" + resource.getMetadata().getName() + ":details",
+                cluster.getName() + ":" + K8s.displayName(type) + ":" + resource.getMetadata().getName() + ":details",
                 resource.getMetadata().getName(),
                 true,
                 true,
@@ -110,7 +111,7 @@ public class PanelService {
                 .setColor(parentTab.getColor())
                 .setParentTab(parentTab)
                 .setHelpContext("yaml")
-                .setWindowTitle(cluster.getTitle() + " - " + type + " - " + resource.getMetadata().getName() + " - Details");
+                .setWindowTitle(cluster.getTitle() + " - " + K8s.displayName(type) + " - " + resource.getMetadata().getName() + " - Details");
     }
 
     public DeskTab addResourcesGrid(Core core, Cluster cluster) {
@@ -534,7 +535,7 @@ public class PanelService {
         )
                 .setReproducable(true)
                 .setHelpContext("edit_form")
-                .setWindowTitle(cluster.getTitle() + " - " + resource.getMetadata().getName() + " - Edit");
+                .setWindowTitle(cluster.getTitle() + " - " + K8s.displayName(type) + " - " + resource.getMetadata().getName() + " - Edit");
 
     }
 }
