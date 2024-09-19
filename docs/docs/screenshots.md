@@ -23,3 +23,21 @@ namespace, and filters to display the resources.
 ![Cluster Resources View](screenshots/cluster_resources_pods.png)
 
 A list ov available resource actions is displayed in the menu bar and context menu.
+
+## Pod xterm View
+
+The pod xterm view allows you to open a terminal session to a pod.
+
+![Pod xterm View](screenshots/pod_xterm.png)
+
+## Resources YAML Editor View
+
+The resources YAML editor view allows you to edit the YAML of a resource.
+
+![Resources YAML Editor View](screenshots/pod_yaml_editor.png)
+
+## As Desktop Application
+
+The application can be run as a desktop application. The application is started in a window and can be used as a desktop application.
+
+![As Desktop Application](screenshots/kt2l-desktop.png)

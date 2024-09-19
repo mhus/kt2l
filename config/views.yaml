@@ -38,6 +38,8 @@ resourcesGrid:
   colors: true
   showResourceVersion: false
   historyMaxSize: 50
+resourcesDelete:
+  parallel: false
 localBash:
   path: /bin/bash
   argument: -i

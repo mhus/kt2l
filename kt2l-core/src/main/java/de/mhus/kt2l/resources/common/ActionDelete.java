@@ -20,6 +20,7 @@ package de.mhus.kt2l.resources.common;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.AbstractIcon;
@@ -27,6 +28,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.resources.ExecutionContext;
@@ -39,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import static de.mhus.commons.tools.MLang.tryThis;
@@ -47,6 +50,9 @@ import static de.mhus.commons.tools.MLang.tryThis;
 @Slf4j
 @WithRole(ROLE.WRITE)
 public class ActionDelete implements ResourceAction {
+
+    @Autowired
+    private ViewsConfiguration viewsConfiguration;
 
     @Autowired
     private K8sService k8s;
@@ -75,6 +81,11 @@ public class ActionDelete implements ResourceAction {
         dialog.setHeaderTitle("Delete " + context.getSelected().size() + " " + (context.getSelected().size() > 1 ? "Items": "Item") + "?");
         dialog.add(grid);
 
+        final var config = viewsConfiguration.getConfig("resourcesDelete");
+        Checkbox parallelExecution = new Checkbox("Parallel execution");
+        parallelExecution.setValue(config.getBoolean("parallel", false));
+        dialog.getFooter().add(parallelExecution);
+
         Button cancelButton = new Button("Cancel", e -> {
             dialog.close();
             context.getUi().remove(dialog);
@@ -83,19 +94,19 @@ public class ActionDelete implements ResourceAction {
         Button deleteButton = new Button("Delete", e -> {
             dialog.close();
             context.getUi().remove(dialog);
-            deleteItems(context);
+            deleteItems(context, parallelExecution.getValue());
         });
         deleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
         dialog.getFooter().add(deleteButton);
 
-        dialog.setWidth("500px");
-        dialog.setHeight("80%");
+        dialog.setWidth(config.getString("width", "500px"));
+        dialog.setHeight(config.getString("height", "80%"));
 
         dialog.open();
 
     }
 
-    private void deleteItems(ExecutionContext context) {
+    private void deleteItems(ExecutionContext context, boolean parallel) {
         LOGGER.info("Delete resources");
 
         ProgressDialog dialog = new ProgressDialog();
@@ -103,28 +114,60 @@ public class ActionDelete implements ResourceAction {
         dialog.setMax(context.getSelected().size());
         dialog.open();
 
-        Thread.startVirtualThread(() -> {
+        if (parallel) {
+            // start all in parallel
+            final List<Thread> threads = new LinkedList<>();
+
             context.getSelected().forEach(res -> {
-                try (var sce = context.getSecurityContext().enter()) {
-                    context.getUi().access(() -> {
-                        dialog.setProgress(dialog.getProgress()+1, res.getMetadata().getNamespace() + "." + res.getMetadata().getName());
-                    });
-//                    if (res instanceof ContainerResource container) {
-//                        podHandler.deleteContainer(context.getCluster().getApiProvider(), container.getPod(), container.getContainerName() );
-//                    } else {
+                final var thread = Thread.startVirtualThread(() -> {
+                    try (var sce = context.getSecurityContext().enter()) {
                         var handler = k8s.getTypeHandler(res, context.getCluster(), context.getType());
                         handler.delete(context.getCluster().getApiProvider(), res.getMetadata().getName(), res.getMetadata().getNamespace());
-//                    }
-                } catch (Exception e) {
-                    LOGGER.error("delete resource {}", res, e);
-                    context.getErrors().add(e);
-                }
+                    } catch (Exception e) {
+                        LOGGER.error("delete resource {}", res, e);
+                        context.getErrors().add(e);
+                    }
+                });
+                threads.add(thread);
             });
-            context.getUi().access(() -> {
-                dialog.close();
+            // wait to finish
+            Thread.startVirtualThread(() -> {
+                threads.forEach(t -> {
+                    try {
+                        t.join();
+                        context.getUi().access(() -> {
+                            dialog.next("");
+                        });
+                    } catch (InterruptedException e) {
+                        LOGGER.error("join", e);
+                    }
+                });
+                context.getUi().access(() -> {
+                    dialog.close();
+                });
+                context.finished();
             });
-            context.finished();
-        });
+        } else {
+            // start one after the other
+            Thread.startVirtualThread(() -> {
+                context.getSelected().forEach(res -> {
+                    try (var sce = context.getSecurityContext().enter()) {
+                        context.getUi().access(() -> {
+                            dialog.setProgress(dialog.getProgress() + 1, res.getMetadata().getNamespace() + "." + res.getMetadata().getName());
+                        });
+                        var handler = k8s.getTypeHandler(res, context.getCluster(), context.getType());
+                        handler.delete(context.getCluster().getApiProvider(), res.getMetadata().getName(), res.getMetadata().getNamespace());
+                    } catch (Exception e) {
+                        LOGGER.error("delete resource {}", res, e);
+                        context.getErrors().add(e);
+                    }
+                });
+                context.getUi().access(() -> {
+                    dialog.close();
+                });
+                context.finished();
+            });
+        }
     }
 
     @Override
