@@ -1,0 +1,15 @@
+apiVersion: v1
+entries:
+  kt2l-chart:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2024-07-06T20:08:06.651905626Z"
+    description: KT2L Helm chart
+    digest: 8dc9b9b100ed63e8a816e3f28d782e498ab1939784e799aafcaf663f13d3d150
+    icon: https://kt2l.org/docs/img/kt2l-logo.svg
+    name: kt2l-chart
+    type: application
+    urls:
+    - https://github.com/mhus/kt2l/releases/download/kt2l-chart-0.0.1/kt2l-chart-0.0.1.tgz
+    version: 0.0.1
+generated: "2024-07-06T20:08:06.651916146Z"
