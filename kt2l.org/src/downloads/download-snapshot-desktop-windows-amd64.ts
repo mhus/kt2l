@@ -4,7 +4,7 @@ export let download : DownloadFile = {
     description: "Installer for Windows amd64 systems. Java JDK 21 is included.",
     href: "https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/kt2l-desktop-windows-amd64-.exe",
     href_help: "/docs/installation/desktop#windows-bundle",
-    size: "355MB",
+    size: "357MB",
     enabled: true,
-    created: "2024-09-18"
+    created: "2024-09-19"
 }
