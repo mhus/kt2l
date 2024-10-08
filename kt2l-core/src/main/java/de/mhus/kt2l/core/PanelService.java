@@ -175,8 +175,8 @@ public class PanelService {
                 .setWindowTitle(cluster.getTitle() + " - " + selected.getMetadata().getNamespace() + "." + selected.getMetadata().getName() + (containerName == null ? "" : "." + containerName) + (attach ? " - Attach" : " - Shell"));
     }
 
-    public DeskTab showStoragePanel(Core core, StorageFile file) {
-        return addPanel(
+    public DeskTab showStoragePanel(Core core, StorageFile selected) {
+        final var tab = addPanel(
                 core,
                 null,
                 "storage",
@@ -187,6 +187,10 @@ public class PanelService {
                 .setReproducable(true)
                 .setHelpContext("storage")
                 .setWindowTitle("Storage");
+        if (selected != null) {
+            ((StoragePanel)tab.getPanel()).showFile(selected);
+        }
+        return tab;
     }
 
     public DeskTab addVisPanel(Core core, Cluster cluster) {

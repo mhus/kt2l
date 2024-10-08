@@ -35,6 +35,9 @@ public class StorageFile {
     private final long modified;
     private final Storage storage;
 
+    StorageFile(Storage storage, String pathWithName, boolean directory, long size, long modified) {
+        this(storage, MFile.getParentPath(pathWithName), MFile.getFileName(pathWithName), directory, size, modified);
+    }
     StorageFile(Storage storage, String path, String name, boolean directory, long size, long modified) {
         this.storage = storage;
         this.path = path;
@@ -44,8 +47,8 @@ public class StorageFile {
         this.modified = modified;
     }
 
-    public StorageFile(StorageFile parent, String path) {
-        this(parent.getStorage(), parent.getPath() + "/" + MFile.normalizePath(path), MString.beforeLastIndex(path, '/'), false, -1, -1);
+    public StorageFile(StorageFile parent, String pathWithName) {
+        this(parent.getStorage(), parent.getPath() + "/" + MFile.normalizePath(pathWithName), false, -1, -1);
     }
 
     public String getPathAndName() {

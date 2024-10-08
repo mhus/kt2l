@@ -423,7 +423,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
             selectedDirectory = file;
             selectedCurrent = null;
         } else {
-            selectedDirectory = new StorageFile(file.getStorage(), file.getPath(), "", true, -1, -1);
+            selectedDirectory = new StorageFile(file.getStorage(), file.getPath(), file.getName(), true, -1, -1);
             selectedCurrent = file;
         }
         updateSelectedFiles();

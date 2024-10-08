@@ -95,7 +95,7 @@ public abstract class Storage {
 
     public StorageFile createDirectory(String context) throws IOException {
         final var path = createFilePath(context);
-        return new StorageFile(this, path, MString.afterLastIndex(path, '/'), true, 0, System.currentTimeMillis());
+        return new StorageFile(this, path, true, 0, System.currentTimeMillis());
     }
 
     public abstract void delete(StorageFile file);

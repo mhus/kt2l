@@ -217,6 +217,8 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
         private AtomicLong tx = new AtomicLong();
         private AtomicLong rx = new AtomicLong();
         private boolean closed;
+        @Getter
+        private volatile String errorMsg;
 
         private Forwarding(ApiProvider apiProvider, String type, String namespace, String name, int servicePort, int localPort) {
             this.type = type;
@@ -249,7 +251,7 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
         }
 
         private void listen() {
-
+            errorMsg = null;
             LOGGER.info("Forwarding {}/{}:{} to localhost:{}", namespace, name, servicePort, localPort);
             try {
                 socket = new ServerSocket(localPort);
@@ -265,6 +267,7 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
                     LOGGER.info("Forwarding interrupted");
                 } else {
                     LOGGER.error("Forwarding failed", e);
+                    errorMsg = e.getMessage();
                 }
             }
             listenerThread = null;
