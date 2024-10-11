@@ -47,8 +47,8 @@ public class StorageFile {
         this.modified = modified;
     }
 
-    public StorageFile(StorageFile parent, String pathWithName) {
-        this(parent.getStorage(), parent.getPath() + "/" + MFile.normalizePath(pathWithName), false, -1, -1);
+    public StorageFile(StorageFile parent, String name) {
+        this(parent.getStorage(), parent.getPathAndName(), name, false, -1, -1);
     }
 
     public String getPathAndName() {

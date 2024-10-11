@@ -171,9 +171,7 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
                 if (c instanceof ForwardEntry) {
                     var f = ((ForwardEntry) c).forwarding;
                     if (f.isClosed()) {
-                        core.ui().access(() -> {
-                            forwardings.remove(c);
-                        });
+                        core.ui().access(() -> forwardings.remove(c));
                         return;
                     }
                     core.ui().access(() -> {

@@ -36,7 +36,7 @@ public abstract class Storage {
     public OutputFile createFileStream(StorageFile path, String name) throws IOException {
         // TODO validate is a storage place
         name = MFile.normalize(name);
-        return new OutputFile(this, path.getPath() + "/" + name, name, false, 0, System.currentTimeMillis(), createFileStreamInternal(path.getPath(), name));
+        return new OutputFile(this, path.getPathAndName() + "/" + name, name, false, 0, System.currentTimeMillis(), createFileStreamInternal(path.getPathAndName(), name));
     }
 
     public OutputFile createFileStream(String context, String name) throws IOException {

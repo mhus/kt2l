@@ -141,8 +141,7 @@ public class AwsS3Driver implements BucketDriver {
                             var p = o.getKey().substring(rootSize);
                             return new StorageFile(
                                 this,
-                                MFile.getFileDirectory(p),
-                                MFile.getFileName(p),
+                                p,
                                 false,
                                 o.getSize(),
                                 o.getLastModified().getTime()

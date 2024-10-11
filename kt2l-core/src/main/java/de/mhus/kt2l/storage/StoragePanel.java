@@ -360,6 +360,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
     private void updateBreadcrumb() {
         breadCrumb.removeAll();
         var selectedNow = selectedCurrent == null ? selectedDirectory : selectedCurrent;
+        if (!selectedNow.isDirectory()) selectedNow = new StorageFile(selectedNow.getStorage(), selectedNow.getPath(), true, -1, -1);
         var path = MFile.normalizePath(selectedNow.getPathAndName()).split("/");
         var currentPath = "";
         var cnt = 0;
@@ -423,7 +424,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
             selectedDirectory = file;
             selectedCurrent = null;
         } else {
-            selectedDirectory = new StorageFile(file.getStorage(), file.getPath(), file.getName(), true, -1, -1);
+            selectedDirectory = new StorageFile(file.getStorage(), file.getPath(), true, -1, -1);
             selectedCurrent = file;
         }
         updateSelectedFiles();

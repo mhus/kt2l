@@ -546,8 +546,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                         if (container.getReady() != null && container.getReady())
                             this.runningContainersCnt++;
                         this.restarts += container.getRestartCount();
-                        var created = container.getState().getRunning().getStartedAt();
-                        if (containerCreated == null || created.isAfter(containerCreated))
+                        var created = MLang.tryThis(() -> container.getState().getRunning().getStartedAt()).orElse(null);
+                        if (created !=  null && (containerCreated == null || created.isAfter(containerCreated)))
                             containerCreated = created;
                     }
                 }
