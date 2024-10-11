@@ -24,7 +24,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 @Getter
-@EqualsAndHashCode(of = "path")
+@EqualsAndHashCode(of = {"path","name"})
 @ToString
 public class StorageFile {
 
