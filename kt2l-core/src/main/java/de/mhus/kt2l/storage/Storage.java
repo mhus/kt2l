@@ -36,7 +36,7 @@ public abstract class Storage {
     public OutputFile createFileStream(StorageFile path, String name) throws IOException {
         // TODO validate is a storage place
         name = MFile.normalize(name);
-        return new OutputFile(this, path.getPath() + "/" + name, name, false, 0, System.currentTimeMillis(), createFileStreamInternal(path.getPath(), name));
+        return new OutputFile(this, path.getPathAndName() + "/" + name, name, false, 0, System.currentTimeMillis(), createFileStreamInternal(path.getPathAndName(), name));
     }
 
     public OutputFile createFileStream(String context, String name) throws IOException {
@@ -95,7 +95,7 @@ public abstract class Storage {
 
     public StorageFile createDirectory(String context) throws IOException {
         final var path = createFilePath(context);
-        return new StorageFile(this, path, MString.afterLastIndex(path, '/'), true, 0, System.currentTimeMillis());
+        return new StorageFile(this, path, true, 0, System.currentTimeMillis());
     }
 
     public abstract void delete(StorageFile file);

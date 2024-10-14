@@ -29,9 +29,9 @@ import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.StreamResource;
-import de.mhus.commons.io.PipedStream;
 import de.mhus.commons.tools.MDate;
 import de.mhus.commons.tools.MFile;
+import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MThread;
 import de.mhus.kt2l.aaa.SecurityContext;
@@ -46,8 +46,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.olli.FileDownloadWrapper;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -180,13 +183,13 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
                 List<StorageFile> list = new LinkedList<>();
                 collectFiles(list, selectedCurrent);
 
-                PipedStream pipe = new PipedStream(viewsConfiguration.getConfig("storage").getInt("downloadPipeSize", 1024*1024*1024));
-                pipe.setReadTimeout(viewsConfiguration.getConfig("storage").getInt("downloadPipeReadTimeout", 6000));
-                pipe.setWriteTimeout(viewsConfiguration.getConfig("storage").getInt("downloadPipeWriteTimeout", 6000));
-                inputStream = pipe.getIn();
+                PipedOutputStream outPipe = new PipedOutputStream();
+                PipedInputStream inPipe = new PipedInputStream(outPipe);
 
-                ZipOutputStream zos = new ZipOutputStream(pipe.getOut());
-//                ZipOutputStream zos = new ZipOutputStream(new FileOutputStream("/tmp/download.zip"));
+                inputStream = inPipe;
+
+                ZipOutputStream zos = new ZipOutputStream(outPipe);
+//                ZipOutputStream zos = new ZipOutputStream(new FileOutputStream("target/download.zip")); // OK!
 
                 ProgressDialog dialog = new ProgressDialog();
                 dialog.setMax(list.size());
@@ -209,11 +212,11 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
                         zos.finish();
                         zos.flush();
                         zos.close();
-                        pipe.getOut().flush();
-                        pipe.getOut().close();
-                        while (!pipe.isInputClosed()) {
+                        outPipe.flush();
+                        outPipe.close();
+                        while (inPipe.available() != 0) {
                             MThread.sleep(1000);
-                            ui.get().access(() -> dialog.setProgressDetails("Wait for " + pipe.getBufferedSize() + " bytes"));
+                            ui.get().access(() -> dialog.setProgressDetails("Wait for " + MLang.tryThis( () -> inPipe.available()).orElse(0) + " bytes"));
                         }
                         ui.get().access(() -> dialog.close());
                     } catch (Exception e) {
@@ -360,6 +363,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
     private void updateBreadcrumb() {
         breadCrumb.removeAll();
         var selectedNow = selectedCurrent == null ? selectedDirectory : selectedCurrent;
+        if (!selectedNow.isDirectory()) selectedNow = new StorageFile(selectedNow.getStorage(), selectedNow.getPath(), true, -1, -1);
         var path = MFile.normalizePath(selectedNow.getPathAndName()).split("/");
         var currentPath = "";
         var cnt = 0;
@@ -423,7 +427,7 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
             selectedDirectory = file;
             selectedCurrent = null;
         } else {
-            selectedDirectory = new StorageFile(file.getStorage(), file.getPath(), "", true, -1, -1);
+            selectedDirectory = new StorageFile(file.getStorage(), file.getPath(), true, -1, -1);
             selectedCurrent = file;
         }
         updateSelectedFiles();

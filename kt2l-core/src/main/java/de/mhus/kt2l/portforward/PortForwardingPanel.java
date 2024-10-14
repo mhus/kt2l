@@ -115,22 +115,22 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
                 var action = p.length > 5 ? p[5].trim() : null;
                 if ("pod".equalsIgnoreCase(cmdName) || "svc".equalsIgnoreCase(cmdName)) {
                     try {
-                        var f = portForwarder.getForwarding(cmdName.toLowerCase(), namespace, name, remotePort, localPort)
+                        var forwarding = portForwarder.getForwarding(cmdName.toLowerCase(), namespace, name, remotePort, localPort)
                                 .orElseGet(() -> {
-                                    var newF = "pod".equalsIgnoreCase(cmdName) ?
+                                    var f = "pod".equalsIgnoreCase(cmdName) ?
                                             portForwarder.addPodForwarding(namespace, name, remotePort, localPort)
                                             :
                                             portForwarder.addServiceForwarding(namespace, name, remotePort, localPort)
                                             ;
-                                    forwardings.add(new ForwardEntry(newF));
-                                    return newF;
+                                    forwardings.add(new ForwardEntry(f));
+                                    return f;
                                 });
 
                         if (action != null) {
                             if ("on".equalsIgnoreCase(action)) {
-                                f.start();
+                                forwarding.start();
                             } else if ("off".equalsIgnoreCase(action)) {
-                                f.stop();
+                                forwarding.stop();
                             } else {
                                 UiUtil.showErrorNotification("Invalid action: " + action);
                             }
@@ -171,14 +171,17 @@ public class PortForwardingPanel extends VerticalLayout implements DeskTabListen
                 if (c instanceof ForwardEntry) {
                     var f = ((ForwardEntry) c).forwarding;
                     if (f.isClosed()) {
-                        core.ui().access(() -> {
-                            forwardings.remove(c);
-                        });
+                        core.ui().access(() -> forwardings.remove(c));
                         return;
                     }
                     core.ui().access(() -> {
-                        ((ForwardEntry) c).toggle.setValue(f.isRunning());
-                        ((ForwardEntry) c).stats.setText("CON:" + f.currentConnections() + " TX:" + MString.toByteDisplayString(f.getTx()) + " RX:" + MString.toByteDisplayString(f.getRx()) );
+                        var running = f.isRunning();
+                        var errorMsg = f.getErrorMsg();
+                        ((ForwardEntry) c).toggle.setValue(running);
+                        if (!running && errorMsg != null)
+                            ((ForwardEntry) c).stats.setText("ERROR: " + errorMsg);
+                        else
+                            ((ForwardEntry) c).stats.setText("CON:" + f.currentConnections() + " TX:" + MString.toByteDisplayString(f.getTx()) + " RX:" + MString.toByteDisplayString(f.getRx()) );
                     });
                 }
             });
