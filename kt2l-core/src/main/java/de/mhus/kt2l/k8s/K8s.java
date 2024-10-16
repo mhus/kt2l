@@ -166,6 +166,22 @@ public class K8s {
         );
     }
 
+    public static String displayName(KubernetesObject res) {
+        if (res == null) return "null";
+        StringBuilder sb = new StringBuilder();
+        sb.append(res.getKind());
+        if (res.getMetadata() != null) {
+            sb.append(" ");
+            if (res.getMetadata().getNamespace() != null) {
+                sb.append(res.getMetadata().getNamespace()).append(".");
+            }
+            sb.append(res.getMetadata().getName());
+        } else {
+            sb.append("?");
+        }
+        return sb.toString();
+    }
+
     public static String displayName(V1APIResource res) {
         if (res == null) return "";
         return DISPLAY_NAME_CACHE.getOrCreate(res, k -> {
