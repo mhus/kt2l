@@ -61,6 +61,8 @@ public class ActionDeleteDialog {
         final Dialog optionsDialog = createOptionsDialog();
 
         var optionsDialogButton = new Button("Options", e -> optionsDialog.open() );
+        optionsDialogButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        optionsDialogButton.getStyle().set("margin-inline-end", "auto");
         dialog.getFooter().add(optionsDialogButton);
 
         Button cancelButton = new Button("Cancel", e -> {
@@ -101,7 +103,7 @@ public class ActionDeleteDialog {
         sleepBetweenInMs.setMax(1000 * 60 * 5);
         sleepBetweenInMs.setStep(100);
         sleepBetweenInMs.setStepButtonsVisible(true);
-        sleepBetweenInMs.setValue(config.getInt("sleep", 0));
+        sleepBetweenInMs.setValue(config.getInt("sleepMilliseconds", 0));
         sleepBetweenInMs.setWidthFull();
         optionsPanel.add(sleepBetweenInMs);
 
@@ -116,7 +118,7 @@ public class ActionDeleteDialog {
         waitDisappearTimeoutInSec.setMax(60 * 2);
         waitDisappearTimeoutInSec.setStep(1);
         waitDisappearTimeoutInSec.setStepButtonsVisible(true);
-        waitDisappearTimeoutInSec.setValue(config.getInt("disappearTimeout", 10));
+        waitDisappearTimeoutInSec.setValue(config.getInt("disappearTimeoutSeconds", 10));
         waitDisappearTimeoutInSec.setWidthFull();
         optionsPanel.add(waitDisappearTimeoutInSec);
 
