@@ -40,6 +40,9 @@ resourcesGrid:
   historyMaxSize: 50
 resourcesDelete:
   parallel: false
+  sleepMilliseconds: 0
+  waitForDisappear: false
+  disappearTimeoutSeconds: 10
 localBash:
   path: /bin/bash
   argument: -i

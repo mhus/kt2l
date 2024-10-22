@@ -36,3 +36,8 @@ The duplicate resources grid shows you resources with the same name and namespac
 The status line shows you the number of resources in the grid and the number of selected resources.
 If resources are filtered the number of filtered resources is shown as well.
 The flag `(HA)` indicates that alerts will be highlighed.
+
+## Actions
+
+* [Create Resources](create.md)
+* [Delete Resources](delete.md)

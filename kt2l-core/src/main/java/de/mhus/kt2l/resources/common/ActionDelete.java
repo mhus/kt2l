@@ -25,6 +25,8 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import de.mhus.kt2l.aaa.UsersConfiguration.ROLE;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
@@ -72,102 +74,10 @@ public class ActionDelete implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
 
-        Grid<KubernetesObject> grid = new Grid<>();
-        grid.setSizeFull();
-        grid.addColumn(v -> getColumnValue(v)).setHeader("Name");
-        grid.setItems(new LinkedList<>(context.getSelected()));
-
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Delete " + context.getSelected().size() + " " + (context.getSelected().size() > 1 ? "Items": "Item") + "?");
-        dialog.add(grid);
-
         final var config = viewsConfiguration.getConfig("resourcesDelete");
-        Checkbox parallelExecution = new Checkbox("Parallel execution");
-        parallelExecution.setValue(config.getBoolean("parallel", false));
-        dialog.getFooter().add(parallelExecution);
+        final var action = new ActionDeleteDialog(context, config, k8s);
+        action.open();
 
-        Button cancelButton = new Button("Cancel", e -> {
-            dialog.close();
-            context.getUi().remove(dialog);
-        });
-        dialog.getFooter().add(cancelButton);
-        Button deleteButton = new Button("Delete", e -> {
-            dialog.close();
-            context.getUi().remove(dialog);
-            deleteItems(context, parallelExecution.getValue());
-        });
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
-        dialog.getFooter().add(deleteButton);
-
-        dialog.setWidth(config.getString("width", "500px"));
-        dialog.setHeight(config.getString("height", "80%"));
-
-        dialog.open();
-
-    }
-
-    private void deleteItems(ExecutionContext context, boolean parallel) {
-        LOGGER.info("Delete resources");
-
-        ProgressDialog dialog = new ProgressDialog();
-        dialog.setHeaderTitle("Delete " + context.getSelected().size() + " " + (context.getSelected().size() > 1 ? "Items": "Item") + "?");
-        dialog.setMax(context.getSelected().size());
-        dialog.open();
-
-        if (parallel) {
-            // start all in parallel
-            final List<Thread> threads = new LinkedList<>();
-
-            context.getSelected().forEach(res -> {
-                final var thread = Thread.startVirtualThread(() -> {
-                    try (var sce = context.getSecurityContext().enter()) {
-                        var handler = k8s.getTypeHandler(res, context.getCluster(), context.getType());
-                        handler.delete(context.getCluster().getApiProvider(), res.getMetadata().getName(), res.getMetadata().getNamespace());
-                    } catch (Exception e) {
-                        LOGGER.error("delete resource {}", res, e);
-                        context.getErrors().add(e);
-                    }
-                });
-                threads.add(thread);
-            });
-            // wait to finish
-            Thread.startVirtualThread(() -> {
-                threads.forEach(t -> {
-                    try {
-                        t.join();
-                        context.getUi().access(() -> {
-                            dialog.next("");
-                        });
-                    } catch (InterruptedException e) {
-                        LOGGER.error("join", e);
-                    }
-                });
-                context.getUi().access(() -> {
-                    dialog.close();
-                });
-                context.finished();
-            });
-        } else {
-            // start one after the other
-            Thread.startVirtualThread(() -> {
-                context.getSelected().forEach(res -> {
-                    try (var sce = context.getSecurityContext().enter()) {
-                        context.getUi().access(() -> {
-                            dialog.setProgress(dialog.getProgress() + 1, res.getMetadata().getNamespace() + "." + res.getMetadata().getName());
-                        });
-                        var handler = k8s.getTypeHandler(res, context.getCluster(), context.getType());
-                        handler.delete(context.getCluster().getApiProvider(), res.getMetadata().getName(), res.getMetadata().getNamespace());
-                    } catch (Exception e) {
-                        LOGGER.error("delete resource {}", res, e);
-                        context.getErrors().add(e);
-                    }
-                });
-                context.getUi().access(() -> {
-                    dialog.close();
-                });
-                context.finished();
-            });
-        }
     }
 
     @Override
@@ -198,18 +108,6 @@ public class ActionDelete implements ResourceAction {
     @Override
     public AbstractIcon getIcon() {
         return VaadinIcon.FILE_REMOVE.create();
-    }
-
-    private String getColumnValue(KubernetesObject v) {
-        var name = v.getMetadata().getName();
-        var ns = v.getMetadata().getNamespace();
-        var kind = tryThis(() -> v.getKind() ).orElse(null);
-        if (kind == null)
-            kind = v.getClass().getSimpleName();
-//        if (v instanceof ContainerResource container) {
-//            name = name + "." + container.getContainerName();
-//        }
-        return kind + ": " + (ns == null ? "" : ns + ".") + (name == null ? v.toString() : name);
     }
 
 }
