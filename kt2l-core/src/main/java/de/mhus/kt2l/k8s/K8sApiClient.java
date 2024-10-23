@@ -24,6 +24,7 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.ApiResponse;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.Pair;
+import io.kubernetes.client.openapi.ServerConfiguration;
 import io.kubernetes.client.openapi.auth.Authentication;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -37,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.text.DateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -71,6 +73,62 @@ import java.util.Map;
 public class K8sApiClient extends ApiClient {
 
     private final ApiProvider apiProvider;
+
+    @Override
+    public Call buildCall(String baseUrl, String path, String method, List<Pair> queryParams, List<Pair> collectionQueryParams, Object body, Map<String, String> headerParams, Map<String, String> cookieParams, Map<String, Object> formParams, String[] authNames, ApiCallback callback) throws ApiException {
+        return client.buildCall(baseUrl, path, method, queryParams, collectionQueryParams, body, headerParams, cookieParams, formParams, authNames, callback);
+    }
+
+    @Override
+    public Request buildRequest(String baseUrl, String path, String method, List<Pair> queryParams, List<Pair> collectionQueryParams, Object body, Map<String, String> headerParams, Map<String, String> cookieParams, Map<String, Object> formParams, String[] authNames, ApiCallback callback) throws ApiException {
+        return client.buildRequest(baseUrl, path, method, queryParams, collectionQueryParams, body, headerParams, cookieParams, formParams, authNames, callback);
+    }
+
+    @Override
+    public String buildUrl(String baseUrl, String path, List<Pair> queryParams, List<Pair> collectionQueryParams) {
+        return client.buildUrl(baseUrl, path, queryParams, collectionQueryParams);
+    }
+
+    @Override
+    public Integer getServerIndex() {
+        return client.getServerIndex();
+    }
+
+    @Override
+    public List<ServerConfiguration> getServers() {
+        return client.getServers();
+    }
+
+    @Override
+    public Map<String, String> getServerVariables() {
+        return client.getServerVariables();
+    }
+
+    @Override
+    public void setAWS4Configuration(String accessKey, String secretKey, String region, String service) {
+        client.setAWS4Configuration(accessKey, secretKey, region, service);
+    }
+
+    @Override
+    public ApiClient setServerIndex(Integer serverIndex) {
+        return client.setServerIndex(serverIndex);
+    }
+
+    @Override
+    public ApiClient setServers(List<ServerConfiguration> servers) {
+        return client.setServers(servers);
+    }
+
+    @Override
+    public ApiClient setServerVariables(Map<String, String> serverVariables) {
+        return client.setServerVariables(serverVariables);
+    }
+
+    @Override
+    public void updateParamsForAuth(String[] authNames, List<Pair> queryParams, Map<String, String> headerParams, Map<String, String> cookieParams, String payload, String method, URI uri) throws ApiException {
+        client.updateParamsForAuth(authNames, queryParams, headerParams, cookieParams, payload, method, uri);
+    }
+
     private ApiClient client;
     private String userAgent;
 
