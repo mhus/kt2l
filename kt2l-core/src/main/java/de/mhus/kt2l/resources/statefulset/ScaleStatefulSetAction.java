@@ -99,17 +99,11 @@ public class ScaleStatefulSetAction implements ResourceAction {
                 try {
                     PatchUtils.patch(
                             V1StatefulSet.class,
-                            () -> context.getCluster().getApiProvider().getAppsV1Api().patchNamespacedStatefulSetCall(
+                            () -> context.getCluster().getApiProvider().getAppsV1Api().patchNamespacedStatefulSet(
                                     obj.getMetadata().getName(),
                                     obj.getMetadata().getNamespace(),
-                                    new V1Patch(jsonPatchStr),
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    null,
-                                    null
-                            ),
+                                    new V1Patch(jsonPatchStr)
+                            ).buildCall(null),
                             V1Patch.PATCH_FORMAT_JSON_PATCH,
                             context.getCluster().getApiProvider().getClient()
                     );

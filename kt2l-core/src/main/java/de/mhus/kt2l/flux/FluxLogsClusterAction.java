@@ -54,7 +54,7 @@ public class FluxLogsClusterAction implements ClusterAction {
     @Override
     public boolean canHandle(Core core, Cluster cluster) {
         try {
-            var ns = cluster.getApiProvider().getCoreV1Api().readNamespace(FLUX_NAMESPACE, null);
+            var ns = cluster.getApiProvider().getCoreV1Api().readNamespace(FLUX_NAMESPACE).execute();
             return ns != null;
         } catch (Exception e) {
             return false;
@@ -69,7 +69,7 @@ public class FluxLogsClusterAction implements ClusterAction {
     @Override
     public void execute(Core core, Cluster cluster) {
         try {
-            var list = cluster.getApiProvider().getCoreV1Api().listNamespacedPod(FLUX_NAMESPACE, null, null, null, null, null, null, null, null, null, null, null);
+            var list = cluster.getApiProvider().getCoreV1Api().listNamespacedPod(FLUX_NAMESPACE).execute();
             var selected = list.getItems().stream().filter(p -> p.getMetadata().getName().contains("-controller-")).collect(Collectors.toSet());
             var tab = panelService.addPodLogsPanel(core.getHomeTab(), core, cluster, selected)
                     .setTabTitle("Flux Logs")

@@ -51,7 +51,7 @@ public class HelmClusterAction implements ClusterAction {
     public boolean canHandle(Core core, Cluster cluster) {
         try {
             var fieldSelector = "type=helm.sh/release.v1";
-            var list = cluster.getApiProvider().getCoreV1Api().listSecretForAllNamespaces(null, null, fieldSelector, null, null, null, null, null, null, null, null);
+            var list = cluster.getApiProvider().getCoreV1Api().listSecretForAllNamespaces().fieldSelector(fieldSelector).execute();
             return list.getItems().size() > 0;
         } catch (Exception e) {
             return false;

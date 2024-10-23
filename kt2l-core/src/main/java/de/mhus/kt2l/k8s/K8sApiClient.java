@@ -116,16 +116,6 @@ public class K8sApiClient extends ApiClient {
     }
 
     @Override
-    public Call buildCall(String path, String method, List<Pair> queryParams, List<Pair> collectionQueryParams, Object body, Map<String, String> headerParams, Map<String, String> cookieParams, Map<String, Object> formParams, String[] authNames, ApiCallback callback) throws ApiException {
-        return client.buildCall(path, method, queryParams, collectionQueryParams, body, headerParams, cookieParams, formParams, authNames, callback);
-    }
-
-    @Override
-    public Request buildRequest(String path, String method, List<Pair> queryParams, List<Pair> collectionQueryParams, Object body, Map<String, String> headerParams, Map<String, String> cookieParams, Map<String, Object> formParams, String[] authNames, ApiCallback callback) throws ApiException {
-        return client.buildRequest(path, method, queryParams, collectionQueryParams, body, headerParams, cookieParams, formParams, authNames, callback);
-    }
-
-    @Override
     public RequestBody buildRequestBodyFormEncoding(Map<String, Object> formParams) {
         return client.buildRequestBodyFormEncoding(formParams);
     }
@@ -133,11 +123,6 @@ public class K8sApiClient extends ApiClient {
     @Override
     public RequestBody buildRequestBodyMultipart(Map<String, Object> formParams) {
         return client.buildRequestBodyMultipart(formParams);
-    }
-
-    @Override
-    public String buildUrl(String path, List<Pair> queryParams, List<Pair> collectionQueryParams) {
-        return client.buildUrl(path, queryParams, collectionQueryParams);
     }
 
     @Override
@@ -499,11 +484,6 @@ public class K8sApiClient extends ApiClient {
     @Override
     public ApiClient setWriteTimeout(int writeTimeout) {
         return client.setWriteTimeout(writeTimeout);
-    }
-
-    @Override
-    public void updateParamsForAuth(String[] authNames, List<Pair> queryParams, Map<String, String> headerParams, Map<String, String> cookieParams) {
-        client.updateParamsForAuth(authNames, queryParams, headerParams, cookieParams);
     }
 
     public void setClient(ApiClient client) {

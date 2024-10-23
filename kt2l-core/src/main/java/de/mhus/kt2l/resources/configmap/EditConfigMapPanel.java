@@ -115,7 +115,7 @@ public class EditConfigMapPanel extends VerticalLayout implements DeskTabListene
         dialog.setCancelable(true);
         dialog.addConfirmListener(e2 -> {
             try {
-                var cm = cluster.getApiProvider().getCoreV1Api().readNamespacedConfigMap(selected.getMetadata().getName(), selected.getMetadata().getNamespace(), null);
+                var cm = cluster.getApiProvider().getCoreV1Api().readNamespacedConfigMap(selected.getMetadata().getName(), selected.getMetadata().getNamespace()).execute();
                 selected = cm;
                 entryList.removeAll();
                 updateEntryList();

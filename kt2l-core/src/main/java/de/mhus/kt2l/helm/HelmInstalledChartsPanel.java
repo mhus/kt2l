@@ -133,7 +133,7 @@ public class HelmInstalledChartsPanel extends VerticalLayout implements DeskTabL
     private void refreshGrid() {
         try {
             var fieldSelector = "type=helm.sh/release.v1";
-            var list = cluster.getApiProvider().getCoreV1Api().listSecretForAllNamespaces(null, null, fieldSelector, null, null, null, null, null, null, null, null);
+            var list = cluster.getApiProvider().getCoreV1Api().listSecretForAllNamespaces().fieldSelector(fieldSelector).execute();
             installedCharts.clear();
             for (var item : list.getItems()) {
                 installedCharts.add(new HelmResource(item));

@@ -115,7 +115,7 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
         dialog.setCancelable(true);
         dialog.addConfirmListener(e2 -> {
             try {
-                var cm = cluster.getApiProvider().getCoreV1Api().readNamespacedSecret(selected.getMetadata().getName(), selected.getMetadata().getNamespace(), null);
+                var cm = cluster.getApiProvider().getCoreV1Api().readNamespacedSecret(selected.getMetadata().getName(), selected.getMetadata().getNamespace()).execute();
                 selected = cm;
                 entryList.removeAll();
                 updateEntryList();

@@ -15,11 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.generators;
+package de.mhus.kt2l.k8s;
 
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MString;
-import de.mhus.kt2l.k8s.K8s;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +30,7 @@ public class GenerateK8sHandlers {
 
     private final File targetDir;
     private final List<V1APIResource> resources;
-    private final boolean testGenerator = true;
+    private final boolean testGenerator = false;
 
     public static void main(String[] args) {
         new GenerateK8sHandlers().doGenerate();
@@ -99,13 +98,12 @@ public class GenerateK8sHandlers {
         o.append("        var patch = new V1Patch(patchString);\n");
         o.append("        return PatchUtils.patch(\n");
         o.append("            ").append(resourceClassName(k8s)).append(".class,\n");
-        o.append("            () -> apiProvider.").append(apiFunction(k8s)).append(".patch").append(methodName(k8s)).append("Call(\n");
+        o.append("            () -> apiProvider.").append(apiFunction(k8s)).append(".patch").append(methodName(k8s)).append("(\n");
         o.append("                    name,\n");
         if (k8s.getNamespaced())
             o.append("                    namespace,\n");
-        o.append("                    patch,\n");
-        o.append("                    null, null, null, null, null, null\n");
-        o.append("            ),\n");
+        o.append("                    patch\n");
+        o.append("            ).buildCall(new CallBackAdapter<").append(resourceClassName(k8s)).append(">(LOGGER)),\n");
         o.append("            V1Patch.PATCH_FORMAT_JSON_PATCH,\n");
         o.append("            apiProvider.getClient()\n");
         o.append("        );\n");
@@ -126,17 +124,16 @@ public class GenerateK8sHandlers {
     }
     @Override
     public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {
-        return apiProvider.getCoreV1Api().listNodeCall(null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter(LOGGER));
+        return apiProvider.getCoreV1Api().listPodForAllNamespaces().watch(true).buildCall(new CallBackAdapter<V1Pod>(LOGGER));
     }
  */
     private void createResourceWatchCall(StringBuffer o, V1APIResource k8s) {
         o.append("    @Override\n");
         o.append("    public Call createResourceWatchCall(ApiProvider apiProvider) throws ApiException {\n");
+        o.append("        return apiProvider.").append(apiFunction(k8s)).append(".list").append(k8s.getKind());
         if (k8s.getNamespaced())
-            o.append("        return apiProvider.").append(apiFunction(k8s)).append(".list").append(k8s.getKind()).append("ForAllNamespacesCall(\n");
-        else
-            o.append("        return apiProvider.").append(apiFunction(k8s)).append(".list").append(k8s.getKind()).append("Call(\n");
-        o.append("            null, null, null, null, null, null, null, null, null, null, true,\n");
+            o.append("ForAllNamespaces");
+        o.append("().watch(true).buildCall(\n");
         o.append("            new CallBackAdapter<").append(resourceClassName(k8s)).append(">(LOGGER)\n");
         o.append("        );\n");
         o.append("    }\n");
@@ -167,9 +164,8 @@ public class GenerateK8sHandlers {
             o.append("      throw new NotImplementedException();\n");
         } else {
             o.append("        return apiProvider.").append(apiFunction(k8s)).append(".list").append(methodName(k8s)).append("(\n");
-            o.append("            namespace,\n");
-            o.append("            null, null, null, null, null, null, null, null, null, null, null\n");
-            o.append("        );\n");
+            o.append("            namespace\n");
+            o.append("        ).execute();\n");
         }
         o.append("    }\n");
         o.append("\n");
@@ -197,9 +193,7 @@ public class GenerateK8sHandlers {
         o.append("        return apiProvider.").append(apiFunction(k8s)).append(".list").append(k8s.getKind());
         if (k8s.getNamespaced())
             o.append("ForAllNamespaces");
-        o.append("(\n");
-        o.append("            null, null, null, null, null, null, null, null, null, null, null\n");
-        o.append("        );\n");
+        o.append("().execute();\n");
         o.append("    }\n");
         o.append("\n");
     }
@@ -228,9 +222,8 @@ public class GenerateK8sHandlers {
         o.append("        return apiProvider.").append(apiFunction(k8s)).append(".create").append(methodName(k8s)).append("(\n");
         if (k8s.getNamespaced())
             o.append("            body.getMetadata().getNamespace(),\n");
-        o.append("            body,\n");
-        o.append("            null, null, null, null\n");
-        o.append("        );\n");
+        o.append("            body\n");
+        o.append("        ).execute();\n");
         o.append("    }\n");
         o.append("\n");
     }
@@ -253,11 +246,10 @@ public class GenerateK8sHandlers {
         o.append("    public Object delete(ApiProvider apiProvider, String name, String namespace) throws ApiException {\n");
         o.append("        K8sUtil.checkDeleteAccess(securityService, K8s.").append(staticName(k8s)).append(");\n");
         o.append("        return apiProvider.").append(apiFunction(k8s)).append(".delete").append(methodName(k8s)).append("(\n");
-        o.append("            name,\n");
+        o.append("            name\n");
         if (k8s.getNamespaced())
-            o.append("            namespace,\n");
-        o.append("            null, null, null, null, null, null\n");
-        o.append("        );\n");
+            o.append("            ,namespace\n");
+        o.append("        ).execute();\n");
         o.append("    }\n");
         o.append("\n");
     }
@@ -298,9 +290,8 @@ public class GenerateK8sHandlers {
         o.append("            name,\n");
         if (k8s.getNamespaced())
             o.append("            namespace,\n");
-        o.append("            resource,\n");
-        o.append("            null, null, null, null\n");
-        o.append("        );\n");
+        o.append("            resource\n");
+        o.append("        ).execute();\n");
         o.append("    }\n");
         o.append("\n");
     }
@@ -318,11 +309,10 @@ public class GenerateK8sHandlers {
         o.append("    @Override\n");
         o.append("    public KubernetesObject get(ApiProvider apiProvider, String name, String namespace) throws ApiException {\n");
         o.append("        return apiProvider.").append(apiFunction(k8s)).append(".read").append(methodName(k8s)).append("(\n");
-        o.append("            name,\n");
+        o.append("            name\n");
         if (k8s.getNamespaced())
-            o.append("            namespace,\n");
-        o.append("            null\n");
-        o.append("        );\n");
+            o.append("            ,namespace\n");
+        o.append("        ).execute();\n");
         o.append("    }\n");
         o.append("\n");
     }
