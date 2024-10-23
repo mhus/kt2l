@@ -72,7 +72,7 @@ public class AremoricaK8sService extends K8sService {
 
         MLang.tryThis(() -> {
             while (true) {
-                V1Pod pod = api.readNamespacedPod(name, namespace, null);
+                V1Pod pod = api.readNamespacedPod(name, namespace).execute();
                 if (pod.getStatus().getPhase().equals("Running")) {
                     break;
                 }
@@ -90,12 +90,12 @@ public class AremoricaK8sService extends K8sService {
                     .withName(name)
                 .endMetadata()
                 .build();
-        return api.createNamespace(namespace, null, null, null, null);
+        return api.createNamespace(namespace).execute();
     }
 
     public static V1Status deleteNamespace(String name) throws ApiException {
         LOGGER.info("Delete namespace: {}", name);
-        return api.deleteNamespace(name, null, null, null, null, null, null);
+        return api.deleteNamespace(name).execute();
     }
 
     public static V1Pod createPod(String name, String namespace, String image, String ... env) throws ApiException {
@@ -123,7 +123,7 @@ public class AremoricaK8sService extends K8sService {
                 .build();
 
         api.getApiClient().setDebugging(true);
-        return api.createNamespacedPod(namespace, pod, null, null, null, null);
+        return api.createNamespacedPod(namespace, pod).execute();
     }
 
     public static void stop() {
@@ -131,7 +131,7 @@ public class AremoricaK8sService extends K8sService {
     }
 
     public static V1Pod deletePod(String name, String namespace) throws ApiException {
-        return api.deleteNamespacedPod(name, namespace, null, null, null, null, null, null);
+        return api.deleteNamespacedPod(name, namespace).execute();
     }
 
     @Override
