@@ -34,7 +34,7 @@ npm run start
 ## Application Help Pages
 
 Additional to the documentation, the application has help pages that are displayed in the application. These help pages
-are located in the `tk2l-core/docs` folder. The help pages are written in markdown and are structured as a flat list of
+are located in the `kt2l-core/docs` folder. The help pages are written in markdown and are structured as a flat list of
 files. The files are referenced in the `help.yaml` configuration file. Both the help pages and the documentation are
 available in the application. It will be generated automatically when the application is built.
 
