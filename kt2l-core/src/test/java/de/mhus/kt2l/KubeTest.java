@@ -96,7 +96,7 @@ public class KubeTest {
         final var service = new K8sService();
         ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
 
-        var deployment = apiProvider.getAppsV1Api().listDeploymentForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null).getItems().get(0);
+        var deployment = apiProvider.getAppsV1Api().listDeploymentForAllNamespaces().execute().getItems().get(0);
 //        var history = Kubectl.rollout(deployment).history();
 //        System.out.println(history);
 
@@ -112,18 +112,7 @@ public class KubeTest {
         final var service = new K8sService();
         ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
         //apiProvider.getClient().setDebugging(true);
-        var list = apiProvider.getCoreV1Api().listSecretForAllNamespaces(
-                null,
-                null,
-                "type=helm.sh/release.v1",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null);
+        var list = apiProvider.getCoreV1Api().listSecretForAllNamespaces().fieldSelector("type=helm.sh/release.v1").execute();
         list.getItems().forEach(secret -> {
             final var metadata = secret.getMetadata();
             final var name = metadata.getName();
@@ -166,13 +155,13 @@ public class KubeTest {
 
         final var podName = LOCAL_PROPERTIES.getProperty("pod.name");
         final var namespace = LOCAL_PROPERTIES.getProperty("namespace");
-        final var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace, null);
+        final var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace).execute();
         System.out.println("Pod: " + pod.getMetadata().getName() + " " + pod.getMetadata().getCreationTimestamp() + " " + pod.getStatus().getPhase() + " " + pod.getStatus().getReason() + " " + pod.getStatus().getMessage() + " " + pod.getStatus().getStartTime());
         System.out.println("---------------------------------");
         final var uid = pod.getMetadata().getUid();
         final var fieldSelector = "involvedObject.uid=" + uid;
         // final var fieldSelector = "involvedObject.name=" + podName + ",involvedObject.namespace=" + namespace;
-        final var list = apiProvider.getCoreV1Api().listNamespacedEvent(namespace, null, null, null, fieldSelector, null, 5, null, null, null, 10, null);
+        final var list = apiProvider.getCoreV1Api().listNamespacedEvent(namespace).fieldSelector(fieldSelector).timeoutSeconds(5).limit(10).execute();
 //        final var list = apiProvider.getCoreV1Api().listEventForAllNamespaces( null, null, null, fieldSelector, 10, null, null, null, null, 10, null);
         list.getItems().forEach(item -> {
             final var metadata = item.getMetadata();
@@ -203,7 +192,7 @@ public class KubeTest {
         final var service = new K8sService();
         ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
 
-        final var eventCall = apiProvider.getCoreV1Api().listEventForAllNamespacesCall( null, null, null, null, null, null, null, null, null, null, true, new CallBackAdapter<CoreV1Event>(LOGGER));
+        final var eventCall = apiProvider.getCoreV1Api().listEventForAllNamespaces().watch(true).buildCall(new CallBackAdapter<CoreV1Event>(LOGGER));
         Watch<CoreV1Event> watch = Watch.createWatch(
                 apiProvider.getClient(),
                 eventCall,
@@ -227,7 +216,7 @@ public class KubeTest {
         final var service = new K8sService();
         ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
 
-        final var list = apiProvider.getCoreV1Api().listNamespace(null, null, null, null, null, null, null, null, null, null, null);
+        final var list = apiProvider.getCoreV1Api().listNamespace().execute();
         list.getItems().forEach(item -> {
             final var metadata = item.getMetadata();
             final var name = metadata.getName();
@@ -247,7 +236,7 @@ public class KubeTest {
         final var service = new K8sService();
         ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
         apiProvider.getClient().setDebugging(true);
-        apiProvider.getCoreV1Api().listNode(null, null, null, null, null, null, null, null, null, null, null).getItems().forEach(node -> {
+        apiProvider.getCoreV1Api().listNode().execute().getItems().forEach(node -> {
             final var metadata = node.getMetadata();
             final var name = metadata.getName();
             final var creationTimestamp = metadata.getCreationTimestamp();
@@ -268,7 +257,7 @@ public class KubeTest {
         ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
 
         AtomicBoolean done = new AtomicBoolean(false);
-        apiProvider.getCoreV1Api().listNamespaceAsync(null, null, null, null, null, null, null, null, null, null, null, new ApiCallback<V1NamespaceList>() {
+        apiProvider.getCoreV1Api().listNamespace().executeAsync(new ApiCallback<V1NamespaceList>() {
             @Override
             public void onFailure(ApiException e, int i, Map map) {
                 LOGGER.warn("Failed to get namespaces: {}", e.getMessage());
@@ -316,7 +305,7 @@ public class KubeTest {
         final var podName = "loremdeployment-6c64ffbc79-7p4ff";
         final var namespace = "default";
 
-        var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace, null);
+        var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace).execute();
         Attach attach = new Attach(apiProvider.getClient());
         var result = attach.attach(pod, true);
 
@@ -379,7 +368,7 @@ public class KubeTest {
         final var namespace = LOCAL_PROPERTIES.getProperty("namespace");
 
         // get pod
-        var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace, null);
+        var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace).execute();
         if (pod.getSpec().getEphemeralContainers() == null)
             pod.getSpec().setEphemeralContainers(new ArrayList<>());
         var container = new V1EphemeralContainer();
@@ -390,7 +379,7 @@ public class KubeTest {
         container.setStdin(true);
         container.setTty(true);
         pod.getSpec().getEphemeralContainers().add(container);
-        apiProvider.getCoreV1Api().replaceNamespacedPodEphemeralcontainers(podName, namespace, pod, null, null, null, null);
+        apiProvider.getCoreV1Api().replaceNamespacedPodEphemeralcontainers(podName, namespace, pod).execute();
 
         Attach attach = new Attach(apiProvider.getClient());
         var result = attach.attach(pod, name, true, true);
@@ -419,7 +408,7 @@ public class KubeTest {
         final var podName = LOCAL_PROPERTIES.getProperty("pod.name");
         final var namespace = LOCAL_PROPERTIES.getProperty("namespace");
 
-        var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace, null);
+        var pod = apiProvider.getCoreV1Api().readNamespacedPod(podName, namespace).execute();
         System.out.println(pod);
 
         Metrics metrics = new Metrics(apiProvider.getClient());
@@ -463,7 +452,7 @@ public class KubeTest {
         CoreV1Api api = new CoreV1Api(apiProvider.getClient());
         api.getApiClient().setDebugging(true);
 
-        final var list = api.getAPIResources();
+        final var list = api.getAPIResources().execute();
 
         final Map<String, V1APIResource> resources = new TreeMap<>();
         list.getResources().forEach(resource -> {
@@ -474,21 +463,21 @@ public class KubeTest {
         // ---
 
         AppsV1Api appsApi = new AppsV1Api(apiProvider.getClient());
-        appsApi.getAPIResources().getResources().forEach(resource -> {
+        appsApi.getAPIResources().execute().getResources().forEach(resource -> {
             System.out.println("apps " + resource.getName());
         });
 
         // ---
 
         ApiextensionsV1Api apiextensionsApi = new ApiextensionsV1Api(apiProvider.getClient());
-        apiextensionsApi.getAPIResources().getResources().forEach(resource -> {
+        apiextensionsApi.getAPIResources().execute().getResources().forEach(resource -> {
             System.out.println("apiextensions " + resource.getName());
         });
 
         // ---
 
         ApisApi apisApi = new ApisApi(apiProvider.getClient());
-        var v = apisApi.getAPIVersions();
+        var v = apisApi.getAPIVersions().execute();
 
         System.out.println("ApisVersion: " + v.getApiVersion());
 
@@ -513,7 +502,7 @@ public class KubeTest {
         String localVarContentType = client.selectHeaderContentType(localVarContentTypes);
         localVarHeaderParams.put("Content-Type", localVarContentType);
         String[] localVarAuthNames = new String[]{"BearerToken"};
-        return client.buildCall(localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames, _callback);
+        return client.buildCall(client.getBasePath(), localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarCookieParams, localVarFormParams, localVarAuthNames,  _callback);
     }
 
     @Test
@@ -528,7 +517,7 @@ public class KubeTest {
         final var service = new K8sService();
         ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
 
-        var call = apiProvider.getCoreV1Api().listPodForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true,new CallBackAdapter<V1Pod>(LOGGER));
+        var call = apiProvider.getCoreV1Api().listPodForAllNamespaces().buildCall(new CallBackAdapter<V1Pod>(LOGGER));
 
         Watch<V1Pod> watch = Watch.createWatch(
                 apiProvider.getClient(),
@@ -656,7 +645,7 @@ public class KubeTest {
         ApiProvider apiProvider = service.getKubeClient(CLUSTER_NAME);
         LOGGER.info("Api: {}", apiProvider.getCoreV1Api());
         V1PodList list =
-                apiProvider.getCoreV1Api().listPodForAllNamespaces(null, null, null, null, null, null, null, null, null, null, null);
+                apiProvider.getCoreV1Api().listPodForAllNamespaces().execute();
         for (V1Pod item : list.getItems()) {
             System.out.println(item.getMetadata().getName());
         }

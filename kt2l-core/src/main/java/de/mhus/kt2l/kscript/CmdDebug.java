@@ -46,7 +46,7 @@ public class CmdDebug extends Cmd {
         container.setStdin(useStdin);
         container.setTty(useTty);
         pod.getSpec().getEphemeralContainers().add(container);
-        context.getApiProvider().getCoreV1Api().replaceNamespacedPodEphemeralcontainers(pod.getMetadata().getName(), pod.getMetadata().getNamespace(), pod, null, null, null, null);
+        context.getApiProvider().getCoreV1Api().replaceNamespacedPodEphemeralcontainers(pod.getMetadata().getName(), pod.getMetadata().getNamespace(), pod).execute();
 
         context.getProperties().setString(scope + ".container", name);
         context.addContent("--- New Container: " + name);

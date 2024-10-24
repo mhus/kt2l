@@ -7,11 +7,13 @@ title: Generators
 
 ## K8s Resource Types
 
-In some cases the project is driven by source code generators. This is the case for Kubernetes Resource Types
-which are supported by default. The generator is (currently) a separate Main_Class in kt2l-core test sources.
+Parts of the project are driven by source code generators. This is the case for default Kubernetes Resource 
+Types. The generator is a separate module project `kt2l-generator` and contains a main class to generate
+the sources. If needed the K8s java file must be duplicated into the `kt2l-generator` project before the
+generator is executed.
 
-By default, the generator is not executed. It can be executed manually but the generated classes are part
-of the project and are not generated during the build process.
+By default, the generator is not executed in the build process. Generated java files are part of the 
+source repository.
 
 ## Version Information
 

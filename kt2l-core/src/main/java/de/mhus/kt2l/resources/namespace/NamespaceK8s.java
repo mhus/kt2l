@@ -39,7 +39,7 @@ public class NamespaceK8s extends K8sV1Namespace {
         if (res instanceof V1Namespace namespace) {
             sb.append("Phase:         ").append(namespace.getStatus().getPhase()).append("\n\n");
             try {
-                final var quotas = apiProvider.getCoreV1Api().listNamespacedResourceQuota(namespace.getMetadata().getName(), null, null, null, null, null, null, null, null, null, null, null);
+                final var quotas = apiProvider.getCoreV1Api().listNamespacedResourceQuota(namespace.getMetadata().getName()).execute();
                 quotas.getItems().forEach(q -> {
                     sb.append("ResourceQuota: ").append(q.getMetadata().getName()).append("\n");
                     sb.append("  Spec:        ").append(q.getSpec()).append("\n");
@@ -52,7 +52,7 @@ public class NamespaceK8s extends K8sV1Namespace {
             }
             sb.append("\n");
             try {
-                final var limits = apiProvider.getCoreV1Api().listNamespacedLimitRange(namespace.getMetadata().getName(), null, null, null, null, null, null, null, null, null, null, null);
+                final var limits = apiProvider.getCoreV1Api().listNamespacedLimitRange(namespace.getMetadata().getName()).execute();
                 limits.getItems().forEach(q -> {
                     sb.append("LimitRange:    ").append(q.getMetadata().getName()).append("\n");
                     sb.append("  Spec:        ").append(q.getSpec()).append("\n");

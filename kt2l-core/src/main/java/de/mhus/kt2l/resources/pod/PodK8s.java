@@ -164,9 +164,8 @@ public class PodK8s extends K8sV1Pod {
                     apiProvider.getCoreV1Api().replaceNamespacedPodEphemeralcontainers(
                             pod.getMetadata().getName(),
                             pod.getMetadata().getNamespace(),
-                            pod,
-                            null, null, null, null
-                    );
+                            pod
+                    ).execute();
                     return;
                 }
             }

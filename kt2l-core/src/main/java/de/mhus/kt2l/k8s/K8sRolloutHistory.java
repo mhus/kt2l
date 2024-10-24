@@ -66,13 +66,13 @@ public class K8sRolloutHistory {
         validate();
         AppsV1Api api = new AppsV1Api(this.apiClient);
         if (apiTypeClass.equals(V1Deployment.class)) {
-            V1Deployment deployment = api.readNamespacedDeployment(name, namespace, null);
+            V1Deployment deployment = api.readNamespacedDeployment(name, namespace).execute();
             deploymentViewHistory(deployment, api);
         } else if (apiTypeClass.equals(V1DaemonSet.class)) {
-            V1DaemonSet daemonSet = api.readNamespacedDaemonSet(name, namespace, null);
+            V1DaemonSet daemonSet = api.readNamespacedDaemonSet(name, namespace).execute();
             daemonSetViewHistory(daemonSet, api);
         } else if (apiTypeClass.equals(V1StatefulSet.class)) {
-            V1StatefulSet statefulSet = api.readNamespacedStatefulSet(name, namespace, null);
+            V1StatefulSet statefulSet = api.readNamespacedStatefulSet(name, namespace).execute();
             statefulSetViewHistory(statefulSet, api);
         } else {
             throw new ApiException("Unsupported class for rollout history: " + apiTypeClass);
@@ -180,7 +180,7 @@ public class K8sRolloutHistory {
             AppsV1Api api, KubernetesObject accessor, LabelSelector selector) throws ApiException {
         List<V1ControllerRevision> result = new ArrayList<>();
         V1ControllerRevisionList historyList =
-                api.listNamespacedControllerRevision(namespace, null, null, null, null,selector.toString(), null, null, null, null, null, null);
+                api.listNamespacedControllerRevision(namespace).fieldSelector(selector.toString()).execute();
         for (V1ControllerRevision history : historyList.getItems()) {
             if (isControlledBy(history, accessor)) {
                 result.add(history);

@@ -148,7 +148,7 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
 
         @Override
         protected PortForward.PortForwardResult createForwarding() throws IOException, ApiException {
-            var service =  apiProvider.getCoreV1Api().readNamespacedService(getName(), getNamespace(), null);
+            var service =  apiProvider.getCoreV1Api().readNamespacedService(getName(), getNamespace()).execute();
             if (service.getSpec().getSelector() == null)
                 throw new ApiException("Service has no selector");
 
@@ -157,7 +157,7 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
                 throw new ApiException("Service has no port " + getServicePort());
 
             var labelSelector = service.getSpec().getSelector().entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).reduce((a, b) -> a + "," + b).orElse(null);
-            var pods = apiProvider.getCoreV1Api().listNamespacedPod(getNamespace(), null, null, null, null, labelSelector, null, null, null, null, null, null);
+            var pods = apiProvider.getCoreV1Api().listNamespacedPod(getNamespace()).labelSelector(labelSelector).execute();
             LOGGER.debug("Found {} pods for service {}/{}", pods.getItems().size(),getNamespace(),getName());
             if (pods.getItems().size() == 0)
                 throw new ApiException("No pod found for service");

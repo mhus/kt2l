@@ -27,6 +27,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cluster.Cluster;
+import de.mhus.kt2l.k8s.CallBackAdapter;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ExecutionContext;
 import de.mhus.kt2l.resources.ResourceAction;
@@ -181,17 +182,11 @@ public class ContainerResizeLimitsAction implements ResourceAction {
 
         PatchUtils.patch(
                 V1Pod.class,
-                () -> context.getCluster().getApiProvider().getCoreV1Api().patchNamespacedPodCall(
+                () -> context.getCluster().getApiProvider().getCoreV1Api().patchNamespacedPod(
                         pod.getMetadata().getName(),
                         pod.getMetadata().getNamespace(),
-                        new V1Patch(finalJsonPatchStr),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null
-                ),
+                        new V1Patch(finalJsonPatchStr)
+                ).buildCall(null),
                 V1Patch.PATCH_FORMAT_JSON_PATCH,
                 context.getCluster().getApiProvider().getClient()
         );

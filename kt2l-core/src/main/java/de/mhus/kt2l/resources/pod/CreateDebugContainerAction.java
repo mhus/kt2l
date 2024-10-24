@@ -84,7 +84,7 @@ public class CreateDebugContainerAction implements ResourceAction {
             container.setStdin(true);
             container.setTty(true);
             pod.getSpec().getEphemeralContainers().add(container);
-            context.getCluster().getApiProvider().getCoreV1Api().replaceNamespacedPodEphemeralcontainers(pod.getMetadata().getName(), pod.getMetadata().getNamespace(), pod, null, null, null, null);
+            context.getCluster().getApiProvider().getCoreV1Api().replaceNamespacedPodEphemeralcontainers(pod.getMetadata().getName(), pod.getMetadata().getNamespace(), pod).execute();
             UiUtil.showSuccessNotification("Created " + name + " in " + pod.getMetadata().getName() + " pod");
         } catch (Exception e) {
             LOGGER.warn("Create debug container failed", e);

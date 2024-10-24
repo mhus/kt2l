@@ -161,9 +161,9 @@ public class K8sUtil {
             final var namespace = res.getMetadata().getNamespace();
             final var fieldSelector = "involvedObject.uid=" + uid;
             final var list = namespace == null ?
-                    apiProvider.getCoreV1Api().listEventForAllNamespaces( null, null, null, fieldSelector, 10, null, null, null, null, 10, null)
+                    apiProvider.getCoreV1Api().listEventForAllNamespaces().fieldSelector(fieldSelector).limit(10).execute()
                     :
-                    apiProvider.getCoreV1Api().listNamespacedEvent( namespace, null, null, null, fieldSelector, null, 10, null, null, null, 10, null);
+                    apiProvider.getCoreV1Api().listNamespacedEvent( namespace).fieldSelector(fieldSelector).limit(10).execute();
 
             final var events = list.getItems();
             if (events != null && events.size() > 0) {
@@ -193,7 +193,7 @@ public class K8sUtil {
     static List<String> getNamespaces(CoreV1Api coreApi) {
         LinkedList<String> namespaces = new LinkedList<>();
         try {
-            coreApi.listNamespace(null, null, null, null, null, null, null, null, null, null, null)
+            coreApi.listNamespace().execute()
                     .getItems().forEach(ns -> namespaces.add(ns.getMetadata().getName()));
         } catch (ApiException e) {
             LOGGER.warn("Error getting namespaces", e);
@@ -207,7 +207,7 @@ public class K8sUtil {
     static CompletableFuture<List<String>> getNamespacesAsync(CoreV1Api coreApi) {
         CompletableFuture<List<String>> future = new CompletableFuture<>();
         try {
-            coreApi.listNamespaceAsync(null, null, null, null, null, null, null, null, null, null, null, new ApiCallback<V1NamespaceList>() {
+            coreApi.listNamespace().executeAsync(new ApiCallback<V1NamespaceList>() {
                 @Override
                 public void onFailure(ApiException e, int statusCode, Map<String, List<String>> responseHeaders) {
                 }
@@ -237,7 +237,7 @@ public class K8sUtil {
     static List<V1APIResource> getResourceTypes(CoreV1Api coreApi) {
         LinkedList<V1APIResource> types = new LinkedList<>();
         try {
-            coreApi.getAPIResources().getResources().forEach(res -> types.add(res));
+            coreApi.getAPIResources().execute().getResources().forEach(res -> types.add(res));
         } catch (ApiException e) {
             LOGGER.error("Error getting resource types", e);
         }

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cronjob
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello
+  namespace: cronjob
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+      spec:
+        template:
+            spec:
+              containers:
+              - name: hello
+                image: mhus/example-countdown:latest
+                env:
+                  - name: START
+                    value: '30'
+              restartPolicy: OnFailure

@@ -51,7 +51,7 @@ public class EventWatch extends ClusterBackgroundJob {
             try {
                 var apiProvider = k8s.getKubeClient(clusterId);
 
-                okhttp3.Call call = apiProvider.getCoreV1Api().listEventForAllNamespacesCall(null, null, null, null, null, null, null, null, null, null, true, null);
+                okhttp3.Call call = apiProvider.getCoreV1Api().listEventForAllNamespaces().watch(true).buildCall(null);
 
                 Watch<CoreV1Event> watch = Watch.createWatch(
                         apiProvider.getClient(),

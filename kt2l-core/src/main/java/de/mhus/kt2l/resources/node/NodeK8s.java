@@ -91,7 +91,7 @@ public class NodeK8s extends K8sV1Node {
             long sumEphemeralStorage = 0;
             long sumPods = 0;
             try {
-                final var pods = apiProvider.getCoreV1Api().listPodForAllNamespaces(null, null, "spec.nodeName=" + node.getMetadata().getName(), null, null, null, null, null, null, null, null);
+                final var pods = apiProvider.getCoreV1Api().listPodForAllNamespaces().fieldSelector("spec.nodeName=" + node.getMetadata().getName()).execute();
                 sumPods = pods.getItems().size();
                 if (pods.getItems().size() > 0) {
                     sb.append("\nPods: ").append(pods.getItems().size()).append("\n");
