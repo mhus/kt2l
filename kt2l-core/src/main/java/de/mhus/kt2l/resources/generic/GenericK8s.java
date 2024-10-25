@@ -20,6 +20,7 @@ package de.mhus.kt2l.resources.generic;
 import com.google.gson.JsonObject;
 import de.mhus.commons.errors.NotSupportedException;
 import de.mhus.commons.tools.MJson;
+import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.k8s.HandlerK8s;
@@ -41,6 +42,8 @@ public class GenericK8s implements HandlerK8s {
     private final V1APIResource type;
 
     public GenericK8s(V1APIResource type) {
+        if (MSystem.isVmDebug())
+            LOGGER.debug("Create GenericK8s for {} {}", type, MSystem.currentStackTrace("Caller"));
         this.type = type;
     }
 
