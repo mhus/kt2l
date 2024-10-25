@@ -15,7 +15,7 @@ looks good for now. Be sure the java home variable JAVA_HOME is set to the corre
 
 ## Download the server
 
-Download the latest ***Server Bundled*** ZIP-File from the website [TK2L Website](https://tk2l.org#downloads).
+Download the latest ***Server Bundled*** ZIP-File from the website [KT2L Website](https://kt2l.org#downloads).
 
 ## Unzip the file
 
@@ -59,5 +59,5 @@ You can set environment variables for the server in this file.
 
 ## Update the server
 
-To update the server, download the latest ***Server Bundled*** ZIP-File from the website [TK2L Website](https://tk2l.org#downloads) and
+To update the server, download the latest ***Server Bundled*** ZIP-File from the website [KT2L Website](https://kt2l.org#downloads) and
 unzip the file into a temporary folder. Copy the content of the `bin` and `lib` directory to your current server folder.

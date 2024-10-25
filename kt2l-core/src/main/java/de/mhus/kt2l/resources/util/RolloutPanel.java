@@ -209,7 +209,7 @@ public abstract class RolloutPanel<T extends KubernetesObject> extends VerticalL
 
     protected synchronized void watchEvents() {
         if (registration == null)
-            registration = core.backgroundJobInstance(cluster, getManagedWatchClass()).getEventHandler().registerWeak(this::changeEvent);
+            registration = ((AbstractClusterWatch<KubernetesObject>)core.backgroundJobInstance(cluster, getManagedWatchClass())).getEventHandler().registerWeak(this::changeEvent);
     }
 
     protected abstract Class<? extends ClusterBackgroundJob> getManagedWatchClass();

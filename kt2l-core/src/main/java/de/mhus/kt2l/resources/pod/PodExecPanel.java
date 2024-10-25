@@ -251,13 +251,14 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
 
             core.ui().access(() -> {
                 text.removeClassNames("bgcolor-yellow");
+                text.setValue(text.getValue() + "\n... Done");
             });
         } catch (Exception e) {
             LOGGER.error("Execute", e);
             core.ui().access(() -> {
                 text.removeClassNames("bgcolor-yellow");
                 text.addClassName("bgcolor-red");
-                text.setValue(text.getValue() + "\n" + e.getMessage());
+                text.setValue(text.getValue() + "\n... Error: " + e.getMessage());
             });
         }
         if (menuItemCapture.isChecked()) {

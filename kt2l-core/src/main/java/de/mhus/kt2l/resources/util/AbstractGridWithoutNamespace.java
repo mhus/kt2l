@@ -62,10 +62,10 @@ public abstract class AbstractGridWithoutNamespace<T extends AbstractGridWithout
 
     @Override
     protected void init() {
-        this.eventRegistration = panel.getCore().backgroundJobInstance(
+        this.eventRegistration = ((AbstractClusterWatch<KubernetesObject>)panel.getCore().backgroundJobInstance(
                 panel.getCluster(),
                 getManagedWatchClass()
-        ).getEventHandler().registerWeak(this::changeEvent);
+        )).getEventHandler().registerWeak(this::changeEvent);
         this.resourceHandler = k8sService.getTypeHandler(getManagedType());
     }
 

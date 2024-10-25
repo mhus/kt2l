@@ -34,6 +34,4 @@ public abstract class ClusterBackgroundJob {
 
     public abstract void init(Core core, String clusterId, String jobId) throws IOException;
 
-    public abstract <V extends KubernetesObject> IRegistry<Watch.Response<V>> getEventHandler();
-
 }

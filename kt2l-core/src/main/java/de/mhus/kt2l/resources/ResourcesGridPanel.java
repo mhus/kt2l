@@ -20,6 +20,7 @@ package de.mhus.kt2l.resources;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ItemLabelGenerator;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
@@ -57,6 +58,8 @@ import de.mhus.kt2l.resources.generic.GenericGrid;
 import de.mhus.kt2l.resources.generic.GenericGridFactory;
 import de.mhus.kt2l.resources.generic.GenericK8s;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
+import de.mhus.kt2l.ui.BackgroundJobDialog;
+import de.mhus.kt2l.ui.BackgroundJobDialogRegistry;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -119,6 +122,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     private int historyMaxSize = 50;
     private Button resourceFilterMenuButton;
     private ContextMenu resourceFilterMenu;
+    private Button jobsViewButton;
+    private ContextMenu jobsViewMenu;
 
     public ResourcesGridPanel(String clusterId, Core core) {
         this.clusterId = clusterId;
@@ -236,6 +241,19 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             }
         });
 
+        jobsViewButton = new Button(VaadinIcon.CLOCK.create(), e -> {
+                updateJobsMenu();
+                jobsViewButton.getElement().executeJs("var event = new MouseEvent(\"contextmenu\", {\n" +
+                        "bubbles: true,\n" +
+                        "cancelable: true,\n" +
+                        "view: window,\n" +
+                        "button: 2\n" + // 2 represents the right mouse button
+                        "});\n" +
+                        "this.dispatchEvent(event);");
+        });
+        jobsViewMenu = new ContextMenu();
+        jobsViewMenu.setTarget(jobsViewButton);
+
         historyBackButton = new Button(VaadinIcon.ARROW_LEFT.create(), e -> historyBack());
 
         historyForwardButton = new Button(VaadinIcon.ARROW_RIGHT.create(), e -> historyForward());
@@ -247,7 +265,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         spacer.setWidthFull();
 
         // toolbar
-        var toolbar = new HorizontalLayout(resourceFilterButton, resourceFilterMenuButton, filterText, namespaceSelector, typeSelector, spacer, historyBackButton, historyForwardButton, cloneButton);
+        var toolbar = new HorizontalLayout(resourceFilterButton, resourceFilterMenuButton, filterText, namespaceSelector, typeSelector, spacer, jobsViewButton, historyBackButton, historyForwardButton, cloneButton);
         toolbar.addClassName("toolbar");
         toolbar.setPadding(false);
         toolbar.setSpacing(false);
@@ -256,6 +274,24 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         toolbar.setWidthFull();
         historyUpdate();
         return toolbar;
+    }
+
+    private void updateJobsMenu() {
+        var registry = core.backgroundJobInstance(cluster, BackgroundJobDialogRegistry.class);
+        jobsViewMenu.removeAll();
+        boolean found = false;
+        for (var dialog : registry.getDialogs()) {
+            jobsViewMenu.addItem(dialog.getHeaderTitle() + (dialog.isIndeterminate() ? "" : " " + (int)dialog.getProgress() + " / " + (int)dialog.getMax() ), e -> openJobsDialog(dialog));
+            found = true;
+        }
+        if (!found)
+            jobsViewMenu.addItem("No jobs", e -> {});
+        jobsViewMenu.getUI().ifPresent(ui -> ui.push());
+    }
+
+    private void openJobsDialog(BackgroundJobDialog dialog) {
+        UI.getCurrent().remove(dialog);
+        dialog.open();
     }
 
     private synchronized void historyUpdate() {

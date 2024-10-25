@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.util;
 
+import de.mhus.commons.lang.IRegistry;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
@@ -43,7 +44,6 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
     @Autowired
     K8sService k8s;
 
-    @Getter
     private MEventHandler<Watch.Response<V>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
     private String clusterId;
@@ -58,11 +58,19 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
         }
     }
 
+    public IRegistry<Watch.Response<V>> getEventHandler() {
+        return eventHandler;
+    }
+
     @Override
     public void init(Core core, String clusterId, String jobId) throws IOException {
         this.clusterId = clusterId;
-        resourceHandler = k8s.getTypeHandler(getManagedType());
+        resourceHandler = getTypeHandler();
         watchThread = Thread.startVirtualThread(this::watch);
+    }
+
+    protected HandlerK8s getTypeHandler() {
+        return k8s.getTypeHandler(getManagedType());
     }
 
     public abstract V1APIResource getManagedType();
@@ -82,6 +90,9 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
                         );
 
                 for (Watch.Response<V> event : watch) {
+                    if (event.object == null) {
+                        LOGGER.warn("➤ Event Null object {}", event);
+                    } else
                     if (event.object instanceof KubernetesObject) {
                         V res = event.object;
                         V1ObjectMeta meta = res.getMetadata();
@@ -92,7 +103,7 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
                                 LOGGER.debug("➤ Event " + getClass().getSimpleName() + ": " + event.type + " - " + meta.getName() + " " + meta.getNamespace() + " " + meta.getCreationTimestamp());
                                 break;
                             default:
-                                LOGGER.warn("Unknown event type: " + event.type);
+                                LOGGER.warn("➤ Unknown event type: " + event.type);
                         }
                         eventHandler.fire(event);
                     } else {
@@ -101,7 +112,7 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
                 }
             } catch (Exception e) {
                 if (Thread.interrupted()) {
-                    LOGGER.debug("Interrupted {}", getClass().getSimpleName());
+                    LOGGER.debug("➤ Interrupted {}", getClass().getSimpleName());
                     return;
                 }
                 onError(e);
@@ -116,9 +127,9 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
     }
 
     protected void onError(Exception e) {
-        LOGGER.warn("Exception", e);
+        LOGGER.warn("➤ Exception", e);
         if (lastErrorTime != 0 && System.currentTimeMillis() - lastErrorTime < 10000) {
-            LOGGER.info("Too many errors, wait 10 second");
+            LOGGER.info("➤ Too many errors, wait 10 second");
             MThread.sleep(10000);
         }
         lastErrorTime = System.currentTimeMillis();

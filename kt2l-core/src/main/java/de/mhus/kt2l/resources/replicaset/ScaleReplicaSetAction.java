@@ -21,6 +21,7 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -55,13 +56,22 @@ public class ScaleReplicaSetAction implements ResourceAction {
     @Override
     public void execute(ExecutionContext context) {
 
+        final var max = context.getSelected().stream().max((o1, o2) -> {
+            if (((V1ReplicaSet)o1).getSpec().getReplicas() == null) return -1;
+            if (((V1ReplicaSet)o2).getSpec().getReplicas() == null) return 1;
+            return ((V1ReplicaSet)o1).getSpec().getReplicas() - ((V1ReplicaSet)o2).getSpec().getReplicas();
+        });
         Dialog dialog = new Dialog();
         dialog.setWidth("400px");
         dialog.setHeight("400px");
         dialog.setHeaderTitle("Scale Replica Set");
+
+        dialog.add(new Div("Scaling ReplicaSet will be reverted if the ReplicaSet is managed by a Deployment."));
         IntegerField replicasField = new IntegerField();
         replicasField.setLabel("Replicas");
         replicasField.setMin(0);
+        if (max.isPresent())
+            replicasField.setMax(((V1ReplicaSet)max.get()).getSpec().getReplicas());
         replicasField.setValue( ((V1ReplicaSet)context.getSelected().stream().findFirst().get()).getSpec().getReplicas() );
         replicasField.setStepButtonsVisible(true);
         dialog.add(replicasField);

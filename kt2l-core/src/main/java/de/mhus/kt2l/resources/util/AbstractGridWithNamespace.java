@@ -79,7 +79,7 @@ public abstract class AbstractGridWithNamespace<T extends AbstractGridWithNamesp
         highlightAlerts = podScorerConfiguration.getHighlightAlerts();
         resourceHandler = k8sService.getTypeHandler(getManagedType());
         if (getManagedWatchClass() != null)
-            eventRegistration = panel.getCore().backgroundJobInstance(panel.getCluster(), getManagedWatchClass()).getEventHandler().registerWeak(this::changeEvent);
+            eventRegistration = ((AbstractClusterWatch<KubernetesObject>)panel.getCore().backgroundJobInstance(panel.getCluster(), getManagedWatchClass())).getEventHandler().registerWeak(this::changeEvent);
     }
 
     protected abstract Class<? extends ClusterBackgroundJob> getManagedWatchClass();

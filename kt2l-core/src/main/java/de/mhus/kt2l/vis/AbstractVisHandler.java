@@ -21,6 +21,7 @@ import de.mhus.commons.lang.IRegistration;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.k8s.HandlerK8s;
 import de.mhus.kt2l.k8s.K8sUtil;
+import de.mhus.kt2l.resources.util.AbstractClusterWatch;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.util.Watch;
@@ -123,7 +124,7 @@ public abstract class AbstractVisHandler implements VisHandler {
         this.autoUpdate = value;
         if (autoUpdate) {
             if (getManagedWatchClass() != null)
-                eventRegistration = panel.getCore().backgroundJobInstance(panel.getCluster(), getManagedWatchClass()).getEventHandler().registerWeak(this::changeEvent);
+                eventRegistration = ((AbstractClusterWatch<KubernetesObject>)panel.getCore().backgroundJobInstance(panel.getCluster(), getManagedWatchClass())).getEventHandler().registerWeak(this::changeEvent);
         } else {
             if (eventRegistration != null)
                 eventRegistration.unregister();

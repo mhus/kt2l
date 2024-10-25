@@ -31,6 +31,8 @@ import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.core.PanelService;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
+import de.mhus.kt2l.resources.util.AbstractClusterWatch;
+import de.mhus.kt2l.ui.BackgroundJobDialogRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -81,6 +83,7 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         bar.addItem("TabBarInfo", e -> showTabBarInfo());
         bar.addItem("Core Panels", e -> showCorePanels());
         bar.addItem("Grid History", e -> showGridHistory());
+        bar.addItem("Background Jobs", e -> showBackgroundJobs());
         if(evilMode) {
             bar.addItem("Logs", e -> panelService.showSystemLogPanel(deskTab.getTabBar().getCore()).select());
         }
@@ -105,6 +108,27 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
 
         osBean = ManagementFactory.getOperatingSystemMXBean();
         updateInfo(0);
+    }
+
+    private void showBackgroundJobs() {
+        StringBuffer i = new StringBuffer();
+        deskTab.getTabBar().getCore().getBackgroundJobClusters().forEach(clusterId -> {
+            deskTab.getTabBar().getCore().getBackgroundJobIds(clusterId).forEach(jobId -> {
+                i.append("  Job: " + clusterId + " " + jobId + "\n");
+                deskTab.getTabBar().getCore().getBackgroundJob(clusterId, jobId).ifPresent(job -> {
+                    i.append("    Class: " + job.getClass().getCanonicalName() + "\n");
+                    if (job instanceof AbstractClusterWatch abstractClusterWatch) {
+                        i.append("    Listeners: " + abstractClusterWatch.getEventHandler().size() + "\n");
+                    } else
+                    if (job instanceof BackgroundJobDialogRegistry backgroundJobDialogRegistry) {
+                        backgroundJobDialogRegistry.getDialogs().forEach(dialog -> {
+                            i.append("    Dialog: " + dialog.getHeaderTitle() + "\n");
+                        });
+                    }
+                });
+            });
+        });
+        output.setValue(i.toString());
     }
 
     private void showHttpRequest() {

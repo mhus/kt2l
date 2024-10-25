@@ -73,7 +73,6 @@ public class EventWatch extends ClusterBackgroundJob {
         }
     }
 
-    @Override
     public MEventHandler<Watch.Response<CoreV1Event>> getEventHandler() {
         return eventHandler;
     }
