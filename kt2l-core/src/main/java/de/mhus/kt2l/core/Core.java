@@ -79,6 +79,7 @@ import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.common.ResourceYamlEditorPanel;
 import de.mhus.kt2l.resources.pod.ContainerShellPanel;
 import de.mhus.kt2l.resources.pod.PodLogsPanel;
+import de.mhus.kt2l.resources.util.AbstractClusterWatch;
 import de.mhus.kt2l.ui.UiUtil;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
@@ -96,6 +97,7 @@ import org.vaadin.olli.FileDownloadWrapper;
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -381,10 +383,12 @@ public class Core extends AppLayout {
         synchronized (backgroundJobs) {
             backgroundJobs.values().forEach(map -> {
                 map.values().removeIf(job -> {
-                    if (job.getEventHandler().size() == 0) {
-                        LOGGER.debug("㋡ {} Close idle Job {}", sessionId, job.getClass().getSimpleName());
-                        job.close();
-                        return true;
+                    if (job instanceof AbstractClusterWatch<?> watch) {
+                        if (watch.getEventHandler().size() == 0) {
+                            LOGGER.debug("㋡ {} Close idle Job {}", sessionId, watch.getClass().getSimpleName());
+                            watch.close();
+                            return true;
+                        }
                     }
                     return false;
                 });
@@ -753,6 +757,15 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
     }
 
     public int getBackgroundJobCount() {
-        return backgroundJobs.size();
+        return backgroundJobs.values().stream().mapToInt(Map::size).sum();
     }
+
+    public List<String> getBackgroundJobClusters() {
+        return backgroundJobs.keySet().stream().toList();
+    }
+
+    public List<String> getBackgroundJobIds(String clusterId) {
+        return backgroundJobs.getOrDefault(clusterId, Collections.EMPTY_MAP).keySet().stream().toList();
+    }
+
 }

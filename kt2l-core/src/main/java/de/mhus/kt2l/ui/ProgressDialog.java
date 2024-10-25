@@ -20,8 +20,25 @@ package de.mhus.kt2l.ui;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.progressbar.ProgressBar;
+import lombok.EqualsAndHashCode;
 
 public class ProgressDialog extends Dialog {
+
+    public double getMin() {
+        return progress.getMin();
+    }
+
+    public double getMax() {
+        return progress.getMax();
+    }
+
+    public double getValue() {
+        return progress.getValue();
+    }
+
+    public boolean isIndeterminate() {
+        return progress.isIndeterminate();
+    }
 
     private final ProgressBar progress;
     private final Div current;
@@ -43,6 +60,7 @@ public class ProgressDialog extends Dialog {
         setWidth("500px");
         setHeight("200px");
         setCloseOnEsc(false);
+        setCloseOnOutsideClick(false);
     }
 
     public void setMin(double min) {
@@ -80,4 +98,5 @@ public class ProgressDialog extends Dialog {
     public void setProgressDetails(String details) {
         this.details.setText(details);
     }
+
 }

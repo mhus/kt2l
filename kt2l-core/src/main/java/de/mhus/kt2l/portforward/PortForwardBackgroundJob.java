@@ -54,8 +54,6 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
     @Autowired
     ClusterService clusterService;
 
-    private MEventHandler<PortForwardingChanged> eventHandler = new MEventHandler<>();
-
     private List<Forwarding> forwardings = Collections.synchronizedList(new LinkedList<>());
     private Cluster cluster;
 
@@ -94,16 +92,6 @@ public class PortForwardBackgroundJob extends ClusterBackgroundJob {
     public void init(Core core, String clusterId, String jobId) throws IOException {
         cluster = clusterService.getCluster(clusterId);
         // listen to avoid removing the background job
-        eventHandler.register(this::onPortForwardingChanged);
-    }
-
-    private void onPortForwardingChanged(PortForwardingChanged portForwardingChanged) {
-        // DUMMY
-    }
-
-    @Override
-    public IRegistry<PortForwardingChanged> getEventHandler() {
-        return eventHandler;
     }
 
     public void removeForwarding(Forwarding forwarding) {

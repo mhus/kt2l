@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.util;
 
+import de.mhus.commons.lang.IRegistry;
 import de.mhus.commons.tools.MThread;
 import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
@@ -43,7 +44,6 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
     @Autowired
     K8sService k8s;
 
-    @Getter
     private MEventHandler<Watch.Response<V>> eventHandler = new MEventHandler<>();
     private Thread watchThread;
     private String clusterId;
@@ -56,6 +56,10 @@ public abstract class AbstractClusterWatch<V extends KubernetesObject> extends C
             watchThread.interrupt();
             watchThread = null;
         }
+    }
+
+    public IRegistry<Watch.Response<V>> getEventHandler() {
+        return eventHandler;
     }
 
     @Override

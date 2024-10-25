@@ -21,61 +21,38 @@ import com.google.gson.reflect.TypeToken;
 import de.mhus.commons.util.MEventHandler;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
+import de.mhus.kt2l.resources.util.AbstractClusterWatch;
 import io.kubernetes.client.openapi.models.CoreV1Event;
+import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.V1CronJob;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.List;
 
 @Slf4j
-public class EventWatch extends ClusterBackgroundJob {
+public class EventWatch extends AbstractClusterWatch<CoreV1Event> {
+
+    private static final V1APIResource API_TYPE = new V1APIResource().kind("Event").name("event").version("v1").group("").singularName("event").namespaced(true).shortNames(List.of("ev"));
 
     @Autowired
     K8sService k8s;
 
-    private String clusterId;
     private Thread watchThread;
-    private MEventHandler<Watch.Response<CoreV1Event>> eventHandler = new MEventHandler<>();
 
     @Override
-    public void init(Core core, String clusterId, String jobId) throws IOException {
-        this.clusterId = clusterId;
-        watchThread = Thread.startVirtualThread(this::watch);
-    }
-
-    private void watch() {
-
-        while (true) {
-            try {
-                var apiProvider = k8s.getKubeClient(clusterId);
-
-                okhttp3.Call call = apiProvider.getCoreV1Api().listEventForAllNamespaces().watch(true).buildCall(null);
-
-                Watch<CoreV1Event> watch = Watch.createWatch(
-                        apiProvider.getClient(),
-                        call,
-                        new TypeToken<Watch.Response<CoreV1Event>>() {
-                        }.getType());
-
-                for (Watch.Response<CoreV1Event> event : watch) {
-                    LOGGER.debug("➤ Event: {} {} {} {}", event.object.getType(), event.object.getReason(), event.object.getInvolvedObject().getName(), event.object.getMessage());
-                    eventHandler.fire(event);
-                }
-            } catch (Exception e) {
-                if (Thread.interrupted()) {
-                    LOGGER.debug("Interrupted");
-                    return;
-                }
-                LOGGER.error("Exception", e);
-            }
-        }
+    public V1APIResource getManagedType() {
+        return API_TYPE;
     }
 
     @Override
-    public MEventHandler<Watch.Response<CoreV1Event>> getEventHandler() {
-        return eventHandler;
+    protected Type createTypeToken() {
+        return new TypeToken<Watch.Response<CoreV1Event>>() {}.getType();
     }
 
     @Override

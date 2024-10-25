@@ -31,6 +31,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.resources.ExecutionContext;
+import de.mhus.kt2l.ui.BackgroundJobDialog;
 import de.mhus.kt2l.ui.ProgressDialog;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
@@ -51,6 +52,7 @@ public class ActionDeleteDialog {
     private Checkbox parallelExecution;
     private Checkbox waitForDisappear;
     private IntegerField waitDisappearTimeoutInSec;
+    private boolean canceled = false;
 
     public ActionDeleteDialog(ExecutionContext context, ITreeNode config, K8sService k8s) {
         this.context = context;
@@ -147,8 +149,8 @@ public class ActionDeleteDialog {
     private void deleteItems() {
         LOGGER.info("Delete resources");
 
-        ProgressDialog dialog = new ProgressDialog();
-        dialog.setHeaderTitle("Delete " + context.getSelected().size() + " " + (context.getSelected().size() > 1 ? "Items": "Item") + "?");
+        BackgroundJobDialog dialog = new BackgroundJobDialog(context.getCore(), context.getCluster(), e -> cancel());
+        dialog.setHeaderTitle("Delete " + context.getSelected().size() + " " + (context.getSelected().size() > 1 ? "Items": "Item") );
         dialog.setMax(context.getSelected().size());
         dialog.open();
 
@@ -157,6 +159,7 @@ public class ActionDeleteDialog {
             final List<Thread> threads = new LinkedList<>();
 
             context.getSelected().forEach(res -> {
+                if (canceled) return;
                 final var thread = Thread.startVirtualThread(() -> {
                     try (var sce = context.getSecurityContext().enter()) {
                         deleteItem(res);
@@ -170,6 +173,7 @@ public class ActionDeleteDialog {
             // wait to finish
             Thread.startVirtualThread(() -> {
                 threads.forEach(t -> {
+                    if (canceled) return;
                     try {
                         t.join();
                         context.getUi().access(() -> {
@@ -188,6 +192,7 @@ public class ActionDeleteDialog {
             // start one after the other
             Thread.startVirtualThread(() -> {
                 context.getSelected().forEach(res -> {
+                    if (canceled) return;
                     try (var sce = context.getSecurityContext().enter()) {
                         context.getUi().access(() -> {
                             dialog.setProgress(dialog.getProgress() + 1, res.getMetadata().getNamespace() + "." + res.getMetadata().getName());
@@ -206,6 +211,10 @@ public class ActionDeleteDialog {
         }
     }
 
+    private void cancel() {
+        canceled = true;
+    }
+
     private void deleteItem(KubernetesObject res) throws ApiException {
         var handler = k8s.getTypeHandler(res, context.getCluster(), context.getType());
         handler.delete(context.getCluster().getApiProvider(), res.getMetadata().getName(), res.getMetadata().getNamespace());
@@ -217,6 +226,7 @@ public class ActionDeleteDialog {
             long timeout = waitDisappearTimeoutInSec.getValue() * 1000;
             long startTime = System.currentTimeMillis();
             while(!MPeriod.isTimeOut(startTime, timeout)) {
+                if (canceled) return;
                 LOGGER.debug("Wait for resource to disappear {}", K8s.displayName(res));
                 try {
                     handler.get(context.getCluster().getApiProvider(), res.getMetadata().getName(), res.getMetadata().getNamespace());
