@@ -47,6 +47,7 @@ public class DummyAction implements ResourceAction  {
                 MThread.sleep(1000);
             }
             context.getUi().access(() -> dialog.close());
+            context.finished();
        });
 
     }
@@ -68,12 +69,12 @@ public class DummyAction implements ResourceAction  {
 
     @Override
     public String getShortcutKey() {
-        return "";
+        return "META+X";
     }
 
     @Override
     public String getDescription() {
-        return "";
+        return "Dummy dummy dummy";
     }
 
     @Override

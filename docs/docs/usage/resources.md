@@ -41,3 +41,10 @@ The flag `(HA)` indicates that alerts will be highlighed.
 
 * [Create Resources](create.md)
 * [Delete Resources](delete.md)
+
+## Background Jobs
+
+Some actions like `Delete Resources` are executed in the background if you leave the dialog. 
+You can see a list of running jobs if you click the ***Clock*** icon. By clicking the job entry you
+can switch back into the progress dialog. If possible you can cancel a job if you click the ***Cancel*** 
+button in the progress dialog. Caneling can take some time if the job is in a critical phase.

@@ -22,6 +22,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import de.mhus.commons.tools.MPeriod;
@@ -52,7 +53,8 @@ public class ActionDeleteDialog {
     private Checkbox parallelExecution;
     private Checkbox waitForDisappear;
     private IntegerField waitDisappearTimeoutInSec;
-    private boolean canceled = false;
+    private BackgroundJobDialog progress;
+    private Div optionsInfoText;
 
     public ActionDeleteDialog(ExecutionContext context, ITreeNode config, K8sService k8s) {
         this.context = context;
@@ -84,6 +86,10 @@ public class ActionDeleteDialog {
         optionsDialogButton.getStyle().set("margin-inline-end", "auto");
         dialog.getFooter().add(optionsDialogButton);
 
+        optionsInfoText = new Div();
+        updateOptionsInfoText();
+        dialog.getFooter().add(optionsInfoText);
+
         Button cancelButton = new Button("Cancel", e -> {
             dialog.close();
             context.getUi().remove(dialog);
@@ -102,6 +108,25 @@ public class ActionDeleteDialog {
 
     }
 
+    private void updateOptionsInfoText() {
+        StringBuilder sb = new StringBuilder();
+        if (parallelExecution.getValue()) {
+            sb.append("P");
+        }
+        if (sleepBetweenInMs.getValue() > 0) {
+            if (sb.length() > 0) sb.append(" ");
+            sb.append("S:").append(sleepBetweenInMs.getValue());
+        }
+        if (waitForDisappear.getValue()) {
+            if (sb.length() > 0) sb.append(" ");
+            sb.append("W");
+            if (waitForDisappear.getValue()) {
+                sb.append(":").append(waitDisappearTimeoutInSec.getValue());
+            }
+        }
+        optionsInfoText.setText( sb.toString() );
+    }
+
     private Dialog createOptionsDialog() {
         final Dialog optionsDialog = new Dialog();
         optionsDialog.setWidth("400px");
@@ -110,6 +135,7 @@ public class ActionDeleteDialog {
         VerticalLayout optionsPanel = new VerticalLayout();
         optionsPanel.setSizeFull();
         optionsDialog.add(optionsPanel);
+        optionsDialog.addDialogCloseActionListener(e -> updateOptionsInfoText());
 
         parallelExecution = new Checkbox("Parallel execution");
         parallelExecution.setValue(config.getBoolean("parallel", false));
@@ -142,24 +168,27 @@ public class ActionDeleteDialog {
         optionsPanel.add(waitDisappearTimeoutInSec);
 
 
-        optionsDialog.getFooter().add(new Button("OK", e -> optionsDialog.close()));
+        optionsDialog.getFooter().add(new Button("OK", e -> {
+            optionsDialog.close();
+            updateOptionsInfoText();
+        }));
         return optionsDialog;
     }
 
     private void deleteItems() {
         LOGGER.info("Delete resources");
 
-        BackgroundJobDialog dialog = new BackgroundJobDialog(context.getCore(), context.getCluster(), e -> cancel());
-        dialog.setHeaderTitle("Delete " + context.getSelected().size() + " " + (context.getSelected().size() > 1 ? "Items": "Item") );
-        dialog.setMax(context.getSelected().size());
-        dialog.open();
+        progress = new BackgroundJobDialog(context.getCore(), context.getCluster(), true);
+        progress.setHeaderTitle("Delete " + context.getSelected().size() + " " + (context.getSelected().size() > 1 ? "Items": "Item") );
+        progress.setMax(context.getSelected().size());
+        progress.open();
 
         if (parallelExecution.getValue()) {
             // start all in parallel
             final List<Thread> threads = new LinkedList<>();
 
             context.getSelected().forEach(res -> {
-                if (canceled) return;
+                if (progress.isCanceled()) return;
                 final var thread = Thread.startVirtualThread(() -> {
                     try (var sce = context.getSecurityContext().enter()) {
                         deleteItem(res);
@@ -173,18 +202,18 @@ public class ActionDeleteDialog {
             // wait to finish
             Thread.startVirtualThread(() -> {
                 threads.forEach(t -> {
-                    if (canceled) return;
+                    if (progress.isCanceled()) return;
                     try {
                         t.join();
                         context.getUi().access(() -> {
-                            dialog.next("");
+                            progress.next("");
                         });
                     } catch (InterruptedException e) {
                         LOGGER.error("join", e);
                     }
                 });
                 context.getUi().access(() -> {
-                    dialog.close();
+                    progress.close();
                 });
                 context.finished();
             });
@@ -192,10 +221,10 @@ public class ActionDeleteDialog {
             // start one after the other
             Thread.startVirtualThread(() -> {
                 context.getSelected().forEach(res -> {
-                    if (canceled) return;
+                    if (progress.isCanceled()) return;
                     try (var sce = context.getSecurityContext().enter()) {
                         context.getUi().access(() -> {
-                            dialog.setProgress(dialog.getProgress() + 1, res.getMetadata().getNamespace() + "." + res.getMetadata().getName());
+                            progress.setProgress(progress.getProgress() + 1, res.getMetadata().getNamespace() + "." + res.getMetadata().getName());
                         });
                         deleteItem(res);
                     } catch (Exception e) {
@@ -204,15 +233,11 @@ public class ActionDeleteDialog {
                     }
                 });
                 context.getUi().access(() -> {
-                    dialog.close();
+                    progress.close();
                 });
                 context.finished();
             });
         }
-    }
-
-    private void cancel() {
-        canceled = true;
     }
 
     private void deleteItem(KubernetesObject res) throws ApiException {
@@ -226,7 +251,7 @@ public class ActionDeleteDialog {
             long timeout = waitDisappearTimeoutInSec.getValue() * 1000;
             long startTime = System.currentTimeMillis();
             while(!MPeriod.isTimeOut(startTime, timeout)) {
-                if (canceled) return;
+                if (progress.isCanceled()) return;
                 LOGGER.debug("Wait for resource to disappear {}", K8s.displayName(res));
                 try {
                     handler.get(context.getCluster().getApiProvider(), res.getMetadata().getName(), res.getMetadata().getNamespace());

@@ -36,3 +36,23 @@ public abstract class AbstractClusterWatch<V1Namespace> {
 
 }
 ```
+
+## How to use background jobs
+
+Background job is a special kind of background task and is managed by the `BackgroundJobDialogRegistry` class.
+A background job is always a graphical progress dialog. You can create it by using the `BackgroundJobDialog`.
+
+If you allow canceling you should check the `isCanceled()` method to stop the job properly.
+
+```java
+var dialog = new BackgroundJobDialog(core, cluster, true);
+dialog.setHeaderTitle("My Background Job");
+dialog.open();
+
+Thread.startVirtualThread(() ->{
+        while(!dialog.isCanceled()){
+        // do something
+        }
+        context.getUi().access(()->dialog.close());
+});
+```
