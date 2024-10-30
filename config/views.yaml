@@ -30,6 +30,7 @@ core:
   uiLostEnabled: false
   uiTimeoutSeconds: 60
   trackBrowserMemoryUsage: false
+  darkMode: true
 snippets:
   maxVisibleResults: 30
 portForward:

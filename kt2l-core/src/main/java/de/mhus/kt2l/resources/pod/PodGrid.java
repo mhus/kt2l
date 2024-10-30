@@ -18,10 +18,12 @@
 
 package de.mhus.kt2l.resources.pod;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -316,19 +318,26 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         podGrid.addColumn(pod -> pod.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
         podGrid.addColumn(pod -> pod.getMetricMemoryPercentage() < 0 ? "" : pod.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
         if (scoringEnabled)
-            podGrid.addComponentColumn(pod -> {
-                var label = new Div();
-                if (pod.getScore() >= 0) {
-                    if (pod.getScore() > scoreErrorThreshold)
-                        label.add(VaadinIcon.FIRE.create());
-                    else if (pod.getScore() > scoreWarnThreshold)
-                        label.add(VaadinIcon.WARNING.create());
-                    else
-                        label.add(VaadinIcon.CHECK_CIRCLE_O.create());
-                    label.add(new Text(" " + pod.getScore()));
-                }
-                return label;
-            } ).setHeader("Score").setSortProperty("score");
+            podGrid.addComponentColumn(pod -> createScoreColumnComponent(pod) ).setHeader("Score").setSortProperty("score");
+    }
+
+    private Component createScoreColumnComponent(Resource pod) {
+        var label = new Div();
+        if (pod.getScore() >= 0) {
+            Icon icon;
+            if (pod.getScore() > scoreErrorThreshold)
+                icon = VaadinIcon.FIRE.create();
+            else if (pod.getScore() > scoreWarnThreshold)
+                icon = VaadinIcon.WARNING.create();
+            else
+                icon = VaadinIcon.CHECK.create();
+            icon.getStyle().set("width", "var(--lumo-icon-size-s)");
+            icon.getStyle().set("height", "var(--lumo-icon-size-s)");
+            icon.getStyle().set("marginRight", "var(--lumo-space-s)");
+            label.add(icon);
+            label.add(new Text(String.valueOf(pod.getScore())));
+        }
+        return label;
     }
 
     protected void createGridColumnsAtEnd(Grid<Resource> podGrid) {
