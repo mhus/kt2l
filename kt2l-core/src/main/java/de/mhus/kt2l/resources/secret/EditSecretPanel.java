@@ -32,6 +32,7 @@ import de.mhus.commons.lang.IRegistration;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.core.DeskTabCloseClickedListener;
 import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
@@ -48,7 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Configurable
 @Slf4j
-public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
+public class EditSecretPanel extends VerticalLayout implements DeskTabListener, DeskTabCloseClickedListener {
 
     @Autowired
     private K8sService k8sService;
@@ -57,7 +58,6 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
     private final Cluster cluster;
     private V1Secret selected;
     private IRegistration registration;
-    private DeskTab deskTab;
     private Div status;
     private VerticalLayout entryList;
     private boolean keyEditMode;
@@ -73,7 +73,6 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
 
     @Override
     public void tabInit(DeskTab deskTab) {
-        this.deskTab = deskTab;
         registration = core.backgroundJobInstance(cluster, SecretWatch.class).getEventHandler().registerWeak(this::changedEvent);
 
         status = new Div();
@@ -131,7 +130,7 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
         data.clear();
         for (int i = 0; i < entryList.getComponentCount(); i++) {
             Entry entry = (Entry)entryList.getComponentAt(i);
-            data.put(entry.key, stringToSecret(entry.valueField.getValue()));
+            data.put(entry.key, stringToSecret(entry.getValue()));
         }
 
         try {
@@ -253,6 +252,31 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
 
     }
 
+    @Override
+    public void tabCloseClicked(DeskTab deskTab) {
+        boolean changed = false;
+        for (int i = 0; i < entryList.getComponentCount(); i++) {
+            Entry entry = (Entry) entryList.getComponentAt(i);
+            if (entry.changed || entry.newEntry) {
+                changed = true;
+                break;
+            }
+        }
+        if (changed) {
+            ConfirmDialog dialog = new ConfirmDialog();
+            dialog.setHeader("Entry changed");
+            dialog.setText("Changed data will be lost.");
+            dialog.setCloseOnEsc(true);
+            dialog.setCancelable(true);
+            dialog.addConfirmListener(e2 -> {
+                deskTab.closeTab();
+            });
+            dialog.open();
+        } else {
+            deskTab.closeTab();
+        }
+    }
+
 
     private class Entry extends HorizontalLayout {
 
@@ -265,6 +289,7 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
         private String value;
         private boolean changed = false;
         private boolean newEntry = false;
+        private boolean showContent = false;
 
         public Entry(String key, String value) {
             this.key = key;
@@ -290,7 +315,7 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
             buttonBar.add(editBtn);
 
             resetBtn = new Button(LumoIcon.RELOAD.create(), e -> {
-                valueField.setValue(value);
+                showContent = false;
                 setChanged(false);
             });
             resetBtn.setTooltipText("Reset entry value");
@@ -357,12 +382,24 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
             add(keyField);
 
             valueField = new TextArea();
-            valueField.setValue(value);
             valueField.setWidthFull();
+            valueField.addFocusListener(e -> {
+                if (showContent) return;
+                showContent = true;
+                updateValueField();
+            });
             valueField.addValueChangeListener(e -> setChanged(true));
             add(valueField);
 
             updateValue(value);
+            updateValueField();
+        }
+
+        private void updateValueField() {
+            if (showContent)
+                valueField.setValue(value);
+            else
+                valueField.setValue("... xxx ...");
         }
 
         private void setNewEntry(boolean newEntry) {
@@ -376,21 +413,30 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
         }
 
         private void setChanged(boolean changed) {
-            if (this.changed != changed) {
-                this.changed = changed;
-                if (newEntry) return;
-                if (changed) {
+            if (!showContent) {
+                updateValueField();
+                this.removeClassName("entry-changed");
+                return;
+            }
+            if (newEntry) return;
+            if (changed) {
+                this.changed = !valueField.getValue().equals(value);
+                if (this.changed) {
                     this.addClassName("entry-changed");
                 } else {
                     this.removeClassName("entry-changed");
                 }
+            } else {
+                this.changed = false;
+                updateValueField();
+                this.removeClassName("entry-changed");
             }
         }
 
         public void updateValue(String value) {
             this.value = value;
             if (!changed)
-                valueField.setValue(value);
+                updateValueField();
         }
 
         public void setEntryKeyEditMode(boolean mode) {
@@ -399,6 +445,13 @@ public class EditSecretPanel extends VerticalLayout implements DeskTabListener {
             editBtn.setEnabled(!mode);
             resetBtn.setEnabled(!mode);
             deleteBtn.setEnabled(!mode);
+        }
+
+        public String getValue() {
+            if (showContent)
+                return valueField.getValue();
+            else
+                return value;
         }
     }
 

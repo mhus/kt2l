@@ -78,7 +78,7 @@ public class DeskTab extends HorizontalLayout {
         if (closeable) {
             Icon close = VaadinIcon.CLOSE.create();
             close.addClickListener(click -> {
-                closeTab();
+                closeTabClicked();
             });
             close.setClassName("tabclose");
             add(close);
@@ -89,6 +89,14 @@ public class DeskTab extends HorizontalLayout {
         addClickListener(click -> {
             select();
         });
+    }
+
+    public void closeTabClicked() {
+        if (panel instanceof DeskTabCloseClickedListener ask) {
+            ask.tabCloseClicked(this);
+        } else {
+            closeTab();
+        }
     }
 
     public void closeTab() {

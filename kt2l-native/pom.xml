@@ -28,12 +28,12 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <properties>
-        <start-class>de.mhus.kt2l.Kt2lServerApplication</start-class>
+        <start-class>de.mhus.kt2l.Kt2lNativeServerApplication</start-class>
     </properties>
-    <artifactId>kt2l-server</artifactId>
+    <artifactId>kt2l-native</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>kt2l-server</name>
-    <description>kt2l as server</description>
+    <name>kt2l-native</name>
+    <description>kt2l as native server</description>
     <dependencies>
 
         <dependency>
@@ -68,9 +68,19 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <image>
+                        <builder>dashaun/builder:tiny</builder>
+                        <env>
+                            <BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
+                        </env>
+                    </image>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

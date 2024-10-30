@@ -75,7 +75,7 @@ div.cluster-label {
     border-color: black;
     border-style: solid;
     border-width: 1px;
-    background-color: #f2f2f2;
+    background-color: var(--lumo-shade-10pct);
     font-weight: bold;
     width: 99%;
 }
@@ -113,7 +113,7 @@ a.login-link div {
 }
 
 .desktabview .tabitem:hover {
-    background-color: #f2f2f2;
+    background-color: var(--lumo-shade-20pct);
 }
 
 .desktabview .tabtext {
@@ -122,8 +122,8 @@ a.login-link div {
 }
 
 .desktabview .tabitem {
-    background-color: #fff;
-    border: 1px solid #f2f2f2;
+    background-color: var(--lumo-base-color);
+    border: 1px solid var(--lumo-shade-10pct);
     padding: 4px;
     border-radius: 5px;
     margin-bottom: 0px;
@@ -148,15 +148,14 @@ a.login-link div {
 }
 
 .desktabview .tabclose:hover {
-    background-color: #aeaeae;
+    background-color: var(--lumo-shade-20pct);
 }
 
 .desktabview .selected {
-    background-color: #f6f6f6;
+    background-color: var(--lumo-shade-10pct);
 }
 
 vaadin-horizontal-layout.footer {
-    color: grey;
     font-size: small;
 }
 
