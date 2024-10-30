@@ -156,7 +156,6 @@ a.login-link div {
 }
 
 vaadin-horizontal-layout.footer {
-    color: var(--lumo-shade-10pct);
     font-size: small;
 }
 
