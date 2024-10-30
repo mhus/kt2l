@@ -20,12 +20,16 @@ package de.mhus.kt2l.cluster;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.StreamResource;
@@ -99,6 +103,12 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
         add(new Text(" "));
 
+        HorizontalLayout clusterSelectorLayout = new HorizontalLayout();
+        clusterSelectorLayout.setPadding(false);
+        clusterSelectorLayout.setMargin(false);
+        clusterSelectorLayout.setSpacing(true);
+        clusterSelectorLayout.setWidthFull();
+
         if (clusterService.isClusterSelectorEnabled()) {
             clusterBox = new ComboBox<>("Select a cluster");
             clusterList = clusterService.getAvailableClusters().stream().map(c -> new ClusterItem(c.getName(), c.getTitle(), c)).toList();
@@ -119,21 +129,26 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
                     if (e.getValue() != null && e.getValue().cluster().getColor() != null) {
                         clusterBox.addClassName("color-" + e.getValue().cluster().getColor().name().toLowerCase());
                     }
-                    updateClusterActions();
+                    updateClusterActions(false);
                 });
             }
             clusterService.defaultClusterName().ifPresent(defaultClusterName -> {
                 clusterList.stream().filter(c -> c.name().equals(defaultClusterName)).findFirst().ifPresent(clusterBox::setValue);
             });
-            add(clusterBox);
+            clusterSelectorLayout.add(clusterBox);
         } else {
             clusterLabel = new Div();
             var clusterName = clusterService.defaultClusterName().get();
             defaultCluster = clusterService.getCluster(clusterName);
             clusterLabel.setText(defaultCluster.getTitle());
             clusterLabel.addClassName("cluster-label");
-            add(clusterLabel);
+            clusterSelectorLayout.add(clusterLabel);
         }
+        var refreshClusterBtn = new Button(VaadinIcon.REFRESH.create(), e -> updateClusterActions(true));
+        clusterSelectorLayout.add(refreshClusterBtn);
+        clusterSelectorLayout.setAlignSelf(FlexComponent.Alignment.END, refreshClusterBtn);
+
+        add(clusterSelectorLayout);
         var clusterActions = clusterService.getClusterActions(core);
         if (!clusterActions.isEmpty()) {
             var clusterMenuBar = new MenuBar();
@@ -174,7 +189,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
             add(licence);
         }
 
-        updateClusterActions();
+        updateClusterActions(false);
 
         setPadding(false);
         setMargin(false);
@@ -185,7 +200,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
     }
 
-    private void updateClusterActions() {
+    private void updateClusterActions(boolean showSuccess) {
         var cluster = clusterBox.getValue().cluster();
 
         Thread.startVirtualThread(() -> {
@@ -200,11 +215,16 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
                 Thread.startVirtualThread(() -> {
                     var enabled = r.action.canHandle(core, cluster);
                     core.ui().access(() -> {
-                        if (cluster != clusterBox.getValue().cluster()) return; // check if changed selection in the meantime
+                        if (cluster != clusterBox.getValue().cluster())
+                            return; // check if changed selection in the meantime
                         r.item.setEnabled(enabled);
                     });
                 });
             });
+            if (showSuccess)
+                core.ui().access(() -> {
+                    UiUtil.showSuccessNotification("Connected to cluster");
+                });
         });
     }
 

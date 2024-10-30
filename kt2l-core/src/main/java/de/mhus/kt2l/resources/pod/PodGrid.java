@@ -18,8 +18,11 @@
 
 package de.mhus.kt2l.resources.pod;
 
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.data.provider.CallbackDataProvider;
@@ -313,7 +316,19 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         podGrid.addColumn(pod -> pod.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
         podGrid.addColumn(pod -> pod.getMetricMemoryPercentage() < 0 ? "" : pod.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
         if (scoringEnabled)
-            podGrid.addColumn(pod -> pod.getScore() < 0 ? "" : pod.getScore()).setHeader("Score").setSortProperty("score");
+            podGrid.addComponentColumn(pod -> {
+                var label = new Div();
+                if (pod.getScore() >= 0) {
+                    if (pod.getScore() > scoreErrorThreshold)
+                        label.add(VaadinIcon.FIRE.create());
+                    else if (pod.getScore() > scoreWarnThreshold)
+                        label.add(VaadinIcon.WARNING.create());
+                    else
+                        label.add(VaadinIcon.CHECK_CIRCLE_O.create());
+                    label.add(new Text(" " + pod.getScore()));
+                }
+                return label;
+            } ).setHeader("Score").setSortProperty("score");
     }
 
     protected void createGridColumnsAtEnd(Grid<Resource> podGrid) {

@@ -63,15 +63,15 @@
     "lit": "$lit",
     "@polymer/polymer": "$@polymer/polymer",
     "react": "$react",
+    "xterm": "$xterm",
     "date-fns": "$date-fns",
     "proj4": "$proj4",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "@f0rce/lit-ace": "$@f0rce/lit-ace",
+    "xterm-addon-fit": "$xterm-addon-fit",
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
     "vis-network": "$vis-network",
-    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
-    "xterm": "$xterm",
-    "xterm-addon-fit": "$xterm-addon-fit"
+    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles"
   },
   "vaadin": {
     "dependencies": {

@@ -49,6 +49,7 @@ import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.VaadinSessionState;
 import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
+import com.vaadin.flow.theme.lumo.Lumo;
 import com.vaadin.flow.theme.lumo.LumoIcon;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MCast;
@@ -422,6 +423,10 @@ public class Core extends AppLayout {
         userMenu.setTarget(userButton);
         userMenu.setOpenOnClick(true);
 
+        var darkModeToggle = new ToggleButton("Dark mode");
+        darkModeToggle.addValueChangeListener(e -> switchDarkMode(e.getValue()));
+        userMenu.addItem(darkModeToggle);
+
         if (cfgService.isUserCfgEnabled()) {
             UiUtil.createIconItem(userMenu, VaadinIcon.COG, "User Settings", null, true).addClickListener(click -> {
                 cfgService.showUserCfg(this);
@@ -462,6 +467,11 @@ public class Core extends AppLayout {
 
         addToNavbar(header);
 
+    }
+
+    private void switchDarkMode(boolean dark) {
+        var js = "document.documentElement.setAttribute('theme', $0)";
+        getElement().executeJs(js, dark ? Lumo.DARK : Lumo.LIGHT);
     }
 
     private static class UserDetailsWrapper implements UserDetails {

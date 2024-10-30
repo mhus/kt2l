@@ -269,6 +269,7 @@
         <module>kt2l-core</module>
         <module>kt2l-desktop</module>
         <module>kt2l-server</module>
+        <module>kt2l-native</module>
         <module>kt2l-generator</module>
     </modules>
 
