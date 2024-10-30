@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-FROM eclipse-temurin:21.0.4_7-jdk
+FROM eclipse-temurin:21.0.5_11-jdk
 
 ENV UID=1001
 ENV GCLOUD_VERSION=471.0.0
