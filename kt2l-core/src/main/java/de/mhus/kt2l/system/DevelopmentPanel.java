@@ -53,7 +53,7 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
     @Autowired
     private Configuration config;
     @Autowired
-    private UpTimeService upTimeService;
+    private SystemService upTimeService;
     @Autowired
     private PanelService panelService;
 

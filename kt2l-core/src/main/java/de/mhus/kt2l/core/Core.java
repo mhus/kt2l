@@ -199,6 +199,7 @@ public class Core extends AppLayout {
     private ContextMenu generalContextMenu;
     private boolean uiLostEnabled = false;
     private boolean darkMode = false;
+    private boolean autoDarkMode;
 
     @PostConstruct
     public void createUi() {
@@ -226,7 +227,11 @@ public class Core extends AppLayout {
         uiLostEnabled = viewsConfiguration.getConfig("core").getBoolean("uiLostEnabled", uiLostEnabled);
         uiTemeoutSeconds = viewsConfiguration.getConfig("core").getLong("uiTimeoutSeconds", uiTemeoutSeconds);
         trackBrowserMemoryUsage = viewsConfiguration.getConfig("core").getBoolean("trackBrowserMemoryUsage", trackBrowserMemoryUsage);
-        darkMode = viewsConfiguration.getConfig("core").getBoolean("darkMode", darkMode);
+        autoDarkMode = viewsConfiguration.getConfig("core").getBoolean("autoDarkMode", false);
+        if (autoDarkMode)
+            darkMode = MSystem.isDarkMode();
+        else
+            darkMode = viewsConfiguration.getConfig("core").getBoolean("darkMode", darkMode);
 
         if (closeScheduler != null) {
             LOGGER.debug("㋡ {} Session already created", sessionId);
@@ -426,10 +431,12 @@ public class Core extends AppLayout {
         userMenu.setTarget(userButton);
         userMenu.setOpenOnClick(true);
 
-        var darkModeToggle = new ToggleButton("Dark mode");
-        darkModeToggle.addValueChangeListener(e -> switchDarkMode(e.getValue()));
-        userMenu.addItem(darkModeToggle);
-        darkModeToggle.setValue(darkMode);
+        if (!autoDarkMode) {
+            var darkModeToggle = new ToggleButton("Dark mode");
+            darkModeToggle.addValueChangeListener(e -> switchDarkMode(e.getValue()));
+            userMenu.addItem(darkModeToggle);
+            darkModeToggle.setValue(darkMode);
+        }
 
         if (cfgService.isUserCfgEnabled()) {
             UiUtil.createIconItem(userMenu, VaadinIcon.COG, "User Settings", null, true).addClickListener(click -> {
@@ -649,6 +656,17 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
             // cleanup clustered jobs
             if (refreshCounter % 10 == 0) {
                 clusteredJobsCleanup();
+            }
+            // check for dark mode
+            if (autoDarkMode && refreshCounter % 15 == 0) {
+                var currentDarkMode = MSystem.isDarkMode();
+                if (currentDarkMode != darkMode) {
+                    ui.access(() -> {
+                        darkMode = currentDarkMode;
+                        LOGGER.debug("Switch dark mode {}", darkMode);
+                        switchDarkMode(darkMode);
+                    });
+                }
             }
             // refresh selected tab
             final var selected = tabBar.getSelectedTab();

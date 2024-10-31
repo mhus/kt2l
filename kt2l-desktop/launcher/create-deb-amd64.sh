@@ -50,6 +50,8 @@ jpackage \
   --main-jar kt2l-desktop-linux-amd64.jar \
   --type deb \
   --java-options "-Dspring.profiles.active=prod" \
+  --java-options "--add-opens java.base/java.util=ALL-UNNAMED" \
+  --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" \
   --app-version "$PACK_VERSION" \
   --linux-menu-group "Utility;Administration;kt2l" \
   --linux-app-category "Administration" \
