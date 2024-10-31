@@ -74,7 +74,7 @@ public class Kt2lDesktopApplication extends Kt2lApplication {
             if (!display.readAndDispatch())
                 display.sleep();
         }
-
+        LOGGER.debug("Main SWT display closed, exiting");
         var shell = new Shell(display);
         MessageBox messageBox = new MessageBox(shell, SWT.NONE
                 | SWT.ICON_INFORMATION);
