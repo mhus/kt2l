@@ -22,7 +22,6 @@ import de.mhus.kt2l.cfg.CPanelVerticalLayout;
 import de.mhus.kt2l.form.YArray;
 import de.mhus.kt2l.form.YBoolean;
 import de.mhus.kt2l.form.YCombobox;
-import de.mhus.kt2l.form.YComponent;
 import de.mhus.kt2l.form.YText;
 import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.k8s.K8sService;
@@ -31,13 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 @Configurable
 public class ClusterCfgPanel extends CPanelVerticalLayout {
-
-    private List<YComponent> components = new LinkedList<>();
 
     @Autowired
     private K8sService k8s;

@@ -201,7 +201,14 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     }
 
     private void updateClusterActions(boolean showSuccess) {
-        var cluster = clusterBox.getValue().cluster();
+        var clusterValue = clusterBox.getValue();
+        if (clusterValue == null) {
+            core.ui().access(() -> {
+                clusterActionList.forEach(r -> r.item.setEnabled(false));
+            });
+            return;
+        }
+        var cluster = clusterValue.cluster();
 
         Thread.startVirtualThread(() -> {
             if (!validateCluster(cluster)) {

@@ -65,7 +65,7 @@ public class Configuration {
     @Value("${kt2l.configuration.tmpDirectory:}")
     private String tmpDirectory;
 
-    private static final Set<String> protectedConfigs = Collections.synchronizedSet(toSet("users", "aaa", "login"));
+    private static final Set<String> protectedConfigs = Collections.synchronizedSet(toSet("users", "aaa", "login", "application"));
 
     private Map<String, ITreeNode> sections = new HashMap<>();
     private File configurationDirectoryFile;

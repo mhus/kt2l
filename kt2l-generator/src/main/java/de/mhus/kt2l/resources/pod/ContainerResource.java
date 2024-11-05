@@ -18,10 +18,7 @@
 package de.mhus.kt2l.resources.pod;
 
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1Container;
-import io.kubernetes.client.openapi.models.V1EphemeralContainer;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Pod;
 
 public class ContainerResource implements KubernetesObject {
 

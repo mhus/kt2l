@@ -55,8 +55,10 @@ public class Kt2lDesktopApplication extends Kt2lApplication {
     private static Set<BrowserInstance> browserInstances = Collections.synchronizedSet(new HashSet<>());
 
     public static void main(String[] args) {
+
         Display.setAppName("KT2L");
         display = new Display();
+        display.addListener(SWT.Dispose, e -> shutdown() );
 
         MArgs arguments = new MArgs(args,
                 MArgs.opt('b', "Browser type: NONE, MOZILLA, WEBKIT")
@@ -75,17 +77,25 @@ public class Kt2lDesktopApplication extends Kt2lApplication {
                 display.sleep();
         }
         LOGGER.debug("Main SWT display closed, exiting");
-        var shell = new Shell(display);
-        MessageBox messageBox = new MessageBox(shell, SWT.NONE
-                | SWT.ICON_INFORMATION);
-        messageBox.setMessage("Shutting down ...");
-        Thread.startVirtualThread(() -> {
-            MThread.sleep(1000);
-            System.exit(0);
-        });
-        messageBox.open();
-        display.dispose();
+        shutdown();
+    }
 
+    private static void shutdown() {
+        LOGGER.debug("shutdown ...");
+        try {
+            var shell = new Shell(display);
+            MessageBox messageBox = new MessageBox(shell, SWT.NONE
+                    | SWT.ICON_INFORMATION);
+            messageBox.setMessage("Shutting down ...");
+            Thread.startVirtualThread(() -> {
+                MThread.sleep(1000);
+                System.exit(0);
+            });
+            messageBox.open();
+            display.dispose();
+        } catch (Exception e) {
+            LOGGER.warn("Can't shutdown",e);
+        }
     }
 
     public static Display getDisplay() {

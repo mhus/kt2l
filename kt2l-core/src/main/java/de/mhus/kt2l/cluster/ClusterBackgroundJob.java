@@ -18,10 +18,7 @@
 
 package de.mhus.kt2l.cluster;
 
-import de.mhus.commons.lang.IRegistry;
 import de.mhus.kt2l.core.Core;
-import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.util.Watch;
 
 import java.io.IOException;
 

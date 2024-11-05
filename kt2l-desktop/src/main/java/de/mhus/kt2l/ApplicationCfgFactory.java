@@ -15,33 +15,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.system;
+package de.mhus.kt2l;
 
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+import de.mhus.kt2l.cfg.CfgFactory;
+import de.mhus.kt2l.cfg.CfgPanel;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
-public class SystemService {
-
-    private long startTime = System.currentTimeMillis();
-
-    @PostConstruct
-    private void init() {
+public class ApplicationCfgFactory implements CfgFactory  {
+    @Override
+    public String handledConfigType() {
+        return "application";
     }
 
-    public long getUpTime() {
-        return System.currentTimeMillis() - startTime;
+    @Override
+    public CfgPanel createPanel() {
+        return new ApplicationCfgPanel();
     }
 
-    public String getUpTimeFormatted() {
-        long time = getUpTime();
-        long sec = time / 1000;
-        long min = sec / 60;
-        long hour = min / 60;
-        long day = hour / 24;
-        return String.format("%d days %02d:%02d:%02d", day, hour % 24, min % 60, sec % 60);
+    @Override
+    public boolean isUserRelated() {
+        return false;
     }
 
+    @Override
+    public boolean isProtected() {
+        return true;
+    }
 }

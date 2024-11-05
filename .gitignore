@@ -76,5 +76,8 @@ dependency-reduced-pom.xml
 /kt2l-desktop/src/main/bundles/prod.bundle
 /kt2l-server/src/main/bundles/prod.bundle
 /kt2l-test/src/main/bundles/prod.bundle 
+/kt2l-native/src/main/bundles/prod.bundle
+
 **/vite.generated.ts
 /log
+kt2l-core/log

@@ -198,7 +198,7 @@ public class Core extends AppLayout {
     @Getter
     private ContextMenu generalContextMenu;
     private boolean uiLostEnabled = false;
-    private boolean darkMode = false;
+    private volatile boolean darkMode = false;
     private boolean autoDarkMode;
 
     @PostConstruct
@@ -228,10 +228,12 @@ public class Core extends AppLayout {
         uiTemeoutSeconds = viewsConfiguration.getConfig("core").getLong("uiTimeoutSeconds", uiTemeoutSeconds);
         trackBrowserMemoryUsage = viewsConfiguration.getConfig("core").getBoolean("trackBrowserMemoryUsage", trackBrowserMemoryUsage);
         autoDarkMode = viewsConfiguration.getConfig("core").getBoolean("autoDarkMode", false);
-        if (autoDarkMode)
-            darkMode = MSystem.isDarkMode();
-        else
+        if (autoDarkMode) {
+            darkMode = false;
+            switchDarkMode();
+        } else
             darkMode = viewsConfiguration.getConfig("core").getBoolean("darkMode", darkMode);
+
 
         if (closeScheduler != null) {
             LOGGER.debug("㋡ {} Session already created", sessionId);
@@ -659,14 +661,7 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
             }
             // check for dark mode
             if (autoDarkMode && refreshCounter % 15 == 0) {
-                var currentDarkMode = MSystem.isDarkMode();
-                if (currentDarkMode != darkMode) {
-                    ui.access(() -> {
-                        darkMode = currentDarkMode;
-                        LOGGER.debug("Switch dark mode {}", darkMode);
-                        switchDarkMode(darkMode);
-                    });
-                }
+                switchDarkMode();
             }
             // refresh selected tab
             final var selected = tabBar.getSelectedTab();
@@ -680,6 +675,20 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
         } catch (Exception e) {
             LOGGER.error("㋡ {} Error refreshing", sessionId, e);
         }
+    }
+
+    private void switchDarkMode() {
+        ui.access(() -> {
+            this.getElement().executeJs("return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches").then(Boolean.class, res -> {
+                if (res != null) {
+                    if (darkMode != res) {
+                        darkMode = res;
+                        LOGGER.debug("㋡ {} Switch dark mode {}", sessionId, darkMode);
+                        switchDarkMode(darkMode);
+                    }
+                }
+            });
+        });
     }
 
     private void checkSession() {
