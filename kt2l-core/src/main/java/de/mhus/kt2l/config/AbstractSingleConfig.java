@@ -32,7 +32,7 @@ public abstract class AbstractSingleConfig {
     private final String sectionName;
     private final boolean protectedConfig;
     @Autowired
-    private Configuration configuration;
+    protected Configuration configuration;
 
     private ITreeNode cache;
 
