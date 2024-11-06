@@ -23,12 +23,10 @@ import de.mhus.commons.util.WeakList;
 import de.mhus.kt2l.cluster.ClusterBackgroundJob;
 import de.mhus.kt2l.core.Core;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
-import java.util.WeakHashMap;
 
 @Slf4j
 public class BackgroundJobDialogRegistry extends ClusterBackgroundJob {

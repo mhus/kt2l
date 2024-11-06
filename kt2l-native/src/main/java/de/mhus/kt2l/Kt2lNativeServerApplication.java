@@ -35,13 +35,13 @@ package de.mhus.kt2l;
 
 import de.mhus.kt2l.generated.DeployInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.ImportRuntimeHints;
 
 @Slf4j
 @ImportRuntimeHints(Kt2lNativeServerApplication.TypeMappedAnnotationArrayRuntimeHints.class)

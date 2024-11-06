@@ -20,7 +20,6 @@ package de.mhus.kt2l.ui;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import lombok.EqualsAndHashCode;
 
 public class ProgressDialog extends Dialog {
 

@@ -57,6 +57,8 @@ jpackage \
   --type dmg \
   --java-options "-XstartOnFirstThread" \
   --java-options "-Dspring.profiles.active=prod" \
+  --java-options "--add-opens java.base/java.util=ALL-UNNAMED" \
+  --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" \
   --icon kt2l.icns \
   --vendor "www.kt2l.org"
 

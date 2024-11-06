@@ -198,7 +198,8 @@ public class Core extends AppLayout {
     @Getter
     private ContextMenu generalContextMenu;
     private boolean uiLostEnabled = false;
-    private boolean darkMode = false;
+    private volatile boolean darkMode = false;
+    private boolean autoDarkMode;
 
     @PostConstruct
     public void createUi() {
@@ -226,7 +227,13 @@ public class Core extends AppLayout {
         uiLostEnabled = viewsConfiguration.getConfig("core").getBoolean("uiLostEnabled", uiLostEnabled);
         uiTemeoutSeconds = viewsConfiguration.getConfig("core").getLong("uiTimeoutSeconds", uiTemeoutSeconds);
         trackBrowserMemoryUsage = viewsConfiguration.getConfig("core").getBoolean("trackBrowserMemoryUsage", trackBrowserMemoryUsage);
-        darkMode = viewsConfiguration.getConfig("core").getBoolean("darkMode", darkMode);
+        autoDarkMode = viewsConfiguration.getConfig("core").getBoolean("autoDarkMode", false);
+        if (autoDarkMode) {
+            darkMode = false;
+            switchDarkMode();
+        } else
+            darkMode = viewsConfiguration.getConfig("core").getBoolean("darkMode", darkMode);
+
 
         if (closeScheduler != null) {
             LOGGER.debug("㋡ {} Session already created", sessionId);
@@ -426,10 +433,12 @@ public class Core extends AppLayout {
         userMenu.setTarget(userButton);
         userMenu.setOpenOnClick(true);
 
-        var darkModeToggle = new ToggleButton("Dark mode");
-        darkModeToggle.addValueChangeListener(e -> switchDarkMode(e.getValue()));
-        userMenu.addItem(darkModeToggle);
-        darkModeToggle.setValue(darkMode);
+        if (!autoDarkMode) {
+            var darkModeToggle = new ToggleButton("Dark mode");
+            darkModeToggle.addValueChangeListener(e -> switchDarkMode(e.getValue()));
+            userMenu.addItem(darkModeToggle);
+            darkModeToggle.setValue(darkMode);
+        }
 
         if (cfgService.isUserCfgEnabled()) {
             UiUtil.createIconItem(userMenu, VaadinIcon.COG, "User Settings", null, true).addClickListener(click -> {
@@ -650,6 +659,10 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
             if (refreshCounter % 10 == 0) {
                 clusteredJobsCleanup();
             }
+            // check for dark mode
+            if (autoDarkMode && refreshCounter % 15 == 0) {
+                switchDarkMode();
+            }
             // refresh selected tab
             final var selected = tabBar.getSelectedTab();
             if (selected != null) {
@@ -662,6 +675,20 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
         } catch (Exception e) {
             LOGGER.error("㋡ {} Error refreshing", sessionId, e);
         }
+    }
+
+    private void switchDarkMode() {
+        ui.access(() -> {
+            this.getElement().executeJs("return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches").then(Boolean.class, res -> {
+                if (res != null) {
+                    if (darkMode != res) {
+                        darkMode = res;
+                        LOGGER.debug("㋡ {} Switch dark mode {}", sessionId, darkMode);
+                        switchDarkMode(darkMode);
+                    }
+                }
+            });
+        });
     }
 
     private void checkSession() {

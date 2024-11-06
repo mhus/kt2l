@@ -15,26 +15,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.mhus.kt2l.system;
+package de.mhus.kt2l;
 
+import de.mhus.kt2l.cfg.CfgFactory;
+import de.mhus.kt2l.cfg.CfgPanel;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UpTimeService {
+public class ApplicationCfgFactory implements CfgFactory  {
+    @Override
+    public String handledConfigType() {
+        return "application";
+    }
 
-        private long startTime = System.currentTimeMillis();
+    @Override
+    public CfgPanel createPanel() {
+        return new ApplicationCfgPanel();
+    }
 
-        public long getUpTime() {
-            return System.currentTimeMillis() - startTime;
-        }
+    @Override
+    public boolean isUserRelated() {
+        return false;
+    }
 
-        public String getUpTimeFormatted() {
-            long time = getUpTime();
-            long sec = time / 1000;
-            long min = sec / 60;
-            long hour = min / 60;
-            long day = hour / 24;
-            return String.format("%d days %02d:%02d:%02d", day, hour % 24, min % 60, sec % 60);
-        }
-
+    @Override
+    public boolean isProtected() {
+        return true;
+    }
 }

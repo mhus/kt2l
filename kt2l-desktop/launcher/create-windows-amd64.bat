@@ -24,6 +24,8 @@ jpackage  --name KT2L ^
   --main-jar kt2l-desktop-windows-amd64.jar ^
   --type exe ^
   --java-options "-Dspring.profiles.active=prod" ^
+  --java-options "--add-opens java.base/java.util=ALL-UNNAMED" ^
+  --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" ^
   --win-menu ^
   --win-shortcut ^
   --win-shortcut-prompt ^

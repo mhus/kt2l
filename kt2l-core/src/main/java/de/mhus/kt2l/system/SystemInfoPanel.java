@@ -46,7 +46,7 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
     @Autowired
     private Configuration config;
     @Autowired
-    private UpTimeService upTimeService;
+    private SystemService upTimeService;
     @Autowired
     private PanelService panelService;
     private TextArea info;
@@ -103,7 +103,7 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
 
     }
 
-    static void fillInfo(long counter, OperatingSystemMXBean osBean, DeskTab deskTab,  UpTimeService upTimeService, StringBuffer i) {
+    static void fillInfo(long counter, OperatingSystemMXBean osBean, DeskTab deskTab, SystemService upTimeService, StringBuffer i) {
         i.append("DeployInfo     : " + DeployInfo.VERSION + " " + DeployInfo.CREATED + "\n");
         i.append("Java VM Version: " + System.getProperty("java.version") + "/" + System.getProperty("java.vm.name") + "/" + System.getProperty("java.vendor") + "\n");
         i.append("Architecture   : " + System.getProperty("os.arch") + "/" + System.getProperty("os.name") + "/" + System.getProperty("os.version") + "\n");

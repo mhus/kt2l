@@ -101,6 +101,7 @@ EOF
 cat << EOF > ~/config/local/login.yaml
 autoLogin: false
 autoLoginUser: nouser
+loginText: Demo
 EOF
 
 cat << EOF > ~/config/local/clusters.yaml
@@ -168,11 +169,16 @@ sudo ufw allow out to 52.44.227.212 # docker hub
 sudo ufw allow out to 54.156.140.159 # docker hub
 sudo ufw allow out to 44.221.37.199 # docker hub
 
-
-
 # Cleanup
 
 ```bash
 sudo rm /etc/sudoers.d/10-install-user
 ```
 
+# SSL Proxy
+
+https://github.com/jwilder/docker-letsencrypt-nginx-proxy-companion
+
+```shell
+
+```
