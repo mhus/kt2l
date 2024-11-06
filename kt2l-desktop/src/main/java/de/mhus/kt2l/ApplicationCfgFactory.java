@@ -1,5 +1,5 @@
 /*
- * kt2l-core - kt2l core implementation
+ * kt2l-desktop - kt2l desktop app
  * Copyright © 2024 Mike Hummel (mh@mhus.de)
  *
  * This program is free software: you can redistribute it and/or modify
