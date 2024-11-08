@@ -61,8 +61,7 @@ public class Kt2lApplication {
 			String[] beanNames = ctx.getBeanDefinitionNames();
 			Arrays.sort(beanNames);
 			for (String beanName : beanNames) {
-				var bean = ctx.getBean(beanName);
-				LOGGER.debug("- Bean loaded: ({}) of type ({})",beanName, bean.getClass().getName());
+				LOGGER.debug("- Bean loaded: {}",beanName);
 			}
 		};
 	}
