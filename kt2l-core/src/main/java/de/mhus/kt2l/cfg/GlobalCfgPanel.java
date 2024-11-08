@@ -131,7 +131,7 @@ public class GlobalCfgPanel extends VerticalLayout {
 
         for (CfgFactory factory : factories) {
             var panel = factory.createPanel();
-            core.getBeanFactory().autowireBean(panel);
+            UiUtil.autowireBean(core, panel);
             panel.initUi();
             tabSheet.add(panel.getTitle(), panel.getPanel());
             panels.add(new PanelStore(panel, factory));

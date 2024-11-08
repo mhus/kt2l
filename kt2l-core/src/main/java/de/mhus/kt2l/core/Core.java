@@ -735,7 +735,7 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
                 LOGGER.debug("㋡ {} Create Job {}/{} with class {}", sessionId, clusterId, jobId, k);
                 try {
                     final var job = create.get();
-                    beanFactory.autowireBean(job);
+                    UiUtil.autowireBean(this, job);
                     job.init(this, clusterId, jobId);
                     return job;
                 } catch (Exception e) {
@@ -762,7 +762,7 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
     }
     public void setHelpPanel(Component helpComponent) {
         if (!helpConfiguration.isEnabled()) return;
-        beanFactory.autowireBean(helpComponent);
+        UiUtil.autowireBean(this, helpComponent);
         helpContent.removeAll();
         helpContent.add(helpComponent);
         showHelp(false);

@@ -23,15 +23,17 @@ unset AWS_ACCESS_KEY_ID
 while getopts hcpus flag
 do
     case "${flag}" in
-        h) echo "Usage: $0 [-h] [-c] [-p] [-t] [-u]"
+        h) echo "Usage: $0 [-h] [-c] [-p] [-t] [-u] [-x]"
                echo "  -h  Display this help"
                echo "  -c  Skip compile"
                echo "  -p  Skip prepare"
                echo "  -t  Also execute tests"
                echo "  -u  Compile native"
+               echo "  -x  Compile native image"
                exit 0;;
         c) SKIP_COMPILE=true;;
         u) COMPILE_NATIVE=true;;
+        x) COMPILE_NATIVE_IMAGE=true;;
         p) SKIP_PREPARE=true;;
         t) TEST=true;;
     esac
@@ -65,10 +67,18 @@ if [ -n "$TEST" ]; then
   cd ..
 fi
 
-echo COMPILE_NATIVE $COMPILE_NATIVE
 if [ -n "$COMPILE_NATIVE" ]; then
   echo "------------------------------------------------------------"
   echo "Compile native"
+  echo "------------------------------------------------------------"
+  cd kt2l-native
+  mvn -Pnative native:compile
+  cd ..
+fi
+
+if [ -n "$COMPILE_NATIVE_IMAGE" ]; then
+  echo "------------------------------------------------------------"
+  echo "Compile native image"
   echo "------------------------------------------------------------"
   cd kt2l-native
   mvn -Pnative -Pproduction spring-boot:build-image -Dspring-boot.build-image.imageName=kt2l-native || exit 1

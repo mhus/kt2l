@@ -1,5 +1,17 @@
 [
   {
+    "name": "io.kubernetes.client.openapi.models.V1APIVersions",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "io.kubernetes.client.openapi.models.V1NamespaceList",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
     "name": "org.springframework.core.annotation.TypeMappedAnnotation[]",
     "allDeclaredMethods": true,
     "allDeclaredConstructors": true,

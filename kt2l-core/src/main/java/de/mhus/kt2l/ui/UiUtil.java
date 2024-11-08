@@ -39,13 +39,18 @@ import com.vaadin.flow.server.Command;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MCollection;
 import de.mhus.commons.tools.MJson;
+import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MSystem;
 import de.mhus.commons.yaml.MYaml;
+import de.mhus.kt2l.core.Core;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 import static de.mhus.commons.tools.MCollection.cropArray;
@@ -230,6 +235,40 @@ Key: {"key":"Meta","code":"MetaLeft","ctrlKey":false,"altKey":false,"metaKey":tr
     public static String normalizeId(String id) {
         if (id == null) return null;
         return id.replaceAll("[^A-Za-z0-9\\-]", "");
+    }
+
+    public static void autowireBean(Core core, Object object) {
+        if (object == null) return;
+        var beanFactory = core.getBeanFactory();
+        beanFactory.autowireBean(object);
+        var className = object.getClass().getCanonicalName();
+        try {
+            for (Field field : object.getClass().getDeclaredFields()) {
+                try {
+                    if (!Modifier.isStatic(field.getModifiers())) {
+                        var anno = field.getAnnotation(Autowired.class);
+                        if (anno != null) {
+                            var bean = MLang.tryThis(() -> (Object)beanFactory.getBean(field.getName(), field.getType()))
+                                    .orElseTry(() -> (Object)beanFactory.getBean(field.getType()))
+                                    .orElseTry(() -> beanFactory.getBean(field.getName()))
+                                    .orElse(null);
+                            if (bean == null) {
+                                if (anno.required())
+                                    LOGGER.warn("Bean not found: " + field.getName() + " " + field.getType() + " in class " + className);
+                            } else {
+                                field.setAccessible(true);
+                                field.set(object, bean);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Error in " + className + " " + field.getName(), e);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error in " + className, e);
+        }
+
     }
 
     @Getter

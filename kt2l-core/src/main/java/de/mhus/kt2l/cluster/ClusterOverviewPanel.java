@@ -48,6 +48,8 @@ import de.mhus.kt2l.system.DevelopmentAction;
 import de.mhus.kt2l.ui.UiUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aot.hint.annotation.Reflective;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -59,6 +61,7 @@ import static org.apache.logging.log4j.util.Strings.isBlank;
 
 @Slf4j
 @Configurable
+// @Reflective
 public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
@@ -66,9 +69,6 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
     @Autowired
     private ClusterService clusterService;
-
-    @Autowired
-    private SecurityService securityService;
 
     @Autowired
     private ViewsConfiguration viewsConfiguration;
@@ -99,6 +99,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     }
 
     public void createUi() {
+        LOGGER.warn("### createUI for {} with config {} and k8s {}", this, viewsConfiguration, k8s);
         viewConfig = viewsConfiguration.getConfig("clusterOverview");
 
         add(new Text(" "));
@@ -276,7 +277,10 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     }
 
     private Cluster getSelectedCluster() {
-        return clusterBox != null ? clusterBox.getValue().cluster() : defaultCluster;
+        if (clusterService.isClusterSelectorEnabled())
+            return clusterBox != null && clusterBox.getValue() != null ? clusterBox.getValue().cluster() : defaultCluster;
+        else
+            return defaultCluster;
     }
 
     private boolean validateCluster(Cluster cluster) {

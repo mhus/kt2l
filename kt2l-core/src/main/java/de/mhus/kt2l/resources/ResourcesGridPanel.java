@@ -60,6 +60,7 @@ import de.mhus.kt2l.resources.generic.GenericK8s;
 import de.mhus.kt2l.resources.namespace.NamespaceWatch;
 import de.mhus.kt2l.ui.BackgroundJobDialog;
 import de.mhus.kt2l.ui.BackgroundJobDialogRegistry;
+import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -417,7 +418,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
     private ResourcesGrid createDefaultGrid() {
         var g =  new GenericGrid();
-        core.getBeanFactory().autowireBean(g);
+        UiUtil.autowireBean(core, g);
         updateFilterMenu(g);
         return g;
     }
@@ -435,7 +436,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         if (foundFactory == null)
             foundFactory = new GenericGridFactory(); // fallback to generic grid
         ResourcesGrid resourcesGrid = foundFactory.create(type);
-        core.getBeanFactory().autowireBean(resourcesGrid);
+        UiUtil.autowireBean(core, resourcesGrid);
         updateFilterMenu(resourcesGrid);
         LOGGER.debug("Create grid: {}",resourcesGrid.getClass().getSimpleName());
         return resourcesGrid;
