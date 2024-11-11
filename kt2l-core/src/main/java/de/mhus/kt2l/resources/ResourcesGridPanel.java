@@ -418,7 +418,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
     private ResourcesGrid createDefaultGrid() {
         var g =  new GenericGrid();
-        UiUtil.autowireBean(core, g);
+        core.autowireBean(g);
         updateFilterMenu(g);
         return g;
     }
@@ -436,7 +436,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         if (foundFactory == null)
             foundFactory = new GenericGridFactory(); // fallback to generic grid
         ResourcesGrid resourcesGrid = foundFactory.create(type);
-        UiUtil.autowireBean(core, resourcesGrid);
+        core.autowireBean(resourcesGrid);
         updateFilterMenu(resourcesGrid);
         LOGGER.debug("Create grid: {}",resourcesGrid.getClass().getSimpleName());
         return resourcesGrid;

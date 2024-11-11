@@ -1,5 +1,11 @@
 [
   {
+    "name": "io.kubernetes.client.openapi.models.V1APIGroupList",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
     "name": "io.kubernetes.client.openapi.models.V1APIVersions",
     "allDeclaredMethods": true,
     "allDeclaredConstructors": true,

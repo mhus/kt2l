@@ -61,7 +61,7 @@ public class ResourceEditFormPanel extends VerticalLayout implements DeskTabList
 
     @Override
     public void tabInit(DeskTab deskTab) {
-        UiUtil.autowireBean(core, form);
+        core.autowireBean(form);
         form.initUi();
 
         var scroller = new Scroller();

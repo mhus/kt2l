@@ -42,6 +42,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
@@ -53,6 +54,7 @@ import com.vaadin.flow.theme.lumo.Lumo;
 import com.vaadin.flow.theme.lumo.LumoIcon;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MCast;
+import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MSystem;
@@ -96,6 +98,9 @@ import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.olli.FileDownloadWrapper;
 
 import javax.annotation.PostConstruct;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -136,7 +141,6 @@ public class Core extends AppLayout {
     private long uiTemeoutSeconds = 60;
 
     private @Autowired
-            @Getter
     AutowireCapableBeanFactory beanFactory;
 
     @Autowired
@@ -735,7 +739,7 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
                 LOGGER.debug("㋡ {} Create Job {}/{} with class {}", sessionId, clusterId, jobId, k);
                 try {
                     final var job = create.get();
-                    UiUtil.autowireBean(this, job);
+                    autowireBean(job);
                     job.init(this, clusterId, jobId);
                     return job;
                 } catch (Exception e) {
@@ -762,7 +766,7 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
     }
     public void setHelpPanel(Component helpComponent) {
         if (!helpConfiguration.isEnabled()) return;
-        UiUtil.autowireBean(this, helpComponent);
+        autowireBean(helpComponent);
         helpContent.removeAll();
         helpContent.add(helpComponent);
         showHelp(false);
@@ -807,6 +811,51 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
 
     public List<String> getBackgroundJobIds(String clusterId) {
         return backgroundJobs.getOrDefault(clusterId, Collections.EMPTY_MAP).keySet().stream().toList();
+    }
+
+    public <T> T getBean(Class<T> type) {
+        return springContext.getBean(type);
+    }
+
+    public void autowireBean(Object object) {
+        if (object == null) return;
+        beanFactory.autowireBean(object);
+        // hello native image ....
+        var className = object.getClass().getCanonicalName();
+        try {
+            for (Field field : object.getClass().getDeclaredFields()) {
+                try {
+                    if (Modifier.isStatic(field.getModifiers())) continue;
+                    var anno = field.getAnnotation(Autowired.class);
+                    if (anno == null) continue;
+                    field.setAccessible(true);
+                    if (field.get(object) != null) continue;
+
+                    if (field.getType() == List.class) {
+                        var genericType = field.getGenericType().getTypeName();
+                        var listType = genericType.substring(genericType.indexOf("<") + 1, genericType.indexOf(">"));
+                        var beanList = new ArrayList<>(springContext.getBeansOfType(Class.forName(listType)).values());
+                        field.set(object, beanList);
+                    } else {
+                        var bean = MLang.tryThis(() -> (Object) beanFactory.getBean(field.getName(), field.getType()))
+                                .orElseTry(() -> (Object) beanFactory.getBean(field.getType()))
+                                .orElseTry(() -> beanFactory.getBean(field.getName()))
+                                .orElse(null);
+                        if (bean == null) {
+                            if (anno.required())
+                                LOGGER.warn("Bean not found: " + field.getName() + " " + field.getType() + " in class " + className);
+                        } else {
+                            field.set(object, bean);
+                        }
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Error in " + className + " " + field.getName(), e);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error in " + className, e);
+        }
+
     }
 
 }
