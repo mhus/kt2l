@@ -46,7 +46,6 @@ public class ResourceEditFormPanel extends VerticalLayout implements DeskTabList
     private final KubernetesObject resource;
     private final FormPanel form;
     private final V1APIResource type;
-    private MenuItem btnSave;
 
     @Autowired
     private K8sService k8sService;
@@ -70,7 +69,7 @@ public class ResourceEditFormPanel extends VerticalLayout implements DeskTabList
         add(scroller);
 
         MenuBar menuBar = new MenuBar();
-        btnSave = menuBar.addItem("Save", e -> doSave());
+        MenuItem btnSave = menuBar.addItem("Save", e -> doSave());
         add(menuBar);
 
         try {

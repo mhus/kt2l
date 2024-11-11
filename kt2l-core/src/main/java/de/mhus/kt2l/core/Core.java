@@ -172,11 +172,11 @@ public class Core extends AppLayout {
 
     @Autowired
     private transient AuthenticationContext authContext;
+    @Getter
     private DeskTabBar tabBar;
     private ScheduledFuture<?> closeScheduler;
     private Span tabTitle;
-    private Registration heartbeatRegistration;
-    private Map<String, Map<String, ClusterBackgroundJob>> backgroundJobs = new HashMap<>();
+    private final Map<String, Map<String, ClusterBackgroundJob>> backgroundJobs = new HashMap<>();
     private long refreshCounter;
     private Button helpToggel;
     private VerticalLayout helpContent;
@@ -187,9 +187,8 @@ public class Core extends AppLayout {
     private UI ui;
     private VaadinSession session;
     private String sessionId;
+    @Getter
     private DeskTab homeTab;
-    @Autowired
-    private PanelService panelService;
     @Autowired
     private SecurityService securityService;
     private long uiLost = 0;
@@ -236,6 +235,7 @@ public class Core extends AppLayout {
             darkMode = false;
             switchDarkMode();
         } else
+            //noinspection NonAtomicOperationOnVolatileField
             darkMode = viewsConfiguration.getConfig("core").getBoolean("darkMode", darkMode);
 
 
@@ -319,7 +319,7 @@ public class Core extends AppLayout {
         LOGGER.debug("㋡ {} UI attach {}", sessionId, Objects.hashCode(ui));
         createIdleNotification();
 
-        heartbeatRegistration = ui.addHeartbeatListener(event -> {
+        ui.addHeartbeatListener(event -> {
             LOGGER.debug("♥ {} UI Heartbeat ({})", event.getSource().getSession().getSession().getId(), event.getSource().getSession().getBrowser().getBrowserApplication());
         });
 
@@ -393,7 +393,6 @@ public class Core extends AppLayout {
     }
 
     private void clusteredJobsCleanup() {
-        if (backgroundJobs == null) return;
         LOGGER.trace("㋡ {} Cleanup Clustered Jobs",sessionId);
         synchronized (backgroundJobs) {
             backgroundJobs.values().forEach(map -> {
@@ -489,57 +488,6 @@ public class Core extends AppLayout {
     private void switchDarkMode(boolean dark) {
         var js = "document.documentElement.setAttribute('theme', $0)";
         getElement().executeJs(js, dark ? Lumo.DARK : Lumo.LIGHT);
-    }
-
-    private static class UserDetailsWrapper implements UserDetails {
-
-        @Getter
-        private final DefaultOidcUser user;
-/*
-this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Authorities: [[OIDC_USER, SCOPE_https://www.googleapis.com/auth/userinfo.email, SCOPE_https://www.googleapis.com/auth/userinfo.profile, SCOPE_openid]], User Attributes: [{at_hash=dwsxDC1GSQ2yWQxEy3EOmQ, sub=114434824555433513888, email_verified=true, iss=https://accounts.google.com, given_name=Mike, nonce=TZA-A3dRDcpdiGYaPt0noCu9CGv-ifOqj8ioOycdsV0, picture=https://lh3.googleusercontent.com/a/ACg8ocJJcjb6TPxBkOBJikqFpm2vOlWP_k66m5DLC8R3cppTgDfZRknp=s96-c, aud=[958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com], azp=958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com, name=Mike Hummel (Jesus), exp=2024-07-01T22:03:54Z, family_name=Hummel, iat=2024-07-01T21:03:54Z, email=msgformike@gmail.com}]"
- idToken = {OidcIdToken@12964}
- userInfo = null
- authorities = {Collections$UnmodifiableSet@12965}  size = 4
-  0 = {OidcUserAuthority@12969} "OIDC_USER"
-  1 = {SimpleGrantedAuthority@12970} "SCOPE_https://www.googleapis.com/auth/userinfo.email"
-  2 = {SimpleGrantedAuthority@12971} "SCOPE_https://www.googleapis.com/auth/userinfo.profile"
-  3 = {SimpleGrantedAuthority@12972} "SCOPE_openid"
- attributes = {Collections$UnmodifiableMap@12966}  size = 14
-  "at_hash" -> "dwsxDC1GSQ2yWQxEy3EOmQ"
-  "sub" -> "114434824555433513888"
-  "email_verified" -> {Boolean@12996} true
-  "iss" -> {URL@12998} "https://accounts.google.com"
-  "given_name" -> "Mike"
-  "nonce" -> "TZA-A3dRDcpdiGYaPt0noCu9CGv-ifOqj8ioOycdsV0"
-  "picture" -> "https://lh3.googleusercontent.com/a/ACg8ocJJcjb6TPxBkOBJikqFpm2vOlWP_k66m5DLC8R3cppTgDfZRknp=s96-c"
-  "aud" -> {ArrayList@13006}  size = 1
-  "azp" -> "958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com"
-  "name" -> "Mike Hummel (Jesus)"
-  "exp" -> {Instant@13012} "2024-07-01T22:03:54Z"
-  "family_name" -> "Hummel"
-  "iat" -> {Instant@13016} "2024-07-01T21:03:54Z"
-  "email" -> "msgformike@gmail.com"
- nameAttributeKey = "sub"
- */
-        public <U> UserDetailsWrapper(Optional<DefaultOidcUser> user) {
-            LOGGER.debug("Create User Wrapper {}", user.get() );
-            this.user = user.get();
-        }
-
-        @Override
-        public Collection<? extends GrantedAuthority> getAuthorities() {
-            return user.getAuthorities();
-        }
-
-        @Override
-        public String getPassword() {
-            return "{none}";
-        }
-
-        @Override
-        public String getUsername() {
-            return user.getName();
-        }
     }
 
     protected void updateHelpMenu(boolean setDefaultDocu) {
@@ -671,9 +619,9 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
             final var selected = tabBar.getSelectedTab();
             if (selected != null) {
                 final var panel = selected.getPanel();
-                if (panel != null && panel instanceof DeskTabListener) {
-                    LOGGER.trace("㋡ {} Refresh selected panel {}", sessionId, panel.getClass());
-                    ((DeskTabListener) panel).tabRefresh(refreshCounter);
+                if (panel instanceof DeskTabListener deskTabListener) {
+                    LOGGER.trace("㋡ {} Refresh selected panel {}", sessionId, deskTabListener.getClass());
+                    deskTabListener.tabRefresh(refreshCounter);
                 }
             }
         } catch (Exception e) {
@@ -707,28 +655,23 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
     }
 
     public void setWindowTitle(String title, UiUtil.COLOR color) {
-        if (title == null)
-            tabTitle.setText("");
-        else
-            tabTitle.setText(title);
+        tabTitle.setText(Objects.requireNonNullElse(title, ""));
 
         Arrays.stream(UiUtil.COLOR.values()).forEach(c -> tabTitle.removeClassNames("title-" + c.name().toLowerCase()));
         if (color != null && color != UiUtil.COLOR.NONE)
             tabTitle.addClassNames("title-" + color.name().toLowerCase());
     }
 
-    public DeskTabBar getTabBar() {
-        return tabBar;
-    }
-
     public <T extends ClusterBackgroundJob> T backgroundJobInstance(Cluster cluster, Class<T> watchClass) {
         return (T)getBackgroundJob(cluster.getName(), watchClass, () -> MObject.newInstance(watchClass));
     }
 
+    @SuppressWarnings("unchecked")
     <T extends ClusterBackgroundJob> T getBackgroundJob(String clusterId, Class<? extends T> jobId, Supplier<T> create) {
-        return (T) getBackgroundJob(clusterId, jobId.getName(), () -> create.get());
+        return (T) getBackgroundJob(clusterId, jobId.getName(), create::get);
     }
 
+    @SuppressWarnings("unchecked")
     <T extends ClusterBackgroundJob> Optional<T> getBackgroundJob(String clusterId, Class<? extends T> jobId) {
         return (Optional<T>)getBackgroundJob(clusterId, jobId.getName());
     }
@@ -777,10 +720,6 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
         return ui;
     }
 
-    public DeskTab getHomeTab() {
-        return homeTab;
-    }
-
     public void resetSession() {
         try {
             springContext.getBean(Configuration.class).clearCache();
@@ -809,6 +748,7 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
         return backgroundJobs.keySet().stream().toList();
     }
 
+    @SuppressWarnings("unchecked")
     public List<String> getBackgroundJobIds(String clusterId) {
         return backgroundJobs.getOrDefault(clusterId, Collections.EMPTY_MAP).keySet().stream().toList();
     }

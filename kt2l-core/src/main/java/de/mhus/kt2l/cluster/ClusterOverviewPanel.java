@@ -35,7 +35,6 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.server.StreamResource;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.ITreeNode;
-import de.mhus.kt2l.aaa.SecurityService;
 import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.CoreAction;
@@ -48,8 +47,6 @@ import de.mhus.kt2l.system.DevelopmentAction;
 import de.mhus.kt2l.ui.UiUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.aot.hint.annotation.Reflective;
-import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -76,23 +73,19 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     @Autowired
     private PanelService panelService;
 
-    private DeskTab tab;
-
     @Getter
-    private Core core;
+    private final Core core;
     private ComboBox<ClusterItem> clusterBox;
     private List<ClusterItem> clusterList;
 
-    private KonamiAction konamiAction = new KonamiAction() {
+    private final KonamiAction konamiAction = new KonamiAction() {
         public void doAction() {
             UiUtil.showSuccessNotification("You found the Konami Code");
             new DevelopmentAction().execute(panelService, core, false);
         }
     };
-    private ITreeNode viewConfig;
-    private Div clusterLabel;
     private Cluster defaultCluster;
-    private List<ClusterActionRecord> clusterActionList = Collections.synchronizedList(new ArrayList<>());
+    private final List<ClusterActionRecord> clusterActionList = Collections.synchronizedList(new ArrayList<>());
 
     public ClusterOverviewPanel(Core core) {
         this.core = core;
@@ -100,7 +93,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
     public void createUi() {
         LOGGER.warn("### createUI for {} with config {} and k8s {}", this, viewsConfiguration, k8s);
-        viewConfig = viewsConfiguration.getConfig("clusterOverview");
+        ITreeNode viewConfig = viewsConfiguration.getConfig("clusterOverview");
 
         add(new Text(" "));
 
@@ -133,13 +126,11 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
                     updateClusterActions(false);
                 });
             }
-            clusterService.defaultClusterName().ifPresent(defaultClusterName -> {
-                clusterList.stream().filter(c -> c.name().equals(defaultClusterName)).findFirst().ifPresent(clusterBox::setValue);
-            });
+            clusterService.defaultClusterName().flatMap(defaultClusterName -> clusterList.stream().filter(c -> c.name().equals(defaultClusterName)).findFirst()).ifPresent(clusterBox::setValue);
             clusterSelectorLayout.add(clusterBox);
         } else {
-            clusterLabel = new Div();
-            var clusterName = clusterService.defaultClusterName().get();
+            Div clusterLabel = new Div();
+            var clusterName = clusterService.defaultClusterName().orElse("?");
             defaultCluster = clusterService.getCluster(clusterName);
             clusterLabel.setText(defaultCluster.getTitle());
             clusterLabel.addClassName("cluster-label");
@@ -237,8 +228,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     }
 
     private void createCoreActions(List<CoreAction> coreActions, MenuBar coreMenuBar) {
-        coreActions.stream()
-                .forEach(action -> {
+        coreActions.forEach(action -> {
 
                     var item = coreMenuBar.addItem(action.getTitle(), click -> {
                         if (getSelectedCluster() != null) {
@@ -253,8 +243,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
     private void createClusterActions(List<ClusterAction> clusterActions, MenuBar clusterMenuBar) {
         clusterActionList.clear();
-        clusterActions.stream()
-                .forEach(action -> {
+        clusterActions.forEach(action -> {
 
                     var item = clusterMenuBar.addItem(action.getTitle(), click -> {
                         if (getSelectedCluster() != null) {
@@ -283,6 +272,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
             return defaultCluster;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean validateCluster(Cluster cluster) {
         var clusterId = cluster.getName();
         try {
@@ -290,7 +280,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
             coreApi.listNamespace().execute();
             return true;
         } catch (Exception e) {
-            LOGGER.warn("Can't connect to cluster: " + clusterId, e);
+            LOGGER.warn("Can't connect to cluster: {}", clusterId, e);
         }
         return false;
     }
@@ -298,7 +288,6 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     @Override
     public void tabInit(DeskTab deskTab) {
         LOGGER.debug("Main Init");
-        this.tab = deskTab;
         createUi();
     }
 
