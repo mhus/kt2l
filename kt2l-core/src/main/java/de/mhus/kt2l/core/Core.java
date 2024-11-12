@@ -42,13 +42,11 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.VaadinSessionState;
-import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.Lumo;
 import com.vaadin.flow.theme.lumo.LumoIcon;
@@ -87,13 +85,13 @@ import de.mhus.kt2l.ui.UiUtil;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.util.ReflectionUtils;
 import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.olli.FileDownloadWrapper;
 
@@ -102,7 +100,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -482,7 +479,6 @@ public class Core extends AppLayout {
                 LumoUtility.Padding.Horizontal.MEDIUM);
 
         addToNavbar(header);
-
     }
 
     private void switchDarkMode(boolean dark) {
@@ -607,7 +603,7 @@ public class Core extends AppLayout {
                     });
                 });
             }
-            // cleanup clustered jobs
+            // cleanup cluster jobs
             if (refreshCounter % 10 == 0) {
                 clusteredJobsCleanup();
             }
@@ -759,17 +755,15 @@ public class Core extends AppLayout {
 
     public void autowireBean(Object object) {
         if (object == null) return;
-        beanFactory.autowireBean(object);
+        // beanFactory.autowireBean(object);
         // hello native image ....
         var className = object.getClass().getCanonicalName();
         try {
-            for (Field field : object.getClass().getDeclaredFields()) {
+            ReflectionUtils.doWithFields(object.getClass(), field -> {
                 try {
-                    if (Modifier.isStatic(field.getModifiers())) continue;
                     var anno = field.getAnnotation(Autowired.class);
-                    if (anno == null) continue;
                     field.setAccessible(true);
-                    if (field.get(object) != null) continue;
+                    // if (field.get(object) != null) continue;
 
                     if (field.getType() == List.class) {
                         var genericType = field.getGenericType().getTypeName();
@@ -782,18 +776,22 @@ public class Core extends AppLayout {
                                 .orElseTry(() -> beanFactory.getBean(field.getName()))
                                 .orElse(null);
                         if (bean == null) {
-                            if (anno.required())
-                                LOGGER.warn("Bean not found: " + field.getName() + " " + field.getType() + " in class " + className);
+                            if (anno.required()) {
+                                LOGGER.error("Bean not found: {} {} in class {}", field.getName(), field.getType(), className, new Exception());
+                                throw new BeanCreationException("Bean not found: %s %s in class %s".formatted(field.getName(), field.getType(), className));
+                            }
                         } else {
                             field.set(object, bean);
                         }
                     }
+                } catch (BeansException e) {
+                    throw e;
                 } catch (Exception e) {
-                    LOGGER.error("Error in " + className + " " + field.getName(), e);
+                    LOGGER.error("Error in {} {}", className, field.getName(), e);
                 }
-            }
+            }, field -> field.getAnnotation(Autowired.class) != null && !Modifier.isStatic(field.getModifiers()));
         } catch (Exception e) {
-            LOGGER.error("Error in " + className, e);
+            LOGGER.error("Error in {}", className, e);
         }
 
     }
