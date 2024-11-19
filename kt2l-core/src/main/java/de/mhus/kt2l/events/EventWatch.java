@@ -26,10 +26,12 @@ import io.kubernetes.client.openapi.models.CoreV1Event;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.IOException;
 
 @Slf4j
+@Configurable
 public class EventWatch extends ClusterBackgroundJob {
 
     @Autowired
