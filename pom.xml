@@ -39,7 +39,7 @@
         <tmpl.plugin>2.2.1</tmpl.plugin>
         <license.plugin>4.6</license.plugin>
         <maven.version>3.2.5</maven.version>
-        <testcontainers.version>1.20.3</testcontainers.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
         <sonar.organization>mhus</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <mhus-common.version>8.2.0-SNAPSHOT</mhus-common.version>
