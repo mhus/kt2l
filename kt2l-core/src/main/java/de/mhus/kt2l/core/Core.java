@@ -42,13 +42,11 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.VaadinSessionState;
-import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.Lumo;
 import com.vaadin.flow.theme.lumo.LumoIcon;
@@ -98,7 +96,6 @@ import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.olli.FileDownloadWrapper;
 
 import javax.annotation.PostConstruct;
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -680,7 +677,7 @@ public class Core extends AppLayout {
                 LOGGER.debug("㋡ {} Create Job {}/{} with class {}", sessionId, clusterId, jobId, k);
                 try {
                     final var job = create.get();
-                    autowireBean(job);
+                    autowireObject(job);
                     job.init(this, clusterId, jobId);
                     return job;
                 } catch (Exception e) {
@@ -707,7 +704,7 @@ public class Core extends AppLayout {
     }
     public void setHelpPanel(Component helpComponent) {
         if (!helpConfiguration.isEnabled()) return;
-        autowireBean(helpComponent);
+        autowireObject(helpComponent);
         helpContent.removeAll();
         helpContent.add(helpComponent);
         showHelp(false);
@@ -755,12 +752,13 @@ public class Core extends AppLayout {
         return springContext.getBean(type);
     }
 
-    public void autowireBean(Object object) {
+    public void autowireObject(Object object) {
         if (object == null) return;
         // beanFactory.autowireBean(object);
         // hello native image ....
         var className = object.getClass().getCanonicalName();
         try {
+            // inject fields
             ReflectionUtils.doWithFields(object.getClass(), field -> {
                 try {
                     var anno = field.getAnnotation(Autowired.class);
@@ -792,6 +790,35 @@ public class Core extends AppLayout {
                     LOGGER.error("Error in {} {}", className, field.getName(), e);
                 }
             }, field -> field.getAnnotation(Autowired.class) != null && !Modifier.isStatic(field.getModifiers()));
+            // inject methods
+            ReflectionUtils.doWithMethods(object.getClass(), method -> {
+                try {
+                    var anno = method.getAnnotation(Autowired.class);
+                    if (anno == null) return;
+                    var params = Arrays.stream(method.getParameters()).map(p -> {
+                        try {
+                            return beanFactory.getBean(p.getType());
+                        } catch (Exception e) {
+                            LOGGER.error("Error in {} {}", className, method.getName(), e);
+                            return null;
+                        }
+                    }).toArray();
+                    method.invoke(object, params);
+                } catch (Exception e) {
+                    LOGGER.error("Error in {} {}", className, method.getName(), e);
+                }
+            }, method -> method.getAnnotation(Autowired.class) != null && !Modifier.isStatic(method.getModifiers()));
+            // execute post construct
+            ReflectionUtils.doWithMethods(object.getClass(), method -> {
+                try {
+                    var anno = method.getAnnotation(PostConstruct.class);
+                    if (anno == null) return;
+                    method.invoke(object);
+                } catch (Exception e) {
+                    LOGGER.error("Error in {} {}", className, method.getName(), e);
+                }
+            }, method -> method.getAnnotation(PostConstruct.class) != null && !Modifier.isStatic(method.getModifiers()));
+
         } catch (Exception e) {
             LOGGER.error("Error in {}", className, e);
         }

@@ -25,10 +25,12 @@ import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.lang.reflect.Type;
 
 @Slf4j
+@Configurable
 public class NamespaceWatch extends AbstractClusterWatch<V1Namespace> {
 
     @Override

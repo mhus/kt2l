@@ -1,5 +1,6 @@
 package de.mhus.kt2l;
 
+import com.vaadin.flow.component.EventData;
 import de.mhus.commons.directory.ClassLoaderResourceProvider;
 import de.mhus.commons.services.DefaultEnvironmentProvider;
 import de.mhus.commons.tree.DefaultNodeFactory;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.core.io.Resource;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.RegexPatternTypeFilter;
 
@@ -38,6 +40,9 @@ public class NativeConfiguration {
             registerType(DefaultNodeFactory.class);
             // vaadin
             registerType(com.vaadin.copilot.SpringIntegration.class);
+            new Reflections("de.f0rce.ace").getTypesAnnotatedWith(EventData.class).forEach(
+                    type -> registerType(type)
+            );
             // kt2l
             new Reflections("de.mhus.kt2l").getTypesAnnotatedWith(Configurable.class).forEach(
                     type -> registerType(type)
@@ -71,19 +76,22 @@ public class NativeConfiguration {
                 );
             }
             registerType(io.kubernetes.client.custom.Quantity.QuantityAdapter.class);
+
+            // resources
+            hints.resources().registerPattern(".*\\.properties");
         }
 
         private void registerType(String type) {
             System.out.println("Register Type: " + type);
             hints.reflection().registerType(TypeReference.of(type),
-                    MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.DECLARED_FIELDS, MemberCategory.INTROSPECT_DECLARED_METHODS);
+                    MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.DECLARED_FIELDS, MemberCategory.INTROSPECT_DECLARED_METHODS, MemberCategory.DECLARED_CLASSES, MemberCategory.INVOKE_DECLARED_METHODS);
 
         }
 
         private void registerType(Class<?> type) {
             System.out.println("Register Type: " + type);
             hints.reflection().registerType(type,
-                    MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.DECLARED_FIELDS, MemberCategory.INTROSPECT_DECLARED_METHODS);
+                    MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.DECLARED_FIELDS, MemberCategory.INTROSPECT_DECLARED_METHODS, MemberCategory.DECLARED_CLASSES, MemberCategory.INVOKE_DECLARED_METHODS);
 
         }
 

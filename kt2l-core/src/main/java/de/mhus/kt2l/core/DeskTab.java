@@ -30,9 +30,6 @@ import de.mhus.kt2l.ui.UiUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 @Slf4j
@@ -112,7 +109,7 @@ public class DeskTab extends HorizontalLayout {
         this.tabBar = tabViewer;
         var vb = tabBar.getCore().getBean(ViewsConfiguration.class);
         LOGGER.warn("### Autowire {} {} and config {}", getWindowTitle(), panel, vb);
-        tabBar.getCore().autowireBean(panel);
+        tabBar.getCore().autowireObject(panel);
     }
 
     public DeskTab setParentTab(DeskTab parent) {

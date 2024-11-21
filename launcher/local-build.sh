@@ -20,20 +20,20 @@
 unset AWS_SECRET_ACCESS_KEY
 unset AWS_ACCESS_KEY_ID
 
-while getopts hcpus flag
+while getopts hcptni flag
 do
     case "${flag}" in
-        h) echo "Usage: $0 [-h] [-c] [-p] [-t] [-u] [-x]"
+        h) echo "Usage: $0 [-h] [-c] [-p] [-t] [-n] [-i]"
                echo "  -h  Display this help"
                echo "  -c  Skip compile"
                echo "  -p  Skip prepare"
                echo "  -t  Also execute tests"
-               echo "  -u  Compile native"
-               echo "  -x  Compile native image"
+               echo "  -n  Compile native"
+               echo "  -i  Compile native image"
                exit 0;;
         c) SKIP_COMPILE=true;;
-        u) COMPILE_NATIVE=true;;
-        x) COMPILE_NATIVE_IMAGE=true;;
+        n) COMPILE_NATIVE=true;;
+        i) COMPILE_NATIVE_IMAGE=true;;
         p) SKIP_PREPARE=true;;
         t) TEST=true;;
     esac

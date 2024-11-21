@@ -17,7 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-while getopts hcpus flag
+while getopts hcp flag
 do
     case "${flag}" in
         h) echo "Usage: $0 [-h] [-c] [-p]"

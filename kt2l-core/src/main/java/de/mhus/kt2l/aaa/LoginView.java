@@ -37,7 +37,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import de.mhus.commons.net.MNet;
 import de.mhus.kt2l.aaa.oauth2.AuthProvider;
 import de.mhus.kt2l.aaa.oauth2.OAuth2AuthProvider;
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;

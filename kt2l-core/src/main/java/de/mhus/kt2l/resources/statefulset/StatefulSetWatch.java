@@ -26,10 +26,12 @@ import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1StatefulSet;
 import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.lang.reflect.Type;
 
 @Slf4j
+@Configurable
 public class StatefulSetWatch extends AbstractClusterWatch<V1Deployment> {
 
     @Override
