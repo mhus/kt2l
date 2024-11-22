@@ -1,0 +1,9 @@
+---
+- name: Get Minikube DEB package
+  get_url:
+    url: https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
+    dest: /tmp/minikube_latest_amd64.deb
+- name: Install Minikube
+  apt:
+    deb: /tmp/minikube_latest_amd64.deb
+    state: present

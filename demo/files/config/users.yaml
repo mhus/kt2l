@@ -1,0 +1,26 @@
+allowCreateUsers: true
+allowUpdateUsers: true
+allowDeleteUsers: true
+
+users:
+  - name: "admin"
+    id: "admin"
+    password: "{noop}jKjau86G"
+    roles:
+      - "READ"
+      - "WRITE"
+      - "LOCAL"
+      - "SETTINGS"
+      - "ADMIN"
+  - name: "user"
+    id: "user"
+    password: "{noop}hIUYHh72jhb"
+    roles:
+      - "READ"
+      - "WRITE"
+      - "SETTINGS"
+  - name: "viewer"
+    id: "viewer"
+    password: "{noop}uiJKjb127khj"
+    roles:
+      - "READ"
