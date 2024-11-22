@@ -1,0 +1,50 @@
+[
+  {
+    "name": "io.kubernetes.client.openapi.models.V1APIGroupList",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "io.kubernetes.client.openapi.models.V1APIVersions",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "io.kubernetes.client.openapi.models.V1NamespaceList",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "org.springframework.core.annotation.TypeMappedAnnotation[]",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "com.vaadin.copilot.SpringIntegration",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "de.mhus.commons.tree.DefaultNodeFactory",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "de.mhus.commons.services.DefaultEnvironmentProvider",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "de.mhus.commons.directory.ClassLoaderResourceProvider",
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true,
+    "unsafeAllocated": true
+  }
+]

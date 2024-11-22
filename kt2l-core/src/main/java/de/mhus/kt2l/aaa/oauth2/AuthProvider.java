@@ -26,7 +26,7 @@ import de.mhus.kt2l.aaa.AaaUserRepositoryService;
 import de.mhus.kt2l.aaa.LoginConfiguration;
 import de.mhus.kt2l.aaa.UserDetailsManagerToUserRepositoryService;
 import de.mhus.kt2l.config.Configuration;
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

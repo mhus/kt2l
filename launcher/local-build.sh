@@ -20,19 +20,21 @@
 unset AWS_SECRET_ACCESS_KEY
 unset AWS_ACCESS_KEY_ID
 
-while getopts hcpust flag
+while getopts hcptni flag
 do
     case "${flag}" in
-        h) echo "Usage: $0 [-h] [-c] [-p] [-u] [-s] [-t]"
+        h) echo "Usage: $0 [-h] [-c] [-p] [-t] [-n] [-i]"
                echo "  -h  Display this help"
                echo "  -c  Skip compile"
                echo "  -p  Skip prepare"
-               echo "  -s  Open .dmg file"
                echo "  -t  Also execute tests"
+               echo "  -n  Compile native"
+               echo "  -i  Compile native image"
                exit 0;;
         c) SKIP_COMPILE=true;;
+        n) COMPILE_NATIVE=true;;
+        i) COMPILE_NATIVE_IMAGE=true;;
         p) SKIP_PREPARE=true;;
-        s) START=true;;
         t) TEST=true;;
     esac
 done
@@ -50,7 +52,9 @@ if [ -z "$SKIP_COMPILE" ]; then
   echo "------------------------------------------------------------"
   echo "Compile project"
   echo "------------------------------------------------------------"
+  cd kt2l-core
   mvn clean install -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
+  cd ..
 fi
 
 if [ -n "$TEST" ]; then
@@ -63,53 +67,20 @@ if [ -n "$TEST" ]; then
   cd ..
 fi
 
-cd kt2l-desktop
-
-if [ -z "$SKIP_COMPILE" ]; then
+if [ -n "$COMPILE_NATIVE" ]; then
   echo "------------------------------------------------------------"
-  echo "Compile desktop"
+  echo "Compile native"
   echo "------------------------------------------------------------"
-  mvn clean install -B -Pmacosx-aarch64 -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
+  cd kt2l-native
+  mvn -Pnative native:compile
+  cd ..
 fi
 
-VERSION=$(cat pom.xml | grep '<version>' | head -n 1 | sed -e 's/.*<version>\(.*\)<\/version>.*/\1/')
-PACK_VERSION=$(echo $VERSION | cut -d - -f 1)
-if [[ "$PACK_VERSION" =~ ^0.* ]]; then
-  PACK_VERSION=1
-fi
-echo "Version: $VERSION - Pack Version: $PACK_VERSION"
-
-cd target
-rm -rf launcher
-mkdir launcher
-cd launcher
-
-cp -r ../../launcher/mac/* .
-if [ -f ../kt2l-desktop-macosx-aarch64.jar ]; then
-  cp ../kt2l-desktop-macosx-aarch64.jar kt2l-desktop-macosx-aarch64.jar
-else
-  cp ../kt2l-desktop-macosx-aarch64-${VERSION}.jar kt2l-desktop-macosx-aarch64.jar
-fi
-
-jpackage \
-  --name KT2L \
-  --input . \
-  --main-jar kt2l-desktop-macosx-aarch64.jar \
-  --resource-dir package/macos \
-  --app-version "$PACK_VERSION" \
-  --type dmg \
-  --java-options "-XstartOnFirstThread" \
-  --java-options "-Dspring.profiles.active=prod" \
-  --java-options "--add-opens java.base/java.util=ALL-UNNAMED" \
-  --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" \
-  --icon kt2l.icns \
-  --vendor "www.kt2l.org"
-
-mv KT2L-${PACK_VERSION}.dmg KT2L.dmg
-
-if [ -n "$START" ]; then
+if [ -n "$COMPILE_NATIVE_IMAGE" ]; then
   echo "------------------------------------------------------------"
-  echo "Open .dmg file"
+  echo "Compile native image"
   echo "------------------------------------------------------------"
-  open KT2L.dmg
+  cd kt2l-native
+  mvn -Pnative -Pproduction spring-boot:build-image -Dspring-boot.build-image.imageName=kt2l-native || exit 1
+  cd ..
 fi

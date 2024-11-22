@@ -23,5 +23,5 @@ clusters:
   - name: aremorica
     title: "Aremorica"
     enabled: true
-    color: blue
+    color: orange
     defaultNamespace: indomitable-village

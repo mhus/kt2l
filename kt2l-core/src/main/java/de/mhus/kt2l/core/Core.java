@@ -32,6 +32,7 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.dependency.Uses;
@@ -47,12 +48,12 @@ import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.VaadinSessionState;
-import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.theme.lumo.Lumo;
 import com.vaadin.flow.theme.lumo.LumoIcon;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import de.mhus.commons.tools.MCast;
+import de.mhus.commons.tools.MLang;
 import de.mhus.commons.tools.MObject;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tools.MSystem;
@@ -85,19 +86,20 @@ import de.mhus.kt2l.ui.UiUtil;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.util.ReflectionUtils;
 import org.vaadin.addons.visjs.network.main.NetworkDiagram;
 import org.vaadin.olli.FileDownloadWrapper;
 
 import javax.annotation.PostConstruct;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -136,7 +138,6 @@ public class Core extends AppLayout {
     private long uiTemeoutSeconds = 60;
 
     private @Autowired
-            @Getter
     AutowireCapableBeanFactory beanFactory;
 
     @Autowired
@@ -168,11 +169,11 @@ public class Core extends AppLayout {
 
     @Autowired
     private transient AuthenticationContext authContext;
+    @Getter
     private DeskTabBar tabBar;
     private ScheduledFuture<?> closeScheduler;
     private Span tabTitle;
-    private Registration heartbeatRegistration;
-    private Map<String, Map<String, ClusterBackgroundJob>> backgroundJobs = new HashMap<>();
+    private final Map<String, Map<String, ClusterBackgroundJob>> backgroundJobs = new HashMap<>();
     private long refreshCounter;
     private Button helpToggel;
     private VerticalLayout helpContent;
@@ -183,9 +184,8 @@ public class Core extends AppLayout {
     private UI ui;
     private VaadinSession session;
     private String sessionId;
+    @Getter
     private DeskTab homeTab;
-    @Autowired
-    private PanelService panelService;
     @Autowired
     private SecurityService securityService;
     private long uiLost = 0;
@@ -199,7 +199,9 @@ public class Core extends AppLayout {
     private ContextMenu generalContextMenu;
     private boolean uiLostEnabled = false;
     private volatile boolean darkMode = false;
-    private boolean autoDarkMode;
+    private volatile boolean autoDarkMode = false;
+    private MenuItem darkModeToggle;
+    private MenuItem autoDarkModeToggle;
 
     @PostConstruct
     public void createUi() {
@@ -230,8 +232,9 @@ public class Core extends AppLayout {
         autoDarkMode = viewsConfiguration.getConfig("core").getBoolean("autoDarkMode", false);
         if (autoDarkMode) {
             darkMode = false;
-            switchDarkMode();
+            checkAutoDarkMode();
         } else
+            //noinspection NonAtomicOperationOnVolatileField
             darkMode = viewsConfiguration.getConfig("core").getBoolean("darkMode", darkMode);
 
 
@@ -315,7 +318,7 @@ public class Core extends AppLayout {
         LOGGER.debug("㋡ {} UI attach {}", sessionId, Objects.hashCode(ui));
         createIdleNotification();
 
-        heartbeatRegistration = ui.addHeartbeatListener(event -> {
+        ui.addHeartbeatListener(event -> {
             LOGGER.debug("♥ {} UI Heartbeat ({})", event.getSource().getSession().getSession().getId(), event.getSource().getSession().getBrowser().getBrowserApplication());
         });
 
@@ -389,7 +392,6 @@ public class Core extends AppLayout {
     }
 
     private void clusteredJobsCleanup() {
-        if (backgroundJobs == null) return;
         LOGGER.trace("㋡ {} Cleanup Clustered Jobs",sessionId);
         synchronized (backgroundJobs) {
             backgroundJobs.values().forEach(map -> {
@@ -433,12 +435,26 @@ public class Core extends AppLayout {
         userMenu.setTarget(userButton);
         userMenu.setOpenOnClick(true);
 
-        if (!autoDarkMode) {
-            var darkModeToggle = new ToggleButton("Dark mode");
-            darkModeToggle.addValueChangeListener(e -> switchDarkMode(e.getValue()));
-            userMenu.addItem(darkModeToggle);
-            darkModeToggle.setValue(darkMode);
-        }
+        var darkModeMenu = userMenu.addItem("Dark mode").getSubMenu();
+
+        darkModeToggle = darkModeMenu.addItem("Dark");
+        darkModeToggle.setCheckable(true);
+        darkModeToggle.addClickListener(e -> {
+            if (e.isFromClient()) {
+                switchAutoDarkMode(false);
+                switchDarkMode(e.getSource().isChecked());
+            }
+        });
+        darkModeToggle.setChecked(darkMode);
+
+        autoDarkModeToggle = darkModeMenu.addItem("Automatic");
+        autoDarkModeToggle.setCheckable(true);
+        autoDarkModeToggle.addClickListener(e -> {
+            if (e.isFromClient()) {
+                switchAutoDarkMode(e.getSource().isChecked());
+            }
+        });
+        autoDarkModeToggle.setChecked(autoDarkMode);
 
         if (cfgService.isUserCfgEnabled()) {
             UiUtil.createIconItem(userMenu, VaadinIcon.COG, "User Settings", null, true).addClickListener(click -> {
@@ -479,63 +495,42 @@ public class Core extends AppLayout {
                 LumoUtility.Padding.Horizontal.MEDIUM);
 
         addToNavbar(header);
+    }
 
+    private void switchAutoDarkMode(boolean auto) {
+        ui.access(() -> {
+            autoDarkMode = auto;
+            if (autoDarkModeToggle != null && autoDarkModeToggle.isChecked() != autoDarkMode) {
+                autoDarkModeToggle.setChecked(autoDarkMode);
+            }
+            if (autoDarkMode) {
+                checkAutoDarkMode();
+            }
+        });
+    }
+
+    private void checkAutoDarkMode() {
+        ui.access(() -> {
+            this.getElement().executeJs("return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches").then(Boolean.class, res -> {
+                if (res != null) {
+                    LOGGER.trace("㋡ {} Auto Dark Mode {}", sessionId, res);
+                    if (darkMode != res) {
+                        LOGGER.debug("㋡ {} Switch dark mode {}", sessionId, darkMode);
+                        switchDarkMode(res);
+                    }
+                }
+            });
+        });
     }
 
     private void switchDarkMode(boolean dark) {
-        var js = "document.documentElement.setAttribute('theme', $0)";
-        getElement().executeJs(js, dark ? Lumo.DARK : Lumo.LIGHT);
-    }
-
-    private static class UserDetailsWrapper implements UserDetails {
-
-        @Getter
-        private final DefaultOidcUser user;
-/*
-this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Authorities: [[OIDC_USER, SCOPE_https://www.googleapis.com/auth/userinfo.email, SCOPE_https://www.googleapis.com/auth/userinfo.profile, SCOPE_openid]], User Attributes: [{at_hash=dwsxDC1GSQ2yWQxEy3EOmQ, sub=114434824555433513888, email_verified=true, iss=https://accounts.google.com, given_name=Mike, nonce=TZA-A3dRDcpdiGYaPt0noCu9CGv-ifOqj8ioOycdsV0, picture=https://lh3.googleusercontent.com/a/ACg8ocJJcjb6TPxBkOBJikqFpm2vOlWP_k66m5DLC8R3cppTgDfZRknp=s96-c, aud=[958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com], azp=958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com, name=Mike Hummel (Jesus), exp=2024-07-01T22:03:54Z, family_name=Hummel, iat=2024-07-01T21:03:54Z, email=msgformike@gmail.com}]"
- idToken = {OidcIdToken@12964}
- userInfo = null
- authorities = {Collections$UnmodifiableSet@12965}  size = 4
-  0 = {OidcUserAuthority@12969} "OIDC_USER"
-  1 = {SimpleGrantedAuthority@12970} "SCOPE_https://www.googleapis.com/auth/userinfo.email"
-  2 = {SimpleGrantedAuthority@12971} "SCOPE_https://www.googleapis.com/auth/userinfo.profile"
-  3 = {SimpleGrantedAuthority@12972} "SCOPE_openid"
- attributes = {Collections$UnmodifiableMap@12966}  size = 14
-  "at_hash" -> "dwsxDC1GSQ2yWQxEy3EOmQ"
-  "sub" -> "114434824555433513888"
-  "email_verified" -> {Boolean@12996} true
-  "iss" -> {URL@12998} "https://accounts.google.com"
-  "given_name" -> "Mike"
-  "nonce" -> "TZA-A3dRDcpdiGYaPt0noCu9CGv-ifOqj8ioOycdsV0"
-  "picture" -> "https://lh3.googleusercontent.com/a/ACg8ocJJcjb6TPxBkOBJikqFpm2vOlWP_k66m5DLC8R3cppTgDfZRknp=s96-c"
-  "aud" -> {ArrayList@13006}  size = 1
-  "azp" -> "958259406990-62fqt3o82u8hct6i1cjfjcutq9cbpvsu.apps.googleusercontent.com"
-  "name" -> "Mike Hummel (Jesus)"
-  "exp" -> {Instant@13012} "2024-07-01T22:03:54Z"
-  "family_name" -> "Hummel"
-  "iat" -> {Instant@13016} "2024-07-01T21:03:54Z"
-  "email" -> "msgformike@gmail.com"
- nameAttributeKey = "sub"
- */
-        public <U> UserDetailsWrapper(Optional<DefaultOidcUser> user) {
-            LOGGER.debug("Create User Wrapper {}", user.get() );
-            this.user = user.get();
-        }
-
-        @Override
-        public Collection<? extends GrantedAuthority> getAuthorities() {
-            return user.getAuthorities();
-        }
-
-        @Override
-        public String getPassword() {
-            return "{none}";
-        }
-
-        @Override
-        public String getUsername() {
-            return user.getName();
-        }
+        ui.access(() -> {
+            darkMode = dark;
+            var js = "document.documentElement.setAttribute('theme', $0)";
+            getElement().executeJs(js, darkMode ? Lumo.DARK : Lumo.LIGHT);
+            if (darkModeToggle != null && darkModeToggle.isChecked() != darkMode)
+                darkModeToggle.setChecked(darkMode);
+        });
     }
 
     protected void updateHelpMenu(boolean setDefaultDocu) {
@@ -655,40 +650,26 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
                     });
                 });
             }
-            // cleanup clustered jobs
+            // cleanup cluster jobs
             if (refreshCounter % 10 == 0) {
                 clusteredJobsCleanup();
             }
             // check for dark mode
             if (autoDarkMode && refreshCounter % 15 == 0) {
-                switchDarkMode();
+                checkAutoDarkMode();
             }
             // refresh selected tab
             final var selected = tabBar.getSelectedTab();
             if (selected != null) {
                 final var panel = selected.getPanel();
-                if (panel != null && panel instanceof DeskTabListener) {
-                    LOGGER.trace("㋡ {} Refresh selected panel {}", sessionId, panel.getClass());
-                    ((DeskTabListener) panel).tabRefresh(refreshCounter);
+                if (panel instanceof DeskTabListener deskTabListener) {
+                    LOGGER.trace("㋡ {} Refresh selected panel {}", sessionId, deskTabListener.getClass());
+                    deskTabListener.tabRefresh(refreshCounter);
                 }
             }
         } catch (Exception e) {
             LOGGER.error("㋡ {} Error refreshing", sessionId, e);
         }
-    }
-
-    private void switchDarkMode() {
-        ui.access(() -> {
-            this.getElement().executeJs("return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches").then(Boolean.class, res -> {
-                if (res != null) {
-                    if (darkMode != res) {
-                        darkMode = res;
-                        LOGGER.debug("㋡ {} Switch dark mode {}", sessionId, darkMode);
-                        switchDarkMode(darkMode);
-                    }
-                }
-            });
-        });
     }
 
     private void checkSession() {
@@ -703,28 +684,23 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
     }
 
     public void setWindowTitle(String title, UiUtil.COLOR color) {
-        if (title == null)
-            tabTitle.setText("");
-        else
-            tabTitle.setText(title);
+        tabTitle.setText(Objects.requireNonNullElse(title, ""));
 
         Arrays.stream(UiUtil.COLOR.values()).forEach(c -> tabTitle.removeClassNames("title-" + c.name().toLowerCase()));
         if (color != null && color != UiUtil.COLOR.NONE)
             tabTitle.addClassNames("title-" + color.name().toLowerCase());
     }
 
-    public DeskTabBar getTabBar() {
-        return tabBar;
-    }
-
     public <T extends ClusterBackgroundJob> T backgroundJobInstance(Cluster cluster, Class<T> watchClass) {
         return (T)getBackgroundJob(cluster.getName(), watchClass, () -> MObject.newInstance(watchClass));
     }
 
+    @SuppressWarnings("unchecked")
     <T extends ClusterBackgroundJob> T getBackgroundJob(String clusterId, Class<? extends T> jobId, Supplier<T> create) {
-        return (T) getBackgroundJob(clusterId, jobId.getName(), () -> create.get());
+        return (T) getBackgroundJob(clusterId, jobId.getName(), create::get);
     }
 
+    @SuppressWarnings("unchecked")
     <T extends ClusterBackgroundJob> Optional<T> getBackgroundJob(String clusterId, Class<? extends T> jobId) {
         return (Optional<T>)getBackgroundJob(clusterId, jobId.getName());
     }
@@ -735,7 +711,7 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
                 LOGGER.debug("㋡ {} Create Job {}/{} with class {}", sessionId, clusterId, jobId, k);
                 try {
                     final var job = create.get();
-                    beanFactory.autowireBean(job);
+                    autowireObject(job);
                     job.init(this, clusterId, jobId);
                     return job;
                 } catch (Exception e) {
@@ -762,7 +738,7 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
     }
     public void setHelpPanel(Component helpComponent) {
         if (!helpConfiguration.isEnabled()) return;
-        beanFactory.autowireBean(helpComponent);
+        autowireObject(helpComponent);
         helpContent.removeAll();
         helpContent.add(helpComponent);
         showHelp(false);
@@ -771,10 +747,6 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
     public UI ui() {
         if (ui == null) return UI.getCurrent();
         return ui;
-    }
-
-    public DeskTab getHomeTab() {
-        return homeTab;
     }
 
     public void resetSession() {
@@ -805,8 +777,86 @@ this.user = {DefaultOidcUser@12467} "Name: [114434824555433513888], Granted Auth
         return backgroundJobs.keySet().stream().toList();
     }
 
+    @SuppressWarnings("unchecked")
     public List<String> getBackgroundJobIds(String clusterId) {
         return backgroundJobs.getOrDefault(clusterId, Collections.EMPTY_MAP).keySet().stream().toList();
+    }
+
+    public <T> T getBean(Class<T> type) {
+        return springContext.getBean(type);
+    }
+
+    public void autowireObject(Object object) {
+        if (object == null) return;
+        // beanFactory.autowireBean(object);
+        // hello native image ....
+        var className = object.getClass().getCanonicalName();
+        try {
+            // inject fields
+            ReflectionUtils.doWithFields(object.getClass(), field -> {
+                try {
+                    var anno = field.getAnnotation(Autowired.class);
+                    field.setAccessible(true);
+                    // if (field.get(object) != null) continue;
+
+                    if (field.getType() == List.class) {
+                        var genericType = field.getGenericType().getTypeName();
+                        var listType = genericType.substring(genericType.indexOf("<") + 1, genericType.indexOf(">"));
+                        var beanList = new ArrayList<>(springContext.getBeansOfType(Class.forName(listType)).values());
+                        field.set(object, beanList);
+                    } else {
+                        var bean = MLang.tryThis(() -> (Object) beanFactory.getBean(field.getName(), field.getType()))
+                                .orElseTry(() -> (Object) beanFactory.getBean(field.getType()))
+                                .orElseTry(() -> beanFactory.getBean(field.getName()))
+                                .orElse(null);
+                        if (bean == null) {
+                            if (anno.required()) {
+                                LOGGER.error("Bean not found: {} {} in class {}", field.getName(), field.getType(), className, new Exception());
+                                throw new BeanCreationException("Bean not found: %s %s in class %s".formatted(field.getName(), field.getType(), className));
+                            }
+                        } else {
+                            field.set(object, bean);
+                        }
+                    }
+                } catch (BeansException e) {
+                    throw e;
+                } catch (Exception e) {
+                    LOGGER.error("Error in {} {}", className, field.getName(), e);
+                }
+            }, field -> field.getAnnotation(Autowired.class) != null && !Modifier.isStatic(field.getModifiers()));
+            // inject methods
+            ReflectionUtils.doWithMethods(object.getClass(), method -> {
+                try {
+                    var anno = method.getAnnotation(Autowired.class);
+                    if (anno == null) return;
+                    var params = Arrays.stream(method.getParameters()).map(p -> {
+                        try {
+                            return beanFactory.getBean(p.getType());
+                        } catch (Exception e) {
+                            LOGGER.error("Error in {} {}", className, method.getName(), e);
+                            return null;
+                        }
+                    }).toArray();
+                    method.invoke(object, params);
+                } catch (Exception e) {
+                    LOGGER.error("Error in {} {}", className, method.getName(), e);
+                }
+            }, method -> method.getAnnotation(Autowired.class) != null && !Modifier.isStatic(method.getModifiers()));
+            // execute post construct
+            ReflectionUtils.doWithMethods(object.getClass(), method -> {
+                try {
+                    var anno = method.getAnnotation(PostConstruct.class);
+                    if (anno == null) return;
+                    method.invoke(object);
+                } catch (Exception e) {
+                    LOGGER.error("Error in {} {}", className, method.getName(), e);
+                }
+            }, method -> method.getAnnotation(PostConstruct.class) != null && !Modifier.isStatic(method.getModifiers()));
+
+        } catch (Exception e) {
+            LOGGER.error("Error in {}", className, e);
+        }
+
     }
 
 }

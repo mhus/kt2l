@@ -17,7 +17,7 @@
  */
 package de.mhus.kt2l.resources.pod.score;
 
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 

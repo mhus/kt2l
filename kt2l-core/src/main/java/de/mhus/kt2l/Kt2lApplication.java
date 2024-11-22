@@ -18,6 +18,9 @@
 
 package de.mhus.kt2l;
 
+import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.shared.communication.PushMode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -32,12 +35,10 @@ import java.util.concurrent.ScheduledExecutorService;
 @EnableScheduling
 @SpringBootApplication(scanBasePackages = {"de.mhus.kt2l"})
 @Slf4j
-public class Kt2lApplication {
-
-	private static String[] args;
+@Push(PushMode.AUTOMATIC)
+public class Kt2lApplication implements AppShellConfigurator {
 
 	public static void main(String[] args) {
-		Kt2lApplication.args = args;
 		SpringApplication.run(Kt2lApplication.class, args);
 	}
 
@@ -61,8 +62,7 @@ public class Kt2lApplication {
 			String[] beanNames = ctx.getBeanDefinitionNames();
 			Arrays.sort(beanNames);
 			for (String beanName : beanNames) {
-				var bean = ctx.getBean(beanName);
-				LOGGER.debug("- Bean loaded: ({}) of type ({})",beanName, bean.getClass().getName());
+				LOGGER.debug("- Bean loaded: {}",beanName);
 			}
 		};
 	}

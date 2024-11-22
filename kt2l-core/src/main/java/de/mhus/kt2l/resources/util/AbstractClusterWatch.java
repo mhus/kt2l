@@ -34,11 +34,13 @@ import io.kubernetes.client.util.Watch;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 
 @Slf4j
+@Configurable
 public abstract class AbstractClusterWatch<V extends KubernetesObject> extends ClusterBackgroundJob {
     @Autowired
     K8sService k8s;

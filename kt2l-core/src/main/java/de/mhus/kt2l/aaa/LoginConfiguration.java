@@ -36,9 +36,6 @@ import static de.mhus.commons.tools.MString.isSet;
 @Component
 public class LoginConfiguration extends AbstractSingleConfig {
 
-    @Autowired
-    private Configuration configuration;
-
     private static String autoLoginPassword;
 
     public LoginConfiguration() {

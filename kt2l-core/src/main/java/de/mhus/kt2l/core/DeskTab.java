@@ -25,6 +25,7 @@ import com.vaadin.flow.component.icon.AbstractIcon;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import de.mhus.kt2l.config.ViewsConfiguration;
 import de.mhus.kt2l.ui.UiUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -106,7 +107,9 @@ public class DeskTab extends HorizontalLayout {
 
     public void setTabViewer(DeskTabBar tabViewer) {
         this.tabBar = tabViewer;
-        tabBar.getCore().getBeanFactory().autowireBean(panel);
+        var vb = tabBar.getCore().getBean(ViewsConfiguration.class);
+        LOGGER.warn("### Autowire {} {} and config {}", getWindowTitle(), panel, vb);
+        tabBar.getCore().autowireObject(panel);
     }
 
     public DeskTab setParentTab(DeskTab parent) {

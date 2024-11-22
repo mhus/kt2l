@@ -89,7 +89,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     private List<ResourceGridFactory> resourceGridFactories;
 
     @Getter
-    private String clusterId;
+    private final String clusterId;
 
     @Autowired
     private SecurityService securityService;
@@ -118,6 +118,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     private Button historyBackButton;
     private Button historyForwardButton;
     private LinkedList<HistoryItem> history = new LinkedList<>();
+    @Getter
     private int historyPointer = 0;
     private int historyMaxSize = 50;
     private Button resourceFilterMenuButton;
@@ -286,7 +287,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         }
         if (!found)
             jobsViewMenu.addItem("No jobs", e -> {});
-        jobsViewMenu.getUI().ifPresent(ui -> ui.push());
+        jobsViewMenu.getUI().ifPresent(UI::push);
     }
 
     private void openJobsDialog(BackgroundJobDialog dialog) {
@@ -322,8 +323,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             history.subList(historyPointer, history.size()).clear();
         }
         var sortOrderList = grid.getSortOrder();
-        String sortOrder = sortOrderList != null && sortOrderList.size() > 0 ? sortOrderList.get(0).getSorted().getKey() : null;
-        boolean orderAsc = sortOrderList != null && sortOrderList.size() > 0 ? sortOrderList.get(0).getDirection().equals(SortDirection.ASCENDING) : true;
+        String sortOrder = sortOrderList != null && !sortOrderList.isEmpty() ? sortOrderList.getFirst().getSorted().getKey() : null;
+        boolean orderAsc = sortOrderList == null || sortOrderList.isEmpty() || sortOrderList.getFirst().getDirection().equals(SortDirection.ASCENDING);
 
         historyAdd(currentType, namespaceSelector.getValue(), resourcesFilter, filterText.getValue(), sortOrder, orderAsc);
     }
@@ -333,7 +334,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
             history.subList(historyPointer, history.size()).clear();
         }
         var entry = new HistoryItem(type, namespace, filter, filterText, sortOrder, sortAscending);
-        if (history.size() > 0 && history.getLast().equals(entry)) return;
+        if (!history.isEmpty() && history.getLast().equals(entry)) return;
 
         history.add(entry);
         if (history.size() > historyMaxSize)
@@ -353,8 +354,8 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
                     if (((ResourcesGridPanel) newTab.getPanel()).getCurrentType() != null) {
                         core.ui().access(() -> {
                             var sortOrderList = grid.getSortOrder();
-                            String sortOrder = sortOrderList != null && sortOrderList.size() > 0 ? sortOrderList.get(0).getSorted().getKey() : null;
-                            boolean orderAsc = sortOrderList != null && sortOrderList.size() > 0 ? sortOrderList.get(0).getDirection().equals(SortDirection.ASCENDING) : true;
+                            String sortOrder = sortOrderList != null && !sortOrderList.isEmpty() ? sortOrderList.getFirst().getSorted().getKey() : null;
+                            boolean orderAsc = sortOrderList == null || sortOrderList.isEmpty() || sortOrderList.getFirst().getDirection().equals(SortDirection.ASCENDING);
                             ((ResourcesGridPanel) newTab.getPanel()).showResourcesInternal(currentType, namespaceSelector.getValue(), resourcesFilter, filterText.getValue(), sortOrder, orderAsc, history, historyPointer);
                         });
                         break;
@@ -412,12 +413,13 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
     protected void updateTitle() {
         tab.setTabTitle(K8s.displayName(currentType));
-        tab.setWindowTitle(cluster.getTitle() + " - " + K8s.displayName(currentType) + (currentType.getNamespaced() != null && currentType.getNamespaced() ? " @ " + namespaceSelector.getValue() : "") + " - Resources");
+        currentType.getNamespaced();
+        tab.setWindowTitle(cluster.getTitle() + " - " + K8s.displayName(currentType) + (currentType.getNamespaced() ? " @ " + namespaceSelector.getValue() : "") + " - Resources");
     }
 
     private ResourcesGrid createDefaultGrid() {
         var g =  new GenericGrid();
-        core.getBeanFactory().autowireBean(g);
+        core.autowireObject(g);
         updateFilterMenu(g);
         return g;
     }
@@ -435,7 +437,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
         if (foundFactory == null)
             foundFactory = new GenericGridFactory(); // fallback to generic grid
         ResourcesGrid resourcesGrid = foundFactory.create(type);
-        core.getBeanFactory().autowireBean(resourcesGrid);
+        core.autowireObject(resourcesGrid);
         updateFilterMenu(resourcesGrid);
         LOGGER.debug("Create grid: {}",resourcesGrid.getClass().getSimpleName());
         return resourcesGrid;
@@ -444,7 +446,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
     private void updateFilterMenu(ResourcesGrid resourcesGrid) {
         resourceFilterMenu.removeAll();
         var filters = resourcesGrid.getResourceFilterFactories();
-        if (filters != null && filters.size() > 0) {
+        if (filters != null && !filters.isEmpty()) {
             for (ResourceFilterFactory filter : filters) {
                 resourceFilterMenu.addItem(filter.getTitle(), e -> {
                     showResources(currentType, resourcesGrid.getNamespace(), filter.create(), filterText.getValue());
@@ -575,7 +577,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
     public void setNamespace(String namespace) {
         if (namespace == null) return;
-        if (namespace.equals(""))
+        if (namespace.isEmpty())
             namespaceSelector.setValue(K8sUtil.NAMESPACE_DEFAULT);
         else if (namespace.equals(K8sUtil.NAMESPACE_ALL))
             namespaceSelector.setValue(K8sUtil.NAMESPACE_ALL_LABEL);
@@ -602,10 +604,6 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
     public LinkedList<HistoryItem> getHistroy() {
         return history;
-    }
-
-    public int getHistoryPointer() {
-        return historyPointer;
     }
 
     public record HistoryItem(V1APIResource type, String namespace, ResourcesFilter filter, String filterText, String sortOrder, boolean sortAscending) {

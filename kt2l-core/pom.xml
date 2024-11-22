@@ -200,6 +200,10 @@
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-button-flow</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow-server</artifactId>
+        </dependency>
 
     </dependencies>
 
@@ -279,6 +283,29 @@
 	<profiles>
 		<profile>
 			<id>production</id>
+			<dependencies>
+				<!-- Exclude development dependencies from production -->
+				<dependency>
+					<groupId>com.vaadin</groupId>
+					<artifactId>vaadin</artifactId>
+					<exclusions>
+						<exclusion>
+							<groupId>com.vaadin</groupId>
+							<artifactId>vaadin-dev</artifactId>
+						</exclusion>
+					</exclusions>
+				</dependency>
+				<dependency>
+					<groupId>com.vaadin</groupId>
+					<artifactId>vaadin-core</artifactId>
+					<exclusions>
+						<exclusion>
+							<groupId>com.vaadin</groupId>
+							<artifactId>vaadin-dev</artifactId>
+						</exclusion>
+					</exclusions>
+				</dependency>
+			</dependencies>
 			<build>
 				<plugins>
 					<plugin>

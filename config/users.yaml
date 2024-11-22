@@ -23,7 +23,8 @@ allowDeleteUsers: true
 users:
   - name: "admin"
     id: "admin"
-    password: "{generate}"
+#    password: "{generate}"
+    password: "{noop}admin"
     roles:
       - "READ"
       - "WRITE"
