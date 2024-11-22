@@ -32,6 +32,7 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.dependency.Uses;
@@ -198,8 +199,9 @@ public class Core extends AppLayout {
     private ContextMenu generalContextMenu;
     private boolean uiLostEnabled = false;
     private volatile boolean darkMode = false;
-    private boolean autoDarkMode;
-    private ToggleButton darkModeToggle;
+    private volatile boolean autoDarkMode = false;
+    private MenuItem darkModeToggle;
+    private MenuItem autoDarkModeToggle;
 
     @PostConstruct
     public void createUi() {
@@ -230,7 +232,7 @@ public class Core extends AppLayout {
         autoDarkMode = viewsConfiguration.getConfig("core").getBoolean("autoDarkMode", false);
         if (autoDarkMode) {
             darkMode = false;
-            switchDarkMode();
+            checkAutoDarkMode();
         } else
             //noinspection NonAtomicOperationOnVolatileField
             darkMode = viewsConfiguration.getConfig("core").getBoolean("darkMode", darkMode);
@@ -433,15 +435,26 @@ public class Core extends AppLayout {
         userMenu.setTarget(userButton);
         userMenu.setOpenOnClick(true);
 
-        darkModeToggle = new ToggleButton("Dark mode");
-        darkModeToggle.addValueChangeListener(e -> {
+        var darkModeMenu = userMenu.addItem("Dark mode").getSubMenu();
+
+        darkModeToggle = darkModeMenu.addItem("Dark");
+        darkModeToggle.setCheckable(true);
+        darkModeToggle.addClickListener(e -> {
             if (e.isFromClient()) {
-                autoDarkMode = false;
-                switchDarkMode(e.getValue());
+                switchAutoDarkMode(false);
+                switchDarkMode(e.getSource().isChecked());
             }
         });
-        userMenu.addItem(darkModeToggle);
-        darkModeToggle.setValue(darkMode);
+        darkModeToggle.setChecked(darkMode);
+
+        autoDarkModeToggle = darkModeMenu.addItem("Automatic");
+        autoDarkModeToggle.setCheckable(true);
+        autoDarkModeToggle.addClickListener(e -> {
+            if (e.isFromClient()) {
+                switchAutoDarkMode(e.getSource().isChecked());
+            }
+        });
+        autoDarkModeToggle.setChecked(autoDarkMode);
 
         if (cfgService.isUserCfgEnabled()) {
             UiUtil.createIconItem(userMenu, VaadinIcon.COG, "User Settings", null, true).addClickListener(click -> {
@@ -484,11 +497,40 @@ public class Core extends AppLayout {
         addToNavbar(header);
     }
 
+    private void switchAutoDarkMode(boolean auto) {
+        ui.access(() -> {
+            autoDarkMode = auto;
+            if (autoDarkModeToggle != null && autoDarkModeToggle.isChecked() != autoDarkMode) {
+                autoDarkModeToggle.setChecked(autoDarkMode);
+            }
+            if (autoDarkMode) {
+                checkAutoDarkMode();
+            }
+        });
+    }
+
+    private void checkAutoDarkMode() {
+        ui.access(() -> {
+            this.getElement().executeJs("return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches").then(Boolean.class, res -> {
+                if (res != null) {
+                    LOGGER.trace("㋡ {} Auto Dark Mode {}", sessionId, res);
+                    if (darkMode != res) {
+                        LOGGER.debug("㋡ {} Switch dark mode {}", sessionId, darkMode);
+                        switchDarkMode(res);
+                    }
+                }
+            });
+        });
+    }
+
     private void switchDarkMode(boolean dark) {
-        var js = "document.documentElement.setAttribute('theme', $0)";
-        getElement().executeJs(js, dark ? Lumo.DARK : Lumo.LIGHT);
-        if (darkModeToggle != null && darkModeToggle.getValue() != dark)
-            darkModeToggle.setValue(dark);
+        ui.access(() -> {
+            darkMode = dark;
+            var js = "document.documentElement.setAttribute('theme', $0)";
+            getElement().executeJs(js, darkMode ? Lumo.DARK : Lumo.LIGHT);
+            if (darkModeToggle != null && darkModeToggle.isChecked() != darkMode)
+                darkModeToggle.setChecked(darkMode);
+        });
     }
 
     protected void updateHelpMenu(boolean setDefaultDocu) {
@@ -614,7 +656,7 @@ public class Core extends AppLayout {
             }
             // check for dark mode
             if (autoDarkMode && refreshCounter % 15 == 0) {
-                switchDarkMode();
+                checkAutoDarkMode();
             }
             // refresh selected tab
             final var selected = tabBar.getSelectedTab();
@@ -628,20 +670,6 @@ public class Core extends AppLayout {
         } catch (Exception e) {
             LOGGER.error("㋡ {} Error refreshing", sessionId, e);
         }
-    }
-
-    private void switchDarkMode() {
-        ui.access(() -> {
-            this.getElement().executeJs("return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches").then(Boolean.class, res -> {
-                if (res != null) {
-                    if (darkMode != res) {
-                        darkMode = res;
-                        LOGGER.debug("㋡ {} Switch dark mode {}", sessionId, darkMode);
-                        switchDarkMode(darkMode);
-                    }
-                }
-            });
-        });
     }
 
     private void checkSession() {
