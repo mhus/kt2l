@@ -22,6 +22,7 @@ cd ..
 
 PID_FILE=var/run/kt2l-server.pid
 export KT2L_LOG_DIRECTORY=var/logs
+export KT2L_CLASSPATH=
 RUN=./bin/run.sh
 
 . ./env.sh

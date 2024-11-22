@@ -23,6 +23,11 @@ The goal of KT2L is to provide a tool to work with kubernetes clusters.
   examples library.
 * Ensures robust security measures are in place to safeguard sensitive data and system integrity.
 
+And why use a java backend server instead of a frontend only react application?
+
+* If the api is not accessible from the internet, the backend server allows you to access the system.
+* I like java and why not use it?
+
 # Applications
 
 * As local administrative tooling for Kubernetes clusters.

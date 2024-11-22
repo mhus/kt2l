@@ -56,6 +56,7 @@ You can set environment variables for the server in this file.
 - KT2L_TMP_DIRECTORY - the path to the temporary directory (default is the java system temporary directory)
 - KT2L_STORAGE_DIRECTORY - the path to the storage directory (default is `var/storage` in the server directory)
 - (KT2L_SPRING_PROFILE - additional spring profiles of the server (default is `prod`) - bin/run.sh only)
+- KT2L_CLASSPATH - additional classpath for the server (default is empty)
 
 ## Update the server
 

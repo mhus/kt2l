@@ -1,0 +1,9 @@
+defaultCluster: minikube
+defaultResourceType: "pods"
+defaultNamespace: default
+clusterSelector: false
+clusters:
+  - name: minikube
+    title: "Cluster"
+    enabled: true
+    color: blue

@@ -21,7 +21,7 @@ FROM eclipse-temurin:21.0.5_11-jdk
 ENV UID=1001
 ENV GCLOUD_VERSION=471.0.0
 
-RUN apt-get update && apt-get install -y unzip ca-certificates awscli sudo \
+RUN apt-get update && apt-get install -y unzip ca-certificates sudo \
     && useradd -u $UID -m user
 #    && cd / && curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-$GCLOUD_VERSION-linux-x86_64.tar.gz \
 #    && tar -xzf google-cloud-cli-${GCLOUD_VERSION}-linux-x86_64.tar.gz \

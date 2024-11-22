@@ -29,13 +29,10 @@ if [ -z "$KT2L_SPRING_PROFILES" ]; then
     KT2L_SPRING_PROFILES=prod,$KT2L_SPRING_PROFILES
 fi
 
-JAVA_CP=
-for i in lib/*.jar; do
-  if [ "x$JAVA_CP" != "x" ]; then
-    JAVA_CP=$JAVA_CP:
-  fi
-  JAVA_CP=$JAVA_CP$i
-done
+JAVA_CP=lib/kt2l-server.jar
+if [ ! -z "$KT2L_CLASSPATH" ]; then
+  JAVA_CP=$JAVA_CP:$KT2L_CLASSPATH
+fi
 MAIN_CLASS=org.springframework.boot.loader.launch.JarLauncher
 KT2L_TMP_DIRECTORY=${KT2L_TMP_DIRECTORY:-var/tmp}
 JAVA_BIN=${JAVA_BIN:-java}
