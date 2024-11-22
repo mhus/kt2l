@@ -32,3 +32,4 @@ resource_grid:
 namespace:
 cluster:
 core:
+core_action:

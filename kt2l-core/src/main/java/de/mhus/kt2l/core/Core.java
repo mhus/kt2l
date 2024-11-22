@@ -280,7 +280,7 @@ public class Core extends AppLayout {
         helpBrowser = new IFrame();
         helpBrowser.setSizeFull();
         helpBrowser.getElement().setAttribute("frameborder", "0");
-        helpBrowser.setSrc("/public/docs/index.html");
+        helpBrowser.setSrc("/docs/index.html");
         helpContent.add(helpBrowser);
         helpContent.setClassName("helpcontent");
     }

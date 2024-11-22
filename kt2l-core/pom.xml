@@ -247,7 +247,7 @@
 						<configuration>
 							<removeMarkdownHeaders>true</removeMarkdownHeaders>
 							<inputDirectory>${project.basedir}/../docs/docs</inputDirectory>
-							<outputDirectory>${project.basedir}/src/main/resources/META-INF/resources/public/docs</outputDirectory>
+							<outputDirectory>${project.basedir}/src/main/resources/docs</outputDirectory>
 							<applyFiltering>false</applyFiltering>
 							<headerHtmlFile>${project.basedir}/misc/markdown_header.html</headerHtmlFile>
 							<footerHtmlFile>${project.basedir}/misc/markdown_footer.html</footerHtmlFile>
@@ -263,7 +263,7 @@
 						<id>additional</id>
 						<configuration>
 							<inputDirectory>${project.basedir}/docs</inputDirectory>
-							<outputDirectory>${project.basedir}/src/main/resources/META-INF/resources/public/docs</outputDirectory>
+							<outputDirectory>${project.basedir}/src/main/resources/docs</outputDirectory>
 							<applyFiltering>false</applyFiltering>
 							<headerHtmlFile>${project.basedir}/misc/markdown_header.html</headerHtmlFile>
 							<footerHtmlFile>${project.basedir}/misc/markdown_footer.html</footerHtmlFile>

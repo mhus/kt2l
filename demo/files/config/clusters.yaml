@@ -24,4 +24,4 @@ clusters:
   - name: minikube
     title: "Cluster"
     enabled: true
-    color: blue
+    color: orange

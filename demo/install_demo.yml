@@ -32,6 +32,11 @@
         owner: root
         group: root
         mode: 0440
+    - name: Install kubectl
+      get_url:
+        url: https://dl.k8s.io/release/v1.31.3/bin/linux/amd64/kubectl
+        dest: /usr/local/bin/kubectl
+        mode: 0755
 
   roles:
     - docker_host

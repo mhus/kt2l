@@ -59,6 +59,8 @@ public class SecurityConfiguration
         // super.configure(HttpSecurity) as it adds final anyRequest matcher
         http.authorizeHttpRequests(auth -> auth.requestMatchers(new AntPathRequestMatcher("/public/**"))
                 .permitAll());
+        http.authorizeHttpRequests(auth -> auth.requestMatchers(new AntPathRequestMatcher("/docs/**"))
+                .permitAll());
         http.authorizeHttpRequests(auth -> auth.requestMatchers(new AntPathRequestMatcher("/actuator/**"))
                 .permitAll());
 
