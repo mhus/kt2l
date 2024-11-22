@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Set;
 
 @Slf4j
-public class Kt2lDesktopApplication extends Kt2lApplication {
+public class Kt2lDesktopApplication {
 
     private static Display display;
     private static Set<BrowserInstance> browserInstances = Collections.synchronizedSet(new HashSet<>());

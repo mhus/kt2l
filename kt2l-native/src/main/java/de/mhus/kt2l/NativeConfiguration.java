@@ -14,8 +14,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportRuntimeHints;
-import org.springframework.core.io.Resource;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.RegexPatternTypeFilter;
 
 import java.util.Set;
@@ -39,7 +37,7 @@ public class NativeConfiguration {
             registerType(ClassLoaderResourceProvider.class);
             registerType(DefaultNodeFactory.class);
             // vaadin
-            registerType(com.vaadin.copilot.SpringIntegration.class);
+            registerType("com.vaadin.copilot.SpringIntegration");
             new Reflections("de.f0rce.ace").getTypesAnnotatedWith(EventData.class).forEach(
                     type -> registerType(type)
             );

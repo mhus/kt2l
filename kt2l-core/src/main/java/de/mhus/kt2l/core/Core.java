@@ -199,6 +199,7 @@ public class Core extends AppLayout {
     private boolean uiLostEnabled = false;
     private volatile boolean darkMode = false;
     private boolean autoDarkMode;
+    private ToggleButton darkModeToggle;
 
     @PostConstruct
     public void createUi() {
@@ -432,12 +433,15 @@ public class Core extends AppLayout {
         userMenu.setTarget(userButton);
         userMenu.setOpenOnClick(true);
 
-        if (!autoDarkMode) {
-            var darkModeToggle = new ToggleButton("Dark mode");
-            darkModeToggle.addValueChangeListener(e -> switchDarkMode(e.getValue()));
-            userMenu.addItem(darkModeToggle);
-            darkModeToggle.setValue(darkMode);
-        }
+        darkModeToggle = new ToggleButton("Dark mode");
+        darkModeToggle.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autoDarkMode = false;
+                switchDarkMode(e.getValue());
+            }
+        });
+        userMenu.addItem(darkModeToggle);
+        darkModeToggle.setValue(darkMode);
 
         if (cfgService.isUserCfgEnabled()) {
             UiUtil.createIconItem(userMenu, VaadinIcon.COG, "User Settings", null, true).addClickListener(click -> {
@@ -483,6 +487,8 @@ public class Core extends AppLayout {
     private void switchDarkMode(boolean dark) {
         var js = "document.documentElement.setAttribute('theme', $0)";
         getElement().executeJs(js, dark ? Lumo.DARK : Lumo.LIGHT);
+        if (darkModeToggle != null && darkModeToggle.getValue() != dark)
+            darkModeToggle.setValue(dark);
     }
 
     protected void updateHelpMenu(boolean setDefaultDocu) {

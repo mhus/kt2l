@@ -39,7 +39,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 @Slf4j
-public class Kt2lServerApplication extends Kt2lApplication {
+public class Kt2lServerApplication {
 
     public static void main(String[] args) {
         LOGGER.info("Start kt2l-server {} {}", DeployInfo.VERSION, DeployInfo.CREATED);

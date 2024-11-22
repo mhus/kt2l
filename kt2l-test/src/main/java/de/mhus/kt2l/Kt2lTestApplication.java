@@ -38,7 +38,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 @Slf4j
-public class Kt2lTestApplication extends Kt2lApplication {
+public class Kt2lTestApplication {
 
     public static void main(String[] args) {
         SpringApplicationBuilder builder = new SpringApplicationBuilder(Kt2lApplication.class);
