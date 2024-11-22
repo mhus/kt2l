@@ -34,7 +34,7 @@ public class DocsHelpAction implements HelpAction {
     @Override
     public void execute(Core core, HelpConfiguration.HelpLink link) {
         link.getNode().getString("document").ifPresent(href ->
-                core.setHelpUrl("/public/docs/" + href + ".html")
+                core.setHelpUrl("/docs/" + href + ".html")
         );
     }
 

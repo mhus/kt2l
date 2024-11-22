@@ -32,4 +32,5 @@ resource_grid:
 namespace:
 cluster:
 core:
+core_action:
   "de.mhus.kt2l.core.LocalBashCoreAction": NONE
