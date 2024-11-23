@@ -18,6 +18,7 @@
 package de.mhus.kt2l.core;
 
 import de.mhus.commons.tools.MFile;
+import de.mhus.commons.tools.MLang;
 import jakarta.servlet.Servlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,6 +43,8 @@ public class DocResourcesServlet {
         final var resource = Thread.currentThread().getContextClassLoader().getResourceAsStream("docs" + path);
         if (resource == null) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            response.setContentType("text/plain");
+            MLang.tryThis(() -> response.getWriter().write("Resource not found"));
             return;
         }
         try (final var outputStream = response.getOutputStream()) {
@@ -51,6 +54,8 @@ public class DocResourcesServlet {
         } catch (Exception e) {
             LOGGER.error("Error reading resource {}", path, e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setContentType("text/plain");
+            MLang.tryThis(() -> response.getWriter().write("Resource error"));
         }
     }
 }

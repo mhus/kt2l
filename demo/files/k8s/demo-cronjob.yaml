@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cronjobdice
+  namespace: default
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: cronjobdice
+              image: mhus/example-dice:latest
+              env:
+                - name: SIDES
+                  value: '100'
+                - name: LOG_COLOR
+                  value: 'true'
+                - name: FAIL_ON
+                  value: '99'
+          restartPolicy: OnFailure

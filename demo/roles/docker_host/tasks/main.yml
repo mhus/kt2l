@@ -51,3 +51,12 @@
       - docker-buildx-plugin
       - docker-compose-plugin
     state: present
+- name: Add user to docker group
+  user:
+    name: user
+    groups: docker
+    append: yes
+- name: Restart docker service
+  service:
+    name: docker
+    state: restarted

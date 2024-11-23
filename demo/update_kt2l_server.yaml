@@ -16,12 +16,26 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-defaultCluster: kt2l
-defaultResourceType: "pods"
-defaultNamespace: default
-clusterSelector: false
-clusters:
-  - name: kt2l
-    title: "Cluster"
-    enabled: true
-    color: orange
+
+- hosts: demo-hosts
+  post_tasks:
+    - name: Remove KT2L Server
+      community.docker.docker_container:
+        name: kt2l-server
+        state: absent
+    - name: copy config files
+      copy:
+        src: config/
+        dest: /home/user/config/local/
+        owner: user
+        group: user
+        mode: 0755
+    - name: Start KT2L docker container
+      community.docker.docker_container:
+        name: kt2l-server
+        image: mhus/kt2l-server:snapshot
+        network_mode: host
+        env:
+          CONFIGURATION_DIRECTORY: /home/user/config
+        volumes:
+          - "/home/user:/home/user"

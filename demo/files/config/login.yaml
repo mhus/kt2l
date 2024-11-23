@@ -18,4 +18,4 @@
 
 autoLogin: false
 autoLoginUser: nouser
-loginText: Demo
+loginText: Demo with limited access. See <a href="http://www.kt2l.org">KT2L</a> for more information.

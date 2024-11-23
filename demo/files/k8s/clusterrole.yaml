@@ -1,0 +1,8 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kt2l-clusterrole
+rules:
+  - apiGroups: ["", "statefulset", "metrics.k8s.io","apps","batch","extensions","networking.k8s.io","storage.k8s.io","rbac.authorization.k8s.io","autoscaling","policy", "events.k8s.io"]
+    resources: ["*"]
+    verbs: ["get","update","read", "list","watch"]

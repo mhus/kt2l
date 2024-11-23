@@ -1,7 +1,7 @@
 
 # Server
 
-Image: Ubuntu 20.04
+Image: Ubuntu 24.04
 ```bash
 eval $(ssh-agent)
 ssh root@188.245.190.140 -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking no"
@@ -180,5 +180,63 @@ sudo rm /etc/sudoers.d/10-install-user
 https://github.com/jwilder/docker-letsencrypt-nginx-proxy-companion
 
 ```shell
+# Update these to match your environment
+SERVICE_ACCOUNT_NAME=kt2l-service-account
+CONTEXT=$(kubectl config current-context)
+NAMESPACE=default
+
+NEW_CONTEXT=kt2l
+KUBECONFIG_FILE="/home/user/.kube/config"
+
+SECRET_NAME=$(kubectl get serviceaccount ${SERVICE_ACCOUNT_NAME} \
+  --context ${CONTEXT} \
+  --namespace ${NAMESPACE} \
+  -o jsonpath='{.secrets[0].name}')
+TOKEN_DATA=$(kubectl get secret ${SECRET_NAME} \
+  --context ${CONTEXT} \
+  --namespace ${NAMESPACE} \
+  -o jsonpath='{.data.token}')
+
+TOKEN=$(echo ${TOKEN_DATA} | base64 -d)
+
+# Create dedicated kubeconfig
+# Create a full copy
+kubectl config view --raw > ${KUBECONFIG_FILE}.full.tmp
+# Switch working context to correct context
+kubectl --kubeconfig ${KUBECONFIG_FILE}.full.tmp config use-context ${CONTEXT}
+# Minify
+kubectl --kubeconfig ${KUBECONFIG_FILE}.full.tmp \
+  config view --flatten --minify > ${KUBECONFIG_FILE}.tmp
+# Rename context
+kubectl config --kubeconfig ${KUBECONFIG_FILE}.tmp \
+  rename-context ${CONTEXT} ${NEW_CONTEXT}
+# Create token user
+kubectl config --kubeconfig ${KUBECONFIG_FILE}.tmp \
+  set-credentials ${CONTEXT}-${NAMESPACE}-token-user \
+  --token ${TOKEN}
+# Set context to use token user
+kubectl config --kubeconfig ${KUBECONFIG_FILE}.tmp \
+  set-context ${NEW_CONTEXT} --user ${CONTEXT}-${NAMESPACE}-token-user
+# Set context to correct namespace
+kubectl config --kubeconfig ${KUBECONFIG_FILE}.tmp \
+  set-context ${NEW_CONTEXT} --namespace ${NAMESPACE}
+# Flatten/minify kubeconfig
+kubectl config --kubeconfig ${KUBECONFIG_FILE}.tmp \
+  view --flatten --minify > ${KUBECONFIG_FILE}
+# Remove tmp
+rm ${KUBECONFIG_FILE}.full.tmp
+rm ${KUBECONFIG_FILE}.tmp
+chmod 600 ${KUBECONFIG_FILE}
+chown user:user ${KUBECONFIG_FILE}
 
 ```
+
+
+# Restart on reboot
+
+```bash
+sudo -u user minikube start
+/root/update-kubeconfig.sh
+docker start ollama
+docker start kt2l-server
+``` 
