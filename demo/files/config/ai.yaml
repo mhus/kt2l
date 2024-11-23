@@ -19,6 +19,8 @@
 enabled: true
 ollamaUrl: http://localhost:11434
 openAiKey:
+codingModel: ollama3
+translateModel: ollama3
 prompts:
   translate:
     model: auto:translate
