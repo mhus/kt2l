@@ -28,6 +28,7 @@ import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -173,4 +174,17 @@ public class PodK8s extends K8sV1Pod {
         replaceResource(apiProvider, pod.getMetadata().getName(), pod.getMetadata().getNamespace(), pod);
 
     }
+
+    // Overwrite to fix https://github.com/kubernetes-client/java/issues/3076 remove if fixed in kubernetes java-client
+    @Override
+    public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
+        var body = Yaml.loadAs(yaml, V1Pod.class);
+        if (body.getSpec().getOverhead() != null && body.getSpec().getOverhead().size() == 0)
+            body.getSpec().setOverhead(null); // fix
+        return apiProvider.getCoreV1Api().createNamespacedPod(
+                body.getMetadata().getNamespace(),
+                body
+        ).execute();
+    }
+
 }
