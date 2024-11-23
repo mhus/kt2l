@@ -30,6 +30,10 @@
         owner: user
         group: user
         mode: 0755
+    - name: Pull KT2L docker container
+      community.docker.docker_image:
+        name: mhus/kt2l-server:snapshot
+        source: pull
     - name: Start KT2L docker container
       community.docker.docker_container:
         name: kt2l-server

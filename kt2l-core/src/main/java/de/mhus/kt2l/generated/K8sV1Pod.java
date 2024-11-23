@@ -80,8 +80,6 @@ public abstract class K8sV1Pod implements HandlerK8s {
     @Override
     public Object create(ApiProvider apiProvider, String yaml) throws ApiException {
         var body = Yaml.loadAs(yaml, V1Pod.class);
-        if (body.getSpec().getOverhead() != null && body.getSpec().getOverhead().size() == 0)
-            body.getSpec().setOverhead(null); // fix for https://github.com/kubernetes-client/java/issues/3076
         return apiProvider.getCoreV1Api().createNamespacedPod(
             body.getMetadata().getNamespace(),
             body

@@ -51,6 +51,7 @@ public class AiService {
     public static final String MODEL_MISTRAL = OLLAMA + ":mistral:";
     public static final String MODEL_CODELLAMA = OLLAMA + ":codellama:";
     public static final String MODEL_LLAMA2 = OLLAMA + ":llama2:";
+    public static final String MODEL_LLAMA3 = OLLAMA + ":llama3:";
     public static final String MODEL_OPENCHAT = OLLAMA + ":openchat:";
     public static final String MODEL_STARCODER = OLLAMA + ":starcoder:";
     public static final String MODEL_STARCODER2 = OLLAMA + ":starcoder2:";

@@ -22,6 +22,6 @@ defaultNamespace: default
 clusterSelector: false
 clusters:
   - name: kt2l
-    title: "Cluster"
+    title: "Demo Cluster"
     enabled: true
     color: orange
