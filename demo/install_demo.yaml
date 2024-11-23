@@ -19,6 +19,10 @@
 
 - hosts: demo-hosts
   pre_tasks:
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+        update_cache: yes
     - name: add user
       user:
         name: "user"
@@ -41,40 +45,46 @@
   roles:
     - docker_host
     - minikube_host
+    - ollama_host
 
   post_tasks:
-    - name: Add user to docker group
-      user:
-        name: user
-        groups: docker
-        append: yes
-    - name: Restart docker service
-      service:
-        name: docker
-        state: restarted
     - name: Start Minikube
       command: minikube start
+      environment:
+        KUBECONFIG: /home/user/.kube/config-minikube
       become: yes
       become_user: user
-    - name: copy config files
+
+    - name: Copy config files
       copy:
           src: config/
           dest: /home/user/config/local/
           owner: user
           group: user
           mode: 0755
-    - name: Start Ollama docker container
-      community.docker.docker_container:
-        name: ollama
-        image: ollama/ollama
-        ports:
-            - "11434:11434"
-        volumes:
-          - ollama:/root/.ollama
-    - name: Install Ollama model
-      community.docker.docker_container_exec:
-        container: ollama
-        command: ollama pull llama3
+    - name: Copy root scripts
+      copy:
+        src: root_bin/
+        dest: /root/
+        mode: 0755
+    - name: Copy k8s resource files
+      copy:
+        src: k8s/
+        dest: /root/k8s/
+
+    - name: Prepare kube config (1)
+      command: /root/prepare-kube-config.sh
+      become: yes
+      become_user: root
+    - name: Apply k8s resources (2)
+      command: kubectl apply -f /root/k8s/ --kubeconfig /home/user/.kube/config-minikube
+      become: yes
+      become_user: root
+    - name: Create user kube config (3)
+      command: /root/update-kube-config.sh
+      become: yes
+      become_user: root
+
     - name: Start KT2L docker container
       community.docker.docker_container:
         name: kt2l-server

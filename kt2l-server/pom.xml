@@ -87,7 +87,39 @@
         <profile>
             <id>production</id>
             <build>
+                <resources>
+                    <resource>
+                        <directory>${basedir}/src/main/resources</directory>
+                    </resource>
+                    <resource>
+                        <directory>${basedir}/target/docs</directory>
+                    </resource>
+                </resources>
                 <plugins>
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>copy-resource-docs</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${basedir}/target/docs/docs</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>../kt2l-core/src/main/resources/docs</directory>
+                                            <includes>
+                                                <include>**/**</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                     <plugin>
                         <groupId>com.vaadin</groupId>
                         <artifactId>vaadin-maven-plugin</artifactId>

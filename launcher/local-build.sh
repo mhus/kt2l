@@ -20,22 +20,24 @@
 unset AWS_SECRET_ACCESS_KEY
 unset AWS_ACCESS_KEY_ID
 
-while getopts hcptni flag
+while getopts hcptnia flag
 do
     case "${flag}" in
-        h) echo "Usage: $0 [-h] [-c] [-p] [-t] [-n] [-i]"
+        h) echo "Usage: $0 [-h] [-c] [-p] [-t] [-n] [-i] [-a]"
                echo "  -h  Display this help"
                echo "  -c  Skip compile"
                echo "  -p  Skip prepare"
                echo "  -t  Also execute tests"
                echo "  -n  Compile native"
                echo "  -i  Compile native image"
+               echo "  -a  Compile all (not core only)"
                exit 0;;
         c) SKIP_COMPILE=true;;
         n) COMPILE_NATIVE=true;;
         i) COMPILE_NATIVE_IMAGE=true;;
         p) SKIP_PREPARE=true;;
         t) TEST=true;;
+        a) COMPLE_ALL=true;;
     esac
 done
 
@@ -49,12 +51,19 @@ if [ -z "$SKIP_PREPARE" ]; then
 fi
 
 if [ -z "$SKIP_COMPILE" ]; then
-  echo "------------------------------------------------------------"
-  echo "Compile project"
-  echo "------------------------------------------------------------"
-  cd kt2l-core
-  mvn clean install -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
-  cd ..
+  if [ -n "$COMPLE_ALL" ]; then
+    echo "------------------------------------------------------------"
+    echo "Compile all projects"
+    echo "------------------------------------------------------------"
+    mvn clean install -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
+  else
+    echo "------------------------------------------------------------"
+    echo "Compile core project"
+    echo "------------------------------------------------------------"
+    cd kt2l-core
+    mvn clean install -B -Pproduction -Dspring.profiles.active=prod -Dvaadin.force.production.build=true || exit 1
+    cd ..
+  fi
 fi
 
 if [ -n "$TEST" ]; then

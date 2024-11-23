@@ -1,0 +1,31 @@
+# TEMPLATE BEGIN
+# name: string <Name of the pod>:dicedeployment
+# TEMPLATE END
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dice
+  name: dice
+  namespace: default
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: dice
+  template:
+    metadata:
+      labels:
+        app: dice
+    spec:
+      containers:
+        - image: mhus/example-dice:latest
+          imagePullPolicy: Always
+          name: test-server
+          env:
+            - name: INFINITE
+              value: 'true'
+            - name: FAIL_ON
+              value: '6'
+            - name: SLEEP
+              value: '5'

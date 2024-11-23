@@ -16,12 +16,29 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-defaultCluster: kt2l
-defaultResourceType: "pods"
-defaultNamespace: default
-clusterSelector: false
-clusters:
-  - name: kt2l
-    title: "Cluster"
-    enabled: true
-    color: orange
+
+- hosts: demo-hosts
+
+  post_tasks:
+
+    - name: Copy root scripts
+      copy:
+        src: root_bin/
+        dest: /root/
+        mode: 0755
+    - name: Copy k8s resource files
+      copy:
+        src: k8s/
+        dest: /root/k8s/
+    - name: Prepare kube config
+      command: /root/prepare-kube-config.sh
+      become: yes
+      become_user: root
+    - name: Apply k8s resources
+      command: kubectl apply -f /root/k8s/ --kubeconfig /home/user/.kube/config-minikube
+      become: yes
+      become_user: root
+    - name: Create user kube config (5)
+      command: /root/update-kube-config.sh
+      become: yes
+      become_user: root

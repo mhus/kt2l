@@ -16,12 +16,16 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-defaultCluster: kt2l
-defaultResourceType: "pods"
-defaultNamespace: default
-clusterSelector: false
-clusters:
-  - name: kt2l
-    title: "Cluster"
-    enabled: true
-    color: orange
+---
+- name: Start Ollama docker container
+  community.docker.docker_container:
+    name: ollama
+    image: ollama/ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+- name: Install Ollama model llama3
+  community.docker.docker_container_exec:
+    container: ollama
+    command: ollama pull llama3

@@ -1,5 +1,5 @@
 #
-# kt2l - KT2L (ktool) is a web based tool to manage your kubernetes clusters.
+# kt2l-core - kt2l core implementation
 # Copyright © 2024 Mike Hummel (mh@mhus.de)
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,12 +16,19 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-defaultCluster: kt2l
-defaultResourceType: "pods"
-defaultNamespace: default
-clusterSelector: false
-clusters:
-  - name: kt2l
-    title: "Cluster"
-    enabled: true
-    color: orange
+enabled: true
+ollamaUrl: http://localhost:11434
+openAiKey:
+prompts:
+  translate:
+    model: auto:translate
+    template: |
+      Translate the following text to {{language}}:
+      
+      {{content}}
+  resource:
+    model: auto:coding
+    template: |
+      Do you see problems in the following kubernetes resource?
+      
+      {{content}}
