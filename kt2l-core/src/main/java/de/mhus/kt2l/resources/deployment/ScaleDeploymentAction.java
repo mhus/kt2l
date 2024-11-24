@@ -125,6 +125,7 @@ public class ScaleDeploymentAction implements ResourceAction {
                 }
             });
             progress.close();
+            context.finished();
         });
     }
 

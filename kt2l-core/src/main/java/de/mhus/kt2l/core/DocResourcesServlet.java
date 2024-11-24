@@ -40,7 +40,7 @@ public class DocResourcesServlet {
     @GetMapping("/**")
     public void proxy(final HttpServletRequest request, final HttpServletResponse response) {
         final var path =  request.getServletPath().replaceFirst("/docs/*", "/");
-        final var resource = Thread.currentThread().getContextClassLoader().getResourceAsStream("docs" + path);
+        final var resource = getClass().getResourceAsStream("/META-INF/resources/public/docs" + path);
         if (resource == null) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             response.setContentType("text/plain");

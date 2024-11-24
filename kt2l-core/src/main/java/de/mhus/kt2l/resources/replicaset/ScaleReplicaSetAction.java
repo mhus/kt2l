@@ -135,6 +135,7 @@ public class ScaleReplicaSetAction implements ResourceAction {
                 }
             });
             progress.close();
+            context.finished();
         });
     }
 
