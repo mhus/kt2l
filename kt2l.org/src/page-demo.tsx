@@ -13,7 +13,7 @@ export default function PageDem() {
                     </p>
                     <p className="mt-6 text-lg leading-8 text-gray-600">
                         <dt className="text-base font-semibold leading-7 text-gray-900 underline">
-                            <a href="http://demo.kt2l.org:9080" target="_blank">Go To Demo</a>
+                            <a href="http://demo.kt2l.org:9080" target="_blank" rel="noreferrer">Go To Demo</a>
                         </dt>
                     </p>
                     <p className="mt-6 text-lg leading-8 text-gray-600 lg:text-center">
