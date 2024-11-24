@@ -24,7 +24,5 @@ jobs:
           options: |
             --inventory environments/prod/inventory
             -b
-            -K
             --user root
             --verbose
-            --extra-vars "ansible_sudo_pass=yourPassword"
