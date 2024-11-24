@@ -16,14 +16,21 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: kt2l-clusterrole
-rules:
-  - apiGroups: ["", "statefulset", "metrics.k8s.io","apps","batch","extensions","networking.k8s.io","storage.k8s.io","rbac.authorization.k8s.io","autoscaling","policy", "events.k8s.io"]
-    resources: ["*"]
-    verbs: ["get","read", "list","watch"]
-  - apiGroups: ["apps"]
-    resources: ["deployments/scale"]
-    verbs: ["update","patch"]
+- hosts: demo-hosts
+  post_tasks:
+    - name: Cleanup k8s resources
+      command: rm -rf /root/k8s/
+      become: yes
+      become_user: root
+    - name: Copy root scripts
+      copy:
+        src: root_bin/
+        dest: /root/
+        mode: 0755
+    - name: Copy k8s resource files
+      copy:
+        src: k8s/
+        dest: /root/k8s/
+    - name: Reset k8s
+      command: /root/reset_k8s.sh
+

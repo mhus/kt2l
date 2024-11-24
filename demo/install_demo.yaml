@@ -85,11 +85,21 @@
       become: yes
       become_user: root
 
+    - name: Create reset_k8s cronjob
+      ansible.builtin.cron:
+        name: reset_k8s
+        minute: "0"
+        hour: "0"
+        user: root
+        job: "/root/reset_k8s.sh >> /var/log/reset_k8s.log 2>&1"
+
     - name: Start KT2L docker container
       community.docker.docker_container:
         name: kt2l-server
         image: mhus/kt2l-server:snapshot
         network_mode: host
+        restart: true
+        restart_policy: always
         env:
           CONFIGURATION_DIRECTORY: /home/user/config
         volumes:

@@ -20,6 +20,8 @@ package de.mhus.kt2l.ai;
 
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.tools.MString;
+import de.mhus.commons.tree.IProperties;
+import de.mhus.commons.util.MUri;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -45,19 +47,13 @@ public class AiService {
     public static final String OLLAMA = "ollama";
     public static final String OPENAI = "openai";
     public static final String AUTO = "auto";
-    public static final String AUTO_CODING = AUTO + ":coding:";
-    public static final String AUTO_TRANSLATE = AUTO + ":translate:";
+    public static final String AUTO_CODING = AUTO + "/coding/";
+    public static final String AUTO_TRANSLATE = AUTO + "/translate/";
 
-    public static final String MODEL_MISTRAL = OLLAMA + ":mistral:";
-    public static final String MODEL_CODELLAMA = OLLAMA + ":codellama:";
-    public static final String MODEL_LLAMA2 = OLLAMA + ":llama2:";
-    public static final String MODEL_LLAMA3 = OLLAMA + ":llama3:";
-    public static final String MODEL_OPENCHAT = OLLAMA + ":openchat:";
-    public static final String MODEL_STARCODER = OLLAMA + ":starcoder:";
-    public static final String MODEL_STARCODER2 = OLLAMA + ":starcoder2:";
-    public static final String MODEL_YI = OLLAMA + ":yi:";
+    public static final String MODEL_CODELLAMA = OLLAMA + "/codellama/";
+    public static final String MODEL_YI = OLLAMA + "/yi/";
 
-    public static final String MODEL_GPT_3_5_TURBO = OPENAI + ":gpt-3.5-turbo:";
+    public static final String MODEL_GPT_3_5_TURBO = OPENAI + "/gpt-3.5-turbo/";
 
     private Map<String, ChatLanguageModel> models = new HashMap<>();
 
@@ -65,40 +61,37 @@ public class AiService {
     AiConfiguration config;
 
     public synchronized ChatLanguageModel getModel(String modelName) {
-        String[] parts = modelName.split(":");
+        String[] parts = modelName.split("/", 3);
+        if (parts.length < 2) {
+            throw new NotFoundRuntimeException("Model name not valid: " + modelName);
+        }
+        String optionsStr = parts.length == 3 ? parts[2] : "";
         if (parts[0].equalsIgnoreCase(AUTO)) {
             if (parts[1].equalsIgnoreCase("coding")) {
                 if (!isBlank(config.getDefaultCodingModel()))
                     return getModel(config.getDefaultCodingModel());
                 if (!isBlank(config.getOpenAiKey()))
-                    return getModel(OPENAI);
+                    return getModel(OPENAI + optionsStr);
                 else
-                    return getModel(MODEL_CODELLAMA);
+                    return getModel(MODEL_CODELLAMA + optionsStr);
             } else if (parts[1].equalsIgnoreCase("translate")) {
                 if (!isBlank(config.getDefaultTranslateModel()))
                     return getModel(config.getDefaultTranslateModel());
                 if (!isBlank(config.getOpenAiKey()))
-                    return getModel(MODEL_GPT_3_5_TURBO);
+                    return getModel(MODEL_GPT_3_5_TURBO + optionsStr);
                 else
-                    return getModel(MODEL_YI);
+                    return getModel(MODEL_YI + optionsStr);
             }
         }
 
-        if (parts[0].equalsIgnoreCase(OPENAI)) {
-            ChatLanguageModel model = OpenAiChatModel.builder()
-                    .apiKey(config.getOpenAiKey())
-                    .modelName(parts[1])
-                    .temperature(0.3)
-                    .timeout(ofSeconds(60))
-                    .logRequests(true)
-                    .logResponses(true)
-                    .build();
-        }
+        var options = IProperties.explodeToOptions(optionsStr);
 
         if (parts[0].equalsIgnoreCase(OLLAMA)) {
             return models.computeIfAbsent(parts[1], name -> {
                 ChatLanguageModel model = OllamaChatModel.builder()
                         .baseUrl(config.getOllamaUrl())
+                        .timeout(ofSeconds(options.getInt("timeout", 60)))
+                        .temperature(options.getDouble("temperature", 0.3))
                         .modelName(name)
                         .build();
                 return model;
@@ -110,6 +103,8 @@ public class AiService {
                     throw new NotFoundRuntimeException("OpenAi key not configured in ai configuration");
                 ChatLanguageModel model = OpenAiChatModel.builder()
                         .modelName(name)
+                        .timeout(ofSeconds(options.getInt("timeout", 60)))
+                        .temperature(options.getDouble("temperature", 0.3))
                         .apiKey(openAiKey)
                         .build();
                 return model;

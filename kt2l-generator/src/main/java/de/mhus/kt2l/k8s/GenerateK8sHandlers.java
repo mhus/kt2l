@@ -26,7 +26,8 @@ import java.io.File;
 import java.util.List;
 
 @Slf4j
-public class GenerateK8sHandlers {
+public class
+GenerateK8sHandlers {
 
     private final File targetDir;
     private final List<V1APIResource> resources;
@@ -391,6 +392,8 @@ import org.apache.commons.lang3.NotImplementedException;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+
+import javax.annotation.Generated;
 """);
 
         o.append("\n");
@@ -398,6 +401,7 @@ import java.io.InputStreamReader;
         o.append("import ").append(K8s.toClass(k8s).getName()).append("List;\n");
         o.append("\n");
         o.append("@Slf4j\n");
+        o.append("@Generated(\"").append(getClass().getCanonicalName()).append("\")\n");
         o.append("public abstract class ").append(generatedClassName(k8s)).append(" implements HandlerK8s {\n");
         o.append("\n");
         o.append("    @Autowired\n");

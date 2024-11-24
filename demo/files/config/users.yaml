@@ -27,7 +27,6 @@ users:
     roles:
       - "READ"
       - "WRITE"
-      - "LOCAL"
       - "SETTINGS"
       - "ADMIN"
   - name: "user"

@@ -19,17 +19,17 @@
 enabled: true
 ollamaUrl: http://localhost:11434
 openAiKey:
-codingModel: ollama3
-translateModel: ollama3
+codingModel: ollama/llama3.2/timeout=600
+translateModel: ollama/llama3.2/timeout=600
 prompts:
   translate:
-    model: auto:translate
+    model: auto/translate
     template: |
       Translate the following text to {{language}}:
       
       {{content}}
   resource:
-    model: auto:coding
+    model: auto/coding
     template: |
       Do you see problems in the following kubernetes resource?
       
