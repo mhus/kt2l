@@ -22,9 +22,9 @@ on:
   workflow_dispatch:
     inputs:
       execute:
-        description: 'Execute :documentation:server-zip:container:macosx-aarch64:windows-amd64:deb-amd64:all-others:integration-tests:website:sonarcloud:'
+        description: 'Execute :documentation:server-zip:container:macosx-aarch64:windows-amd64:deb-amd64:all-others:integration-tests:demo:website:sonarcloud:'
         required: true
-        default: ':documentation:server-zip:container:macosx-aarch64:windows-amd64:deb-amd64:all-others:integration-tests:website:sonarcloud:'
+        default: ':documentation:server-zip:container:macosx-aarch64:windows-amd64:deb-amd64:all-others:integration-tests:demo:website:sonarcloud:'
         type: string
       create_release:
         description: 'Create new release version'
@@ -195,6 +195,31 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}
+
+  update-demo:
+    if:  ${{ contains(inputs.execute, ':demo:') }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run playbook
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          playbook: update_kt2l_server.yaml
+          directory: ./demo
+          key: ${{secrets.ANSIBLE_SSH_KEY}}
+          configuration: |
+            [defaults]
+            host_key_checking = False
+            [ssh_connection]
+            scp_if_ssh = True
+            ansible_ssh_common_args = '-o StrictHostKeyChecking=no'
+          options: |
+            --inventory environments/prod/inventory
+            -b
+            -K
+            --user root
+            --verbose
 
   deb-amd64:
     if:  ${{ contains(inputs.execute, ':deb-amd64:') }}
