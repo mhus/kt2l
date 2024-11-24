@@ -133,7 +133,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
             if (captureDirectory != null) {
                 menuItemStoreIconDivIcon = VaadinIcon.BULLSEYE.create();
                 menuItemStoreIconDivIcon.setVisible(false);
-                menuItemStoreIconDivIcon.addClassName("color-red");
+                menuItemStoreIconDivIcon.addClassName("color-error");
                 menuItemStoreIconDivIcon.setSize("var(--lumo-icon-size-s)");
                 menuItemStoreIconDiv = new Div();
                 menuItemStoreIconDiv.add(menuItemStoreIconDivIcon, new Text(" Store"));
@@ -192,7 +192,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
 
             var text = new TextArea();
             text.setLabel(container.getContainerName());
-            text.addClassName("bgcolor-yellow");
+            text.addClassName("bgcolor-running");
             text.setWidthFull();
             text.setValue("Running ...");
             var menu = new ContextMenu();
@@ -250,14 +250,14 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
             compiledBlock.run(context, null);
 
             core.ui().access(() -> {
-                text.removeClassNames("bgcolor-yellow");
+                text.removeClassNames("bgcolor-running");
                 text.setValue(text.getValue() + "\n... Done");
             });
         } catch (Exception e) {
             LOGGER.error("Execute", e);
             core.ui().access(() -> {
-                text.removeClassNames("bgcolor-yellow");
-                text.addClassName("bgcolor-red");
+                text.removeClassNames("bgcolor-running");
+                text.addClassName("bgcolor-error");
                 text.setValue(text.getValue() + "\n... Error: " + e.getMessage());
             });
         }

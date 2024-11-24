@@ -31,5 +31,5 @@ The AI panel has the following modes:
 If a question starts with a slash `/` character, it is interpreted as a command. The following commands are available:
 
 - `/mode <mode>` - Set the mode of the AI panel. The mode can be `resources`, `cumulative`, or `text`.
-- `/model <model>` - Set the model of the AI panel. For example `auto:coding`, `ollama:codellama` or `openai:gpt-3.5-turbo`.
+- `/model <model>` - Set the model of the AI panel. For example `auto/coding`, `ollama/codellama` or `openai/gpt-3.5-turbo`.
 - `/language <language>` - Set the language of the AI panel. For example `german` or `italian`.

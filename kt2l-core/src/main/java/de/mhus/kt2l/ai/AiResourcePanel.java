@@ -310,8 +310,8 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener, 
             if (text.getValue().equals(LOADING)) return;
             var content = text.getValue();
             text.setValue(LOADING);
-            text.addClassName("bgcolor-yellow");
-            text.removeClassName("bgcolor-red");
+            text.addClassName("bgcolor-running");
+            text.removeClassName("bgcolor-error");
             var sc = SecurityContext.create();
             Thread.startVirtualThread(() -> {
                 try (var sce = sc.enter()) {
@@ -330,13 +330,13 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener, 
 
             final var answer = ai.generate(ai.getModelForPrompt("translate").orElse(AiService.AUTO_TRANSLATE), prompt);
             core.ui().access(() -> {
-                text.removeClassName("bgcolor-yellow");
+                text.removeClassName("bgcolor-running");
                 text.setValue((answer.finishReason() != null ? answer.finishReason() + "\n" : "") + answer.content().text());
             });
         } catch (Throwable t) {
             core.ui().access(() -> {
-                text.removeClassName("bgcolor-yellow");
-                text.addClassName("bgcolor-red");
+                text.removeClassName("bgcolor-running");
+                text.addClassName("bgcolor-error");
                 text.setValue("Error: " + t.toString());
             });
         }
@@ -345,21 +345,21 @@ public class AiResourcePanel extends VerticalLayout implements DeskTabListener, 
     private void processResource(final TextArea textArea, Prompt prompt) {
 
         core.ui().access(() -> {
-            textArea.addClassName("bgcolor-yellow");
-            textArea.removeClassName("bgcolor-red");
+            textArea.addClassName("bgcolor-running");
+            textArea.removeClassName("bgcolor-error");
         });
         try {
 
             final var answer = ai.generate(codingModel, prompt);
             core.ui().access(() -> {
-                textArea.removeClassName("bgcolor-yellow");
+                textArea.removeClassName("bgcolor-running");
                 textArea.setValue((answer.finishReason() != null ? answer.finishReason() + "\n" : "") + answer.content().text());
                 this.question.setEnabled(true);
             });
         } catch (Throwable t) {
             core.ui().access(() -> {
-                textArea.removeClassName("bgcolor-yellow");
-                textArea.addClassName("bgcolor-red");
+                textArea.removeClassName("bgcolor-running");
+                textArea.addClassName("bgcolor-error");
                 textArea.setValue("Error: " + t.toString());
                 this.question.setEnabled(true);
             });

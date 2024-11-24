@@ -39,6 +39,8 @@
         name: kt2l-server
         image: mhus/kt2l-server:snapshot
         network_mode: host
+        restart: true
+        restart_policy: always
         env:
           CONFIGURATION_DIRECTORY: /home/user/config
         volumes:

@@ -17,15 +17,17 @@
 #
 
 ---
-- name: Start Ollama docker container
+- name: Start ollama docker container
   community.docker.docker_container:
     name: ollama
     image: ollama/ollama
+    restart: true
+    restart_policy: always
     ports:
       - "127.0.0.1:11434:11434"
     volumes:
       - ollama:/root/.ollama
-- name: Install Ollama model llama3
+- name: Install ollama model llama3.2
   community.docker.docker_container_exec:
     container: ollama
-    command: ollama pull llama3
+    command: ollama pull llama3.2

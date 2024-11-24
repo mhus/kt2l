@@ -1,31 +1,28 @@
-# TEMPLATE BEGIN
-# name: string <Name of the pod>:dicedeployment
-# TEMPLATE END
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: dice
-  name: dice
+    app: lorem
+  name: lorem
   namespace: default
 spec:
   replicas: 5
   selector:
     matchLabels:
-      app: dice
+      app: lorem
   template:
     metadata:
       labels:
-        app: dice
+        app: lorem
     spec:
       containers:
-        - image: mhus/example-dice:latest
+        - image: mhus/example-lorem:latest
           imagePullPolicy: Always
           name: test-server
           env:
-            - name: INFINITE
-              value: 'true'
-            - name: FAIL_ON
-              value: '6'
+            - name: REPEAT
+              value: '60'
             - name: SLEEP
-              value: '5'
+              value: '1'
+            - name: TERMINATE_SLEEP
+              value: '20'
