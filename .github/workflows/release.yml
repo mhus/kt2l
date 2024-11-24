@@ -203,6 +203,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run playbook
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          playbook: update_kt2l_server.yaml
+          directory: ./demo
+          key: ${{secrets.ANSIBLE_SSH_KEY}}
+          configuration: |
+            [defaults]
+            host_key_checking = False
+            [ssh_connection]
+            scp_if_ssh = True
+            ansible_ssh_common_args = '-o StrictHostKeyChecking=no'
+          options: |
+            --inventory environments/prod/inventory
+            -b
+            --user root
+            --verbose
 
   deb-amd64:
     if:  ${{ contains(inputs.execute, ':deb-amd64:') }}
