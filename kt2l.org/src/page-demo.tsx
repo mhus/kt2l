@@ -11,19 +11,30 @@ export default function PageDem() {
                     of the software and is not guaranteed to be up at all times. You can login with different users
                     and roles to see the different flavors of the software.
                     </p>
-                    <p className="mt-6 text-lg leading-8 text-gray-600">
-                        <dt className="text-base font-semibold leading-7 text-gray-900 underline">
-                            <a href="http://demo.kt2l.org:9080" target="_blank" rel="noreferrer">Go To Demo</a>
-                        </dt>
+                    <p className="mt-6 text-lg leading-8 text-gray-600 underline">
+                        <a href="http://demo.kt2l.org:9080" target="_blank" rel="noreferrer">Open Demo</a>
                     </p>
                     <p className="mt-6 text-lg leading-8 text-gray-600 lg:text-center">
                         <div className="not-prose relative bg-slate-50 rounded-xl overflow-hidden dark:bg-slate-800/25 lg:text-left indent-4" >
-                            Login:
-                                <ul className="list-disc indent-8">
-                                    <li><b>admin : jKjau86G</b> - as administrative user for the cluster</li>
-                                    <li><b>user : hIUYHh72jhb</b> - as user or developer for the cluster</li>
-                                    <li><b>viewer : uiJKjb127khj</b> - as viewer only</li>
-                                </ul>
+                            <b>Login:</b>
+                            <table className="table-auto indent-8">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th><th>Password</th><th>Role</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>admin</td><td>jKjau86G</td><td>administrative user for the cluster</td>
+                                    </tr>
+                                    <tr>
+                                        <td>user</td><td>hIUYHh72jhb</td><td>user or developer for the cluster</td>
+                                    </tr>
+                                    <tr>
+                                        <td>viewer</td><td>uiJKjb127khj</td><td>user or developer for the cluster</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </p>
                     <p className="mt-6 text-lg leading-8 text-gray-600">
