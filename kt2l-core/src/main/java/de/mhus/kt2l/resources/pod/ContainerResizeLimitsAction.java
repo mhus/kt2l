@@ -40,16 +40,17 @@ import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.PatchUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Slf4j
-//@Component
+@Component
 @WithRole(UsersConfiguration.ROLE.WRITE)
 public class ContainerResizeLimitsAction implements ResourceAction {
     @Override
     public boolean canHandleType(Cluster cluster, V1APIResource type) {
-        return K8s.POD.equals(type) || K8s.CONTAINER.equals(type);
+        return (K8s.POD.equals(type) || K8s.CONTAINER.equals(type)) && cluster.isExperimentalEnabled() && cluster.isVersionOrHigher(1,27);
     }
 
     @Override

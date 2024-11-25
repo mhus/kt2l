@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.cluster;
 
+import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MPeriod;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.kt2l.k8s.ApiProvider;
@@ -24,6 +25,7 @@ import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.k8s.K8sUtil;
 import de.mhus.kt2l.ui.UiUtil;
 import io.kubernetes.client.openapi.models.V1APIResource;
+import io.kubernetes.client.openapi.models.VersionInfo;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -49,9 +51,15 @@ public class Cluster {
     private List<String> currentNamespaces;
     @Setter
     private List<V1APIResource> types;
+    @Getter
+    private VersionInfo version;
+    @Getter
+    private boolean experimentalEnabled;
 
     private K8sService k8sService;
     private ApiProvider apiProvider;
+    private int versionMajor;
+    private int versionMinor;
 
     Cluster(ClusterConfiguration cc, String user, String name, ITreeNode config) {
         this.user = user;
@@ -62,6 +70,7 @@ public class Cluster {
         this.defaultType = K8sUtil.toType(config.getString("defaultResourceType", cc.defaultResourceType()));
         this.color = UiUtil.toColor(config.getString("color", null));
         this.config = config;
+        this.experimentalEnabled = config.getBoolean("experimentalEnabled", false);
         this.apiProviderTimeout = MPeriod.parseInterval(config.getString( "apiProviderTimeout"), ApiProvider.DEFAULT_TIMEOUT);
     }
 
@@ -77,6 +86,15 @@ public class Cluster {
         return apiProvider;
     }
 
-    
+    void setVersion(VersionInfo version) {
+        this.version = version;
+        this.versionMajor = MCast.toint(version.getMajor(), 0);
+        this.versionMinor = MCast.toint(version.getMinor(), 0);
+    }
+
+    public boolean isVersionOrHigher(int major, int minor) {
+        if (version == null) return false;
+        return versionMajor == major && versionMinor >= minor || versionMajor > major;
+    }
 
 }

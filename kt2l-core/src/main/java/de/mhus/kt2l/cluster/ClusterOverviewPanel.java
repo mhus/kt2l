@@ -45,6 +45,7 @@ import de.mhus.kt2l.generated.DeployInfo;
 import de.mhus.kt2l.k8s.K8sService;
 import de.mhus.kt2l.system.DevelopmentAction;
 import de.mhus.kt2l.ui.UiUtil;
+import io.kubernetes.client.extended.kubectl.Kubectl;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -277,7 +278,8 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
         var clusterId = cluster.getName();
         try {
             var coreApi = k8s.getKubeClient(clusterId).getCoreV1Api();
-            coreApi.listNamespace().execute();
+            var version = Kubectl.version().apiClient(cluster.getApiProvider().getClient()).execute();
+            cluster.setVersion(version);
             return true;
         } catch (Exception e) {
             LOGGER.warn("Can't connect to cluster: {}", clusterId, e);

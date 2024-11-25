@@ -45,7 +45,7 @@ import java.util.UUID;
 public class CreateDebugContainerAction implements ResourceAction {
     @Override
     public boolean canHandleType(Cluster cluster, V1APIResource type) {
-        return K8s.POD.equals(type);
+        return K8s.POD.equals(type) && cluster.isVersionOrHigher(1,25);
     }
 
     @Override
