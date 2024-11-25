@@ -35,11 +35,14 @@ spec:
     spec:
       containers:
         - image: mhus/example-lorem:latest
-          imagePullPolicy: Always
           name: test-server
           env:
             - name: REPEAT
-              value: '60'
+              value: '600'
+            - name: REPEAT_RANDOM
+              value: '100'
+            - name: EXIT_CODE
+              value: '1'
             - name: SLEEP
               value: '1'
             - name: TERMINATE_SLEEP

@@ -103,23 +103,6 @@ public class ScaleDeploymentAction implements ResourceAction {
                             .name(obj.getMetadata().getName())
                             .replicas(value)
                             .execute();
-//                    PatchUtils.patch(
-//                            V1Deployment.class,
-//                            () -> context.getCluster().getApiProvider().getAppsV1Api().patchNamespacedDeploymentCall(
-//                                    obj.getMetadata().getName(),
-//                                    obj.getMetadata().getNamespace(),
-//                                    new V1Patch(jsonPatchStr),
-//                                    null,
-//                                    null,
-//                                    null,
-//                                    null,
-//                                    null,
-//                                    null
-//                            ),
-//                            V1Patch.PATCH_FORMAT_JSON_PATCH,
-//                            context.getCluster().getApiProvider().getClient()
-//                    );
-
                 } catch (Exception e) {
                     context.getErrors().add(e);
                 }

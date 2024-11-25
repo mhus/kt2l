@@ -74,7 +74,7 @@ public class Configuration {
 
     @PostConstruct
     public void init() {
-        LOGGER.info("Application version {} created {}", DeployInfo.VERSION, DeployInfo.CREATED);
+        LOGGER.info("Application version {} created {}", DeployInfo.VERSION, DeployInfo.CREATED_DATETIME);
 
         if (configurationDirectory.startsWith("~")) {
             configurationDirectory = System.getProperty("user.home") + configurationDirectory.substring(1);

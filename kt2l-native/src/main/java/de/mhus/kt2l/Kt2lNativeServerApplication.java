@@ -63,7 +63,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class Kt2lNativeServerApplication {
 
     public static void main(String[] args) {
-        LOGGER.info("Start kt2l-server {} {}", DeployInfo.VERSION, DeployInfo.CREATED);
+        LOGGER.info("Start kt2l-server {} {}", DeployInfo.VERSION, DeployInfo.CREATED_DATETIME);
         SpringApplicationBuilder builder = new SpringApplicationBuilder(Kt2lApplication.class);
         builder.headless(true);
         ConfigurableApplicationContext context = builder.run(args);

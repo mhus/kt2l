@@ -163,7 +163,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
         image.setMaxWidth("800px");
         add(image);
 
-        Div version = new Div("Version: " + DeployInfo.VERSION + " (" + MString.beforeIndexOrAll(DeployInfo.CREATED, ' ') + ")");
+        Div version = new Div("Version: " + DeployInfo.VERSION + " (" + MString.beforeIndexOrAll(DeployInfo.CREATED_DATE, ' ') + ")");
         version.addClassName("version");
         add(version);
 

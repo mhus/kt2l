@@ -56,6 +56,7 @@ import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1Secret;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -63,6 +64,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Component
 public class PanelService {
 
@@ -432,7 +434,24 @@ public class PanelService {
                 containers.add(container);
             }
         });
-        if (containers.size() == 0) return null;
+        if (containers.size() == 0) {
+            // try to get also terminated containers
+            selected.forEach(p -> {
+                if (p instanceof V1Pod pod) {
+                    pod.getStatus().getContainerStatuses().forEach(cs -> {
+                        containers.add(new ContainerResource(new PodGrid.Container(
+                                PodGrid.CONTAINER_TYPE.DEFAULT,
+                                cs,
+                                pod)));
+                    });
+                }
+            });
+        }
+        if (containers.size() == 0) {
+            LOGGER.debug("No containers found for logs");
+            UiUtil.showErrorNotification("No containers found to show logs, select a single container");
+            return null;
+        }
 
         final var firstSelectedPod = containers.get(0).getPod();
 

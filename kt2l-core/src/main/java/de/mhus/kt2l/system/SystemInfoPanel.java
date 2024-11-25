@@ -104,7 +104,7 @@ public class SystemInfoPanel extends VerticalLayout implements DeskTabListener {
     }
 
     static void fillInfo(long counter, OperatingSystemMXBean osBean, DeskTab deskTab, SystemService upTimeService, StringBuffer i) {
-        i.append("DeployInfo     : " + DeployInfo.VERSION + " " + DeployInfo.CREATED + "\n");
+        i.append("DeployInfo     : " + DeployInfo.VERSION + " " + DeployInfo.CREATED_DATETIME + "\n");
         i.append("Java VM Version: " + System.getProperty("java.version") + "/" + System.getProperty("java.vm.name") + "/" + System.getProperty("java.vendor") + "\n");
         i.append("Architecture   : " + System.getProperty("os.arch") + "/" + System.getProperty("os.name") + "/" + System.getProperty("os.version") + "\n");
         i.append("Local Time     : " + MDate.toIso8601(System.currentTimeMillis()) + "\n");
