@@ -83,6 +83,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     private int scoreErrorThreshold;
     private int scoreWarnThreshold;
     private boolean scoringEnabled;
+    private long disableMetricsUntil;
 
     public enum CONTAINER_TYPE {DEFAULT, INIT, EPHEMERAL};
       private List<Container> containerList = null;
@@ -214,7 +215,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
 
     protected synchronized void updateMetrics() {
         if (filteredList == null) return;
-      //  needMetricRefresh = false;
+        if (!cluster.isMetricsEnabled()) return;
 
         Map<String, PodMetrics> metricMap = new HashMap<>();
         for (String ns : getKnownNamespaces()) {
@@ -252,7 +253,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                     }
                 }
             }
-        } );
+        });
         if (MCollection.isSet(containerList)) {
             var v1Pod = containerList.getFirst().getPod();
             var metric = metricMap.get(v1Pod.getMetadata().getNamespace() + ":" + v1Pod.getMetadata().getName());
@@ -277,6 +278,8 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     }
 
     private List<PodMetrics> getNamespaceMetrics(String ns) {
+        if (disableMetricsUntil != 0 && disableMetricsUntil > System.currentTimeMillis()) 
+            return Collections.EMPTY_LIST;
         Metrics metrics = new Metrics(panel.getCluster().getApiProvider().getClient());
         try {
             var list = metrics.getPodMetrics(ns);
@@ -284,6 +287,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         } catch (ApiException e) {
             LOGGER.error("Can't get metrics for namespace {} with RC {}",ns, e.getCode(), e);
             panel.getCluster().getApiProvider().invalidate();
+            disableMetricsUntil = System.currentTimeMillis() + 60000;
         } catch (Exception e) {
             LOGGER.error("Can't get metrics for namespace {}",ns,e);
         }

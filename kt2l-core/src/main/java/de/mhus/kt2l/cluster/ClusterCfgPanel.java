@@ -85,6 +85,10 @@ public class ClusterCfgPanel extends CPanelVerticalLayout {
                                     .label("Api Provider Timeout")
                                     .defaultValue("5m"));
                             p.add(new YBoolean()
+                                    .path("metricsEnabled")
+                                    .label("Metrics")
+                                    .defaultValue(true));
+                            p.add(new YBoolean()
                                     .path("experimentalEnabled")
                                     .label("Experimental")
                                     .defaultValue(false));

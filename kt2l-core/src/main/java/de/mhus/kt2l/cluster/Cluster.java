@@ -54,7 +54,9 @@ public class Cluster {
     @Getter
     private VersionInfo version;
     @Getter
-    private boolean experimentalEnabled;
+    private final boolean experimentalEnabled;
+    @Getter
+    private final boolean metricsEnabled;
 
     private K8sService k8sService;
     private ApiProvider apiProvider;
@@ -72,6 +74,7 @@ public class Cluster {
         this.config = config;
         this.experimentalEnabled = config.getBoolean("experimentalEnabled", false);
         this.apiProviderTimeout = MPeriod.parseInterval(config.getString( "apiProviderTimeout"), ApiProvider.DEFAULT_TIMEOUT);
+        this.metricsEnabled = config.getBoolean("metricsEnabled", true);
     }
 
     void setK8sService(K8sService k8sService) {

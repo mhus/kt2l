@@ -55,6 +55,7 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     private HandlerK8s podResourceHandler;
     private List<V1Pod> podList;
     private IRegistration podEventRegistration;
+    private long disableMetricsUntil;
 
     @Override
     protected void init() {
@@ -190,6 +191,7 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
 
     protected synchronized void updateMetrics() {
         if (filteredList == null) return;
+        if (!cluster.isMetricsEnabled()) return;
 
         var metrics = getNodeMetrics();
         var map = metrics.stream().collect(Collectors.toMap(m -> m.getMetadata().getName(), m -> m));
@@ -210,6 +212,8 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     }
 
     private List<NodeMetrics> getNodeMetrics() {
+        if (disableMetricsUntil != 0 && disableMetricsUntil > System.currentTimeMillis())
+            return Collections.EMPTY_LIST;
         Metrics metrics = new Metrics(panel.getCluster().getApiProvider().getClient());
         try {
             var list = metrics.getNodeMetrics();
@@ -217,6 +221,7 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         } catch (ApiException e) {
             LOGGER.error("Can't get metrics for nodes with RC {}", e.getCode(), e);
             panel.getCluster().getApiProvider().invalidate();
+            disableMetricsUntil = System.currentTimeMillis() + 60000;
         } catch (Exception e) {
             LOGGER.error("Can't get metrics for nodes",e);
         }
