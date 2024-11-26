@@ -13,17 +13,22 @@ default:
   namespace: READ
   cluster: READ
   cluster_action: READ
+  core_action: READ
 resource_action:
 resource:
 resource_grid:
 namespace:
 cluster:
+core:
+core_action:
 ```
 
 In the sections are resource types. Under each are the permissions for the resource 
 ids. The `default` section is used for the default permissions for types. 
 Define a resource id and a comma separated list of roles. The roles are the permissions
 that are needed to access the resource with the given id.
+
+[List of known actions](config-aaa-actions.md)
 
 Some resource types have default actions define for each resource itself other onec
 need a default configured in the `default` section.

@@ -21,7 +21,7 @@ A session is considered idle if no user interaction has been detected for a cert
 also be lost if the browser is closed or navigated to another page.
 
 In this case it's important to have a short session idle timeout to free up resources. Otherwise, 
-the a short session idle timeout will force the user to intercat with the application more often.
+a short session idle timeout will force the user to intercat with the application more often.
 If the user is working on a long task, the session will be lost and the user will have to log in again and
 loose the current work.
 
@@ -31,3 +31,25 @@ with it or if auto extend is enabled. The auto extend feature is enabled by defa
 
 The default session timeout is set to 5 minutes but Idle Notification timeout to 120 seconds. The idle notification dialog 
 will appear 90 seconds before the session is lost and auto extend after 1 second.
+
+```yaml
+core:
+  idle:
+    enabled: true
+    autoExtend: true
+    autoExtendWaitSeconds: 1
+    notifyBeforeSeconds: 90
+    maxInactiveIntervalSeconds: 0
+```
+
+## Core Dark Mode
+
+You can enable dark mode for the application by default. The user can change the mode in the user menu or in the settings dialog.
+It's also possible to set the dark mode automatically based on the system settings. Note: The swithc to dark mode can
+take a few seconds.
+
+```yaml
+core:
+    darkMode: true
+    autoDarkMode: false
+```

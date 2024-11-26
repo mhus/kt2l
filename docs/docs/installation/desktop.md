@@ -24,6 +24,10 @@ will see the same warning but you have the option to open it anyway.
 Click `Open` to start the application. The next time you start the application you
 can start it like each other application.
 
+If you start the MacOS Application maybe the PATH is not set correctly and clusters
+like GKE and EKS are not accessible. You can configure the PATH in the settings dialog.
+You need to restart the application to apply the changes.
+
 ## Windows Bundle
 
 The bundle is a exe file which contains the application. If you download it
