@@ -135,7 +135,8 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
                 selectedDirectory = selected;
                 updateSelectedFiles();
                 selectedCurrent = null;
-                itemOpen.setEnabled(false);
+                if (itemOpen != null)
+                    itemOpen.setEnabled(false);
                 itemDownload.setEnabled(false);
                 itemDelete.setEnabled(false);
             }
@@ -143,12 +144,14 @@ public class StoragePanel extends VerticalLayout implements DeskTabListener {
         grid.addSelectionListener(e -> {
             var selected = e.getFirstSelectedItem();
             if (selected.isEmpty()) {
-                itemOpen.setEnabled(false);
+                if (itemOpen != null)
+                    itemOpen.setEnabled(false);
                 itemDownload.setEnabled(false);
                 itemDelete.setEnabled(false);
                 selectedCurrent = null;
             } else {
-                itemOpen.setEnabled(true);
+                if (itemOpen != null)
+                    itemOpen.setEnabled(true);
                 itemDownload.setEnabled(true);
                 itemDelete.setEnabled(true);
                 selectedCurrent = selected.get();
