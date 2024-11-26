@@ -147,6 +147,7 @@ jobs:
           cd kt2l-test/target/screenshots
           rm ../../../docs/screenshots/*.png
           cp *.png ../../../docs/screenshots/
+          cp *.png ../../../docs/docs/screenshots/
           echo "<html><body><h1>Screenshots</h1>" > ../../../docs/screenshots/index.html
           for f in *.png; do  
             echo "Copy $f to docs"
