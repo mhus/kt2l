@@ -47,7 +47,7 @@ public class ResourceEditFormAction implements ResourceAction {
 
     @Override
     public boolean canHandleType(Cluster cluster, V1APIResource type) {
-        return getFactory(cluster, type) != null;
+        return cluster.isExperimentalEnabled() && getFactory(cluster, type) != null;
     }
 
     @Override
