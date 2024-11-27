@@ -25,3 +25,10 @@ kubectl delete service -n default --all  --kubeconfig /root/.kube/config
 kubectl delete pod -n default --all  --kubeconfig /root/.kube/config
 
 kubectl apply -f /root/k8s/ --kubeconfig /root/.kube/config
+
+# Reset kt2l-server
+rm -r /home/user/config/local/*
+cp -r /root/local/* /home/user/config/local/
+chown -R user:user /home/user/config/local
+
+docker restart kt2l-server

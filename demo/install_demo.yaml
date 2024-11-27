@@ -55,13 +55,20 @@
       become: yes
       become_user: user
 
-    - name: Copy config files
+    - name: Copy config files to local
       copy:
           src: config/
           dest: /home/user/config/local/
           owner: user
           group: user
           mode: 0755
+    - name: Copy config files to backup
+      copy:
+        src: config/
+        dest: /root/local/
+        owner: root
+        group: root
+        mode: 0755
     - name: Copy root scripts
       copy:
         src: root_bin/

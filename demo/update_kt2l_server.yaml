@@ -23,12 +23,19 @@
       community.docker.docker_container:
         name: kt2l-server
         state: absent
-    - name: copy config files
+    - name: copy config files to local
       copy:
         src: config/
         dest: /home/user/config/local/
         owner: user
         group: user
+        mode: 0755
+    - name: Copy config files to backup
+      copy:
+        src: config/
+        dest: /root/local/
+        owner: root
+        group: root
         mode: 0755
     - name: Pull KT2L docker container
       command: docker pull mhus/kt2l-server:snapshot
