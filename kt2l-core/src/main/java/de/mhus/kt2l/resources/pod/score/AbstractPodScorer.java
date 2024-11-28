@@ -17,9 +17,10 @@
  */
 package de.mhus.kt2l.resources.pod.score;
 
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.PostConstruct;
 
 @Slf4j
 public abstract class AbstractPodScorer implements PodScorer {

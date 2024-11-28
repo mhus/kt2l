@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.resources.pod.score;
 
+import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.k8s.ApiProvider;
 import de.mhus.kt2l.resources.pod.PodGrid;
 import org.springframework.stereotype.Component;
@@ -25,8 +26,9 @@ import org.springframework.stereotype.Component;
 public class Metrics extends AbstractPodScorer {
 
     @Override
-    public int scorePod(ApiProvider apiProvider, PodGrid.Resource pod) {
-
+    public int scorePod(Cluster cluster, ApiProvider apiProvider, PodGrid.Resource pod) {
+        if (!cluster.isMetricsEnabled())
+            return 0;
         int points = 0;
         var memoryThreshold = config.getConfig().getInt("memory", 0);
         if (memoryThreshold > 0 && pod.getMetricMemoryPercentage() > memoryThreshold) {

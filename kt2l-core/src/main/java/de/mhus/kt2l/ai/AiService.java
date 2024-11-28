@@ -21,7 +21,6 @@ package de.mhus.kt2l.ai;
 import de.mhus.commons.errors.NotFoundRuntimeException;
 import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
-import de.mhus.commons.util.MUri;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;

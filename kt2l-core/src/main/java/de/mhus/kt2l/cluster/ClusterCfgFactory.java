@@ -17,11 +17,15 @@
  */
 package de.mhus.kt2l.cluster;
 
+import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.CfgPanel;
 import org.springframework.stereotype.Component;
 
+import static de.mhus.kt2l.aaa.UsersConfiguration.ROLE.WRITE;
+
 @Component
+@WithRole(WRITE)
 public class ClusterCfgFactory implements CfgFactory {
     @Override
     public String handledConfigType() {

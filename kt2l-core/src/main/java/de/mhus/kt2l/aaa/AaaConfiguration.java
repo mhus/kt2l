@@ -42,6 +42,7 @@ public class AaaConfiguration extends AbstractUserRelatedConfig {
     public static final String SCOPE_CLUSTER_ACTION = "cluster_action";
     public static final String SCOPE_CORE = "core";
     public static final String SCOPE_CORE_ACTION = "core_action";
+    public static final String SCOPE_CFG = "cfg";
 
     public AaaConfiguration() {
         super("aaa", true);

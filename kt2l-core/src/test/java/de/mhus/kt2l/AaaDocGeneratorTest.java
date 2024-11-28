@@ -18,6 +18,7 @@
 package de.mhus.kt2l;
 
 import de.mhus.kt2l.aaa.WithRole;
+import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cluster.ClusterAction;
 import de.mhus.kt2l.core.CoreAction;
 import de.mhus.kt2l.resources.ResourceAction;
@@ -26,8 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.reflections.Reflections;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -87,6 +86,19 @@ public class AaaDocGeneratorTest {
                     if (anno != null) {
                         actions.add(new Action(
                                 "resource_grid",
+                                type.getCanonicalName(),
+                                Arrays.toString(anno.value())
+                        ));
+                    }
+                }
+        );
+
+        new Reflections("de.mhus.kt2l").getSubTypesOf(CfgFactory.class).forEach(
+                type -> {
+                    var anno = type.getAnnotation(WithRole.class);
+                    if (anno != null) {
+                        actions.add(new Action(
+                                "cfg",
                                 type.getCanonicalName(),
                                 Arrays.toString(anno.value())
                         ));

@@ -24,9 +24,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.Kt2lApplication;
+import de.mhus.kt2l.aaa.AaaConfiguration;
+import de.mhus.kt2l.aaa.SecurityService;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -34,6 +37,9 @@ import java.util.List;
 
 @Slf4j
 public class GlobalCfgPanel extends VerticalLayout {
+
+    @Autowired
+    private SecurityService securityService;
 
     private final Core core;
     private final boolean isGlobalConfig;
@@ -45,7 +51,7 @@ public class GlobalCfgPanel extends VerticalLayout {
     public GlobalCfgPanel(Core core, boolean isGlobalConfig, List<CfgFactory> factories, File configDir, File ... fallbackDirs) {
         this.core = core;
         this.isGlobalConfig = isGlobalConfig;
-        this.factories = factories;
+        this.factories = factories.stream().filter(f ->  securityService.hasRole(AaaConfiguration.SCOPE_CFG, f)).toList();
         this.configDir = configDir;
         this.fallbackDirs = fallbackDirs;
 

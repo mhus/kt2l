@@ -26,13 +26,13 @@ import de.mhus.kt2l.aaa.AaaUserRepositoryService;
 import de.mhus.kt2l.aaa.LoginConfiguration;
 import de.mhus.kt2l.aaa.UserDetailsManagerToUserRepositoryService;
 import de.mhus.kt2l.config.Configuration;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;

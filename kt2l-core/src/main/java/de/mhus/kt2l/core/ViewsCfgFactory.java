@@ -17,11 +17,15 @@
  */
 package de.mhus.kt2l.core;
 
+import de.mhus.kt2l.aaa.WithRole;
 import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.CfgPanel;
 import org.springframework.stereotype.Service;
 
+import static de.mhus.kt2l.aaa.UsersConfiguration.ROLE.WRITE;
+
 @Service
+@WithRole(WRITE)
 public class ViewsCfgFactory implements CfgFactory {
     @Override
     public String handledConfigType() {

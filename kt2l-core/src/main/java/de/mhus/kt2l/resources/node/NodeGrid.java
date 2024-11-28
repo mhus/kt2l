@@ -123,10 +123,12 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         resourcesGrid.addColumn(NodeGrid.Resource::getStatus).setHeader("Status").setSortProperty("status");
         resourcesGrid.addColumn(NodeGrid.Resource::getTaintCnt).setHeader("Taints").setSortProperty("taints");
         resourcesGrid.addColumn(NodeGrid.Resource::getPods).setHeader("Pods").setSortProperty("pods");
-        resourcesGrid.addColumn(res -> res.getMetricCpuString()).setHeader("CPU").setSortProperty("cpu");
-        resourcesGrid.addColumn(res -> res.getMetricCpuPercentage() < 0 ? "" : res.getMetricCpuPercentage()).setHeader("CPU%").setSortProperty("cpu%");
-        resourcesGrid.addColumn(res -> res.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
-        resourcesGrid.addColumn(res -> res.getMetricMemoryPercentage() < 0 ? "" : res.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
+        if (cluster.isMetricsEnabled()) {
+            resourcesGrid.addColumn(Resource::getMetricCpuString).setHeader("CPU").setSortProperty("cpu");
+            resourcesGrid.addColumn(res -> res.getMetricCpuPercentage() < 0 ? "" : res.getMetricCpuPercentage()).setHeader("CPU%").setSortProperty("cpu%");
+            resourcesGrid.addColumn(Resource::getMetricMemoryString).setHeader("Mem").setSortProperty("memory");
+            resourcesGrid.addColumn(res -> res.getMetricMemoryPercentage() < 0 ? "" : res.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
+        }
         resourcesGrid.addColumn(NodeGrid.Resource::getIp).setHeader("IP").setSortProperty("ip");
         resourcesGrid.addColumn(NodeGrid.Resource::getVersion).setHeader("Version").setSortProperty("version");
     }
@@ -134,40 +136,34 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
         if ("status".equals(sorted)) {
-            switch (direction) {
-                case ASCENDING: return a.getStatus().compareTo(b.getStatus());
-                case DESCENDING: return b.getStatus().compareTo(a.getStatus());
-            }
+            return switch (direction) {
+                case ASCENDING -> a.getStatus().compareTo(b.getStatus());
+                case DESCENDING -> b.getStatus().compareTo(a.getStatus());
+            };
         }
         if ("taints".equals(sorted)) {
-            switch (direction) {
-                case ASCENDING: return Integer.compare(a.getTaintCnt(), b.getTaintCnt());
-                case DESCENDING: return Integer.compare(b.getTaintCnt(), a.getTaintCnt());
-            }
+            return switch (direction) {
+                case ASCENDING -> Integer.compare(a.getTaintCnt(), b.getTaintCnt());
+                case DESCENDING -> Integer.compare(b.getTaintCnt(), a.getTaintCnt());
+            };
         }
         if ("ip".equals(sorted)) {
-            switch (direction) {
-                case ASCENDING:
-                    return Objects.compare(a.getIp(), b.getIp(), String::compareTo);
-                case DESCENDING:
-                    return Objects.compare(b.getIp(), a.getIp(), String::compareTo);
-            }
+            return switch (direction) {
+                case ASCENDING -> Objects.compare(a.getIp(), b.getIp(), String::compareTo);
+                case DESCENDING -> Objects.compare(b.getIp(), a.getIp(), String::compareTo);
+            };
         }
         if ("version".equals(sorted)) {
-            switch (direction) {
-                case ASCENDING:
-                    return Objects.compare(a.getVersion(), b.getVersion(), String::compareTo);
-                case DESCENDING:
-                    return Objects.compare(b.getVersion(), a.getVersion(), String::compareTo);
-            }
+            return switch (direction) {
+                case ASCENDING -> Objects.compare(a.getVersion(), b.getVersion(), String::compareTo);
+                case DESCENDING -> Objects.compare(b.getVersion(), a.getVersion(), String::compareTo);
+            };
         }
         if ("pods".equals(sorted)) {
-            switch (direction) {
-                case ASCENDING:
-                    return Long.compare(a.getPods(), b.getPods());
-                case DESCENDING:
-                    return Long.compare(b.getPods(), a.getPods());
-            }
+            return switch (direction) {
+                case ASCENDING -> Long.compare(a.getPods(), b.getPods());
+                case DESCENDING -> Long.compare(b.getPods(), a.getPods());
+            };
         }
         return 0;
     }
@@ -208,9 +204,9 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         if (changed.get()) {
             getPanel().getCore().ui().push();
         }
-
     }
 
+    @SuppressWarnings("unchecked")
     private List<NodeMetrics> getNodeMetrics() {
         if (disableMetricsUntil != 0 && disableMetricsUntil > System.currentTimeMillis())
             return Collections.EMPTY_LIST;
@@ -249,7 +245,7 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
             StringBuilder s = new StringBuilder();
             if (resource.getSpec().getTaints() != null) {
                 for (var taint : resource.getSpec().getTaints()) {
-                    if (s.length() > 0) s.append(",");
+                    if (!s.isEmpty()) s.append(",");
                     s.append(taint.getEffect()).append(":").append(taint.getKey());
                 }
             } else {

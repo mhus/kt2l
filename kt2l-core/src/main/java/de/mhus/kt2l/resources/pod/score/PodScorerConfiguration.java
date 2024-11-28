@@ -47,7 +47,7 @@ public class PodScorerConfiguration extends AbstractUserRelatedConfig {
     }
 
     public boolean getHighlightAlerts() {
-        return config().getBoolean("highlightAlerts", true);
+        return config().getBoolean("highlightAlerts", false);
     }
 
     public static class Config {

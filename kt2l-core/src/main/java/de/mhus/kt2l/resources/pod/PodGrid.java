@@ -104,13 +104,15 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         addClassNames("contact-grid");
         detailsComponent.setWidthFull();
         detailsComponent.setHeight("200px");
-        detailsComponent.addColumn(cont -> cont.getName()).setHeader("Name").setSortProperty("name");
-        detailsComponent.addColumn(cont -> cont.getType()).setHeader("Type").setSortProperty("type");
-        detailsComponent.addColumn(cont -> cont.getRestarts()).setHeader("Restarts").setSortProperty("restarts");
-        detailsComponent.addColumn(cont -> cont.getStatus()).setHeader("Status").setSortProperty("status");
-        detailsComponent.addColumn(cont -> cont.getAge()).setHeader("Age").setSortProperty("age");
-        detailsComponent.addColumn(cont -> cont.getMetricCpuString()).setHeader("CPU").setSortProperty("cpu");
-        detailsComponent.addColumn(cont -> cont.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
+        detailsComponent.addColumn(Container::getName).setHeader("Name").setSortProperty("name");
+        detailsComponent.addColumn(Container::getType).setHeader("Type").setSortProperty("type");
+        detailsComponent.addColumn(Container::getRestarts).setHeader("Restarts").setSortProperty("restarts");
+        detailsComponent.addColumn(Container::getStatus).setHeader("Status").setSortProperty("status");
+        detailsComponent.addColumn(Container::getAge).setHeader("Age").setSortProperty("age");
+        if (cluster.isMetricsEnabled()) {
+            detailsComponent.addColumn(Container::getMetricCpuString).setHeader("CPU").setSortProperty("cpu");
+            detailsComponent.addColumn(Container::getMetricMemoryString).setHeader("Mem").setSortProperty("memory");
+        }
         detailsComponent.getColumns().forEach(col -> {
             col.setAutoWidth(true);
             col.setResizable(true);
@@ -130,16 +132,14 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             if (action.getAction().getShortcutKey() != null) {
                 var shortcut = UiUtil.createShortcut(action.getAction().getShortcutKey());
                 if (shortcut != null) {
-                    shortcut.addShortcutListener(detailsComponent, () -> {
-                        action.execute();
-                    });
+                    shortcut.addShortcutListener(detailsComponent, action::execute);
                 }
             }
 
             // context menu item
             var item = createContextMenuItem(menu, action.getAction());
             item.addMenuItemClickListener(event -> {
-                        var selected = detailsComponent.getSelectedItems().stream().map(c -> new ContainerResource(c)).collect(Collectors.toSet());
+                        var selected = detailsComponent.getSelectedItems().stream().map(ContainerResource::new).collect(Collectors.toSet());
                         if (!action.getAction().canHandleResource(cluster, K8s.CONTAINER, selected)) {
                             Notification notification = Notification
                                     .show("Can't execute");
@@ -236,7 +236,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
                     for (PodScorer scorer : podSourcerers) {
                         var apiProvider = panel.getCluster().getApiProvider();
                         if (scorer.isEnabled())
-                            score += scorer.scorePod(apiProvider, pod);
+                            score += scorer.scorePod(cluster, apiProvider, pod);
                     }
                     if (score != pod.score) {
                         changed.set(true);
@@ -277,6 +277,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         }
     }
 
+    @SuppressWarnings("unchecked")
     private List<PodMetrics> getNamespaceMetrics(String ns) {
         if (disableMetricsUntil != 0 && disableMetricsUntil > System.currentTimeMillis()) 
             return Collections.EMPTY_LIST;
@@ -295,7 +296,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
     }
 
     private Set<String> getKnownNamespaces() {
-        return filteredList.stream().map(pod -> pod.getNamespace()).collect(Collectors.toSet());
+        return filteredList.stream().map(ResourceItem::getNamespace).collect(Collectors.toSet());
     }
 
     @Override
@@ -314,15 +315,17 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
         scoreWarnThreshold = podScorerConfiguration.getWarnThreshold();
         scoringEnabled = podScorerConfiguration.isEnabled();
 
-        podGrid.addColumn(pod -> pod.getReadyContainers()).setHeader("Ready").setSortProperty("ready");
-        podGrid.addColumn(pod -> pod.getRestarts()).setHeader("Restarts").setSortProperty("restarts");
-        podGrid.addColumn(pod -> pod.getStatus()).setHeader("Status").setSortProperty("status");
-        podGrid.addColumn(pod -> pod.getMetricCpuString()).setHeader("CPU").setSortProperty("cpu");
-        podGrid.addColumn(pod -> pod.getMetricCpuPercentage() < 0 ? "" : pod.getMetricCpuPercentage()).setHeader("CPU%").setSortProperty("cpu%");
-        podGrid.addColumn(pod -> pod.getMetricMemoryString()).setHeader("Mem").setSortProperty("memory");
-        podGrid.addColumn(pod -> pod.getMetricMemoryPercentage() < 0 ? "" : pod.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
+        podGrid.addColumn(Resource::getReadyContainers).setHeader("Ready").setSortProperty("ready");
+        podGrid.addColumn(Resource::getRestarts).setHeader("Restarts").setSortProperty("restarts");
+        podGrid.addColumn(Resource::getStatus).setHeader("Status").setSortProperty("status");
+        if (cluster.isMetricsEnabled()) {
+            podGrid.addColumn(Resource::getMetricCpuString).setHeader("CPU").setSortProperty("cpu");
+            podGrid.addColumn(pod -> pod.getMetricCpuPercentage() < 0 ? "" : pod.getMetricCpuPercentage()).setHeader("CPU%").setSortProperty("cpu%");
+            podGrid.addColumn(Resource::getMetricMemoryString).setHeader("Mem").setSortProperty("memory");
+            podGrid.addColumn(pod -> pod.getMetricMemoryPercentage() < 0 ? "" : pod.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
+        }
         if (scoringEnabled)
-            podGrid.addComponentColumn(pod -> createScoreColumnComponent(pod) ).setHeader("Score").setSortProperty("score");
+            podGrid.addComponentColumn(this::createScoreColumnComponent).setHeader("Score").setSortProperty("score");
     }
 
     private Component createScoreColumnComponent(Resource pod) {
@@ -540,7 +543,7 @@ public class PodGrid extends AbstractGridWithNamespace<PodGrid.Resource,Grid<Pod
             super.updateResource();
 
             var ownerReferences = resource.getMetadata().getOwnerReferences();
-            if (ownerReferences != null && ownerReferences.size() > 0) {
+            if (ownerReferences != null && !ownerReferences.isEmpty()) {
                 var ownerReference = ownerReferences.get(0);
                 owner = ownerReference.getKind() + "-" + ownerReference.getUid();
             }

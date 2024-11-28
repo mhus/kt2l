@@ -21,8 +21,6 @@ package de.mhus.kt2l.aaa;
 import de.mhus.commons.tree.ITreeNode;
 import de.mhus.commons.tree.MTree;
 import de.mhus.kt2l.config.AbstractSingleConfig;
-import de.mhus.kt2l.config.Configuration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
