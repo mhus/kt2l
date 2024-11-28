@@ -6,5 +6,5 @@ export let download : DownloadFile = {
     href_help: "/docs/installation/desktop#windows-bundle",
     size: "368MB",
     enabled: true,
-    created: "2024-11-25"
+    created: "2024-11-27"
 }
