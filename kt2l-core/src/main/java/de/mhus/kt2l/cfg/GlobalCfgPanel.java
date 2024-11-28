@@ -27,6 +27,8 @@ import de.mhus.kt2l.Kt2lApplication;
 import de.mhus.kt2l.aaa.AaaConfiguration;
 import de.mhus.kt2l.aaa.SecurityService;
 import de.mhus.kt2l.core.Core;
+import de.mhus.kt2l.core.DeskTab;
+import de.mhus.kt2l.core.DeskTabListener;
 import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,14 +38,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
-public class GlobalCfgPanel extends VerticalLayout {
+public class GlobalCfgPanel extends VerticalLayout implements DeskTabListener {
 
     @Autowired
     private SecurityService securityService;
 
     private final Core core;
     private final boolean isGlobalConfig;
-    private final List<CfgFactory> factories;
+    private List<CfgFactory> factories;
     private final File configDir;
     private final File[] fallbackDirs;
     private final List<PanelStore> panels = new LinkedList<>();
@@ -51,12 +53,9 @@ public class GlobalCfgPanel extends VerticalLayout {
     public GlobalCfgPanel(Core core, boolean isGlobalConfig, List<CfgFactory> factories, File configDir, File ... fallbackDirs) {
         this.core = core;
         this.isGlobalConfig = isGlobalConfig;
-        this.factories = factories.stream().filter(f ->  securityService.hasRole(AaaConfiguration.SCOPE_CFG, f)).toList();
+        this.factories = factories;
         this.configDir = configDir;
         this.fallbackDirs = fallbackDirs;
-
-        initUi();
-        load();
     }
 
     private void save() {
@@ -156,6 +155,33 @@ public class GlobalCfgPanel extends VerticalLayout {
 
         setMargin(false);
         setPadding(false);
+    }
+
+    @Override
+    public void tabInit(DeskTab deskTab) {
+        this.factories = factories.stream().filter(f ->  securityService.hasRole(AaaConfiguration.SCOPE_CFG, f)).toList();
+        initUi();
+        load();
+    }
+
+    @Override
+    public void tabSelected() {
+
+    }
+
+    @Override
+    public void tabUnselected() {
+
+    }
+
+    @Override
+    public void tabDestroyed() {
+
+    }
+
+    @Override
+    public void tabRefresh(long counter) {
+
     }
 
     private record PanelStore(CfgPanel panel, CfgFactory factory) {

@@ -22,10 +22,10 @@ import de.mhus.kt2l.cfg.CfgFactory;
 import de.mhus.kt2l.cfg.CfgPanel;
 import org.springframework.stereotype.Service;
 
-import static de.mhus.kt2l.aaa.UsersConfiguration.ROLE.WRITE;
+import static de.mhus.kt2l.aaa.UsersConfiguration.ROLE.SETTINGS;
 
 @Service
-@WithRole(WRITE)
+@WithRole(SETTINGS)
 public class ViewsCfgFactory implements CfgFactory {
     @Override
     public String handledConfigType() {
