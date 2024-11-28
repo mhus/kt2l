@@ -54,11 +54,17 @@ public class CfgService {
         if (!securityService.hasRole(UsersConfiguration.ROLE.SETTINGS.name())) return false;
         var userName = SecurityContext.lookupUserId();
         return canWriteUserCfg.computeIfAbsent(userName, n -> {
-            var userConfigDir = configuration.getUserConfigurationDirectory(n);
-            var testFile = new File(userConfigDir,"test.txt");
-            if (!MFile.touch(testFile)) return false;
-            testFile.delete();
-            return true;
+            try {
+                var userConfigDir = configuration.getUserConfigurationDirectory(n);
+                userConfigDir.mkdirs();
+                var testFile = new File(userConfigDir,"test.txt");
+                if (!MFile.touch(testFile)) return false;
+                testFile.delete();
+                return true;
+            } catch (Exception e) {
+                LOGGER.info("Can't write user '{}' configuration", n, e);
+                return false;
+            }
         });
     }
 
@@ -66,13 +72,20 @@ public class CfgService {
 
         if (!securityService.hasRole(UsersConfiguration.ROLE.ADMIN.name())) return false;
         if (canWriteGlobalCfg == null) {
-            var globalConfigDir = configuration.getLocalConfigurationDirectory();
-            var testFile = new File(globalConfigDir,"test.txt");
-            if (!MFile.touch(testFile)) canWriteGlobalCfg = false;
-            else {
-                testFile.delete();
-                canWriteGlobalCfg = true;
+            try {
+                var globalConfigDir = configuration.getLocalConfigurationDirectory();
+                globalConfigDir.mkdirs();
+                var testFile = new File(globalConfigDir,"test.txt");
+                if (!MFile.touch(testFile)) canWriteGlobalCfg = false;
+                else {
+                    testFile.delete();
+                    canWriteGlobalCfg = true;
+                }
+            } catch (Exception e) {
+                LOGGER.info("Can't write global configuration",e);
+                canWriteGlobalCfg = false;
             }
+
         }
         return canWriteGlobalCfg;
     }
