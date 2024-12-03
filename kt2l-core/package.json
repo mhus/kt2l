@@ -48,31 +48,6 @@
     "workbox-core": "7.3.0",
     "workbox-precaching": "7.3.0"
   },
-  "overrides": {
-    "@vaadin/bundles": "$@vaadin/bundles",
-    "@vaadin/polymer-legacy-adapter": "$@vaadin/polymer-legacy-adapter",
-    "@vaadin/vaadin-development-mode-detector": "$@vaadin/vaadin-development-mode-detector",
-    "@vaadin/router": "$@vaadin/router",
-    "@vaadin/vaadin-usage-statistics": "$@vaadin/vaadin-usage-statistics",
-    "@vaadin/react-components": "$@vaadin/react-components",
-    "@vaadin/react-components-pro": "$@vaadin/react-components-pro",
-    "@vaadin/common-frontend": "$@vaadin/common-frontend",
-    "react-dom": "$react-dom",
-    "construct-style-sheets-polyfill": "$construct-style-sheets-polyfill",
-    "react-router-dom": "$react-router-dom",
-    "lit": "$lit",
-    "@polymer/polymer": "$@polymer/polymer",
-    "react": "$react",
-    "xterm": "$xterm",
-    "date-fns": "$date-fns",
-    "proj4": "$proj4",
-    "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
-    "@f0rce/lit-ace": "$@f0rce/lit-ace",
-    "xterm-addon-fit": "$xterm-addon-fit",
-    "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
-    "vis-network": "$vis-network",
-    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles"
-  },
   "vaadin": {
     "dependencies": {
       "@f0rce/lit-ace": "1.11.1",
@@ -121,5 +96,30 @@
       "workbox-precaching": "7.3.0"
     },
     "hash": "bab92127318b95b3ce2bb72dcfb4e718fae18ad522af392f14c55e7781c32959"
+  },
+  "overrides": {
+    "@vaadin/bundles": "$@vaadin/bundles",
+    "@vaadin/polymer-legacy-adapter": "$@vaadin/polymer-legacy-adapter",
+    "@vaadin/vaadin-development-mode-detector": "$@vaadin/vaadin-development-mode-detector",
+    "@vaadin/vaadin-usage-statistics": "$@vaadin/vaadin-usage-statistics",
+    "@vaadin/react-components": "$@vaadin/react-components",
+    "@vaadin/react-components-pro": "$@vaadin/react-components-pro",
+    "@vaadin/common-frontend": "$@vaadin/common-frontend",
+    "react-dom": "$react-dom",
+    "construct-style-sheets-polyfill": "$construct-style-sheets-polyfill",
+    "react-router-dom": "$react-router-dom",
+    "lit": "$lit",
+    "@polymer/polymer": "$@polymer/polymer",
+    "react": "$react",
+    "xterm": "$xterm",
+    "date-fns": "$date-fns",
+    "proj4": "$proj4",
+    "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
+    "@f0rce/lit-ace": "$@f0rce/lit-ace",
+    "xterm-addon-fit": "$xterm-addon-fit",
+    "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
+    "vis-network": "$vis-network",
+    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
+    "@vaadin/router": "$@vaadin/router"
   }
 }

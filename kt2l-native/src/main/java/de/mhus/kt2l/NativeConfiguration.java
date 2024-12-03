@@ -55,9 +55,16 @@ public class NativeConfiguration {
             registerType(DefaultNodeFactory.class);
             // vaadin
             registerType("com.vaadin.copilot.SpringIntegration");
-            new Reflections("de.f0rce.ace").getTypesAnnotatedWith(EventData.class).forEach(
-                    type -> registerType(type)
-            );
+//            new Reflections("de.f0rce.ace").getTypesAnnotatedWith(EventData.class).forEach(
+//                    type -> registerType(type)
+//            );
+            registerType(de.f0rce.ace.events.AceChanged.class);
+            registerType(de.f0rce.ace.events.AceBlurChanged.class);
+            registerType(de.f0rce.ace.events.AceForceSyncDomEvent.class);
+            registerType(de.f0rce.ace.events.AceSelectionChanged.class);
+            registerType(de.f0rce.ace.events.AceHTMLGeneratedEvent.class);
+            registerType(com.flowingcode.vaadin.addons.xterm.ITerminalConsole.AnyKeyEvent.class);
+
             // kt2l
             new Reflections("de.mhus.kt2l").getTypesAnnotatedWith(Configurable.class).forEach(
                     type -> registerType(type)
@@ -90,6 +97,25 @@ public class NativeConfiguration {
                         }
                 );
             }
+            // com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest.class
+
+            registerType("sun.security.smartcardio.SunPCSC");
+            registerType("org.jcp.xml.dsig.internal.dom.XMLDSigRI");
+            registerType("sun.security.pkcs11.SunPKCS11");
+
+            {
+                final Set<BeanDefinition> classes = provider.findCandidateComponents("io.kubernetes.client.util");
+                classes.forEach(
+                        beanDefinition -> {
+                            try {
+                                registerType(Class.forName(beanDefinition.getBeanClassName()));
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                );
+            }
+
             registerType(io.kubernetes.client.custom.Quantity.QuantityAdapter.class);
 
             // resources

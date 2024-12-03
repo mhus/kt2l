@@ -8,6 +8,11 @@ title: Authorization Actions
 This document lists all known actions and their default roles.
 
 ```yaml
+cfg:
+  de.mhus.kt2l.ai.AiCfgFactory: SETTINGS
+  de.mhus.kt2l.cluster.ClusterCfgFactory: SETTINGS
+  de.mhus.kt2l.core.ViewsCfgFactory: SETTINGS
+
 cluster_action:
   de.mhus.kt2l.core.ResourcesClusterAction: READ
   de.mhus.kt2l.events.EventClusterAction: READ
@@ -101,6 +106,4 @@ resource_grid:
   de.mhus.kt2l.resources.persistentvolume.PersistentVolumeGridFactory: READ
   de.mhus.kt2l.resources.persistentvolumeclaim.PersistentVolumeClaimGridFactory: READ
   de.mhus.kt2l.resources.pod.PodGridFactory: READ
-  de.mhus.kt2l.resources.replicaset.ReplicaSetGridFactory: READ
-  de.mhus.kt2l.resources.role.RoleGridFactory: READ
-  de.mhus.kt2l.resources.rolebinding.RoleBin
+  de.mhus.kt2l.r
