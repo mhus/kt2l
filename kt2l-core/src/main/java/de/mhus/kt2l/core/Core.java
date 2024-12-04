@@ -175,7 +175,7 @@ public class Core extends AppLayout {
     private Span tabTitle;
     private final Map<String, Map<String, ClusterBackgroundJob>> backgroundJobs = new HashMap<>();
     private long refreshCounter;
-    private Button helpToggel;
+    private Button helpToggle;
     private VerticalLayout helpContent;
     private VerticalLayout contentContainer;
     private Component contentContent;
@@ -416,11 +416,12 @@ public class Core extends AppLayout {
         tabTitle.addClassName("ktool-title");
 
         if (helpConfiguration.isEnabled()) {
-            helpToggel = new Button(VaadinIcon.QUESTION_CIRCLE_O.create());
+            helpToggle = new Button(VaadinIcon.QUESTION_CIRCLE_O.create());
+            helpToggle.addClassNames("help-toggle");
             helpMenu = new ContextMenu();
-            helpMenu.setTarget(helpToggel);
+            helpMenu.setTarget(helpToggle);
             helpMenu.setOpenOnClick(true);
-            Shortcuts.addShortcutListener(helpToggel, () -> {
+            Shortcuts.addShortcutListener(helpToggle, () -> {
                 if (helpContent.isVisible())
                     helpContent.setVisible(false);
                 else
@@ -486,7 +487,7 @@ public class Core extends AppLayout {
                 dialog.open();
             });
         }
-        var header = new HorizontalLayout(notNull(new DrawerToggle(), createLogo(), tabTitle, userButton, helpToggel, space));
+        var header = new HorizontalLayout(notNull(new DrawerToggle(), createLogo(), tabTitle, userButton, helpToggle, space));
 
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         header.setWidthFull();
@@ -534,7 +535,7 @@ public class Core extends AppLayout {
     }
 
     protected void updateHelpMenu(boolean setDefaultDocu) {
-        if (!helpConfiguration.isEnabled()) return;
+        if (helpMenu == null || !helpConfiguration.isEnabled()) return;
 
         String helpContext = getTabBar().getSelectedTab().getHelpContext();
         var ctx = helpConfiguration.getContext(helpContext == null ? "default" : helpContext);

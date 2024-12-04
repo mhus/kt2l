@@ -190,7 +190,7 @@ public class ResourcesGridPanel extends VerticalLayout implements DeskTabListene
 
         updateNamespaceSelector(true);
         namespaceSelector.addValueChangeListener(e -> {
-            if (grid != null && !MString.equals(e.getValue(), grid.getNamespace())) {
+            if (grid != null && e.getValue() != null && !MString.equals(e.getValue(), grid.getNamespace())) {
                 grid.setNamespace(e.getValue());
                 updateTitle();
                 if (e.isFromClient())
