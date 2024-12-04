@@ -395,7 +395,6 @@ vaadin-scroller.events-view p {
 vaadin-text-area.preview textarea {
     font-family: monospace;
     font-size: 14px;
-    color: #000;
 }
 
 vaadin-text-area.no-word-wrap textarea {
@@ -428,7 +427,6 @@ div.menutitle span.title {
     padding-right: 20px;
 }
 div.error-exception {
-    color: #000;
     font-size: 12px;
 }
 div.version {
@@ -460,7 +458,6 @@ div.version {
 .monotext {
     font-family: monospace;
     font-size: 14px;
-    color: #000;
 }
 
 vaadin-text-area.development-info textarea {
