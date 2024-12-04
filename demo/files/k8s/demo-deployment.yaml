@@ -36,6 +36,13 @@ spec:
       containers:
         - image: mhus/example-lorem:latest
           name: test-server
+          resources:
+            limits:
+              cpu: 300m
+              memory: 500Ki
+            requests:
+              cpu: 10m
+              memory: 20Ki
           env:
             - name: REPEAT
               value: '600'

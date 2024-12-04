@@ -11,10 +11,13 @@ ssh-add
 ```shell
 
 # Install all
-ansible-playbook -i environments/prod/inventory -b -K --user root install_demo.yaml -v
+ansible-playbook -i environments/prod/inventory -b --user root install_demo.yaml -v
 
 # Update kt2l server
-ansible-playbook -i environments/prod/inventory -b -K --user root update_kt2l_server.yaml
+ansible-playbook -i environments/prod/inventory -b --user root update_kt2l_server.yaml
+
+# Update k8s cluster
+ansible-playbook -i environments/prod/inventory -b --user root update_k8s.yaml
 
 ```
 

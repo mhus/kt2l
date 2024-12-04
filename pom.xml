@@ -302,7 +302,6 @@
                                 <exclude>LICENSE_HEADER</exclude>
                                 <exclude>src/test/resources/**</exclude>
                                 <exclude>src/main/resources/**</exclude>
-                                <exclude>mhu-liferay-theme/src/main/webapp/**</exclude>
                                 <exclude>docs/**</exclude>
                                 <exclude>frontend/**</exclude>
                                 <exclude>kt2l-core/frontend/**</exclude>

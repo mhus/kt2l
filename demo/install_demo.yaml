@@ -46,6 +46,7 @@
     - docker_host
     - minikube_host
     - ollama_host
+    - ssl_proxy
 
   post_tasks:
     - name: Start Minikube
@@ -111,3 +112,12 @@
           CONFIGURATION_DIRECTORY: /home/user/config
         volumes:
           - "/home/user:/home/user"
+
+    - name: Configure swag site confs
+      copy:
+        src: site-confs/
+        dest: /home/user/swag_config/nginx/site-confs/
+        owner: user
+        group: user
+    - name: Restart swag
+      command: docker restart swag

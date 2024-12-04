@@ -177,60 +177,44 @@ sudo rm /etc/sudoers.d/10-install-user
 
 # SSL Proxy
 
-https://github.com/jwilder/docker-letsencrypt-nginx-proxy-companion
+https://github.com/linuxserver/docker-swag
 
-```shell
-# Update these to match your environment
-SERVICE_ACCOUNT_NAME=kt2l-service-account
-CONTEXT=$(kubectl config current-context)
-NAMESPACE=default
+```bash
 
-NEW_CONTEXT=kt2l
-KUBECONFIG_FILE="/home/user/.kube/config"
-
-SECRET_NAME=$(kubectl get serviceaccount ${SERVICE_ACCOUNT_NAME} \
-  --context ${CONTEXT} \
-  --namespace ${NAMESPACE} \
-  -o jsonpath='{.secrets[0].name}')
-TOKEN_DATA=$(kubectl get secret ${SECRET_NAME} \
-  --context ${CONTEXT} \
-  --namespace ${NAMESPACE} \
-  -o jsonpath='{.data.token}')
-
-TOKEN=$(echo ${TOKEN_DATA} | base64 -d)
-
-# Create dedicated kubeconfig
-# Create a full copy
-kubectl config view --raw > ${KUBECONFIG_FILE}.full.tmp
-# Switch working context to correct context
-kubectl --kubeconfig ${KUBECONFIG_FILE}.full.tmp config use-context ${CONTEXT}
-# Minify
-kubectl --kubeconfig ${KUBECONFIG_FILE}.full.tmp \
-  config view --flatten --minify > ${KUBECONFIG_FILE}.tmp
-# Rename context
-kubectl config --kubeconfig ${KUBECONFIG_FILE}.tmp \
-  rename-context ${CONTEXT} ${NEW_CONTEXT}
-# Create token user
-kubectl config --kubeconfig ${KUBECONFIG_FILE}.tmp \
-  set-credentials ${CONTEXT}-${NAMESPACE}-token-user \
-  --token ${TOKEN}
-# Set context to use token user
-kubectl config --kubeconfig ${KUBECONFIG_FILE}.tmp \
-  set-context ${NEW_CONTEXT} --user ${CONTEXT}-${NAMESPACE}-token-user
-# Set context to correct namespace
-kubectl config --kubeconfig ${KUBECONFIG_FILE}.tmp \
-  set-context ${NEW_CONTEXT} --namespace ${NAMESPACE}
-# Flatten/minify kubeconfig
-kubectl config --kubeconfig ${KUBECONFIG_FILE}.tmp \
-  view --flatten --minify > ${KUBECONFIG_FILE}
-# Remove tmp
-rm ${KUBECONFIG_FILE}.full.tmp
-rm ${KUBECONFIG_FILE}.tmp
-chmod 600 ${KUBECONFIG_FILE}
-chown user:user ${KUBECONFIG_FILE}
-
+sudo -u user mkdir /home/user/swag_config
 ```
 
+/home/user/swag_config/nginx/site-confs/demo.conf
+
+```conf
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name demo.*;
+    include /config/nginx/ssl.conf;
+    client_max_body_size 0;
+    location / {
+        include /config/nginx/proxy.conf;
+        include /config/nginx/resolver.conf;
+        proxy_pass http://localhost:9080;
+    }
+}
+```
+
+```bash
+docker run -d \
+  --name=swag \
+  --cap-add=NET_ADMIN \
+  --network host \
+  -e PUID=1001 \
+  -e PGID=1001 \
+  -e TZ=Etc/UTC \
+  -e URL=demo.kt2l.org \
+  -e VALIDATION=http \
+  -v /home/user/swag_config:/config \
+  --restart unless-stopped \
+  lscr.io/linuxserver/swag:latest
+```
 
 # Restart on reboot
 

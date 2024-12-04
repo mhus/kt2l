@@ -1,0 +1,40 @@
+#
+# kt2l - KT2L (ktool) is a web based tool to manage your kubernetes clusters.
+# Copyright © 2024 Mike Hummel (mh@mhus.de)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
+---
+- name: Create config directory
+  command: mkdir -p /home/user/swag_config
+  become: yes
+  become_user: user
+- name: Start swag
+  community.docker.docker_container:
+    name: swag
+    image: lscr.io/linuxserver/swag:latest
+    restart: true
+    restart_policy: always
+    volumes:
+      - /home/user/swag_config:/config
+    env:
+      PUID: "1001"
+      PGID: "1001"
+      TZ: Etc/UTC
+      URL: demo.kt2l.org
+      VALIDATION: http
+    capabilities:
+      - NET_ADMIN
+    network_mode: host
