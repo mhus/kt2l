@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/static/css/main.e83152be.css",
-    "main.js": "/static/js/main.7c8ee9c3.js",
+    "main.js": "/static/js/main.0218a95b.js",
     "static/js/453.b1eae630.chunk.js": "/static/js/453.b1eae630.chunk.js",
     "static/media/kt2l-logo.svg": "/static/media/kt2l-logo.7013bf8ffcf51a5ff77d9b20ecbced2f.svg",
     "index.html": "/index.html",
     "main.e83152be.css.map": "/static/css/main.e83152be.css.map",
-    "main.7c8ee9c3.js.map": "/static/js/main.7c8ee9c3.js.map",
+    "main.0218a95b.js.map": "/static/js/main.0218a95b.js.map",
     "453.b1eae630.chunk.js.map": "/static/js/453.b1eae630.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e83152be.css",
-    "static/js/main.7c8ee9c3.js"
+    "static/js/main.0218a95b.js"
   ]
 }
