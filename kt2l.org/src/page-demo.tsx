@@ -12,7 +12,7 @@ export default function PageDem() {
                     and roles to see the different flavors of the software.
                     </p>
                     <p className="mt-6 text-lg lg:text-left leading-8 text-gray-600 underline text-blue-600 visited:text-purple-600">
-                        <a href="http://demo.kt2l.org:9080" target="_blank" rel="noreferrer">
+                        <a href="https://demo.kt2l.org" target="_blank" rel="noreferrer">
                             Open KT2L-Server Demo
                         </a>
                     </p>
