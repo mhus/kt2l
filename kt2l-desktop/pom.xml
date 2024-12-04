@@ -28,7 +28,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <properties>
-        <swt.version>3.127.0</swt.version>
+        <swt.version>3.128.0</swt.version>
         <swt.artifactId>org.eclipse.swt.cocoa.macosx.aarch64</swt.artifactId><!-- default for dev -->
         <os.target>macosx-aarch64</os.target>
         <start-class>de.mhus.kt2l.Kt2lDesktopApplication</start-class>
