@@ -29,6 +29,8 @@ docker run -d --rm --name kt2l-server \
     mhus/kt2l-server:snapshot
 ```
 
+The following platforms are supported: linux/amd64, linux/arm64
+
 You can access the server with the browser `http://localhost:8080`. You have to login if you
 use the container version. Use ***admin*** and the password from the container log. After a
 few seconds you can get the password with the following command: 

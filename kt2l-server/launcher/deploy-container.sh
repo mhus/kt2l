@@ -57,9 +57,9 @@ HREF_HELP="/docs/installation/container"
 REGISTRY_URL="https://index.docker.io/v1/"
 docker login "$REGISTRY_URL" -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 
-docker push mhus/kt2l-server:snapshot
-docker tag mhus/kt2l-server:snapshot mhus/kt2l-server:snapshot-$CREATED
-docker push mhus/kt2l-server:snapshot-$CREATED
+docker push mhus/kt2l-server:snapshot || exit 1
+docker tag mhus/kt2l-server:snapshot mhus/kt2l-server:snapshot-$CREATED || exit 1
+docker push mhus/kt2l-server:snapshot-$CREATED || exit 1
 
 # copy to aws
 echo "Copy download-snapshot-container.ts to cache"
