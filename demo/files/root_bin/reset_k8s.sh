@@ -32,3 +32,5 @@ cp -r /root/local/* /home/user/config/local/
 chown -R user:user /home/user/config/local
 
 docker restart kt2l-server
+sleep 5
+docker exec kt2l-server rm -rf /app/kt2l-server/var/storage/home/users

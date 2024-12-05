@@ -108,7 +108,7 @@ public class DeskTab extends HorizontalLayout {
     public void setTabViewer(DeskTabBar tabViewer) {
         this.tabBar = tabViewer;
         var vb = tabBar.getCore().getBean(ViewsConfiguration.class);
-        LOGGER.warn("### Autowire {} {} and config {}", getWindowTitle(), panel, vb);
+        LOGGER.debug("Autowire {} {} and config {}", getWindowTitle(), panel, vb);
         tabBar.getCore().autowireObject(panel);
     }
 
