@@ -171,6 +171,10 @@ jobs:
           git push
       - name: Build Server ZIP
         run: ./kt2l-server/launcher/create-zip.sh
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
       - name: Build Server Container
         if:  ${{ contains(inputs.execute, ':container:') }}
         run: ./kt2l-server/launcher/create-container.sh
