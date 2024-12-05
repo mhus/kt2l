@@ -34,13 +34,13 @@ export default function PageDem() {
                             </thead>
                             <tbody className="divide-y divide-neutral-200 lg:text-left mt-6">
                                 <tr>
-                                    <td>admin</td><td>jKjau86G</td><td>administrative user for the cluster</td>
+                                    <td>admin</td><td>jKjau86G</td><td>administrative user of the cluster</td>
                                 </tr>
                                 <tr>
-                                    <td>user</td><td>hIUYHh72jhb</td><td>user or developer for the cluster</td>
+                                    <td>user</td><td>hIUYHh72jhb</td><td>user or developer of the cluster</td>
                                 </tr>
                                 <tr>
-                                    <td>viewer</td><td>uiJKjb127khj</td><td>user or developer for the cluster</td>
+                                    <td>viewer</td><td>uiJKjb127khj</td><td>read only user of the cluster</td>
                                 </tr>
                             </tbody>
                           </table>
