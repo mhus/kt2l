@@ -93,7 +93,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     }
 
     public void createUi() {
-        LOGGER.warn("### createUI for {} with config {} and k8s {}", this, viewsConfiguration, k8s);
+        LOGGER.debug("createUI for {} with config {} and k8s {}", this, viewsConfiguration, k8s);
         ITreeNode viewConfig = viewsConfiguration.getConfig("clusterOverview");
 
         add(new Text(" "));

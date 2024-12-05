@@ -27,7 +27,7 @@ if [ ! -f target/kt2l-server.zip ]; then
 fi
 
 now=$(date +"%Y%m%d%H%M%S")
-docker build --progress=plain --platform linux/amd64 -t mhus/kt2l-server:snapshot-$now -f launcher/Dockerfile .
-docker tag mhus/kt2l-server:snapshot-$now mhus/kt2l-server:snapshot
+docker buildx build --progress=plain --platform linux/amd64,linux/arm64 -t mhus/kt2l-server:snapshot-$now -f launcher/Dockerfile . || exit 1
+docker tag mhus/kt2l-server:snapshot-$now mhus/kt2l-server:snapshot || exit 1
 echo "Build image mhus/kt2l-server:snapshot-$now"
 echo snapshot-$now > target/kt2l-container.version

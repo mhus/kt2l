@@ -217,6 +217,7 @@ public class Core extends AppLayout {
             return;
         }
         var user = maybeUser.get();
+        LOGGER.info("### UI with user '{}' and session '{}'", user.getUserId(), sessionId);
         UI.getCurrent().getSession().setAttribute(SecurityService.UI_USER, user);
         UI.getCurrent().getSession().setAttribute("autologin", "true");
 
