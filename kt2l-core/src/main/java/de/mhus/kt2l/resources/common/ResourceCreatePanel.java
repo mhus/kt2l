@@ -36,6 +36,7 @@ import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.MProperties;
 import de.mhus.commons.yaml.MYaml;
 import de.mhus.commons.yaml.YElement;
+import de.mhus.kt2l.aaa.SecurityContext;
 import de.mhus.kt2l.cluster.Cluster;
 import de.mhus.kt2l.core.Core;
 import de.mhus.kt2l.core.DeskTab;
@@ -95,6 +96,7 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
             createResource();
         });
         createItem.add("Create");
+        createItem.getElement().setAttribute("title", "Create or update, maybe delete before");
 
         var deleteItem = menuBar.addItem(VaadinIcon.FILE_REMOVE.create(), e -> {
             ConfirmDialog confirm = new ConfirmDialog();
@@ -107,7 +109,7 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
             confirm.open();
         });
         deleteItem.add("Delete");
-
+        deleteItem.getElement().setAttribute("title", "Maybe delete before create");
         add(menuBar);
 
 
@@ -136,23 +138,39 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
         dialog.setMax(parts.size());
         dialog.open();
 
+        var sc = SecurityContext.create();
+
         Thread.startVirtualThread(() -> {
             for (ContentEntry entry : parts.reversed()) {
-                core.ui().access(() -> {
-                    try {
-                        dialog.setProgress(dialog.getProgress() + 1, entry.kind);
-                        var metadata = entry.yaml.asMap().getMap("metadata");
+                core.ui().access(() -> dialog.setProgress(dialog.getProgress() + 1, entry.kind));
+                try {
+                    var metadata = entry.yaml.asMap().getMap("metadata");
+                    if (metadata == null) {
+                        core.ui().access(() -> UiUtil.showErrorNotification("No metadata found in resource: " + entry.kind));
+                    } else {
                         var resName = metadata.getString("name");
                         var resNamespace = metadata.getString("namespace");
-                        entry.handler.delete(cluster.getApiProvider(), resName, resNamespace);
-                        UiUtil.showSuccessNotification("Resource deleted: " + entry.kind);
-                    } catch (Exception t) {
-                        LOGGER.error("Error creating resource", t);
-                        UiUtil.showErrorNotification("Error deleting resource", t);
+                        if (MString.isEmptyTrim(entry.kind)) {
+                            core.ui().access(() -> UiUtil.showErrorNotification("No kind found in resource"));
+                            continue;
+                        }
+                        entry.handler = k8s.getTypeHandler(K8sUtil.toType(entry.kind));
+                        if (entry.handler == null) {
+                            core.ui().access(() -> UiUtil.showErrorNotification("Resource not supported: " + entry.kind));
+                            continue;
+                        }
+                        try (var sce = sc.enter()) {
+                            entry.handler.delete(cluster.getApiProvider(), resName, resNamespace);
+                        }
+                        core.ui().access(() -> UiUtil.showSuccessNotification("Resource deleted: " + entry.kind));
                     }
-                });
+                } catch (Exception t) {
+                    LOGGER.error("Error creating resource", t);
+                    core.ui().access(() -> UiUtil.showErrorNotification("Error deleting resource", t));
+                } finally {
+                    core.ui().access(dialog::close);
+                }
             }
-            dialog.close();
         });
     }
 
@@ -165,13 +183,14 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
         dialog.setHeaderTitle("Create");
         dialog.setMax(parts.size());
         dialog.open();
+        var sc = SecurityContext.create();
 
         Thread.startVirtualThread(() -> {
             AtomicBoolean exit = new AtomicBoolean(false);
             for (ContentEntry entry : parts) {
                 if (exit.get()) break;
                 core.ui().access(() -> {
-                    try {
+                    try (var sce = sc.enter()) {
                         dialog.setProgress(dialog.getProgress() + 1, entry.kind);
                         entry.handler.create(cluster.getApiProvider(), entry.preparedContent);
                         UiUtil.showSuccessNotification("Resource created: " + entry.kind);
@@ -200,6 +219,10 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
                         properties.setString(template.name, template.value);
                     }
                     entry.preparedContent = MString.substitute(entry.content, properties);
+                    if (MString.isEmptyTrim(entry.kind)) {
+                        UiUtil.showErrorNotification("No kind found in resource");
+                        return false;
+                    }
                     entry.handler = k8s.getTypeHandler(K8sUtil.toType(entry.kind));
                     if (entry.handler == null) {
                         UiUtil.showErrorNotification("Resource not supported: " + entry.kind);
@@ -403,7 +426,7 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
 
         public void parseYaml() {
             yaml = MYaml.loadFromString(content);
-            kind = yaml.asMap().getString("kind").toString();
+            kind = yaml.asMap().getString("kind", "");
         }
 
         public void parseTemplate() {

@@ -24,7 +24,7 @@ metadata:
   name: lorem
   namespace: default
 spec:
-  replicas: 5
+  replicas: 3
   selector:
     matchLabels:
       app: lorem
@@ -36,18 +36,15 @@ spec:
       containers:
         - image: mhus/example-lorem:latest
           name: test-server
-          resources:
-            limits:
-              cpu: 300m
-              memory: 500Ki
-            requests:
-              cpu: 10m
-              memory: 20Ki
+#          resources:
+#            limits:
+#              cpu: "1000m"
+#              memory: "5Mi"
           env:
             - name: REPEAT
               value: '600'
             - name: REPEAT_RANDOM
-              value: '100'
+              value: '600'
             - name: EXIT_CODE
               value: '1'
             - name: SLEEP

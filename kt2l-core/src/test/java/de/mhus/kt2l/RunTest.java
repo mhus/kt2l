@@ -31,9 +31,9 @@ public class RunTest {
     @Test
     public void testIf() throws Exception {
         String code = """
-        if is='${abc} == abc'
-          echo msg='abc'
-        endif
+        !if is='${abc} == abc'
+          !echo msg='abc'
+        !endif
         """;
         RunCompiler compiler = new RunCompiler();
         Block block = compiler.compile(code);
@@ -53,11 +53,11 @@ public class RunTest {
     public void testIfElse() throws Exception {
         String code =
         """
-        if is='${abc} == abc'
-          echo msg='abc'
-        else
-          echo msg='else'
-        endif
+        !if is='${abc} == abc'
+        !  echo msg='abc'
+        !else
+        !  echo msg='else'
+        !endif
         """;
         RunCompiler compiler = new RunCompiler();
         Block block = compiler.compile(code);
@@ -77,13 +77,13 @@ public class RunTest {
     public void testIfElseIf() throws Exception {
         String code =
         """
-        if is='${abc} == abc'
-          echo msg='abc'
-        elseif is='${abc} == xxx'
-          echo msg='xxx'
-        else
-          echo msg='else'
-        endif
+        !if is='${abc} == abc'
+          !echo msg='abc'
+        !elseif is='${abc} == xxx'
+         ! echo msg='xxx'
+        !else
+        !  echo msg='else'
+        !endif
         """;
         RunCompiler compiler = new RunCompiler();
         Block block = compiler.compile(code);

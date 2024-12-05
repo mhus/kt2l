@@ -224,3 +224,17 @@ sudo -u user minikube start
 docker start ollama
 docker start kt2l-server
 ``` 
+
+# Mail system
+
+```shell
+debconf-set-selections <<< "postfix postfix/mailname string demo.kt2l.org"
+debconf-set-selections <<< "postfix postfix/main_mailer_type string 'KT2L Demo'"
+apt-get install -y mailutils
+```
+
+Send a mail:
+
+```shell
+echo "This is the body of the email" | mail -s "This is the subject line" test@mhus.de
+```

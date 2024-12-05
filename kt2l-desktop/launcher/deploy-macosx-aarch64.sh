@@ -52,8 +52,8 @@ fi
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
 
 FILENAME=kt2l-desktop-macosx-aarch64-$CREATED.dmg
-TITLE="Desktop Mac OSX (M1) Bundled"
-DESCRIPTION="Can be executed directly in Mac OS X M1. Java JDK 21 is included."
+TITLE="Desktop Mac OSX (silicon) Bundled"
+DESCRIPTION="Can be executed directly in Mac OS X silicon. Java JDK 21 is included."
 HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
 HREF_HELP="/docs/installation/desktop#mac-osx-bundle"
 SIZE=$(echo $(du -m ../launcher/KT2L.dmg)|cut -d ' ' -f 1)MB

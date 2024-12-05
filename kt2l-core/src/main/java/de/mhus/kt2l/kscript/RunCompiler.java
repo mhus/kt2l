@@ -19,6 +19,7 @@
 package de.mhus.kt2l.kscript;
 
 import de.mhus.commons.tools.MObject;
+import de.mhus.commons.tools.MString;
 import de.mhus.commons.tree.IProperties;
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,19 +76,26 @@ public class RunCompiler {
                 continue;
             }
 
-            String[] parts = line.split(" ", 2);
-            String cmdArgs = parts.length > 1 ? parts[1].trim() : "";
-            String cmdName = parts[0].trim().toLowerCase();
+            Class<? extends Cmd> cmdClass = null;
+            String cmdArgs = null;
             String cmdScope = SCOPE_DEFAULT;
-            int pos = cmdName.indexOf('.');
-            if (pos > 0) {
-                cmdScope = cmdName.substring(pos+1);
-                cmdName = cmdName.substring(0, pos);
-            }
+            if (line.startsWith("!")) {
+                String[] parts = line.substring(1).trim().split(" ", 2);
+                cmdArgs = parts.length > 1 ? parts[1].trim() : "";
+                String cmdName = parts[0].trim().toLowerCase();
+                int pos = cmdName.indexOf('.');
+                if (pos > 0) {
+                    cmdScope = cmdName.substring(pos + 1);
+                    cmdName = cmdName.substring(0, pos);
+                }
 
-            Class<? extends Cmd> cmdClass = commands.get(cmdName);
-            if (cmdClass == null) {
-                throw new RuntimeException("Command not found in line "+lineCnt+": " + parts[0]);
+                cmdClass = commands.get(cmdName);
+                if (cmdClass == null) {
+                    throw new RuntimeException("Command not found in line " + lineCnt + ": " + parts[0]);
+                }
+            } else {
+                cmdClass = CmdExec.class;
+                cmdArgs = "cmd=\"" + MString.encodeDoubleQuotes(line) + "\"";
             }
             var cmd = MObject.newInstance(cmdClass);
             cmd.addToParent(block);
