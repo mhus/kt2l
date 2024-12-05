@@ -95,6 +95,7 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
             createResource();
         });
         createItem.add("Create");
+        createItem.getElement().setAttribute("title", "Create or update, maybe delete before");
 
         var deleteItem = menuBar.addItem(VaadinIcon.FILE_REMOVE.create(), e -> {
             ConfirmDialog confirm = new ConfirmDialog();
@@ -107,7 +108,7 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
             confirm.open();
         });
         deleteItem.add("Delete");
-
+        deleteItem.getElement().setAttribute("title", "Maybe delete before create");
         add(menuBar);
 
 
@@ -138,21 +139,24 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
 
         Thread.startVirtualThread(() -> {
             for (ContentEntry entry : parts.reversed()) {
-                core.ui().access(() -> {
-                    try {
-                        dialog.setProgress(dialog.getProgress() + 1, entry.kind);
-                        var metadata = entry.yaml.asMap().getMap("metadata");
+                core.ui().access(() -> dialog.setProgress(dialog.getProgress() + 1, entry.kind));
+                try {
+                    var metadata = entry.yaml.asMap().getMap("metadata");
+                    if (metadata == null) {
+                        UiUtil.showErrorNotification("No metadata found in resource: " + entry.kind);
+                    } else {
                         var resName = metadata.getString("name");
                         var resNamespace = metadata.getString("namespace");
                         entry.handler.delete(cluster.getApiProvider(), resName, resNamespace);
-                        UiUtil.showSuccessNotification("Resource deleted: " + entry.kind);
-                    } catch (Exception t) {
-                        LOGGER.error("Error creating resource", t);
-                        UiUtil.showErrorNotification("Error deleting resource", t);
+                        core.ui().access(() -> UiUtil.showSuccessNotification("Resource deleted: " + entry.kind));
                     }
-                });
+                } catch (Exception t) {
+                    LOGGER.error("Error creating resource", t);
+                    core.ui().access(() -> UiUtil.showErrorNotification("Error deleting resource", t));
+                } finally {
+                    core.ui().access(() -> dialog.close());
+                }
             }
-            dialog.close();
         });
     }
 
@@ -200,6 +204,10 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
                         properties.setString(template.name, template.value);
                     }
                     entry.preparedContent = MString.substitute(entry.content, properties);
+                    if (entry.kind == null) {
+                        UiUtil.showErrorNotification("No kind found in resource");
+                        return false;
+                    }
                     entry.handler = k8s.getTypeHandler(K8sUtil.toType(entry.kind));
                     if (entry.handler == null) {
                         UiUtil.showErrorNotification("Resource not supported: " + entry.kind);
@@ -403,7 +411,7 @@ public class ResourceCreatePanel extends VerticalLayout implements DeskTabListen
 
         public void parseYaml() {
             yaml = MYaml.loadFromString(content);
-            kind = yaml.asMap().getString("kind").toString();
+            kind = yaml.asMap().getString("kind", "");
         }
 
         public void parseTemplate() {

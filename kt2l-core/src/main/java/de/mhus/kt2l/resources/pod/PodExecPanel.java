@@ -158,7 +158,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
         editor.setMode(AceMode.sh);
         editor.setAutoComplete(true);
         editor.addStaticWordCompleter(List.of("exec", "wait", "sleep", "echo", "send", "close", "clear", "set", "env"));
-        editor.setValue("exec cmd=\"ls -la\"\nwait");
+        editor.setValue("ls -la\n!wait");
         editor.setWidthFull();
         // editor.setHeight("200px");
 
@@ -184,7 +184,7 @@ public class PodExecPanel extends VerticalLayout implements DeskTabListener, Hel
     }
 
     private void runCommand() throws Exception {
-        String command = editor.getValue();
+        var command = editor.getValue();
 
         var compiledBlock = compileProgram(command);
 

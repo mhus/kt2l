@@ -148,18 +148,21 @@ Variables:
 1. Open a terminal with shell, send `ls -l`, wait for the next prompt and close the terminal.
 
 ```
-EXEC
-CLEAR
-SEND line="ls -l"
-WAIT content="root@nginx"
-CLOSE
+!EXEC
+!CLEAR
+!SEND line="ls -l"
+!WAIT content="root@nginx"
+!CLOSE
 ```
 
-2. Open a terminal with the shell command `ls -la` and wait for the terminal to close.
+2. Open a terminal with the shell command `ls -la` and wait for the terminal to close. Also print
+   the process list and wait.
 
 ```
-EXEC cmd="ls -la"
-WAIT
+ls -la
+!wait
+ps
+!wait
 ```
 
 3. Attaches to a terminal and send in the background a SIGHUP signal to the first process. Wait
