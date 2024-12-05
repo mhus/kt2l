@@ -24,9 +24,31 @@ will see the same warning but you have the option to open it anyway.
 Click `Open` to start the application. The next time you start the application you
 can start it like each other application.
 
+### Troubleshooting MacOS
+
 If you start the MacOS Application maybe the PATH is not set correctly and clusters
-like GKE and EKS are not accessible. You can configure the PATH in the settings dialog.
-You need to restart the application to apply the changes.
+like GKE and EKS are not accessible. The OS will not set a path if an application
+is started. You can configure the PATH in the settings dialog. You need to restart 
+the application to apply the changes.
+
+In some cases the application is not able to access the cluster because the command
+in the `~/.kube/config` file is not found even if the PATH is set correctly. In this
+case set the full path of the command in the `~/.kube/config` file.
+
+For example for `gke-gcloud-auth-plugin` set the full path like this:
+
+```yaml
+- name: cluster_name
+  user:
+    exec:
+      command: /opt/homebrew/share/google-cloud-sdk/bin/gke-gcloud-auth-plugin
+```
+
+You can find the full path if you run the command in the terminal:
+
+```bash
+which gke-gcloud-auth-plugin
+```
 
 ## Windows Bundle
 
