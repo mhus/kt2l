@@ -80,7 +80,7 @@ public class RunCompiler {
             String cmdArgs = null;
             String cmdScope = SCOPE_DEFAULT;
             if (line.startsWith("!")) {
-                String[] parts = line.substring(1).split(" ", 2);
+                String[] parts = line.substring(1).trim().split(" ", 2);
                 cmdArgs = parts.length > 1 ? parts[1].trim() : "";
                 String cmdName = parts[0].trim().toLowerCase();
                 int pos = cmdName.indexOf('.');
