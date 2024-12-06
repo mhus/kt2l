@@ -26,6 +26,8 @@ import de.mhus.commons.console.ConsoleTable;
 import de.mhus.commons.tools.MCast;
 import de.mhus.commons.tools.MDate;
 import de.mhus.commons.tools.MString;
+import de.mhus.kt2l.aaa.SecurityService;
+import de.mhus.kt2l.aaa.UsersConfiguration;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.DeskTab;
 import de.mhus.kt2l.core.DeskTabListener;
@@ -34,6 +36,7 @@ import de.mhus.kt2l.k8s.K8s;
 import de.mhus.kt2l.resources.ResourcesGridPanel;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
 import de.mhus.kt2l.ui.BackgroundJobDialogRegistry;
+import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -59,6 +62,8 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
     private PanelService panelService;
     @Autowired(required = false)
     private ServerSystemService serverSystemService;
+    @Autowired
+    private SecurityService securityService;
 
     private TextArea info;
     private DeskTab deskTab;
@@ -92,21 +97,21 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
             subMenu.addItem("Core Panels", e -> showCorePanels());
             subMenu.addItem("Grid History", e -> showGridHistory());
             subMenu.addItem("Background Jobs", e -> showBackgroundJobs());
+            var ebcmItem = subMenu.addItem("Enable Browser Context Menu", e -> deskTab.getTabBar().getCore().getGeneralContextMenu().setTarget(null));
+            ebcmItem.setEnabled(deskTab.getTabBar().getCore().getGeneralContextMenu() != null);
+            subMenu.addItem("Log Exception", e -> LOGGER.warn("Test", new RuntimeException("Test Exception")));
+            subMenu.addItem("Show Exception", e -> UiUtil.showErrorNotification("Test", new RuntimeException("Test Exception")));
         }
         if (evilMode) {
             var subMenu = bar.addItem("Evil").getSubMenu();
             subMenu.addItem("Logs", e -> panelService.showSystemLogPanel(deskTab.getTabBar().getCore()).select());
             subMenu.addItem("Local Bash", e -> panelService.addLocalBashPanel(deskTab.getTabBar().getCore()).select());
         }
-        if (serverSystemService != null) {
+        if (serverSystemService != null && securityService.hasRole(UsersConfiguration.ROLE.ADMIN)) {
             var subMenu = bar.addItem("Access Log").getSubMenu();
             subMenu.addItem("Show", e -> showAccessLog());
             subMenu.addItem("Clear", e -> clearAccessLog());
         }
-        var ebcmItem = bar.addItem("EBCM", e -> deskTab.getTabBar().getCore().getGeneralContextMenu().setTarget(null));
-        ebcmItem.getElement().setAttribute("title", "Enable Browser Context Menu");
-        ebcmItem.setEnabled(deskTab.getTabBar().getCore().getGeneralContextMenu() != null);
-//        bar.addItem("Exception", e -> LOGGER.warn("Test", new RuntimeException("Test Exception")));
         bar.addItem("HttpRequest", e -> showHttpRequest());
 
         add(bar);
