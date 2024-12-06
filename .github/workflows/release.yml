@@ -178,9 +178,6 @@ jobs:
       - name: Build Server Container
         if:  ${{ contains(inputs.execute, ':container:') }}
         run: ./kt2l-server/launcher/create-container.sh
-        env:
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
 
       - name: Deploy Server ZIP
         if:  ${{ contains(inputs.execute, ':server-zip:') }}
@@ -198,6 +195,8 @@ jobs:
       - name: Deploy Server Container
         run: ./kt2l-server/launcher/deploy-container.sh
         env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ vars.AWS_REGION }}

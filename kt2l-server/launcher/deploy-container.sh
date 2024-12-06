@@ -54,6 +54,13 @@ HREF=
 HREF_HELP="/docs/installation/container"
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-container.ts
 
+REGISTRY_URL="https://index.docker.io/v1/"
+docker login "$REGISTRY_URL" -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+
+docker push mhus/kt2l-server:snapshot || exit 1
+docker tag mhus/kt2l-server:snapshot mhus/kt2l-server:snapshot-$CREATED || exit 1
+docker push mhus/kt2l-server:snapshot-$CREATED || exit 1
+
 # copy to aws
 echo "Copy download-snapshot-container.ts to cache"
 aws s3 cp download-snapshot-container.ts s3://kt2l-downloads/cache/downloads/download-snapshot-container.ts --quiet || exit 1
