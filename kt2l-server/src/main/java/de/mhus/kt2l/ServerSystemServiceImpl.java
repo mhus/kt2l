@@ -63,8 +63,8 @@ public class ServerSystemServiceImpl implements ServerSystemService {
                 MLang.tryThis(() -> UI.getCurrent().getSession().getBrowser().getLocale().toString()).orElse("?"),
                 MLang.tryThis(() -> UI.getCurrent().getSession().getBrowser().getAddress()).orElse("?"),
                 MLang.tryThis(() -> VaadinServletRequest.getCurrent().getHttpServletRequest().getRemoteHost()).orElse("?") + " " + MLang.tryThis(() -> Collections.list(VaadinServletRequest.getCurrent().getHttpServletRequest().getHeaders("X-Forwarded-For")).toString()).orElse("?"),
-                MLang.tryThis(() -> UI.getCurrent().getSession().getBrowser().getBrowserApplication()).orElse("?"),
-                MLang.tryThis(() -> UI.getCurrent().getSession().getSession().getId()).orElse("?")
+                MLang.tryThis(() -> UI.getCurrent().getSession().getSession().getId()).orElse("?"),
+                MLang.tryThis(() -> UI.getCurrent().getSession().getBrowser().getBrowserApplication()).orElse("?")
                 );
         var file = new File(directory, MDate.toIso8601(record.time()) + "_" + UUID.randomUUID() + ".log" );
         try {
