@@ -82,6 +82,7 @@ import de.mhus.kt2l.resources.common.ResourceYamlEditorPanel;
 import de.mhus.kt2l.resources.pod.ContainerShellPanel;
 import de.mhus.kt2l.resources.pod.PodLogsPanel;
 import de.mhus.kt2l.resources.util.AbstractClusterWatch;
+import de.mhus.kt2l.system.ServerSystemService;
 import de.mhus.kt2l.ui.UiUtil;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
@@ -169,6 +170,10 @@ public class Core extends AppLayout {
 
     @Autowired
     private transient AuthenticationContext authContext;
+
+    @Autowired(required = false)
+    private ServerSystemService serverSystemService;
+
     @Getter
     private DeskTabBar tabBar;
     private ScheduledFuture<?> closeScheduler;
@@ -217,7 +222,9 @@ public class Core extends AppLayout {
             return;
         }
         var user = maybeUser.get();
-        LOGGER.info("### UI with user '{}' and session '{}'", user.getUserId(), sessionId);
+        LOGGER.info("*** UI login with user '{}' and session '{}'", user.getUserId(), sessionId);
+        if (serverSystemService != null)
+            serverSystemService.newLogin(user);
         UI.getCurrent().getSession().setAttribute(SecurityService.UI_USER, user);
         UI.getCurrent().getSession().setAttribute("autologin", "true");
 

@@ -24,6 +24,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.server.VaadinServletRequest;
 import de.mhus.commons.console.ConsoleTable;
 import de.mhus.commons.tools.MCast;
+import de.mhus.commons.tools.MDate;
 import de.mhus.commons.tools.MString;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.core.DeskTab;
@@ -56,13 +57,15 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
     private SystemService upTimeService;
     @Autowired
     private PanelService panelService;
+    @Autowired(required = false)
+    private ServerSystemService serverSystemService;
 
     private TextArea info;
     private DeskTab deskTab;
     private OperatingSystemMXBean osBean;
     private TextArea output;
     private String browserMemoryUsage;
-    private volatile long requestRoundtripTime = -1;
+    private volatile long requestRoundTripTime = -1;
 
     public DevelopmentPanel(boolean evilMode) {
         this.evilMode = evilMode;
@@ -84,9 +87,12 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         bar.addItem("Core Panels", e -> showCorePanels());
         bar.addItem("Grid History", e -> showGridHistory());
         bar.addItem("Background Jobs", e -> showBackgroundJobs());
-        if(evilMode) {
+        if (evilMode) {
             bar.addItem("Logs", e -> panelService.showSystemLogPanel(deskTab.getTabBar().getCore()).select());
+            bar.addItem("Local Bash", e -> panelService.addLocalBashPanel(deskTab.getTabBar().getCore()).select());
         }
+        if (serverSystemService != null)
+            bar.addItem("Access Log", e -> showAccessLog());
         var ebcmItem = bar.addItem("EBCM", e -> deskTab.getTabBar().getCore().getGeneralContextMenu().setTarget(null));
         ebcmItem.getElement().setAttribute("title", "Enable Browser Context Menu");
         ebcmItem.setEnabled(deskTab.getTabBar().getCore().getGeneralContextMenu() != null);
@@ -108,6 +114,24 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
 
         osBean = ManagementFactory.getOperatingSystemMXBean();
         updateInfo(0);
+    }
+
+    private void showAccessLog() {
+        if (serverSystemService == null) {
+            output.setValue("Not available");
+            return;
+        }
+        StringBuffer i = new StringBuffer();
+        i.append("Access Log\n");
+        i.append("-----------------------\n");
+        ConsoleTable table = new ConsoleTable(null, "all=true");
+        table.setMaxTableWidth(1000);
+        table.setHeaderValues("User", "Time", "Locale", "Address", "Browser");
+        serverSystemService.getAccessList().forEach(a -> {
+            table.addRowValues(a.name(), MDate.toIsoDateTime(a.time()), a.locale(), a.address(), a.browser());
+        });
+        i.append(table).append("\n");
+        output.setValue(i.toString());
     }
 
     private void showBackgroundJobs() {
@@ -271,7 +295,7 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
 
         final var startRequestTime = System.currentTimeMillis();
         getElement().executeJs("return performance && performance.memory ? performance.memory.jsHeapSizeLimit + \" \" + performance.memory.totalJSHeapSize + \" \" + performance.memory.usedJSHeapSize : \"\"").then(String.class, value -> {
-            requestRoundtripTime = System.currentTimeMillis() - startRequestTime;
+            requestRoundTripTime = System.currentTimeMillis() - startRequestTime;
             this.browserMemoryUsage = value;
         });
 
@@ -294,8 +318,8 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
             var jsUsed = MCast.tolong(parts[2], 0);
             i.append("Browser Memory (3sec): " + MString.toByteDisplayString(jsUsed) + " / " + MString.toByteDisplayString(jsLimit) + " / " + MString.toByteDisplayString(jsTotal) + "\n");
         }
-        if (requestRoundtripTime >= 0) {
-            i.append("Browser Roundtrip Time: " + requestRoundtripTime + "ms\n");
+        if (requestRoundTripTime >= 0) {
+            i.append("Browser Round Trip Time: " + requestRoundTripTime + "ms\n");
         }
 
         info.setValue(i.toString());

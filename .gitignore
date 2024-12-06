@@ -73,10 +73,10 @@ dependency-reduced-pom.xml
 
 /config/local/clusters.yaml
 
-/kt2l-desktop/src/main/bundles/prod.bundle
-/kt2l-server/src/main/bundles/prod.bundle
-/kt2l-test/src/main/bundles/prod.bundle 
-/kt2l-native/src/main/bundles/prod.bundle
+/kt2l-desktop/src/main/bundles
+/kt2l-server/src/main/bundles
+/kt2l-test/src/main/bundles
+/kt2l-native/src/main/bundles
 
 **/vite.generated.ts
 /log
