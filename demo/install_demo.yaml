@@ -23,6 +23,8 @@
       apt:
         upgrade: dist
         update_cache: yes
+    - name: Reboot system
+      ansible.builtin.reboot:
     - name: add user
       user:
         name: "user"
