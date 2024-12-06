@@ -33,7 +33,7 @@ CREATED=$(date +"%Y-%m-%d")
 now=$(date +"%Y%m%d%H%M%S")
 docker buildx build --progress=plain --platform linux/amd64,linux/arm64 -t mhus/kt2l-server:snapshot -f launcher/Dockerfile --push . || exit 1
 
-docker push mhus/kt2l-server:snapshot || exit 1
+docker pull mhus/kt2l-server:snapshot || exit 1
 docker tag mhus/kt2l-server:snapshot mhus/kt2l-server:snapshot-$CREATED || exit 1
 docker push mhus/kt2l-server:snapshot-$CREATED || exit 1
 
