@@ -151,9 +151,9 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         i.append("-----------------------\n");
         ConsoleTable table = new ConsoleTable(null, "all=true");
         table.setMaxTableWidth(1000);
-        table.setHeaderValues("User", "Time", "Locale", "Address", "Remote", "Browser");
+        table.setHeaderValues("User", "Time", "Locale", "Address", "Remote", "Browser", "SessionId");
         serverSystemService.getAccessList().forEach(a -> {
-            table.addRowValues(a.name(), MDate.toIsoDateTime(a.time()), a.locale(), a.address(), a.remote(), a.browser());
+            table.addRowValues(a.name(), MDate.toIsoDateTime(a.time()), a.locale(), a.address(), a.remote(), a.browser(), a.sessionId());
         });
         i.append(table).append("\n");
         output.setValue(i.toString());
