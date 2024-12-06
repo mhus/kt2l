@@ -11,6 +11,8 @@ public interface ServerSystemService {
 
     List<Access> getAccessList();
 
+    void clearAccessList();
+
     record Access(String name, long time, String locale, String address, String browser) {
     }
 }

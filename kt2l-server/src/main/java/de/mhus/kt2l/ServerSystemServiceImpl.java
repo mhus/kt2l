@@ -68,4 +68,16 @@ public class ServerSystemServiceImpl implements ServerSystemService {
         return list;
     }
 
+    @Override
+    public void clearAccessList() {
+        LOGGER.debug("Clear access log");
+        for (var file : Objects.requireNonNull(directory.listFiles(f -> f.isFile() && f.getName().endsWith(".log")))) {
+            try {
+                file.delete();
+            } catch (Exception e) {
+                LOGGER.info("Can't clear access log {}", file, e);
+            }
+        }
+    }
+
 }

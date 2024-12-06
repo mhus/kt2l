@@ -81,18 +81,28 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         add(info);
 
         var bar = new MenuBar();
-        bar.addItem("Env", e -> showEnv());
-        bar.addItem("Props", e -> showProps());
-        bar.addItem("TabBarInfo", e -> showTabBarInfo());
-        bar.addItem("Core Panels", e -> showCorePanels());
-        bar.addItem("Grid History", e -> showGridHistory());
-        bar.addItem("Background Jobs", e -> showBackgroundJobs());
-        if (evilMode) {
-            bar.addItem("Logs", e -> panelService.showSystemLogPanel(deskTab.getTabBar().getCore()).select());
-            bar.addItem("Local Bash", e -> panelService.addLocalBashPanel(deskTab.getTabBar().getCore()).select());
+        {
+            var subMenu = bar.addItem("System").getSubMenu();
+            subMenu.addItem("Env", e -> showEnv());
+            subMenu.addItem("Props", e -> showProps());
         }
-        if (serverSystemService != null)
-            bar.addItem("Access Log", e -> showAccessLog());
+        {
+            var subMenu = bar.addItem("Core").getSubMenu();
+            subMenu.addItem("TabBarInfo", e -> showTabBarInfo());
+            subMenu.addItem("Core Panels", e -> showCorePanels());
+            subMenu.addItem("Grid History", e -> showGridHistory());
+            subMenu.addItem("Background Jobs", e -> showBackgroundJobs());
+        }
+        if (evilMode) {
+            var subMenu = bar.addItem("Evil").getSubMenu();
+            subMenu.addItem("Logs", e -> panelService.showSystemLogPanel(deskTab.getTabBar().getCore()).select());
+            subMenu.addItem("Local Bash", e -> panelService.addLocalBashPanel(deskTab.getTabBar().getCore()).select());
+        }
+        if (serverSystemService != null) {
+            var subMenu = bar.addItem("Access Log").getSubMenu();
+            subMenu.addItem("Show", e -> showAccessLog());
+            subMenu.addItem("Clear", e -> clearAccessLog());
+        }
         var ebcmItem = bar.addItem("EBCM", e -> deskTab.getTabBar().getCore().getGeneralContextMenu().setTarget(null));
         ebcmItem.getElement().setAttribute("title", "Enable Browser Context Menu");
         ebcmItem.setEnabled(deskTab.getTabBar().getCore().getGeneralContextMenu() != null);
@@ -114,6 +124,15 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
 
         osBean = ManagementFactory.getOperatingSystemMXBean();
         updateInfo(0);
+    }
+
+    private void clearAccessLog() {
+        if (serverSystemService == null) {
+            output.setValue("Not available");
+            return;
+        }
+        serverSystemService.clearAccessList();
+        showAccessLog();
     }
 
     private void showAccessLog() {
