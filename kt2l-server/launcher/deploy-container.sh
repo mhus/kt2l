@@ -26,14 +26,6 @@ if [ ! -f kt2l-server.zip ]; then
     exit 1
 fi
 
-if [ -z "$DOCKER_USERNAME" ]; then
-    echo "Fatal: DOCKER_USERNAME not correct set"
-    exit 1
-fi
-if [ -z "$DOCKER_PASSWORD" ]; then
-    echo "Fatal: DOCKER_PASSWORD not correct set"
-    exit 1
-fi
 if [ -z "$AWS_ACCESS_KEY_ID" ]; then
     echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
     exit 1

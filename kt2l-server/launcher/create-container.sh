@@ -25,6 +25,14 @@ if [ ! -f target/kt2l-server.zip ]; then
     echo "Fatal: kt2l-server.zip not found"
     exit 1
 fi
+if [ -z "$DOCKER_USERNAME" ]; then
+    echo "Fatal: DOCKER_USERNAME not correct set"
+    exit 1
+fi
+if [ -z "$DOCKER_PASSWORD" ]; then
+    echo "Fatal: DOCKER_PASSWORD not correct set"
+    exit 1
+fi
 
 REGISTRY_URL="https://index.docker.io/v1/"
 docker login "$REGISTRY_URL" -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
