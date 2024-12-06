@@ -29,9 +29,11 @@ fi
 REGISTRY_URL="https://index.docker.io/v1/"
 docker login "$REGISTRY_URL" -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
 
-now=$(date +"%Y%m%d%H%M%S")
-docker buildx build --progress=plain --platform linux/amd64,linux/arm64 -t mhus/kt2l-server:snapshot-$now -f launcher/Dockerfile --output "type=image" . || exit 1
-docker tag mhus/kt2l-server:snapshot-$now mhus/kt2l-server:snapshot || exit 1
+CREATED=$(date +"%Y-%m-%d")
+docker buildx build --progress=plain --platform linux/amd64,linux/arm64 -t mhus/kt2l-server:snapshot-$CREATED -f launcher/Dockerfile --push . || exit 1
 
-echo "Build image mhus/kt2l-server:snapshot-$now"
-echo snapshot-$now > target/kt2l-container.version
+docker manifest create mhus/kt2l-server:snapshot mhus/kt2l-server:snapshot-$CREATED || exit 1
+docker manifest push mhus/kt2l-server:snapshot || exit 1
+
+echo "Build image mhus/kt2l-server:snapshot-$CREATED"
+echo snapshot-$CREATED > target/kt2l-container.version

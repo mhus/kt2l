@@ -42,8 +42,11 @@ if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
     echo "Fatal: AWS_SECRET_ACCESS_KEY not correct set"
     exit 1
 fi
-
-CREATED=$(date +"%Y-%m-%d")
+if [ ! -f kt2l-container.version ]; then
+    echo "Fatal: kt2l-container.version not found"
+    exit 1
+fi
+CREATED=$(cat kt2l-container.version)
 rm -rf gh-pages
 git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
 
@@ -53,13 +56,6 @@ DESCRIPTION="Can be started as Server and accessed via Browser, locally also. Ja
 HREF=
 HREF_HELP="/docs/installation/container"
 . ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-container.ts
-
-REGISTRY_URL="https://index.docker.io/v1/"
-docker login "$REGISTRY_URL" -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-
-docker push mhus/kt2l-server:snapshot || exit 1
-docker tag mhus/kt2l-server:snapshot mhus/kt2l-server:snapshot-$CREATED || exit 1
-docker push mhus/kt2l-server:snapshot-$CREATED || exit 1
 
 # copy to aws
 echo "Copy download-snapshot-container.ts to cache"
