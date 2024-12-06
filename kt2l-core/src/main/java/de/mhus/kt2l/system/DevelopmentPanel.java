@@ -107,10 +107,11 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
             subMenu.addItem("Logs", e -> panelService.showSystemLogPanel(deskTab.getTabBar().getCore()).select());
             subMenu.addItem("Local Bash", e -> panelService.addLocalBashPanel(deskTab.getTabBar().getCore()).select());
         }
-        if (serverSystemService != null && securityService.hasRole(UsersConfiguration.ROLE.ADMIN)) {
+        if (serverSystemService != null) {
             var subMenu = bar.addItem("Access Log").getSubMenu();
             subMenu.addItem("Show", e -> showAccessLog());
-            subMenu.addItem("Clear", e -> clearAccessLog());
+            if (securityService.hasRole(UsersConfiguration.ROLE.ADMIN))
+               subMenu.addItem("Clear", e -> clearAccessLog());
         }
         bar.addItem("HttpRequest", e -> showHttpRequest());
 
@@ -150,9 +151,9 @@ public class DevelopmentPanel extends VerticalLayout implements DeskTabListener 
         i.append("-----------------------\n");
         ConsoleTable table = new ConsoleTable(null, "all=true");
         table.setMaxTableWidth(1000);
-        table.setHeaderValues("User", "Time", "Locale", "Address", "Browser");
+        table.setHeaderValues("User", "Time", "Locale", "Address", "Remote", "Browser");
         serverSystemService.getAccessList().forEach(a -> {
-            table.addRowValues(a.name(), MDate.toIsoDateTime(a.time()), a.locale(), a.address(), a.browser());
+            table.addRowValues(a.name(), MDate.toIsoDateTime(a.time()), a.locale(), a.address(), a.remote(), a.browser());
         });
         i.append(table).append("\n");
         output.setValue(i.toString());

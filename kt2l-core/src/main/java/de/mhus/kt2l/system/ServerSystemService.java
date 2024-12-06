@@ -30,6 +30,6 @@ public interface ServerSystemService {
 
     void clearAccessList();
 
-    record Access(String name, long time, String locale, String address, String browser) {
+    record Access(String name, long time, String locale, String address, String remote, String browser) {
     }
 }

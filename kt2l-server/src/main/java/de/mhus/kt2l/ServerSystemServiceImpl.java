@@ -20,12 +20,14 @@ package de.mhus.kt2l;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.server.VaadinServletRequest;
 import de.mhus.commons.tools.MDate;
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MLang;
 import de.mhus.kt2l.aaa.AaaUser;
 import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.system.ServerSystemService;
+import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -59,6 +62,7 @@ public class ServerSystemServiceImpl implements ServerSystemService {
         var record = new Access(user.getUserId(), System.currentTimeMillis(),
                 MLang.tryThis(() -> UI.getCurrent().getSession().getBrowser().getLocale().toString()).orElse("?"),
                 MLang.tryThis(() -> UI.getCurrent().getSession().getBrowser().getAddress()).orElse("?"),
+                MLang.tryThis(() -> VaadinServletRequest.getCurrent().getHttpServletRequest().getRemoteHost()).orElse("?") + " " + MLang.tryThis(() -> Collections.list(VaadinServletRequest.getCurrent().getHttpServletRequest().getHeaders("X-Forwarded-For")).toString()).orElse("?"),
                 MLang.tryThis(() -> UI.getCurrent().getSession().getBrowser().getBrowserApplication()).orElse("?")
                 );
         var file = new File(directory, MDate.toIso8601(record.time()) + "_" + UUID.randomUUID() + ".log" );
