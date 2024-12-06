@@ -24,13 +24,12 @@ import com.vaadin.flow.server.VaadinServletRequest;
 import de.mhus.commons.tools.MDate;
 import de.mhus.commons.tools.MFile;
 import de.mhus.commons.tools.MLang;
+import de.mhus.commons.tools.MPeriod;
 import de.mhus.kt2l.aaa.AaaUser;
-import de.mhus.kt2l.config.Configuration;
 import de.mhus.kt2l.system.ServerSystemService;
-import de.mhus.kt2l.ui.UiUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -40,25 +39,51 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 public class ServerSystemServiceImpl implements ServerSystemService {
+
+    private static final long DEFAULT_ACCESS_LOG_TTL = TimeUnit.DAYS.toMillis(7);
 
     @Value("${kt2l.storage.directory.home:target/storage/}")
     private String home;
     private File directory;
     final ObjectMapper mapper = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT);
+    @Value("${kt2l.accessLog.ttl:}")
+    private String accessLogTtl;
+    @Value("${kt2l.accessLog.enabled:true}")
+    private boolean accessLogEnabled;
 
     @PostConstruct
     public void init() {
+        if (!accessLogEnabled) return;
         directory = new File(home + "/access_log");
         directory.mkdirs();
+        Thread.startVirtualThread(this::clearOldEntries);
+    }
+
+    @Scheduled(fixedRate = 6 * 1000 * 60 * 60)
+    private void clearOldEntries() {
+        if (!accessLogEnabled) return;
+        LOGGER.debug("Clear old access log entries");
+        for (var file : Objects.requireNonNull(directory.listFiles(f -> f.isFile() && f.getName().endsWith(".log")))) {
+            try {
+                if (MPeriod.isTimeOut(file.lastModified(), MPeriod.parseInterval(accessLogTtl, DEFAULT_ACCESS_LOG_TTL))) {
+                    LOGGER.debug("Delete old access log: {}", file);
+                    file.delete();
+                }
+            } catch (Exception e) {
+                LOGGER.info("Can't clear access log {}", file, e);
+            }
+        }
     }
 
     @Override
     public void newLogin(AaaUser user) {
+        if (!accessLogEnabled) return;
         var record = new Access(user.getUserId(), System.currentTimeMillis(),
                 MLang.tryThis(() -> UI.getCurrent().getSession().getBrowser().getLocale().toString()).orElse("?"),
                 MLang.tryThis(() -> UI.getCurrent().getSession().getBrowser().getAddress()).orElse("?"),
@@ -78,6 +103,7 @@ public class ServerSystemServiceImpl implements ServerSystemService {
     @Override
     public List<Access> getAccessList() {
         var list = new ArrayList<Access>();
+        if (!accessLogEnabled) return list;
         for (var file : Objects.requireNonNull(directory.listFiles(f -> f.isFile() && f.getName().endsWith(".log")))) {
             try {
                 var content = MFile.readFile(file);
@@ -92,6 +118,7 @@ public class ServerSystemServiceImpl implements ServerSystemService {
 
     @Override
     public void clearAccessList() {
+        if (!accessLogEnabled) return;
         LOGGER.debug("Clear access log");
         for (var file : Objects.requireNonNull(directory.listFiles(f -> f.isFile() && f.getName().endsWith(".log")))) {
             try {
