@@ -313,6 +313,7 @@ public class Core extends AppLayout {
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
         if (SecurityUtils.getUser() == null) {
             LOGGER.error("㋡ {} No user found (onAttach)", sessionId);
             SecurityUtils.exitToLogin("No User Found");

@@ -18,6 +18,7 @@
 
 package de.mhus.kt2l.resources.pod;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.MenuItem;
@@ -111,6 +112,7 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     private String[] jsonFields;
     private int podConnectRetries;
     private MenuItem menuJsonFields;
+    private UiUtil.Shortcut shortcutAddMark;
 
     public PodLogsPanel(Core core, Cluster cluster, List<ContainerResource> containers) {
         this.cluster = cluster;
@@ -120,8 +122,21 @@ public class PodLogsPanel extends VerticalLayout implements DeskTabListener {
     }
 
     @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+
+        if (shortcutAddMark != null)
+            shortcutAddMark.addShortcutListener(logs, () -> {
+                logs.addRow(TailRow.builder().text("--- MARK ---").build());
+            });
+
+    }
+
+    @Override
     public void tabInit(DeskTab deskTab) {
         this.tab = deskTab;
+
+        shortcutAddMark = UiUtil.createShortcut("ENTER");
 
         maxCachedEntries = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("maxCachedEntries", 1000);
         podConnectRetries = viewsConfiguration.getConfig(CONFIG_VIEW_LOG).getInt("podConnectRetries", 130);

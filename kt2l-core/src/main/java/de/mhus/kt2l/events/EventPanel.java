@@ -17,6 +17,7 @@
  */
 package de.mhus.kt2l.events;
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -46,6 +47,7 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
     private Tail eventList;
     private MenuItem menuItemAutoScroll;
     private MenuItem menuItemWrapLines;
+    private UiUtil.Shortcut shortcutAddMark;
 
     public EventPanel(Core core, Cluster cluster, Set<? extends KubernetesObject> selected) {
         this.core = core;
@@ -60,8 +62,20 @@ public class EventPanel extends VerticalLayout implements DeskTabListener {
     }
 
     @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+
+        if (shortcutAddMark != null)
+            shortcutAddMark.addShortcutListener(eventList, () -> {
+                eventList.addRow(TailRow.builder().text("--- MARK ---").build());
+            });
+
+    }
+
+        @Override
     public void tabInit(DeskTab deskTab) {
 
+        shortcutAddMark = UiUtil.createShortcut("ENTER");
         var menuBar = new MenuBar();
 
         if (resourceManager != null) {
