@@ -41,8 +41,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -53,7 +54,7 @@ import static de.mhus.commons.tools.MLang.tryThis;
 public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Component, V1Node, V1NodeList> {
 
     private HandlerK8s podResourceHandler;
-    private List<V1Pod> podList;
+    private Map<String, V1Pod> podMap;
     private IRegistration podEventRegistration;
     private long disableMetricsUntil;
 
@@ -64,11 +65,11 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
                 panel.getCluster(),
                 PodWatch.class
         ).getEventHandler().registerWeak(this::changePodEvent);
-        podList = Collections.synchronizedList(new LinkedList<V1Pod>());
+        podMap = Collections.synchronizedMap(new HashMap<>());
         this.podResourceHandler = k8sService.getTypeHandler(K8s.POD);
         try {
             var pl = podResourceHandler.createResourceListWithoutNamespace(panel.getCluster().getApiProvider());
-            pl.getItems().forEach(pod -> podList.add((V1Pod)pod));
+            pl.getItems().forEach(pod -> podMap.put(pod.getMetadata().getUid(), (V1Pod)pod));
         } catch (Exception e) {
             LOGGER.error("init", e);
         }
@@ -85,14 +86,34 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         if (event.object == null) return;
         switch (event.type) {
             case "ADDED":
-                podList.add(event.object);
+                try {
+                    podMap.put(event.object.getMetadata().getUid(), event.object);
+                    var nodeName = event.object.getSpec().getNodeName();
+                    updateNodePods(nodeName);
+                } catch (Exception e) {
+                    LOGGER.error("pod put", e);
+                }
                 break;
             case "DELETED":
-                for (int i = 0; i < podList.size(); i++) {
-                    if (podList.get(i).getMetadata().getUid().equals(event.object.getMetadata().getUid())) {
-                        podList.remove(i);
-                        break;
+                try {
+                    podMap.remove(event.object.getMetadata().getUid());
+                    var nodeName = event.object.getSpec().getNodeName();
+                    updateNodePods(nodeName);
+                } catch (Exception e) {
+                    LOGGER.error("pod delete", e);
+                }
+                break;
+            case "MODIFIED":
+                try {
+                    var old = podMap.put(event.object.getMetadata().getUid(), event.object);
+                    var oldNodeName = tryThis(() -> old.getSpec().getNodeName()).orElse("");
+                    var newNodeName = event.object.getSpec().getNodeName();
+                    if (!Objects.equals(oldNodeName, newNodeName)) {
+                        updateNodePods(oldNodeName);
+                        updateNodePods(newNodeName);
                     }
+                } catch (Exception e) {
+                    LOGGER.error("pod modified", e);
                 }
                 break;
             default:
@@ -108,6 +129,13 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         }
     }
 
+    private void updateNodePods(String nodeName) {
+        resourcesList.stream().filter(r -> r.getName().equals(nodeName)).findFirst().ifPresent(r -> {
+            r.updatePods();
+            panel.getCore().ui().access(() -> resourcesGrid.getDataProvider().refreshItem(r));
+        });
+    }
+
     @Override
     protected Class<? extends ClusterBackgroundJob> getManagedWatchClass() {
         return NodeWatch.class;
@@ -120,8 +148,6 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
 
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
-        resourcesGrid.addColumn(NodeGrid.Resource::getStatus).setHeader("Status").setSortProperty("status");
-        resourcesGrid.addColumn(NodeGrid.Resource::getTaintCnt).setHeader("Taints").setSortProperty("taints");
         resourcesGrid.addColumn(NodeGrid.Resource::getPods).setHeader("Pods").setSortProperty("pods");
         if (cluster.isMetricsEnabled()) {
             resourcesGrid.addColumn(Resource::getMetricCpuString).setHeader("CPU").setSortProperty("cpu");
@@ -130,6 +156,8 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
             resourcesGrid.addColumn(res -> res.getMetricMemoryPercentage() < 0 ? "" : res.getMetricMemoryPercentage()).setHeader("Mem%").setSortProperty("memory%");
         }
         resourcesGrid.addColumn(NodeGrid.Resource::getIp).setHeader("IP").setSortProperty("ip");
+        resourcesGrid.addColumn(NodeGrid.Resource::getTaintCnt).setHeader("Taints").setSortProperty("taints");
+        resourcesGrid.addColumn(NodeGrid.Resource::getStatus).setHeader("Status").setSortProperty("status");
         resourcesGrid.addColumn(NodeGrid.Resource::getVersion).setHeader("Version").setSortProperty("version");
     }
 
@@ -252,7 +280,7 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
                 s.append("Ready");
             }
             this.status = s.toString();
-            this.pods = ((NodeGrid)getGrid()).podList.stream().filter(p -> Objects.equals(p.getSpec().getNodeName(), resource.getMetadata().getName())).count();
+            updatePods();
             this.taintCnt = tryThis(() -> resource.getSpec().getTaints().size()).orElse(0);
             this.ip = resource.getStatus().getAddresses().stream()
                     .filter(a -> "InternalIP".equals(a.getType()))
@@ -260,6 +288,10 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
                     .map(a -> a.getAddress())
                     .orElse(null);
             this.version = tryThis(() -> resource.getStatus().getNodeInfo().getKubeletVersion()).orElse("");
+        }
+
+        public void updatePods() {
+            this.pods = tryThis(() -> ((NodeGrid) getGrid()).podMap.values().stream().filter(p -> Objects.equals(p.getSpec().getNodeName(), resource.getMetadata().getName())).count()).orElse(-1L);
         }
 
         public synchronized boolean setMetrics(NodeMetrics metric) {
