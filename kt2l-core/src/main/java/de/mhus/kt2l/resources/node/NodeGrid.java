@@ -149,6 +149,10 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
     @Override
     protected void createGridColumnsAfterName(Grid<Resource> resourcesGrid) {
         resourcesGrid.addColumn(NodeGrid.Resource::getPods).setHeader("Pods").setSortProperty("pods");
+        resourcesGrid.addColumn(NodeGrid.Resource::getDaemonPods).setHeader("D").setSortProperty("daemonPods").setTooltipGenerator(r -> "Daemon Pods");
+        resourcesGrid.addColumn(NodeGrid.Resource::getPendingPods).setHeader("P").setSortProperty("pendingPods").setTooltipGenerator(r -> "Pending Pods");
+        resourcesGrid.addColumn(NodeGrid.Resource::getRunningPods).setHeader("R").setSortProperty("runningPods").setTooltipGenerator(r -> "Running Pods");
+        resourcesGrid.addColumn(NodeGrid.Resource::getTerminatingPods).setHeader("T").setSortProperty("terminatingPods").setTooltipGenerator(r -> "Terminating Pods");
         if (cluster.isMetricsEnabled()) {
             resourcesGrid.addColumn(Resource::getMetricCpuString).setHeader("CPU").setSortProperty("cpu");
             resourcesGrid.addColumn(res -> res.getMetricCpuPercentage() < 0 ? "" : res.getMetricCpuPercentage()).setHeader("CPU%").setSortProperty("cpu%");
@@ -191,6 +195,30 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
             return switch (direction) {
                 case ASCENDING -> Long.compare(a.getPods(), b.getPods());
                 case DESCENDING -> Long.compare(b.getPods(), a.getPods());
+            };
+        }
+        if ("daemonPods".equals(sorted)) {
+            return switch (direction) {
+                case ASCENDING -> Long.compare(a.getDaemonPods(), b.getDaemonPods());
+                case DESCENDING -> Long.compare(b.getDaemonPods(), a.getDaemonPods());
+            };
+        }
+        if ("pendingPods".equals(sorted)) {
+            return switch (direction) {
+                case ASCENDING -> Long.compare(a.getPendingPods(), b.getPendingPods());
+                case DESCENDING -> Long.compare(b.getPendingPods(), a.getPendingPods());
+            };
+        }
+        if ("runningPods".equals(sorted)) {
+            return switch (direction) {
+                case ASCENDING -> Long.compare(a.getRunningPods(), b.getRunningPods());
+                case DESCENDING -> Long.compare(b.getRunningPods(), a.getRunningPods());
+            };
+        }
+        if ("terminatingPods".equals(sorted)) {
+            return switch (direction) {
+                case ASCENDING -> Long.compare(a.getTerminatingPods(), b.getTerminatingPods());
+                case DESCENDING -> Long.compare(b.getTerminatingPods(), a.getTerminatingPods());
             };
         }
         return 0;
@@ -259,6 +287,10 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         private String ip;
         private String version;
         private long pods;
+        private long daemonPods;
+        private long pendingPods;
+        private long runningPods;
+        private long terminatingPods;
         private double metricCpu = Double.MAX_VALUE;
         private long metricMemory = Long.MAX_VALUE;
         private String metricCpuString = "-";
@@ -291,7 +323,31 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
         }
 
         public void updatePods() {
-            this.pods = tryThis(() -> ((NodeGrid) getGrid()).podMap.values().stream().filter(p -> Objects.equals(p.getSpec().getNodeName(), resource.getMetadata().getName())).count()).orElse(-1L);
+            this.pods = tryThis(() -> ((NodeGrid) getGrid()).podMap.values().stream().filter(p ->
+                    Objects.equals(p.getSpec().getNodeName(), resource.getMetadata().getName())
+            ).count()).orElse(-1L);
+            this.daemonPods = tryThis(() -> ((NodeGrid) getGrid()).podMap.values().stream().filter(p ->
+                    Objects.equals(p.getSpec().getNodeName(), resource.getMetadata().getName())
+                            &&
+                            p.getMetadata().getOwnerReferences().stream().filter(r -> r.getKind().equals("DaemonSet")).findFirst().isPresent()
+            ).count()).orElse(-1L);
+            this.pendingPods = tryThis(() -> ((NodeGrid) getGrid()).podMap.values().stream().filter(p ->
+                    Objects.equals(p.getSpec().getNodeName(), resource.getMetadata().getName())
+                            &&
+                            "xxx".equals(p.getStatus().getPhase()) // XXX
+            ).count()).orElse(-1L);
+            this.runningPods = tryThis(() -> ((NodeGrid) getGrid()).podMap.values().stream().filter(p ->
+                    Objects.equals(p.getSpec().getNodeName(), resource.getMetadata().getName())
+                            &&
+                            "Running".equals(p.getStatus().getPhase())
+                            &&
+                            p.getMetadata().getDeletionTimestamp() == null
+            ).count()).orElse(-1L);
+            this.terminatingPods = tryThis(() -> ((NodeGrid) getGrid()).podMap.values().stream().filter(p ->
+                    Objects.equals(p.getSpec().getNodeName(), resource.getMetadata().getName())
+                            &&
+                            p.getMetadata().getDeletionTimestamp() != null
+            ).count()).orElse(-1L);
         }
 
         public synchronized boolean setMetrics(NodeMetrics metric) {
