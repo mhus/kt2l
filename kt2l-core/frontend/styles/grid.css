@@ -16,19 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 .red {
-    color: #ff0000;
+    color: #dc3545;
 }
 
 .green {
-    color: #00ff00;
+    color: #218838;
 }
 
 .blue {
-    color: #0000ff;
+    color: #007bff;
 }
 
 .yellow {
-    color: #ffff00;
+    color: #e0a800;
 }
 
 .orange {
@@ -66,19 +66,19 @@
 }
 
 .bgcolor-red {
-    background-color: #ff0000;
+    background-color: #dc3545;
 }
 
 .bgcolor-green {
-    background-color: #00ff00;
+    background-color: #218838;
 }
 
 .bgcolor-blue {
-    background-color: #0000ff;
+    background-color: #007bff;
 }
 
 .bgcolor-yellow {
-    background-color: #ffff00;
+    background-color: #e0a800;
 }
 
 .bgcolor-orange {

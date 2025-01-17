@@ -204,7 +204,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
         }
 
         Thread.startVirtualThread(() -> {
-            if (!validateCluster(cluster)) {
+            if (!validateCluster(cluster, true)) {
                 core.ui().access(() -> {
                     clusterActionList.forEach(r -> r.item.setEnabled(false));
                     UiUtil.showErrorNotification("Can't connect to cluster");
@@ -248,7 +248,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
 
                     var item = clusterMenuBar.addItem(action.getTitle(), click -> {
                         if (getSelectedCluster() != null) {
-                            if (!validateCluster(getSelectedCluster())) {
+                            if (!validateCluster(getSelectedCluster(), true)) {
                                 UiUtil.showErrorNotification("Can't connect to cluster");
                                 return;
                             }
@@ -274,7 +274,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean validateCluster(Cluster cluster) {
+    private boolean validateCluster(Cluster cluster, boolean invalidate) {
         var clusterId = cluster.getName();
         try {
             var coreApi = k8s.getKubeClient(clusterId).getCoreV1Api();
@@ -283,6 +283,10 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
             return true;
         } catch (Exception e) {
             LOGGER.warn("Can't connect to cluster: {}", clusterId, e);
+            if (invalidate) {
+                cluster.getApiProvider().invalidate();
+                return validateCluster(cluster, false);
+            }
         }
         return false;
     }

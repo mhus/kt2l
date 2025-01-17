@@ -160,19 +160,19 @@ vaadin-horizontal-layout.footer {
 }
 
 .color-red {
-    color: #ff0000;
+    color: #dc3545;
 }
 
 .color-green {
-    color: #00ff00;
+    color: #218838;
 }
 
 .color-blue {
-    color: #0000ff;
+    color: #007bff;
 }
 
 .color-yellow {
-    color: #ffff00;
+    color: #e0a800;
 }
 
 .color-orange {
@@ -209,19 +209,19 @@ vaadin-horizontal-layout.footer {
 }
 
 .bgcolor-red {
-    background-color: #ff0000;
+    background-color: #dc3545;
 }
 
 .bgcolor-green {
-    background-color: #00ff00;
+    background-color: #218838;
 }
 
 .bgcolor-blue {
-    background-color: #0000ff;
+    background-color: #007bff;
 }
 
 .bgcolor-yellow {
-    background-color: #ffff00;
+    background-color: #e0a800;
 }
 
 .bgcolor-orange {
@@ -258,22 +258,22 @@ vaadin-horizontal-layout.footer {
 }
 
 .title-red {
-    background-color: #ff0000;
+    background-color: #dc3545;
     color: #fff;
 }
 
 .title-green {
-    background-color: #00ff00;
+    background-color: #218838;
     color: #000;
 }
 
 .title-blue {
-    background-color: #0000ff;
+    background-color: #007bff;
     color: #fff;
 }
 
 .title-yellow {
-    background-color: #ffff00;
+    background-color: #e0a800;
     color: #000;
 }
 

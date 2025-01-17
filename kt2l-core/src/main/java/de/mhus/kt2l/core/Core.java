@@ -520,6 +520,7 @@ public class Core extends AppLayout {
     }
 
     private void checkAutoDarkMode() {
+        if (ui == null) return;
         ui.access(() -> {
             this.getElement().executeJs("return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches").then(Boolean.class, res -> {
                 if (res != null) {
