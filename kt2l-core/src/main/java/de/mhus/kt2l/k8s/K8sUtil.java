@@ -169,6 +169,7 @@ public class K8sUtil {
             if (events != null && events.size() > 0) {
                 sb.append("\nEvents:\n\n");
                 ConsoleTable table = new ConsoleTable();
+                table.setFull(true);
                 table.setHeaderValues("Type", "Reason", "Age", "Count", "From", "Message");
                 events.forEach(event -> {
                     table.addRowValues(
