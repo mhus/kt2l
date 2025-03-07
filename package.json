@@ -1,0 +1,77 @@
+{
+  "name": "no-name",
+  "license": "UNLICENSED",
+  "type": "module",
+  "dependencies": {
+    "@polymer/polymer": "3.5.2",
+    "@vaadin/common-frontend": "0.0.19",
+    "construct-style-sheets-polyfill": "3.1.0",
+    "lit": "3.2.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.29.0"
+  },
+  "devDependencies": {
+    "@babel/preset-react": "7.26.3",
+    "@preact/signals-react-transform": "0.5.1",
+    "@rollup/plugin-replace": "6.0.2",
+    "@rollup/pluginutils": "5.1.4",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
+    "@vitejs/plugin-react": "4.3.4",
+    "async": "3.2.6",
+    "glob": "10.4.5",
+    "rollup-plugin-brotli": "3.1.0",
+    "rollup-plugin-visualizer": "5.14.0",
+    "strip-css-comments": "5.0.0",
+    "transform-ast": "2.4.4",
+    "typescript": "5.7.3",
+    "vite": "6.0.11",
+    "vite-plugin-checker": "0.8.0",
+    "workbox-build": "7.3.0",
+    "workbox-core": "7.3.0",
+    "workbox-precaching": "7.3.0"
+  },
+  "vaadin": {
+    "dependencies": {
+      "@polymer/polymer": "3.5.2",
+      "@vaadin/common-frontend": "0.0.19",
+      "construct-style-sheets-polyfill": "3.1.0",
+      "lit": "3.2.1",
+      "react": "18.3.1",
+      "react-dom": "18.3.1",
+      "react-router-dom": "6.29.0"
+    },
+    "devDependencies": {
+      "@babel/preset-react": "7.26.3",
+      "@preact/signals-react-transform": "0.5.1",
+      "@rollup/plugin-replace": "6.0.2",
+      "@rollup/pluginutils": "5.1.4",
+      "@types/react": "18.3.18",
+      "@types/react-dom": "18.3.5",
+      "@vitejs/plugin-react": "4.3.4",
+      "async": "3.2.6",
+      "glob": "10.4.5",
+      "rollup-plugin-brotli": "3.1.0",
+      "rollup-plugin-visualizer": "5.14.0",
+      "strip-css-comments": "5.0.0",
+      "transform-ast": "2.4.4",
+      "typescript": "5.7.3",
+      "vite": "6.0.11",
+      "vite-plugin-checker": "0.8.0",
+      "workbox-build": "7.3.0",
+      "workbox-core": "7.3.0",
+      "workbox-precaching": "7.3.0"
+    },
+    "hash": "e1a0184b2dd5174e33838f9064b1ad1d1e13e04fe9dd300711246fdf40692edb"
+  },
+  "overrides": {
+    "@vaadin/common-frontend": "$@vaadin/common-frontend",
+    "react-dom": "$react-dom",
+    "construct-style-sheets-polyfill": "$construct-style-sheets-polyfill",
+    "react-router-dom": "$react-router-dom",
+    "lit": "$lit",
+    "@polymer/polymer": "$@polymer/polymer",
+    "react": "$react"
+  }
+}

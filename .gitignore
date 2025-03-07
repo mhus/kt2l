@@ -80,4 +80,8 @@ dependency-reduced-pom.xml
 
 **/vite.generated.ts
 /log
-kt2l-core/log
+/kt2l-core/log
+
+/kt2l-pages
+/kt2l-snippets
+
