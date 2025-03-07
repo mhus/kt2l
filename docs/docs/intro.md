@@ -7,7 +7,7 @@ title: Introduction
 
 Hello!
 
-The goal of KT2L is to provide a tool to work with kubernetes clusters.
+The goal of KT2L is to provide a desktop tool to work with kubernetes clusters.
 
 * A comprehensive web-based tool harnessing the capabilities of the web to offer enhanced support 
   for administrators compared to traditional shell-based tools. For instance, it includes direct 

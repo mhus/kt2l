@@ -9,7 +9,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
     title: 'KT2L',
-    tagline: 'KT2L (ktool) is a web based tool to manage your kubernetes clusters.',
+    tagline: 'KT2L (ktool) is a web based desktop tool to manage your kubernetes clusters.',
 //    favicon: 'img/favicon.ico',
 
     onBrokenLinks: 'warn', // ideally this should have a stricter value set - 'throw'
