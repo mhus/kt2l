@@ -23,9 +23,9 @@ export default function PageGeneralInformation() {
                         <img src={logo} className="App-logo" alt="logo" width={300}/>
                     </center>
                     <p className="mt-6 text-lg leading-8 text-gray-600">
-                        KT2L (ktool) is a web based tool to manage your kubernetes clusters. The tool can be
+                        KT2L (ktool) is a web based desktop tool to manage your kubernetes clusters. The tool can be
                         installed locally or
-                        in the cluster. The goal is to provide a control center and do things smarter. It adresses
+                        in the cluster. The goal is to provide a control center and do things smarter. It addresses
                         administrators
                         and developers.
                     </p>
