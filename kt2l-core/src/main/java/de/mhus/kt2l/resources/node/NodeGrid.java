@@ -167,61 +167,74 @@ public class NodeGrid extends AbstractGridWithoutNamespace<NodeGrid.Resource, Co
 
     @Override
     protected int sortColumn(String sorted, SortDirection direction, Resource a, Resource b) {
-        if ("status".equals(sorted)) {
-            return switch (direction) {
-                case ASCENDING -> a.getStatus().compareTo(b.getStatus());
-                case DESCENDING -> b.getStatus().compareTo(a.getStatus());
-            };
-        }
-        if ("taints".equals(sorted)) {
-            return switch (direction) {
-                case ASCENDING -> Integer.compare(a.getTaintCnt(), b.getTaintCnt());
-                case DESCENDING -> Integer.compare(b.getTaintCnt(), a.getTaintCnt());
-            };
-        }
-        if ("ip".equals(sorted)) {
-            return switch (direction) {
-                case ASCENDING -> Objects.compare(a.getIp(), b.getIp(), String::compareTo);
-                case DESCENDING -> Objects.compare(b.getIp(), a.getIp(), String::compareTo);
-            };
-        }
-        if ("version".equals(sorted)) {
-            return switch (direction) {
-                case ASCENDING -> Objects.compare(a.getVersion(), b.getVersion(), String::compareTo);
-                case DESCENDING -> Objects.compare(b.getVersion(), a.getVersion(), String::compareTo);
-            };
-        }
-        if ("pods".equals(sorted)) {
-            return switch (direction) {
-                case ASCENDING -> Long.compare(a.getPods(), b.getPods());
-                case DESCENDING -> Long.compare(b.getPods(), a.getPods());
-            };
-        }
-        if ("daemonPods".equals(sorted)) {
-            return switch (direction) {
-                case ASCENDING -> Long.compare(a.getDaemonPods(), b.getDaemonPods());
-                case DESCENDING -> Long.compare(b.getDaemonPods(), a.getDaemonPods());
-            };
-        }
-        if ("pendingPods".equals(sorted)) {
-            return switch (direction) {
-                case ASCENDING -> Long.compare(a.getPendingPods(), b.getPendingPods());
-                case DESCENDING -> Long.compare(b.getPendingPods(), a.getPendingPods());
-            };
-        }
-        if ("runningPods".equals(sorted)) {
-            return switch (direction) {
-                case ASCENDING -> Long.compare(a.getRunningPods(), b.getRunningPods());
-                case DESCENDING -> Long.compare(b.getRunningPods(), a.getRunningPods());
-            };
-        }
-        if ("terminatingPods".equals(sorted)) {
-            return switch (direction) {
-                case ASCENDING -> Long.compare(a.getTerminatingPods(), b.getTerminatingPods());
-                case DESCENDING -> Long.compare(b.getTerminatingPods(), a.getTerminatingPods());
-            };
-        }
-        return 0;
+        return switch (sorted) {
+            case "status" ->
+                switch (direction) {
+                    case ASCENDING -> a.getStatus().compareTo(b.getStatus());
+                    case DESCENDING -> b.getStatus().compareTo(a.getStatus());
+                };
+            case "taints" ->
+                switch (direction) {
+                    case ASCENDING -> Integer.compare(a.getTaintCnt(), b.getTaintCnt());
+                    case DESCENDING -> Integer.compare(b.getTaintCnt(), a.getTaintCnt());
+                };
+            case "ip" ->
+                switch (direction) {
+                    case ASCENDING -> Objects.compare(a.getIp(), b.getIp(), String::compareTo);
+                    case DESCENDING -> Objects.compare(b.getIp(), a.getIp(), String::compareTo);
+                };
+            case "version" ->
+                switch (direction) {
+                    case ASCENDING -> Objects.compare(a.getVersion(), b.getVersion(), String::compareTo);
+                    case DESCENDING -> Objects.compare(b.getVersion(), a.getVersion(), String::compareTo);
+                };
+            case "pods" ->
+                switch (direction) {
+                    case ASCENDING -> Long.compare(a.getPods(), b.getPods());
+                    case DESCENDING -> Long.compare(b.getPods(), a.getPods());
+                };
+            case "daemonPods" ->
+                switch (direction) {
+                    case ASCENDING -> Long.compare(a.getDaemonPods(), b.getDaemonPods());
+                    case DESCENDING -> Long.compare(b.getDaemonPods(), a.getDaemonPods());
+                };
+            case "pendingPods" ->
+                switch (direction) {
+                    case ASCENDING -> Long.compare(a.getPendingPods(), b.getPendingPods());
+                    case DESCENDING -> Long.compare(b.getPendingPods(), a.getPendingPods());
+                };
+            case "runningPods" ->
+                switch (direction) {
+                    case ASCENDING -> Long.compare(a.getRunningPods(), b.getRunningPods());
+                    case DESCENDING -> Long.compare(b.getRunningPods(), a.getRunningPods());
+                };
+            case "terminatingPods" ->
+                switch (direction) {
+                    case ASCENDING -> Long.compare(a.getTerminatingPods(), b.getTerminatingPods());
+                    case DESCENDING -> Long.compare(b.getTerminatingPods(), a.getTerminatingPods());
+                };
+            case "cpu%" ->
+                switch (direction) {
+                    case ASCENDING -> Integer.compare(a.getMetricCpuPercentage(), b.getMetricCpuPercentage());
+                    case DESCENDING -> Integer.compare(b.getMetricCpuPercentage(), a.getMetricCpuPercentage());
+                };
+            case "cpu" ->
+                switch (direction) {
+                    case ASCENDING -> Double.compare(a.getMetricCpu(), b.getMetricCpu());
+                    case DESCENDING -> Double.compare(b.getMetricCpu(), a.getMetricCpu());
+                };
+            case "memory%" ->
+                switch (direction) {
+                    case ASCENDING -> Long.compare(a.getMetricMemory(), b.getMetricMemory());
+                    case DESCENDING -> Long.compare(b.getMetricMemory(), a.getMetricMemory());
+                };
+            case "memory" ->
+                switch (direction) {
+                    case ASCENDING -> Long.compare(a.getMetricMemory(), b.getMetricMemory());
+                    case DESCENDING -> Long.compare(b.getMetricMemory(), a.getMetricMemory());
+                };
+            default -> 0;
+        };
     }
 
     @Override

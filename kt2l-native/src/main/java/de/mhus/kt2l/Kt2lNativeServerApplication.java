@@ -33,31 +33,10 @@
  */
 package de.mhus.kt2l;
 
-import de.mhus.commons.directory.ClassLoaderResourceProvider;
-import de.mhus.commons.services.DefaultEnvironmentProvider;
-import de.mhus.commons.tree.DefaultNodeFactory;
 import de.mhus.kt2l.generated.DeployInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.aot.hint.TypeReference;
-import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.context.annotation.ImportRuntimeHints;
-import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.util.ReflectionUtils;
-
-import java.util.Arrays;
-import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 public class Kt2lNativeServerApplication {

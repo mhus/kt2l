@@ -18,7 +18,6 @@
 package de.mhus.kt2l.system;
 
 import de.mhus.kt2l.aaa.AaaUser;
-import de.mhus.kt2l.aaa.UsersConfiguration;
 
 import java.util.List;
 

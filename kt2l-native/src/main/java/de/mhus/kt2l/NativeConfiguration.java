@@ -17,7 +17,6 @@
  */
 package de.mhus.kt2l;
 
-import com.vaadin.flow.component.EventData;
 import de.mhus.commons.directory.ClassLoaderResourceProvider;
 import de.mhus.commons.services.DefaultEnvironmentProvider;
 import de.mhus.commons.tree.DefaultNodeFactory;
