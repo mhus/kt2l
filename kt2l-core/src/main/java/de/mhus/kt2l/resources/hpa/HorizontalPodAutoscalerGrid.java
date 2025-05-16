@@ -87,9 +87,13 @@ public class HorizontalPodAutoscalerGrid extends AbstractGridWithNamespace<Horiz
         public void updateResource() {
             super.updateResource();
             reference = resource.getSpec().getScaleTargetRef().getKind() + "/" + resource.getSpec().getScaleTargetRef().getName();
-            targets = resource.getStatus().getCurrentCPUUtilizationPercentage() + "% / " + resource.getSpec().getTargetCPUUtilizationPercentage() + "%";
+            targets = percentage(resource.getStatus().getCurrentCPUUtilizationPercentage()) + " / " + percentage(resource.getSpec().getTargetCPUUtilizationPercentage());
             minPods = toIntOr0(resource.getSpec().getMinReplicas());
             maxPods = toIntOr0(resource.getSpec().getMaxReplicas());
+        }
+
+        private String percentage(Integer value) {
+            return value == null ? "?" : value + "%";
         }
 
         private int toIntOr0(Integer integer) {
