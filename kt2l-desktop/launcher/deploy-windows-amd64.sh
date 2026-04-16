@@ -28,54 +28,11 @@ if [ ! -f KT2L.exe ]; then
     ls -la
     exit 1
 fi
-if [ -z "$AWS_ACCESS_KEY_ID" ]; then
-    echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
-    exit 1
-fi
-if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
-    echo "Fatal: AWS_ACCESS_KEY_ID not correct set"
+if [ -z "$RELEASE_TAG" ]; then
+    echo "Fatal: RELEASE_TAG not set"
     exit 1
 fi
 
-rm -rf deploy
-mkdir deploy
-cd deploy
-
-CREATED=$(date +"%Y-%m-%d")
-if [ -f kt2l-desktop-windows-amd64.txt ]; then
-  CREATED=$(cat kt2l-desktop-windows-amd64.txt|cut -d ' ' -f 2)
-  echo "Use existing date $CREATED"
-fi
-git clone https://github.com/mhus/kt2l.git -b gh-pages gh-pages || exit 1
-
-FILENAME=kt2l-desktop-windows-amd64-$NOW.exe
-TITLE="Desktop Windows (amd64) Installer"
-DESCRIPTION="Installer for Windows amd64 systems. Java JDK 21 is included."
-HREF="https://kt2l-downloads.s3.eu-central-1.amazonaws.com/snapshots/$FILENAME"
-HREF_HELP="/docs/installation/desktop#windows-bundle"
-SIZE=$(echo $(du -m ../KT2L.exe)|cut -d ' ' -f 1)MB
-. ./gh-pages/kt2l.org/templates/download.ts.sh > download-snapshot-desktop-windows-amd64.ts
-
-# cleanup
-echo "Cleanup old snapshots in aws"
-ENTRIES=$(aws s3 ls kt2l-downloads/snapshots/|cut -b 32-|grep -e ^kt2l-desktop-windows-amd64-)
-echo Found $ENTRIES
-if [ ! -z "$ENTRIES" ]; then
-  for e in $(echo $ENTRIES); do
-      echo "Delete $e"
-      aws s3 rm "s3://kt2l-downloads/snapshots/$e"
-  done
-fi
-
-# copy
-echo "Copy KT2L.exe to aws"
-aws s3 cp ../KT2L.exe s3://kt2l-downloads/snapshots/$FILENAME --quiet || exit 1
-echo "Copy download-snapshot-desktop-windows-amd64.ts to cache"
-aws s3 cp download-snapshot-desktop-windows-amd64.ts s3://kt2l-downloads/cache/downloads/download-snapshot-desktop-windows-amd64.ts --quiet || exit 1
-
-# Release
-if [[ ${VERSION} != *"SNAPSHOT"* ]];then
-  FILENAME=kt2l-desktop-windows-amd64-${VERSION}.exe
-  echo "Copy kt2l-desktop_${VERSION}_amd64.deb to aws $FILENAME"
-  aws s3 cp ../launcher/kt2l-desktop_${VERSION}_amd64.deb s3://kt2l-downloads/releases/$FILENAME --quiet || exit 1
-fi
+FILENAME=kt2l-desktop-windows-amd64.exe
+cp KT2L.exe "$FILENAME"
+gh release upload "$RELEASE_TAG" "$FILENAME" --clobber || exit 1

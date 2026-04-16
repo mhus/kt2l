@@ -54,6 +54,7 @@ jobs:
     permissions: write-all
     outputs:
       RELEASE_VERSION: ${{ steps.find-next-release-version.outputs.RELEASE_VERSION }}
+      RELEASE_TAG: ${{ steps.create-release.outputs.RELEASE_TAG }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -77,33 +78,6 @@ jobs:
             cd ..
             rm -rf mhus-commons
           fi
-#      - name: vis-network-vaadin
-#        run: |
-#          echo "Build vis-network-vaadin"
-#          echo "================"
-#          git clone https://github.com/mhus/vis-network-vaadin.git
-#          cd vis-network-vaadin
-#          mvn clean install -B -Pproduction || exit 1
-#          cd ..
-#          rm -rf vis-network-vaadin
-#      - name: vaadin-raw-xterm-addon
-#        run: |
-#          echo "Build vaadin-raw-xterm-addon"
-#          echo "================"
-#          git clone https://github.com/mhus/vaadin-raw-xterm-addon.git
-#          cd vaadin-raw-xterm-addon
-#          mvn clean install -B -Pproduction || exit 1
-#          cd ..
-#          rm -rf vaadin-raw-xterm-addon
-#      - name: markdown-page-generator-plugin
-#        run: |
-#          echo "Build markdown-page-generator-plugin"
-#          echo "================"
-#          git clone https://github.com/walokra/markdown-page-generator-plugin.git
-#          cd markdown-page-generator-plugin
-#          mvn clean install -B || exit 1
-#          cd ..
-#          rm -rf markdown-page-generator-plugin
 
       - name: find next release version
         id: find-next-release-version
@@ -149,7 +123,7 @@ jobs:
           cp *.png ../../../docs/screenshots/
           cp *.png ../../../docs/docs/screenshots/
           echo "<html><body><h1>Screenshots</h1>" > ../../../docs/screenshots/index.html
-          for f in *.png; do  
+          for f in *.png; do
             echo "Copy $f to docs"
             echo "<h2>$f</h2><img width='100%' src='$f'>" >> ../../../docs/screenshots/index.html
           done
@@ -169,6 +143,34 @@ jobs:
           git status
           git commit -m "chore: Release Build ${{ github.run_id }}"
           git push
+
+      - name: Create or update GitHub Release
+        id: create-release
+        run: |
+          if [[ "$CREATE_RELEASE" == "true" ]]; then
+            TAG="${{ steps.find-next-release-version.outputs.RELEASE_VERSION }}"
+            gh release create "$TAG" --title "Release $TAG" --notes "Release $TAG"
+          else
+            TAG="snapshot"
+            if ! gh release view snapshot > /dev/null 2>&1; then
+              gh release create snapshot --prerelease --title "Latest Snapshot" --notes "Automated snapshot build - $(date +%Y-%m-%d)"
+            else
+              gh release edit snapshot --prerelease --notes "Automated snapshot build - updated $(date +%Y-%m-%d)"
+            fi
+          fi
+          echo "RELEASE_TAG=$TAG" >> "$GITHUB_OUTPUT"
+        env:
+          CREATE_RELEASE: ${{ inputs.create_release }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload desktop JARs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-jars
+          path: |
+            kt2l-desktop/target/kt2l-desktop-*-*.jar
+          retention-days: 1
+
       - name: Build Server ZIP
         run: ./kt2l-server/launcher/create-zip.sh
       - name: Set up QEMU
@@ -186,21 +188,8 @@ jobs:
         if:  ${{ contains(inputs.execute, ':server-zip:') }}
         run: ./kt2l-server/launcher/deploy-zip.sh
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-      - name: Deploy Desktop Jars
-        run: ./kt2l-desktop/launcher/deploy-jars.sh
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-      - name: Deploy Server Container
-        run: ./kt2l-server/launcher/deploy-container.sh
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
+          RELEASE_TAG: ${{ steps.create-release.outputs.RELEASE_TAG }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   update-demo:
     if:  ${{ contains(inputs.execute, ':demo:') }}
@@ -237,25 +226,18 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Download Binaries
-        run: |
-          echo "Download kt2l-desktop.jar from cache"
-          mkdir -p kt2l-desktop/target
-          cd kt2l-desktop/target
-          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-linux-amd64.jar kt2l-desktop-linux-amd64.jar --quiet || exit 1
-          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-linux-amd64.txt kt2l-desktop-linux-amd64.txt --quiet || exit 1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
+      - name: Download desktop JARs
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-jars
+          path: kt2l-desktop/target
       - name: Create Desktop Bundle
         run: ./kt2l-desktop/launcher/create-deb-amd64.sh
       - name: Deploy Desktop Bundle
         run: ./kt2l-desktop/launcher/deploy-deb-amd64.sh
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
+          RELEASE_TAG: ${{ needs.build.outputs.RELEASE_TAG }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   macosx-aarch64:
     needs: build
@@ -269,25 +251,18 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Download Binaries
-        run: |
-          echo "Download kt2l-desktop.jar from cache"
-          mkdir -p kt2l-desktop/target
-          cd kt2l-desktop/target
-          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-macosx-aarch64.jar kt2l-desktop-macosx-aarch64.jar --quiet || exit 1
-          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-macosx-aarch64.txt kt2l-desktop-macosx-aarch64.txt --quiet || exit 1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
+      - name: Download desktop JARs
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-jars
+          path: kt2l-desktop/target
       - name: Create Desktop Bundle
         run: ./kt2l-desktop/launcher/create-macosx-aarch64.sh
       - name: Deploy Desktop Bundle
         run: ./kt2l-desktop/launcher/deploy-macosx-aarch64.sh
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
+          RELEASE_TAG: ${{ needs.build.outputs.RELEASE_TAG }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   windows-amd64:
     if: ${{ contains(inputs.execute, ':windows-amd64:') }}
@@ -300,18 +275,11 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Download Binaries
-        shell: bash
-        run: |
-          echo "Download Binaries from cache"
-          mkdir -p kt2l-desktop/target
-          cd kt2l-desktop/target
-          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-windows-amd64.jar kt2l-desktop-windows-amd64.jar --quiet || exit 1
-          aws s3 cp s3://kt2l-downloads/cache/kt2l-desktop-windows-amd64.txt kt2l-desktop-windows-amd64.txt --quiet || exit 1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
+      - name: Download desktop JARs
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-jars
+          path: kt2l-desktop/target
       - name: create Windows desktop bundle
         shell: cmd
         run: kt2l-desktop/launcher/create-windows-amd64.bat
@@ -319,9 +287,8 @@ jobs:
         shell: bash
         run: ./kt2l-desktop/launcher/deploy-windows-amd64.sh
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
+          RELEASE_TAG: ${{ needs.build.outputs.RELEASE_TAG }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   documentation:
     if:  ${{ contains(inputs.execute, ':documentation:') }}
@@ -332,15 +299,6 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-
-#      - name: Set up JDK 21
-#        uses: actions/setup-java@v3
-#        with:
-#          java-version: '21'
-#          distribution: 'temurin'
-#          cache: 'maven'
-#      - name: Generate Javadoc
-#        run: mvn javadoc:aggregate -DskipTests
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -373,26 +331,9 @@ jobs:
           git commit -m "Update docs"
           git push
 
-  release_tag:
-    needs: [macosx-aarch64, windows-amd64, deb-amd64, documentation]
-    if: ${{ always() && inputs.create_release }}
-    runs-on: ubuntu-latest
-    permissions: write-all
-    steps:
-    - name: Create Release Tag
-      id: create_release
-      uses: actions/create-release@latest
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-      with:
-        tag_name: ${{ needs.build.outputs.RELEASE_VERSION }}
-        release_name: Release ${{ needs.build.outputs.RELEASE_VERSION }}
-        draft: false
-        prerelease: false
-
   prepare_next_snapshot:
-    needs: [release_tag]
-    if: ${{ inputs.create_release }}
+    needs: [build, deb-amd64, macosx-aarch64, windows-amd64]
+    if: ${{ always() && inputs.create_release }}
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
