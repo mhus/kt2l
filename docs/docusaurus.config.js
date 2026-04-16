@@ -17,7 +17,7 @@ const config = {
     onDuplicateRoutes: 'warn', // ideally this should have a stricter value set - 'throw'
 
     // Set the production url of your site here
-    url: 'https://kt2l.org/',
+    url: 'https://kt2l.mhus.de/',
     // Set the /<baseUrl>/ pathname under which your site is served
     // For GitHub pages deployment, it is often '/<projectName>/'
     baseUrl: '/docs/',
@@ -78,7 +78,7 @@ const config = {
                 logo: {
                     alt: 'KT2L Logo',
                     src: 'img/kt2l-logo.svg',
-                    href: 'https://kt2l.org',
+                    href: 'https://kt2l.mhus.de',
                     target: '_self',
                 },
                 items: [
@@ -121,7 +121,7 @@ const config = {
                         items: [
                             {
                                 label: 'Website',
-                                href: 'https://kt2l.org',
+                                href: 'https://kt2l.mhus.de',
                                 target: '_self',
                             },
                             {

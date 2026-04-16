@@ -209,7 +209,7 @@ docker run -d \
   -e PUID=1001 \
   -e PGID=1001 \
   -e TZ=Etc/UTC \
-  -e URL=demo.kt2l.org \
+  -e URL=demo.kt2l.mhus.de \
   -e VALIDATION=http \
   -v /home/user/swag_config:/config \
   --restart unless-stopped \
@@ -228,7 +228,7 @@ docker start kt2l-server
 # Mail system
 
 ```shell
-debconf-set-selections <<< "postfix postfix/mailname string demo.kt2l.org"
+debconf-set-selections <<< "postfix postfix/mailname string demo.kt2l.mhus.de"
 debconf-set-selections <<< "postfix postfix/main_mailer_type string 'KT2L Demo'"
 apt-get install -y mailutils
 ```

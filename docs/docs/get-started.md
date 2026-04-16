@@ -21,7 +21,7 @@ sidebar_position: 5
 
 ## Download
 
-Download the latest snapshot from the website [KT2L Website](https://kt2l.org).
+Download the latest snapshot from the website [KT2L Website](https://kt2l.mhus.de).
 
 ## Requirements
 

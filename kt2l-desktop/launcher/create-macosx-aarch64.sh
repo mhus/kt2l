@@ -60,6 +60,6 @@ jpackage \
   --java-options "--add-opens java.base/java.util=ALL-UNNAMED" \
   --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" \
   --icon kt2l.icns \
-  --vendor "www.kt2l.org"
+  --vendor "kt2l.mhus.de"
 
 mv KT2L-${PACK_VERSION}.dmg KT2L.dmg

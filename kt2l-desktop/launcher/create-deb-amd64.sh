@@ -56,4 +56,4 @@ jpackage \
   --linux-menu-group "Utility;Administration;kt2l" \
   --linux-app-category "Administration" \
   --linux-shortcut \
-  --vendor "www.kt2l.org"
+  --vendor "kt2l.mhus.de"

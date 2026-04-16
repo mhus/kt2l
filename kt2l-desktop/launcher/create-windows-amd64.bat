@@ -32,7 +32,7 @@ jpackage  --name KT2L ^
   --win-menu-group "KT2L" ^
   --win-per-user-install ^
   --icon ..\launcher\windows\kt2l.ico ^
-  --vendor "www.kt2l.org"
+  --vendor "kt2l.mhus.de"
 
 copy KT2L-1.0.exe KT2L.exe
 

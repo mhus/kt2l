@@ -169,7 +169,7 @@ public class ClusterOverviewPanel extends VerticalLayout implements DeskTabListe
         add(version);
 
         var supportText = viewsConfiguration.getConfig("clusterOverview").getString("supportText", "KT2L Website");
-        var supportLink = viewsConfiguration.getConfig("clusterOverview").getString("supportLink", "https://kt2l.org");
+        var supportLink = viewsConfiguration.getConfig("clusterOverview").getString("supportLink", "https://kt2l.mhus.de");
         if (!isBlank(supportText)) {
             var support = new Anchor(supportLink, supportText);
             support.setTarget("_blank");

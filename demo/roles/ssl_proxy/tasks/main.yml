@@ -33,7 +33,7 @@
       PUID: "1001"
       PGID: "1001"
       TZ: Etc/UTC
-      URL: demo.kt2l.org
+      URL: demo.kt2l.mhus.de
       VALIDATION: http
     capabilities:
       - NET_ADMIN

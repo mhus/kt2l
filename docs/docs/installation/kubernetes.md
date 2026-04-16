@@ -16,7 +16,7 @@ kubectl apply -f deployment.yaml
 To install kt2l using helm, run the following commands:
 
 ```bash
-helm repo add kt2l http://kt2l.org
+helm repo add kt2l https://kt2l.mhus.de
 
 helm install kt2l kt2l/kt2l-chart
 ```
