@@ -6,10 +6,10 @@ import {XMarkIcon} from '@heroicons/react/24/outline'
 const navigation = [
     {name: 'Intro', href: '/docs/intro'},
     {name: 'Get Started', href: '/docs/get-started'},
-    {name: 'Demo', href: '/#demo'},
+    // {name: 'Demo', href: '/#demo'},
     {name: 'Downloads', href: '/#downloads'},
     {name: 'Documentation', href: '/docs'},
-    {name: 'Screenshots', href: 'https://kt2l.org/docs/screenshots'},
+    {name: 'Screenshots', href: 'https://kt2l.mhus.de/docs/screenshots'},
     {name: 'Disclaimer', href: '/#disclaimer'},
     {name: 'License', href: '/#license'},
 //    {name: 'Contribute', href: '/#contribute'},
